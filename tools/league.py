@@ -251,20 +251,39 @@ def iso_week(day: date) -> str:
     y, w, _ = day.isocalendar()
     return f"{y}-W{w:02d}"
 
+def load_roster(d: Path) -> dict:
+    """league/agents/roster.json + 외부 팀이 제출한 league/imports/<팀>/roster.json (해당 팀 키가 없을 때)."""
+    p = d / "agents" / "roster.json"
+    roster = json.loads((p if p.exists() else ROOT / "league" / "agents" / "roster.json").read_text())
+    for rp in sorted((d / "imports").glob("*/roster.json")) if (d / "imports").exists() else []:
+        team = rp.parent.name
+        if team in roster or team == "sandbox":
+            continue
+        data = json.loads(rp.read_text())
+        roster[team] = [{"status": "active", "joined_week": None, "eliminated_week": None, **a} for a in (data.get("members", []) if isinstance(data, dict) else data)
+                        if isinstance(a, dict)]
+        if isinstance(data, dict) and data.get("bench"):
+            roster.setdefault("bench_" + team, data["bench"])
+    return roster
+
 def _avg(v):
     return round(statistics.mean(v), 2) if v else None
 
 def weekly(d: Path, week: str, team: str = "claude") -> dict:
     cfg = load_config(d)
     w = cfg["weekly"]
-    roster = json.loads((d / "agents" / "roster.json").read_text()) if (d / "agents" / "roster.json").exists() \
-        else json.loads((ROOT / "league" / "agents" / "roster.json").read_text())
+    roster = load_roster(d)
     members = [a for a in roster.get(team, []) if a["status"] == "active" or a.get("eliminated_week") == week]
     scores = latest_scores(d)
     picks = [p for p in read_ledger(d, "picks") if p["team"] == team and iso_week(date.fromisoformat(p["round_date"])) == week]
+    # 이 주의 기대 제출 수 = 라운드별 열린 시장 수 (에이전트 합류 이후)
+    y, wk = map(int, week.split("-W"))
+    week_days = [date.fromisocalendar(y, wk, i) for i in range(1, 6)]
     rows = []
     for a in members:
         mine = [p for p in picks if p["agent_id"] == a["id"]]
+        expected = sum(len(open_markets(dd, cfg)) for dd in week_days
+                       if not a.get("joined_week") or iso_week(dd) >= a["joined_week"])
         fin = [(p, scores[p["pick_id"]]) for p in mine
                if p["pick_id"] in scores and scores[p["pick_id"]]["status"] == "final"]
         vals = [sc["score"] for _, sc in fin]
@@ -275,7 +294,10 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
         held = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") in ("held", "pending", "provisional", None))
         void = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") == "void")
         rows.append({"agent_id": a["id"], "label": a["label"], "version": a.get("version", 1),
-                     "picks": len(mine), "scored": len(vals), "held_or_pending": held, "void": void,
+                     "picks": len(mine), "expected": expected, "missed": max(expected - len(mine), 0),
+                     "submit_rate": round(len(mine) / expected * 100, 1) if expected else None,
+                     "void_rate": round(void / len(mine) * 100, 1) if mine else None,
+                     "scored": len(vals), "held_or_pending": held, "void": void,
                      "avg": round(statistics.mean(vals), 2) if vals else None,
                      "median": round(statistics.median(vals), 2) if vals else None,
                      "min": min(vals) if vals else None, "max": max(vals) if vals else None,
@@ -303,7 +325,7 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
             decision["hold_reasons"].append("최하위 동점 (평균·중앙값·최저점 모두 같음)")
         if not decision["hold_reasons"]:
             decision["eliminate"] = bottom["agent_id"]
-    bench = roster.get("bench", [])
+    bench = roster.get("bench" if team == "claude" else f"bench_{team}", [])   # 사전 승인된 대기 후보 (순서대로 투입)
     decision["replacement"] = bench[0]["id"] if decision["eliminate"] and bench else None
     return {"week": week, "team": team, "ranking": rows, "decision": decision}
 
@@ -393,7 +415,7 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
     existing = read_ledger(d, "picks")
     with open(path, newline="", encoding="utf-8-sig") as f:
         for i, row in enumerate(csv.DictReader(f), 2):
-            srcs = [dict(zip(("url", "as_of"), s.split("|"))) for s in (row.get("sources") or "").split(";") if s.strip()]
+            srcs = [dict(zip(("url", "as_of", "retrieved_at"), s.split("|"))) for s in (row.get("sources") or "").split(";") if s.strip()]
             ver = (row.get("agent_version") or "").strip()
             rec = make_pick(team, row["agent_id"].strip(), int(ver) if ver.isdigit() else None, row["round_date"].strip(), row["market"].strip().upper(),
                             row["ticker"].strip(), row.get("name", "").strip(), row["locked_at"].strip(),
@@ -402,6 +424,14 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
             errs = validate_pick(rec, d, cfg, existing + ok)
             if not srcs:
                 errs.append("데이터 출처(sources) 없음")
+            for sx in srcs:
+                if sx.get("retrieved_at"):
+                    try:
+                        ra = datetime.fromisoformat(sx["retrieved_at"])
+                        if ra.tzinfo is None or ra > lock_deadline(date.fromisoformat(rec["round_date"]), cfg):
+                            errs.append(f"출처 확보 시각이 마감 이후이거나 시간대 없음: {sx['retrieved_at']}")
+                    except ValueError:
+                        errs.append(f"출처 확보 시각 형식 오류: {sx['retrieved_at']}")
             if not (row.get("rationale") or "").strip():
                 errs.append("선정 근거(rationale) 없음")
             if not rec["risks"]:
@@ -559,8 +589,7 @@ def export(d: Path, out: Path):
     cfg = load_config(d)
     picks = read_ledger(d, "picks")
     weeks = sorted({iso_week(date.fromisoformat(p["round_date"])) for p in picks})
-    roster = json.loads((d / "agents" / "roster.json").read_text()) if (d / "agents" / "roster.json").exists() \
-        else json.loads((ROOT / "league" / "agents" / "roster.json").read_text())
+    roster = load_roster(d)
     data = {"generated": datetime.now(KST).isoformat(timespec="seconds"), "config": cfg, "roster": roster,
             "picks": picks, "scores": list(latest_scores(d).values()), "corrections": read_ledger(d, "corrections"),
             "weekly": {wk: weekly(d, wk) for wk in weeks}, "teams": team_summary(d),

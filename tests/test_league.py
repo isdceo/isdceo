@@ -431,6 +431,37 @@ class CsvImport(unittest.TestCase):
         self.assertTrue(any("5명 초과" in e for b in bad for e in b["errors"]))
 
 
+class Rules12(unittest.TestCase):
+    def test_submit_rate_counts_missed_slots(self):
+        d = new_league()
+        cfg = L.load_config(d)
+        for rd in ("2026-11-09", "2026-11-10"):            # W46 중 2일만, 각 2건 제출 → 10건 중 4건
+            for m, t in (("KR", "005930"), ("US", "AAPL")):
+                L.append(d, "picks", L.make_pick("claude", "buffett", 1, rd, m, t, t, f"{rd}T08:00:00+09:00",
+                                                 "", [], [], cfg))
+        r = [x for x in L.weekly(d, "2026-W46")["ranking"] if x["agent_id"] == "buffett"][0]
+        self.assertEqual((r["expected"], r["picks"], r["missed"], r["submit_rate"]), (10, 4, 6, 40.0))
+
+    def test_source_retrieved_after_deadline_rejected(self):
+        d = new_league()
+        f = d / "in.csv"
+        f.write_text(CsvImport.H +
+            "2026-11-10,s1,1,KR,005930,삼성전자,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09|2026-11-10T08:40:00+09:00\n"
+            "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09|2026-11-10T07:15:00+09:00\n")
+        ok, bad = L.import_csv(d, f, "shushu")
+        self.assertTrue(any("확보 시각" in e for b in bad for e in b["errors"]))
+
+    def test_external_roster_and_bench(self):
+        d = new_league()
+        (d / "imports" / "shushu").mkdir(parents=True)
+        (d / "imports" / "shushu" / "roster.json").write_text(json.dumps(
+            {"members": [{"id": f"s{i}", "label": f"L{i}", "version": 1} for i in range(1, 6)],
+             "bench": [{"id": "s6", "label": "대기"}]}))
+        r = L.load_roster(d)
+        self.assertEqual([a["id"] for a in r["shushu"]], ["s1", "s2", "s3", "s4", "s5"])
+        self.assertEqual(r["bench_shushu"][0]["id"], "s6")
+
+
 class Excess(unittest.TestCase):
     def test_excess_vs_benchmark(self):
         d = new_league()
