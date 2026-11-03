@@ -46,5 +46,11 @@
   "benchmarks": {
     "KR": "KOSPI",
     "US": "SPX"
-  }
+  },
+  "extreme_move_hold_pct": 30,
+  "benchmarks_note": "US 비교 기준은 S&P 500 지수 라이선스 문제로 SPY 종가 대체를 검토 중 (docs/data-provider-research.md)",
+  "open_license_sources": [
+    "fsc_disclosure"
+  ],
+  "open_license_sources_note": "이용허락 '제한 없음'이 확인된 출처만 (금융위원회_공시정보). 사용권이 확인되면 추가"
 }

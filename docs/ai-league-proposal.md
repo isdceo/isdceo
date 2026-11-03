@@ -316,3 +316,4 @@ round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources
 | 운영 기준 v1.1 (2026-11-04) | ✅ | 서버 push 시각 판정·영수증(`.github/workflows/league-submission.yml`), 원장 보호(`league-ledger-guard.yml`), 배당락일 귀속 총수익 점수 + 주가 참고 점수, 시장별 일정·시간 정합성 검사(`league.py schedule`), 테스트 41개 |
 | 실제 GitHub 검증 | ✅ | sandbox 제출로 `late`·`accepted`·재제출 `rejected` 판정과 영수증 커밋 확인 (`league/sandbox/`) |
 | 규칙 v1.2 (2026-11-04) | ✅ | 에이전트별 시장당 1종목(열린 시장 필수), 시장 대비 초과 점수(참고), 교체 보류 기준 6건/30건, 에이전트·팀 시장별 집계, 테스트 46개 |
+| 데이터 준비 골격 (2026-11-04) | ✅ | 수집기 골격 `tools/collectors.py` (KRX·Tiingo·Alpaca 연결부는 미검증, KIS 미구현, 가짜 응답 테스트), 거래일 검사·잠정/확정 대조(`price_checks`), 거래일 기준 기업행동 확인 범위, ±30% 급변 자동 보류, 지인 공유판(`export --public`, `build-site`), 공통 자료 2종(`snapshot --variant price-free|with-prices`), 제공처 문의 초안(`docs/provider-inquiries.md`), 테스트 64개 |

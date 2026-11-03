@@ -1,0 +1,128 @@
+"""수집기·공유판·공통 자료 테스트.  실행: python3 -m unittest discover -s tests -v"""
+import json, re, shutil, sys, tempfile, unittest
+from datetime import date
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+import league as L  # noqa: E402
+import collectors as C  # noqa: E402
+from test_league import new_league, pick, price, checked  # noqa: E402
+
+
+def mock(market, rows):
+    return C.MockProvider({market: rows})
+
+
+class Collect(unittest.TestCase):
+    def test_wrong_trade_date_is_failure_not_recorded(self):
+        d = new_league()
+        r = C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-09", "close": 200.0}]),
+                      "US", ["AAPL"], date(2026, 11, 10), "provisional")
+        self.assertEqual(r["recorded"], [])
+        self.assertIn("응답 거래일 2026-11-09", r["failed"][0]["reason"])
+        self.assertEqual(L.read_ledger(d, "prices"), [])
+
+    def test_missing_ticker_and_bad_close_fail(self):
+        d = new_league()
+        r = C.collect(d, mock("KR", [{"ticker": "005930", "session": "2026-11-10", "close": 0}]),
+                      "KR", ["005930", "000660"], date(2026, 11, 10), "provisional")
+        self.assertEqual(sorted(f["ticker"] for f in r["failed"]), ["000660", "005930"])
+
+    def test_provisional_not_written_after_final(self):
+        d = new_league()
+        C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-10", "close": 201.0}]), "US", ["AAPL"], date(2026, 11, 10), "final")
+        r = C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-10", "close": 200.5}]), "US", ["AAPL"], date(2026, 11, 10), "provisional")
+        self.assertEqual(r["skipped"][0]["reason"], "이미 확정 값 있음")
+        self.assertEqual(L.price_index(d)[("US", "AAPL", "2026-11-10")]["close"], 201.0)
+
+    def test_final_differs_from_provisional_records_discrepancy(self):
+        d = new_league()
+        C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-10", "close": 200.0}]), "US", ["AAPL"], date(2026, 11, 10), "provisional")
+        r = C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-10", "close": 201.0}]), "US", ["AAPL"], date(2026, 11, 10), "final")
+        self.assertEqual(r["discrepancies"][0]["diff_pct"], 0.5)
+        self.assertEqual(L.read_ledger(d, "price_checks")[0]["previous_status"], "provisional")
+        self.assertEqual(L.price_index(d)[("US", "AAPL", "2026-11-10")]["status"], "final")
+        self.assertEqual(L.verify(d), [])
+
+    def test_final_collection_writes_corporate_actions_and_check(self):
+        d = new_league()
+        C.collect(d, mock("US", [{"ticker": "KO", "session": "2026-11-10", "close": 70.0,
+                                  "dividends": [{"ex_date": "2026-11-10", "amount": 0.51, "currency": "USD"}]}]),
+                  "US", ["KO"], date(2026, 11, 10), "final")
+        types = [c["type"] for c in L.read_ledger(d, "corporate_actions")]
+        self.assertEqual(types, ["dividend", "checked"])
+
+    def test_end_to_end_mock_scoring_over_weekend(self):
+        # 월요일 라운드: 기준 금요일(11/13) → 평가 월요일(11/16). 확인 기록은 거래일(11/16)만 있으면 됨
+        d = new_league()
+        pick(d, "buffett", "2026-11-16", "US", "AAPL")
+        C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-13", "close": 200.0}]), "US", ["AAPL"], date(2026, 11, 13), "final")
+        C.collect(d, mock("US", [{"ticker": "AAPL", "session": "2026-11-16", "close": 203.0}]), "US", ["AAPL"], date(2026, 11, 16), "final")
+        w = L.run_scoring(d, today=date(2026, 11, 17))[0]
+        self.assertEqual((w["status"], w["score"]), ("final", 1.5))
+
+    def test_unconfigured_providers_raise(self):
+        for name in ("krx_openapi", "tiingo", "alpaca", "kis"):
+            with self.assertRaises(C.NotConfigured):
+                C.PROVIDERS[name]()
+
+
+class Safeguards(unittest.TestCase):
+    def test_extreme_move_held(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
+        price(d, "KR", "005930", "2026-11-09", 100000)
+        price(d, "KR", "005930", "2026-11-10", 50000)        # −50%: 분할 누락 의심
+        w = L.run_scoring(d, today=date(2026, 11, 11))[0]
+        self.assertEqual(w["status"], "held")
+        self.assertIn("±30%", w["reason"])
+
+
+class PublicAndSnapshot(unittest.TestCase):
+    def setUp(self):
+        self.d = Path(tempfile.mkdtemp()) / "sample"
+        L.make_sample(self.d)
+
+    def test_public_export_has_no_raw_prices(self):
+        out = self.d / "pub.js"
+        L.export(self.d, out, public=True)
+        txt = out.read_text()
+        self.assertNotRegex(txt, r'"(base_close|eval_close|close)"\s*:')
+        self.assertIn('"public": true', txt)
+        self.assertIn('"score"', txt)
+
+    def test_private_export_keeps_prices(self):
+        out = self.d / "priv.js"
+        L.export(self.d, out)
+        self.assertIn('"base_close"', out.read_text())
+
+    def test_build_site_contains_only_public_data(self):
+        out = Path(tempfile.mkdtemp()) / "site"
+        files = L.build_site(self.d, out)
+        self.assertIn("data/league.js", files)
+        for f in out.rglob("*.js"):
+            self.assertNotRegex(f.read_text(), r'"(base_close|eval_close|close)"\s*:')
+
+    def test_price_free_snapshot(self):
+        snap, body = L.snapshot(self.d, date(2026, 11, 10), "price-free", now="2026-11-10T07:00:00+09:00")
+        self.assertNotIn('"close"', body)
+        self.assertEqual(snap["corporate_actions_upcoming"], [])            # SAMPLE 출처는 공개 이용 출처 아님
+        self.assertEqual(snap["markets"]["KR"]["base_session"], "2026-11-09")
+
+    def test_with_prices_snapshot_and_hash_file(self):
+        p, sha = L.write_snapshot(self.d, date(2026, 11, 10), "with-prices", now="2026-11-10T07:00:00+09:00")
+        body = p.read_text()
+        self.assertIn('"base_closes"', body)
+        import hashlib
+        self.assertEqual(hashlib.sha256(body.encode()).hexdigest(), sha)
+        self.assertTrue((p.parent / (p.name + ".sha256")).read_text().startswith(sha))
+
+    def test_snapshot_deterministic(self):
+        a = L.snapshot(self.d, date(2026, 11, 10), "price-free", now="2026-11-10T07:00:00+09:00")[1]
+        b = L.snapshot(self.d, date(2026, 11, 10), "price-free", now="2026-11-10T07:00:00+09:00")[1]
+        self.assertEqual(a, b)
+
+
+if __name__ == "__main__":
+    unittest.main()

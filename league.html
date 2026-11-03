@@ -180,6 +180,7 @@ function init() {
   };
   $('#status').innerHTML =
     (L.sample ? '<span class="badge b-sample">예시 데이터 (가상)</span> ' : '') +
+    (L.public ? '<span class="badge">지인 공유판 · 원시 가격 미포함</span> ' : '') +
     (L.ledger_ok ? '<span class="badge b-ok">원장 해시 검증 정상</span> ' : '<span class="badge b-bad">원장 검증 실패</span> ') +
     `<span>생성 ${esc(L.generated.slice(0, 16).replace('T', ' '))}</span>`;
   $('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { state.tab = b.dataset.tab; store.set('tab', state.tab); render(); } });

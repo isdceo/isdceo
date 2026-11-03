@@ -1,0 +1,805 @@
+{
+ "corporate_actions_sources": [
+  "fsc_disclosure"
+ ],
+ "corporate_actions_upcoming": [],
+ "deadline_kst": "2026-11-10T08:30:00+09:00",
+ "disclosures": {
+  "note": "DART 공시 연결 전",
+  "status": "not_configured"
+ },
+ "generated_at": "2026-11-04T08:56:20+09:00",
+ "institutional_13f": {
+  "funds": [
+   {
+    "filed": "2026-08-14",
+    "name": "Berkshire Hathaway",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "hold",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 22.04
+     },
+     {
+      "change": "hold",
+      "cusip": "025816109",
+      "name": "AMERICAN EXPRESS CO",
+      "put_call": null,
+      "weight_pct": 17.14
+     },
+     {
+      "change": "hold",
+      "cusip": "191216100",
+      "name": "COCA COLA CO",
+      "put_call": null,
+      "weight_pct": 10.86
+     },
+     {
+      "change": "add",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 9.41
+     },
+     {
+      "change": "reduce",
+      "cusip": "060505104",
+      "name": "BANK OF AMER CORP",
+      "put_call": null,
+      "weight_pct": 9.2
+     },
+     {
+      "change": "hold",
+      "cusip": "166764100",
+      "name": "CHEVRON CORPORATION",
+      "put_call": null,
+      "weight_pct": 4.67
+     },
+     {
+      "change": "hold",
+      "cusip": "674599105",
+      "name": "OCCIDENTAL PETE CORP",
+      "put_call": null,
+      "weight_pct": 4.3
+     },
+     {
+      "change": "hold",
+      "cusip": "H1467J104",
+      "name": "CHUBB LIMITED",
+      "put_call": null,
+      "weight_pct": 3.9
+     },
+     {
+      "change": "hold",
+      "cusip": "615369105",
+      "name": "MOODYS CORP",
+      "put_call": null,
+      "weight_pct": 3.73
+     },
+     {
+      "change": "add",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 3.21
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Bridgewater Associates",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "add",
+      "cusip": "78462F103",
+      "name": "STATE STR SPDR S&P 500 ETF T",
+      "put_call": null,
+      "weight_pct": 16.3
+     },
+     {
+      "change": "add",
+      "cusip": "464287200",
+      "name": "ISHARES TR",
+      "put_call": null,
+      "weight_pct": 9.22
+     },
+     {
+      "change": "reduce",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": null,
+      "weight_pct": 3.17
+     },
+     {
+      "change": "reduce",
+      "cusip": "11135F101",
+      "name": "BROADCOM INC",
+      "put_call": null,
+      "weight_pct": 2.04
+     },
+     {
+      "change": "reduce",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 1.98
+     },
+     {
+      "change": "reduce",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 1.94
+     },
+     {
+      "change": "reduce",
+      "cusip": "512807306",
+      "name": "LAM RESEARCH CORP",
+      "put_call": null,
+      "weight_pct": 1.67
+     },
+     {
+      "change": "add",
+      "cusip": "922908363",
+      "name": "VANGUARD INDEX FDS",
+      "put_call": null,
+      "weight_pct": 1.29
+     },
+     {
+      "change": "reduce",
+      "cusip": "007903107",
+      "name": "ADVANCED MICRO DEVICES INC",
+      "put_call": null,
+      "weight_pct": 1.28
+     },
+     {
+      "change": "reduce",
+      "cusip": "464286772",
+      "name": "ISHARES INC",
+      "put_call": null,
+      "weight_pct": 1.15
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "ARK Investment Management",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "88160R101",
+      "name": "Tesla Inc",
+      "put_call": null,
+      "weight_pct": 7.54
+     },
+     {
+      "change": "reduce",
+      "cusip": "007903107",
+      "name": "Advanced Micro Devices Inc",
+      "put_call": null,
+      "weight_pct": 5.34
+     },
+     {
+      "change": "new",
+      "cusip": "84615Q103",
+      "name": "Space Exploration Technologies Corp",
+      "put_call": null,
+      "weight_pct": 4.97
+     },
+     {
+      "change": "add",
+      "cusip": "88023B103",
+      "name": "Tempus AI Inc",
+      "put_call": null,
+      "weight_pct": 3.77
+     },
+     {
+      "change": "reduce",
+      "cusip": "770700102",
+      "name": "Robinhood Markets Inc",
+      "put_call": null,
+      "weight_pct": 3.41
+     },
+     {
+      "change": "reduce",
+      "cusip": "H17182108",
+      "name": "CRISPR Therapeutics AG",
+      "put_call": null,
+      "weight_pct": 3.35
+     },
+     {
+      "change": "reduce",
+      "cusip": "82509L107",
+      "name": "Shopify Inc",
+      "put_call": null,
+      "weight_pct": 3.08
+     },
+     {
+      "change": "reduce",
+      "cusip": "90184D100",
+      "name": "Twist Bioscience Corp",
+      "put_call": null,
+      "weight_pct": 3.04
+     },
+     {
+      "change": "reduce",
+      "cusip": "88025U109",
+      "name": "10X Genomics Inc",
+      "put_call": null,
+      "weight_pct": 2.49
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "Amazon.com Inc",
+      "put_call": null,
+      "weight_pct": 2.46
+     }
+    ]
+   },
+   {
+    "filed": "2025-11-03",
+    "name": "Scion Asset Management",
+    "period": "2025-09-30",
+    "top10": [
+     {
+      "change": "new",
+      "cusip": "69608A108",
+      "name": "PALANTIR TECHNOLOGIES INC",
+      "put_call": "Put",
+      "weight_pct": 66.04
+     },
+     {
+      "change": "new",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": "Put",
+      "weight_pct": 13.51
+     },
+     {
+      "change": "new",
+      "cusip": "717081103",
+      "name": "PFIZER INC",
+      "put_call": "Call",
+      "weight_pct": 11.07
+     },
+     {
+      "change": "new",
+      "cusip": "406216101",
+      "name": "HALLIBURTON CO",
+      "put_call": "Call",
+      "weight_pct": 4.45
+     },
+     {
+      "change": "new",
+      "cusip": "60855R100",
+      "name": "MOLINA HEALTHCARE INC",
+      "put_call": null,
+      "weight_pct": 1.73
+     },
+     {
+      "change": "add",
+      "cusip": "550021109",
+      "name": "LULULEMON ATHLETICA INC",
+      "put_call": null,
+      "weight_pct": 1.29
+     },
+     {
+      "change": "new",
+      "cusip": "78442P106",
+      "name": "SLM CORP",
+      "put_call": null,
+      "weight_pct": 0.96
+     },
+     {
+      "change": "new",
+      "cusip": "116794207",
+      "name": "BRUKER CORP",
+      "put_call": null,
+      "weight_pct": 0.95
+     }
+    ]
+   },
+   {
+    "filed": "2026-05-15",
+    "name": "Pershing Square",
+    "period": "2026-03-31",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "11271J107",
+      "name": "BROOKFIELD CORP",
+      "put_call": null,
+      "weight_pct": 17.62
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 17.39
+     },
+     {
+      "change": "reduce",
+      "cusip": "90353T100",
+      "name": "UBER TECHNOLOGIES INC",
+      "put_call": null,
+      "weight_pct": 15.71
+     },
+     {
+      "change": "new",
+      "cusip": "594918104",
+      "name": "MICROSOFT CORP",
+      "put_call": null,
+      "weight_pct": 15.26
+     },
+     {
+      "change": "reduce",
+      "cusip": "76131D103",
+      "name": "RESTAURANT BRANDS INTL INC",
+      "put_call": null,
+      "weight_pct": 12.2
+     },
+     {
+      "change": "hold",
+      "cusip": "30303M102",
+      "name": "META PLATFORMS INC",
+      "put_call": null,
+      "weight_pct": 11.1
+     },
+     {
+      "change": "hold",
+      "cusip": "44267T102",
+      "name": "HOWARD HUGHES HOLDINGS INC",
+      "put_call": null,
+      "weight_pct": 8.7
+     },
+     {
+      "change": "hold",
+      "cusip": "812215200",
+      "name": "SEAPORT ENTMT GROUP INC",
+      "put_call": null,
+      "weight_pct": 0.79
+     },
+     {
+      "change": "reduce",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 0.65
+     },
+     {
+      "change": "hold",
+      "cusip": "42806J700",
+      "name": "HERTZ GLOBAL HLDGS INC",
+      "put_call": null,
+      "weight_pct": 0.51
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-13",
+    "name": "Baupost Group",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 16.48
+     },
+     {
+      "change": "hold",
+      "cusip": "036752103",
+      "name": "ELEVANCE HEALTH INC FORMERLY",
+      "put_call": null,
+      "weight_pct": 9.11
+     },
+     {
+      "change": "reduce",
+      "cusip": "76131D103",
+      "name": "RESTAURANT BRANDS INTL INC",
+      "put_call": null,
+      "weight_pct": 9.04
+     },
+     {
+      "change": "add",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 8.95
+     },
+     {
+      "change": "add",
+      "cusip": "31488V107",
+      "name": "FERGUSON ENTERPRISES INC",
+      "put_call": null,
+      "weight_pct": 6.36
+     },
+     {
+      "change": "add",
+      "cusip": "372460105",
+      "name": "GENUINE PARTS CO",
+      "put_call": null,
+      "weight_pct": 6.13
+     },
+     {
+      "change": "reduce",
+      "cusip": "907818108",
+      "name": "UNION PAC CORP",
+      "put_call": null,
+      "weight_pct": 5.95
+     },
+     {
+      "change": "hold",
+      "cusip": "92826C839",
+      "name": "VISA INC",
+      "put_call": null,
+      "weight_pct": 4.44
+     },
+     {
+      "change": "reduce",
+      "cusip": "95082P105",
+      "name": "WESCO INTL INC",
+      "put_call": null,
+      "weight_pct": 4.23
+     },
+     {
+      "change": "reduce",
+      "cusip": "G0403H108",
+      "name": "AON PLC",
+      "put_call": null,
+      "weight_pct": 4.21
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Soros Fund Management",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 3.46
+     },
+     {
+      "change": "hold",
+      "cusip": "874039100",
+      "name": "TAIWAN SEMICONDUCTOR MANUFAC",
+      "put_call": null,
+      "weight_pct": 3.06
+     },
+     {
+      "change": "hold",
+      "cusip": "37940XAU6",
+      "name": "GLOBAL PMTS INC",
+      "put_call": null,
+      "weight_pct": 2.73
+     },
+     {
+      "change": "add",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 2.62
+     },
+     {
+      "change": "reduce",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": null,
+      "weight_pct": 2.62
+     },
+     {
+      "change": "add",
+      "cusip": "285512109",
+      "name": "ELECTRONIC ARTS INC",
+      "put_call": null,
+      "weight_pct": 2.44
+     },
+     {
+      "change": "hold",
+      "cusip": "090043AF7",
+      "name": "BILL HOLDINGS INC",
+      "put_call": null,
+      "weight_pct": 2.23
+     },
+     {
+      "change": "hold",
+      "cusip": "69331CAL2",
+      "name": "PG&E CORP",
+      "put_call": null,
+      "weight_pct": 2.21
+     },
+     {
+      "change": "reduce",
+      "cusip": "76954AAB9",
+      "name": "RIVIAN AUTOMOTIVE INC",
+      "put_call": null,
+      "weight_pct": 1.91
+     },
+     {
+      "change": "add",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 1.88
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Himalaya Capital",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "hold",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 24.55
+     },
+     {
+      "change": "hold",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 23.39
+     },
+     {
+      "change": "add",
+      "cusip": "722304102",
+      "name": "PDD HOLDINGS INC",
+      "put_call": null,
+      "weight_pct": 22.17
+     },
+     {
+      "change": "add",
+      "cusip": "084670702",
+      "name": "BERKSHIRE HATHAWAY INC DEL",
+      "put_call": null,
+      "weight_pct": 14.98
+     },
+     {
+      "change": "hold",
+      "cusip": "27579R104",
+      "name": "EAST WEST BANCORP INC",
+      "put_call": null,
+      "weight_pct": 9.68
+     },
+     {
+      "change": "hold",
+      "cusip": "227046109",
+      "name": "CROCS INC",
+      "put_call": null,
+      "weight_pct": 2.89
+     },
+     {
+      "change": "hold",
+      "cusip": "88034P109",
+      "name": "TENCENT MUSIC ENTERTAINM",
+      "put_call": null,
+      "weight_pct": 1.49
+     },
+     {
+      "change": "hold",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 0.86
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Duquesne Family Office",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "add",
+      "cusip": "632307104",
+      "name": "Natera Inc",
+      "put_call": null,
+      "weight_pct": 16.6
+     },
+     {
+      "change": "add",
+      "cusip": "874039100",
+      "name": "Taiwan Semiconductor Manufac",
+      "put_call": null,
+      "weight_pct": 5.4
+     },
+     {
+      "change": "add",
+      "cusip": "861012102",
+      "name": "Stmicroelectronics N V",
+      "put_call": null,
+      "weight_pct": 4.46
+     },
+     {
+      "change": "hold",
+      "cusip": "46137V357",
+      "name": "Invesco Exchange Traded Fd T",
+      "put_call": "Call",
+      "weight_pct": 3.35
+     },
+     {
+      "change": "add",
+      "cusip": "457669307",
+      "name": "Insmed Inc",
+      "put_call": null,
+      "weight_pct": 2.92
+     },
+     {
+      "change": "hold",
+      "cusip": "464286400",
+      "name": "Ishares Inc",
+      "put_call": "Call",
+      "weight_pct": 2.8
+     },
+     {
+      "change": "new",
+      "cusip": "457669307",
+      "name": "Insmed Inc",
+      "put_call": "Call",
+      "weight_pct": 2.76
+     },
+     {
+      "change": "reduce",
+      "cusip": "984245100",
+      "name": "Ypf Sociedad Anonima",
+      "put_call": null,
+      "weight_pct": 2.74
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "Amazon Com Inc",
+      "put_call": null,
+      "weight_pct": 2.48
+     },
+     {
+      "change": "reduce",
+      "cusip": "G0896C103",
+      "name": "Bbb Foods Inc",
+      "put_call": null,
+      "weight_pct": 2.32
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-13",
+    "name": "국민연금 (NPS)",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": null,
+      "weight_pct": 6.56
+     },
+     {
+      "change": "add",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 5.88
+     },
+     {
+      "change": "add",
+      "cusip": "594918104",
+      "name": "MICROSOFT CORP",
+      "put_call": null,
+      "weight_pct": 3.67
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 3.22
+     },
+     {
+      "change": "add",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 3.02
+     },
+     {
+      "change": "reduce",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 2.4
+     },
+     {
+      "change": "add",
+      "cusip": "11135F101",
+      "name": "BROADCOM INC",
+      "put_call": null,
+      "weight_pct": 2.34
+     },
+     {
+      "change": "hold",
+      "cusip": "46138E461",
+      "name": "INVESCO EXCH TRADED FD TR II",
+      "put_call": null,
+      "weight_pct": 2.29
+     },
+     {
+      "change": "hold",
+      "cusip": "595112103",
+      "name": "MICRON TECHNOLOGY INC",
+      "put_call": null,
+      "weight_pct": 2.15
+     },
+     {
+      "change": "hold",
+      "cusip": "464287200",
+      "name": "ISHARES TR",
+      "put_call": null,
+      "weight_pct": 1.99
+     }
+    ]
+   }
+  ],
+  "generated": "2026-11-03",
+  "source": "SEC EDGAR Form 13F-HR"
+ },
+ "markets": {
+  "KR": {
+   "base_close_kst": "2026-11-09T15:30+09:00",
+   "base_session": "2026-11-09",
+   "deadline_kst": "2026-11-10T08:30+09:00",
+   "eval_close_kst": "2026-11-10T15:30+09:00",
+   "eval_open_kst": "2026-11-10T09:00+09:00",
+   "eval_session": "2026-11-10",
+   "market": "KR",
+   "ok": true,
+   "round_date": "2026-11-10"
+  },
+  "US": {
+   "base_close_kst": "2026-11-10T06:00+09:00",
+   "base_session": "2026-11-09",
+   "deadline_kst": "2026-11-10T08:30+09:00",
+   "eval_close_kst": "2026-11-11T06:00+09:00",
+   "eval_open_kst": "2026-11-10T23:30+09:00",
+   "eval_session": "2026-11-10",
+   "market": "US",
+   "ok": true,
+   "round_date": "2026-11-10"
+  }
+ },
+ "notes": [
+  "이 자료 이후 08:30 KST 전까지 추가 검색은 허용되며 출처·기준일·확보 시각을 기록한다."
+ ],
+ "round_date": "2026-11-10",
+ "rules": {
+  "benchmarks": {
+   "KR": "KOSPI",
+   "US": "SPX"
+  },
+  "scoring": "((평가 종가 + 귀속 현금배당) × 분할비율 ÷ 기준 종가 − 1) × 100"
+ },
+ "universe": {
+  "counts": {
+   "KR": 8,
+   "US": 8
+  },
+  "file": "sample/universe.json",
+  "sha256": "90197316a3c82d15ab7478943c956847ff19b4ef4946917148228a38991d44c0",
+  "status": "sample"
+ },
+ "variant": "price-free"
+}

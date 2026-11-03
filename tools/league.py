@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
-LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals")
+LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -137,11 +137,18 @@ def corporate_actions(d: Path) -> list[dict]:
     {"type":"checked","market","ticker","from","to","source","checked_at"}  # 이 구간의 배당·분할을 확인 완료"""
     return read_ledger(d, "corporate_actions")
 
-def ca_for(cas: list[dict], m: str, t: str, after: date, upto: date):
-    """(after, upto] 구간의 배당 합계·분할 비율·확인 여부."""
+def ca_for(cas: list[dict], m: str, t: str, after: date, upto: date, cfg: dict | None = None):
+    """(after, upto] 구간의 배당 합계·분할 비율·확인 여부.
+    확인 여부: 구간 안의 모든 '거래일'이 어떤 checked 기록의 [from, to] 범위에 들어가야 한다 (주말·휴장일은 볼 필요 없음)."""
     mine = [c for c in cas if c["market"] == m and c["ticker"] == t]
-    checked = any(c["type"] == "checked" and date.fromisoformat(c["from"]) <= after + timedelta(days=1)
-                  and date.fromisoformat(c["to"]) >= upto for c in mine)
+    ranges = [(date.fromisoformat(c["from"]), date.fromisoformat(c["to"])) for c in mine if c["type"] == "checked"]
+    sessions, x = [], after
+    while True:
+        x = next_session(m, x, cfg or {"calendar_overrides": {}})
+        if x > upto:
+            break
+        sessions.append(x)
+    checked = bool(sessions) and all(any(a <= s_ <= b for a, b in ranges) for s_ in sessions)
     inwin = lambda c: after < date.fromisoformat(c["ex_date"]) <= upto
     divs = [c for c in mine if c["type"] == "dividend" and inwin(c)]
     splits = [c for c in mine if c["type"] == "split" and inwin(c)]
@@ -199,7 +206,7 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
         total = round((ev["close"] / base["close"] - 1) * 100, 2)
         price_only, div, ratio, refs = None, 0.0, 1.0, []
     else:
-        checked, div, ratio, divs, splits = ca_for(cas, m, t, base_s, s)
+        checked, div, ratio, divs, splits = ca_for(cas, m, t, base_s, s, cfg)
         if not checked:
             out.update(status="held", reason="배당·분할 정보 미확인")
             return out
@@ -208,6 +215,14 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
             return out
         total, price_only = compute_scores(base["close"], ev["close"], ratio, div)
         refs = [c["hash"] for c in divs + splits]
+        lim = cfg.get("extreme_move_hold_pct", 30)
+        if abs(total) > lim and not p.get("extreme_move_confirmed"):
+            # 기업행동 누락·가격 오류 가능성: 운영자 확인 전까지 보류 (확인 기록은 corrections 원장 또는 별도 승인으로)
+            confirmed = any(c.get("type") == "extreme_move_confirmed" and c.get("pick_id") == p["pick_id"]
+                            for c in cas)
+            if not confirmed:
+                out.update(status="held", reason=f"하루 변동 {total:+.2f}% (±{lim}% 초과) — 기업행동 누락·가격 오류 확인 필요")
+                return out
     # 참고: 시장 대비 초과 점수 = 공식 점수 − 같은 구간 벤치마크 지수 수익률 (지수는 가격지수)
     bench = cfg.get("benchmarks", {}).get(m)
     bb_, be_ = prices.get((m, bench, base_s.isoformat())), prices.get((m, bench, s.isoformat()))
@@ -590,7 +605,16 @@ def append_only_violations(base: str, head: str, cwd=ROOT) -> list[str]:
 
 # ───────────────────────── 화면용 내보내기 ─────────────────────────
 
-def export(d: Path, out: Path):
+PRIVATE_SCORE_FIELDS = ("base_close", "eval_close")       # 원시 가격: 지인 공유판에서 제외
+
+def _strip_prices(sc: dict) -> dict:
+    sc = {k: v for k, v in sc.items() if k not in PRIVATE_SCORE_FIELDS}
+    if isinstance(sc.get("adjustment"), dict):
+        sc["adjustment"] = {k: v for k, v in sc["adjustment"].items() if k != "dividend"} | \
+                           {"dividend_applied": bool(sc["adjustment"].get("dividend"))}
+    return sc
+
+def export(d: Path, out: Path, public: bool = False):
     cfg = load_config(d)
     picks = read_ledger(d, "picks")
     weeks = sorted({iso_week(date.fromisoformat(p["round_date"])) for p in picks})
@@ -600,9 +624,103 @@ def export(d: Path, out: Path):
             "weekly": {team: {wk: weekly(d, wk, team) for wk in weeks} for team in cfg["teams"]},
             "teams": team_summary(d), "submissions": read_ledger(d, "submissions"),
             "approvals": read_ledger(d, "approvals"),
-            "ledger_ok": not verify(d), "sample": (d / "SAMPLE").exists()}
+            "ledger_ok": not verify(d), "sample": (d / "SAMPLE").exists(), "public": public}
+    if public:
+        # 지인 공유판: 원시 가격·배당 금액·내부 원장 경로 제외. 점수(%)·순위·종목명·근거만 남긴다.
+        data["scores"] = [_strip_prices(x) for x in data["scores"]]
+        data["submissions"] = [{k: v for k, v in x.items() if k in ("team", "round_date", "status", "pushed_at", "imported",
+                                                                      "commit", "csv_sha256", "errors")} for x in data["submissions"]]
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("// 자동 생성: python3 tools/league.py export\nwindow.LEAGUE = "
                    + json.dumps(data, ensure_ascii=False) + ";\n")
+
+def build_site(d: Path, out: Path) -> list[str]:
+    """지인 배포용 정적 폴더. 원시 가격이 들어간 파일은 넣지 않는다."""
+    import shutil
+    if out.exists():
+        shutil.rmtree(out)
+    (out / "data").mkdir(parents=True)
+    for f in ("league.html", "index.html"):
+        shutil.copy(ROOT / f, out / f)
+    if (ROOT / "data" / "holdings.js").exists():          # SEC 13F 공시 (미국 정부 공개 자료)
+        shutil.copy(ROOT / "data" / "holdings.js", out / "data" / "holdings.js")
+    export(d, out / "data" / "league.js", public=True)
+    leaked = [f for f in out.rglob("*.js") if re.search(r'"(base_close|eval_close|close)"\s*:', f.read_text())]
+    if leaked:
+        raise RuntimeError(f"원시 가격 필드가 배포 파일에 남음: {leaked}")
+    return sorted(str(p.relative_to(out)) for p in out.rglob("*") if p.is_file())
+
+# ───────────────────────── 공통 자료 (07:00 snapshot) ─────────────────────────
+
+def snapshot(d: Path, round_date: date, variant: str = "price-free", now: str | None = None) -> tuple[dict, str]:
+    """두 팀에 같은 시점의 같은 자료를 준다. variant:
+    - price-free: 공개·자유 이용 가능한 자료만 (거래일·대상 범위 참조·기업행동 일정·SEC 13F). 사용권 확인 전 기본값.
+    - with-prices: 위 + 기준 세션 종가(원장에 있는 값, 출처·상태 표시). 제공처 사용권(사용 형태 ②) 확인 후에만 사용."""
+    assert variant in ("price-free", "with-prices")
+    cfg = load_config(d)
+    uni_p = d / "universe.json" if (d / "universe.json").exists() else ROOT / "league" / "universe.json"
+    uni = json.loads(uni_p.read_text())
+    markets = {m: timing(m, round_date, cfg) for m in ("KR", "US")}
+    cas = corporate_actions(d)
+    upcoming = []
+    open_src = set(cfg.get("open_license_sources", []))
+    for c in cas:
+        if variant == "price-free" and c.get("source") not in open_src:
+            continue          # 가격 제외판: 이용 제한 없는 출처의 기업행동 일정만
+        if c["type"] in ("dividend", "split") and c.get("ex_date"):
+            ex = date.fromisoformat(c["ex_date"])
+            if round_date <= ex <= round_date + timedelta(days=10):
+                upcoming.append({k: c[k] for k in ("type", "market", "ticker", "ex_date") if k in c}
+                                | ({"amount": c["amount"]} if c["type"] == "dividend" else {"ratio": c.get("ratio")}))
+    holdings = None
+    hp = ROOT / "data" / "holdings.json"
+    if hp.exists():
+        h = json.loads(hp.read_text())
+        holdings = {"source": h.get("source"), "generated": h.get("generated"),
+                    "funds": [{"name": f["name"], "period": f["period"], "filed": f["filed"],
+                               "top10": [{"name": x["name"], "cusip": x["cusip"], "put_call": x.get("putCall") or None,
+                                          "weight_pct": round(x["weight"], 2), "change": x["change"]} for x in f["holdings"][:10]]}
+                              for f in h.get("funds", [])]}
+    snap = {
+        "round_date": round_date.isoformat(), "variant": variant,
+        "generated_at": now or datetime.now(KST).isoformat(timespec="seconds"),
+        "deadline_kst": lock_deadline(round_date, cfg).isoformat(),
+        "markets": {m: (t if t else {"open": False, "note": "휴장 — 이 시장 종목 선택 불가"}) for m, t in markets.items()},
+        "universe": {"file": str(uni_p.relative_to(d.parent) if uni_p.is_relative_to(d.parent) else uni_p.name),
+                     "sha256": hashlib.sha256(uni_p.read_bytes()).hexdigest(), "status": uni.get("status"),
+                     "counts": {m: len(uni.get(m, {})) for m in ("KR", "US")}},
+        "corporate_actions_upcoming": sorted(upcoming, key=lambda x: (x["ex_date"], x["market"], x["ticker"])),
+        "corporate_actions_sources": sorted(open_src) if variant == "price-free" else "all",
+        "institutional_13f": holdings,
+        "disclosures": {"status": "not_configured", "note": "DART 공시 연결 전"},
+        "rules": {"scoring": cfg["scoring"]["formula"], "benchmarks": cfg.get("benchmarks")},
+        "notes": ["이 자료 이후 08:30 KST 전까지 추가 검색은 허용되며 출처·기준일·확보 시각을 기록한다."],
+    }
+    if variant == "with-prices":
+        idx = price_index(d)
+        rows = []
+        for m, t in markets.items():
+            if not t:
+                continue
+            for tk in list(uni.get(m, {})) + [cfg.get("benchmarks", {}).get(m)]:
+                r = idx.get((m, tk, t["base_session"]))
+                if r and r.get("close") is not None:
+                    rows.append({"market": m, "ticker": tk, "session": t["base_session"], "close": r["close"],
+                                 "status": r.get("status"), "source": r.get("source")})
+        snap["base_closes"] = rows
+        snap["notes"].append("base_closes는 비공개 공통 자료 전용. 지인 화면·외부 재배포 금지.")
+    body = json.dumps(snap, ensure_ascii=False, sort_keys=True, indent=1)
+    return snap, body
+
+def write_snapshot(d: Path, round_date: date, variant: str, now: str | None = None) -> tuple[Path, str]:
+    snap, body = snapshot(d, round_date, variant, now)
+    out = d / "rounds" / round_date.isoformat()
+    out.mkdir(parents=True, exist_ok=True)
+    name = "snapshot.json" if variant == "price-free" else "snapshot-with-prices.json"
+    (out / name).write_text(body)
+    sha = hashlib.sha256(body.encode()).hexdigest()
+    (out / (name + ".sha256")).write_text(f"{sha}  {name}\n")
+    return out / name, sha
 
 # ───────────────────────── 예시 데이터 ─────────────────────────
 
@@ -715,13 +833,15 @@ def make_sample(d: Path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--out")
     ap.add_argument("--to", help="schedule: 끝 날짜")
+    ap.add_argument("--public", action="store_true", help="export: 지인 공유판 (원시 가격 제외)")
+    ap.add_argument("--variant", default="price-free", choices=["price-free", "with-prices"])
     ap.add_argument("--run-id", default="")
     ap.add_argument("--run-url", default="")
     ap.add_argument("--run-created-at")
@@ -746,6 +866,14 @@ def main():
     elif a.cmd == "sample":
         make_sample(d)
         print(f"예시 데이터 생성: {d}")
+    elif a.cmd == "build-site":
+        out = Path(a.out or (ROOT / "site"))
+        for f in build_site(d, out):
+            print(f)
+        print(f"배포 폴더: {out} (원시 가격 없음 확인)")
+    elif a.cmd == "snapshot":
+        p, sha = write_snapshot(d, date.fromisoformat(a.arg) if a.arg else datetime.now(KST).date(), a.variant)
+        print(f"{p}\nsha256 {sha}")
     elif a.cmd == "schedule":
         cfg = load_config(d)
         start = date.fromisoformat(a.arg) if a.arg else datetime.now(KST).date()
@@ -768,8 +896,8 @@ def main():
         for r in process_push(event, a.run_id, a.run_url, a.run_created_at):
             print(f"{r['team']} {r['round_date']} {r['status']} push={r['pushed_at']} sha256={r['csv_sha256'][:12]} {'; '.join(r['errors'])}")
     elif a.cmd == "export":
-        out = Path(a.out or (ROOT / "data" / "league.js"))
-        export(d, out)
+        out = Path(a.out or (ROOT / "data" / ("league-public.js" if a.public else "league.js")))
+        export(d, out, public=a.public)
         print(f"내보내기: {out}")
 
 if __name__ == "__main__":
