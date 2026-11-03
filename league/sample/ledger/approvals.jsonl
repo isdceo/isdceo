@@ -1,0 +1,2 @@
+{"agent_id": "momentum", "decision": "approved", "hash": "31c0ef5f8709d8d2c2bf66e64857650667b30402cd8100733543a3bb63d48054", "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000", "source": "SAMPLE", "team": "claude", "type": "bench"}
+{"agent_id": "quant", "decision": "approved", "hash": "7f713c9017d41ac49f34695d9f2e5796d804eff0093a6c5b1424f36152e8d759", "prev_hash": "31c0ef5f8709d8d2c2bf66e64857650667b30402cd8100733543a3bb63d48054", "source": "SAMPLE", "team": "claude", "type": "bench"}

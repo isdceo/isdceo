@@ -364,7 +364,14 @@ class Weekly(unittest.TestCase):
         w = self._week(d, {"buffett": [1] * 6, "lynch": [2] * 6, "dalio": [0] * 6,
                            "wood": [1, 0] * 3, "burry": [-1] * 6})
         self.assertEqual(w["decision"]["eliminate"], "burry")
-        self.assertEqual(w["decision"]["replacement"], "momentum")
+        self.assertIsNone(w["decision"]["replacement"])              # 승인 전에는 투입 불가
+
+    def test_only_approved_bench_replaces(self):
+        d = new_league()
+        L.append(d, "approvals", {"type": "bench", "team": "claude", "agent_id": "quant", "decision": "approved"})
+        w = self._week(d, {"buffett": [1] * 6, "lynch": [2] * 6, "dalio": [0] * 6,
+                           "wood": [1, 0] * 3, "burry": [-1] * 6})
+        self.assertEqual(w["decision"]["replacement"], "quant")      # 1순위 momentum 미승인 → 승인된 quant
 
     def test_hold_when_bottom_has_too_few_scores(self):
         d = new_league()

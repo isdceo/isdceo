@@ -52,16 +52,18 @@
    "label": "모멘텀형",
    "style_ref": "추세 추종·상대강도",
    "version": 1,
-   "approved": false,
-   "guideline": ".claude/agents/momentum.md"
+   "approved": true,
+   "guideline": ".claude/agents/momentum.md",
+   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)"
   },
   {
    "id": "quant",
    "label": "퀀트 팩터형",
    "style_ref": "가치·퀄리티·모멘텀 복합 팩터",
    "version": 1,
-   "approved": false,
-   "guideline": ".claude/agents/quant.md"
+   "approved": true,
+   "guideline": ".claude/agents/quant.md",
+   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)"
   },
   {
    "id": "dividend",

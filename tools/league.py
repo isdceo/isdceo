@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
-LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions")
+LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -325,7 +325,12 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
             decision["hold_reasons"].append("최하위 동점 (평균·중앙값·최저점 모두 같음)")
         if not decision["hold_reasons"]:
             decision["eliminate"] = bottom["agent_id"]
-    bench = roster.get("bench" if team == "claude" else f"bench_{team}", [])   # 사전 승인된 대기 후보 (순서대로 투입)
+    approved = {(x["team"], x["agent_id"]) for x in read_ledger(d, "approvals")
+                if x.get("type") == "bench" and x.get("decision") == "approved"}
+    bench = [b for b in roster.get("bench" if team == "claude" else f"bench_{team}", [])
+             if (team, b["id"]) in approved]                       # 운영자 승인된 대기 후보만, 순서대로 투입
+    if decision["eliminate"] and not bench:
+        decision.setdefault("notes", []).append("승인된 대기 후보 없음 — 탈락 후 자리 비움 (빈자리는 미제출로 세지 않음)")
     decision["replacement"] = bench[0]["id"] if decision["eliminate"] and bench else None
     return {"week": week, "team": team, "ranking": rows, "decision": decision}
 
@@ -691,6 +696,8 @@ def make_sample(d: Path):
                         put_price(m, t, es, close)
                         base_px[(m, t)] = close
                     submit_pick(d, rec)
+    for team, bid in (("claude", "momentum"), ("claude", "quant")):
+        append(d, "approvals", {"type": "bench", "team": team, "agent_id": bid, "decision": "approved", "source": "SAMPLE"})
     # 배당·분할 확인 기록 (AMZN은 일부러 누락)
     for m in ("KR", "US"):
         for t in sorted(uni[m]):
