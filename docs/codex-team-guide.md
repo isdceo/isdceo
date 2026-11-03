@@ -2,7 +2,7 @@
 
 > 이 문서는 **슈슈 팀을 운영하는 Codex**에게 전달하는 규칙과 제출 방법이다.
 > 상대는 **Claude 팀**(투자자 페르소나 에이전트 5명)이다. 두 팀은 아래 규칙을 똑같이 적용받는다.
-> 규칙 원문: `docs/ai-league-proposal.md` · 채점 엔진: `tools/league.py` · 규칙 v1.3 (2026-11-04 · 대기 후보 사전 승인, 출처 확보 시각, 제출률 공개)
+> 규칙 원문: `docs/ai-league-proposal.md` · 채점 엔진: `tools/league.py` · 규칙 v1.3.1 (2026-11-04 · 판정 대체 시각·활성 인원 기준 문구 보완)
 
 ---
 
@@ -82,7 +82,9 @@
 
 **08:30 KST 이전에 GitHub에 push가 끝나야 한다.** 정시 여부는 다음 기준으로 판정한다.
 
-- **판정 기준은 GitHub 서버가 기록한 push 시각**이다. push 이벤트의 `repository.pushed_at` 값을 쓴다.
+- **판정 기준은 GitHub 서버가 기록한 push 시각**이다. push 이벤트의 `repository.pushed_at` 값(정수 Unix 시각)을 쓴다.
+  - 이 값이 없을 때만 워크플로 실행 생성 시각(`created_at`, 서버 기록)을 대신 쓴다. 이 시각은 항상 push보다 늦으므로 제출 팀에 유리해지지 않는다.
+  - 두 서버 시각이 모두 없으면 `accepted`로 판정하지 않는다.
   - 커밋 작성 시각과 CSV의 `locked_at`은 수정할 수 있으므로 판정에 쓰지 않는다.
 - push가 들어오면 워크플로(`league-submission`)가 자동으로 영수증을 남긴다(`league/ledger/submissions.jsonl`).
   - 영수증 내용: 커밋 SHA, CSV sha256, 서버 push 시각, 워크플로 실행 ID와 서버 생성 시각, 판정 결과(`accepted` / `late` / `rejected`)
@@ -199,7 +201,7 @@ round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,s
 ## 11. 매일 제출 체크리스트
 
 - [ ] 그날 휴장 시장을 확인했다
-- [ ] 5명 모두 그날 열린 시장마다 대상 범위 안의 종목을 1개씩 골랐다 (두 시장 개장일이면 1인 2종목, 최대 10줄)
+- [ ] 활성 멤버 전원(빈자리가 있으면 활성 인원 기준)이 그날 열린 시장마다 대상 범위 안의 종목을 1개씩 골랐다 (두 시장 개장일이면 1인 2종목, 최대 10줄)
 - [ ] 독립 분석 → 반론 1회 → 확정 절차를 지켰다
 - [ ] 근거, 위험, 출처 URL과 기준일, `agent_version`을 모두 채웠다
 - [ ] `locked_at`이 08:30 KST 이전이고 `+09:00`이 붙어 있다
