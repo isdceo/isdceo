@@ -1,0 +1,4512 @@
+{
+ "generated": "2026-11-03",
+ "source": "SEC EDGAR Form 13F-HR",
+ "funds": [
+  {
+   "cik": 1067983,
+   "name": "Berkshire Hathaway",
+   "person": "워런 버핏",
+   "agent": "buffett",
+   "period": "2026-06-30",
+   "filed": "2026-08-14",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526352200/",
+   "total_value": 299253556246.0,
+   "prev_total_value": 263095703570.0,
+   "positions": 29,
+   "counts": {
+    "new": 1,
+    "add": 7,
+    "reduce": 6,
+    "hold": 15,
+    "sold": 1
+   },
+   "top10_weight": 88.5,
+   "holdings": [
+    {
+     "name": "APPLE INC",
+     "class": "COM",
+     "cusip": "037833100",
+     "putCall": "",
+     "value": 65950296923.0,
+     "shares": 227917808.0,
+     "weight": 22.04,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "AMERICAN EXPRESS CO",
+     "class": "COM",
+     "cusip": "025816109",
+     "putCall": "",
+     "value": 51282319275.0,
+     "shares": 151610700.0,
+     "weight": 17.14,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "COCA COLA CO",
+     "class": "COM",
+     "cusip": "191216100",
+     "putCall": "",
+     "value": 32508000000.0,
+     "shares": 400000000.0,
+     "weight": 10.86,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 28157599351.0,
+     "shares": 78791167.0,
+     "weight": 9.41,
+     "change": "add",
+     "shares_chg_pct": 45.2
+    },
+    {
+     "name": "BANK OF AMER CORP",
+     "class": "COM",
+     "cusip": "060505104",
+     "putCall": "",
+     "value": 27543790975.0,
+     "shares": 483394015.0,
+     "weight": 9.2,
+     "change": "reduce",
+     "shares_chg_pct": -5.9
+    },
+    {
+     "name": "CHEVRON CORPORATION",
+     "class": "COM",
+     "cusip": "166764100",
+     "putCall": "",
+     "value": 13986141890.0,
+     "shares": 84375856.0,
+     "weight": 4.67,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "OCCIDENTAL PETE CORP",
+     "class": "COM",
+     "cusip": "674599105",
+     "putCall": "",
+     "value": 12868205304.0,
+     "shares": 264941431.0,
+     "weight": 4.3,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "CHUBB LIMITED",
+     "class": "COM",
+     "cusip": "H1467J104",
+     "putCall": "",
+     "value": 11670066615.0,
+     "shares": 34249183.0,
+     "weight": 3.9,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "MOODYS CORP",
+     "class": "COM",
+     "cusip": "615369105",
+     "putCall": "",
+     "value": 11173435852.0,
+     "shares": 24669778.0,
+     "weight": 3.73,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL C",
+     "cusip": "02079K107",
+     "putCall": "",
+     "value": 9606489032.0,
+     "shares": 27188433.0,
+     "weight": 3.21,
+     "change": "add",
+     "shares_chg_pct": 658.3
+    },
+    {
+     "name": "KRAFT HEINZ CO",
+     "class": "COM",
+     "cusip": "500754106",
+     "putCall": "",
+     "value": 7691494401.0,
+     "shares": 325634818.0,
+     "weight": 2.57,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "DAVITA INC",
+     "class": "COM",
+     "cusip": "23918K108",
+     "putCall": "",
+     "value": 6425268898.0,
+     "shares": 28880209.0,
+     "weight": 2.15,
+     "change": "reduce",
+     "shares_chg_pct": -4.1
+    },
+    {
+     "name": "DELTA AIR LINES INC",
+     "class": "COM NEW",
+     "cusip": "247361702",
+     "putCall": "",
+     "value": 5368591200.0,
+     "shares": 57320000.0,
+     "weight": 1.79,
+     "change": "add",
+     "shares_chg_pct": 44.0
+    },
+    {
+     "name": "SIRIUSXM HOLDINGS INC",
+     "class": "COMMON STOCK",
+     "cusip": "829933100",
+     "putCall": "",
+     "value": 3686802237.0,
+     "shares": 124807117.0,
+     "weight": 1.23,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "VERISIGN INC",
+     "class": "COM",
+     "cusip": "92343E102",
+     "putCall": "",
+     "value": 2261494212.0,
+     "shares": 8989880.0,
+     "weight": 0.76,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "KROGER CO",
+     "class": "COM",
+     "cusip": "501044101",
+     "putCall": "",
+     "value": 2165670000.0,
+     "shares": 39000000.0,
+     "weight": 0.72,
+     "change": "reduce",
+     "shares_chg_pct": -22.0
+    },
+    {
+     "name": "ALLY FINL INC",
+     "class": "COM",
+     "cusip": "02005N100",
+     "putCall": "",
+     "value": 1240650000.0,
+     "shares": 27000000.0,
+     "weight": 0.41,
+     "change": "reduce",
+     "shares_chg_pct": -6.9
+    },
+    {
+     "name": "LENNAR CORP",
+     "class": "CL A",
+     "cusip": "526057104",
+     "putCall": "",
+     "value": 1186481443.0,
+     "shares": 13111741.0,
+     "weight": 0.4,
+     "change": "add",
+     "shares_chg_pct": 29.8
+    },
+    {
+     "name": "LIBERTY LIVE HOLDINGS INC",
+     "class": "COM SHS SER C",
+     "cusip": "530909308",
+     "putCall": "",
+     "value": 1118425787.0,
+     "shares": 10587143.0,
+     "weight": 0.37,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "NEW YORK TIMES CO MTN BE",
+     "class": "CL A",
+     "cusip": "650111107",
+     "putCall": "",
+     "value": 1098686000.0,
+     "shares": 15700000.0,
+     "weight": 0.37,
+     "change": "add",
+     "shares_chg_pct": 3.7
+    },
+    {
+     "name": "CAPITAL ONE FINL CORP",
+     "class": "COM",
+     "cusip": "14040H105",
+     "putCall": "",
+     "value": 601860000.0,
+     "shares": 3000000.0,
+     "weight": 0.2,
+     "change": "reduce",
+     "shares_chg_pct": -58.0
+    },
+    {
+     "name": "LIBERTY LIVE HOLDINGS INC",
+     "class": "COM SER A",
+     "cusip": "530909100",
+     "putCall": "",
+     "value": 504941901.0,
+     "shares": 4986588.0,
+     "weight": 0.17,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "LOUISIANA PAC CORP",
+     "class": "COM",
+     "cusip": "546347105",
+     "putCall": "",
+     "value": 445592617.0,
+     "shares": 5664793.0,
+     "weight": 0.15,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "NUCOR CORP",
+     "class": "COM",
+     "cusip": "670346105",
+     "putCall": "",
+     "value": 413814258.0,
+     "shares": 1857752.0,
+     "weight": 0.14,
+     "change": "reduce",
+     "shares_chg_pct": -52.5
+    },
+    {
+     "name": "MACYS INC",
+     "class": "COM",
+     "cusip": "55616P104",
+     "putCall": "",
+     "value": 173031882.0,
+     "shares": 7347426.0,
+     "weight": 0.06,
+     "change": "add",
+     "shares_chg_pct": 141.8
+    },
+    {
+     "name": "NVR INC",
+     "class": "COM",
+     "cusip": "62944T105",
+     "putCall": "",
+     "value": 75710501.0,
+     "shares": 11112.0,
+     "weight": 0.03,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "LENNAR CORP",
+     "class": "CL B",
+     "cusip": "526057302",
+     "putCall": "",
+     "value": 26445959.0,
+     "shares": 298117.0,
+     "weight": 0.01,
+     "change": "add",
+     "shares_chg_pct": 25.4
+    },
+    {
+     "name": "JEFFERIES FINANCIAL GROUP IN",
+     "class": "COM",
+     "cusip": "47233W109",
+     "putCall": "",
+     "value": 21669229.0,
+     "shares": 433558.0,
+     "weight": 0.01,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "D R HORTON INC",
+     "class": "COM",
+     "cusip": "23331A109",
+     "putCall": "",
+     "value": 580504.0,
+     "shares": 3564.0,
+     "weight": 0.0,
+     "change": "new",
+     "shares_chg_pct": null
+    }
+   ],
+   "sold": [
+    {
+     "name": "CONSTELLATION BRANDS INC",
+     "cusip": "21036P108",
+     "putCall": "",
+     "value": 94933500.0,
+     "shares": 632890.0
+    }
+   ]
+  },
+  {
+   "cik": 1350694,
+   "name": "Bridgewater Associates",
+   "person": "레이 달리오",
+   "agent": "dalio",
+   "period": "2026-06-30",
+   "filed": "2026-08-14",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1350694/000135069426000003/",
+   "total_value": 24376086530.0,
+   "prev_total_value": 22404547213.0,
+   "positions": 997,
+   "counts": {
+    "new": 214,
+    "add": 394,
+    "reduce": 376,
+    "hold": 13,
+    "sold": 210
+   },
+   "top10_weight": 40.0,
+   "holdings": [
+    {
+     "name": "STATE STR SPDR S&P 500 ETF T",
+     "class": "TR UNIT",
+     "cusip": "78462F103",
+     "putCall": "",
+     "value": 3973046405.0,
+     "shares": 5320308.0,
+     "weight": 16.3,
+     "change": "add",
+     "shares_chg_pct": 21.9
+    },
+    {
+     "name": "ISHARES TR",
+     "class": "CORE S&P500 ETF",
+     "cusip": "464287200",
+     "putCall": "",
+     "value": 2248381963.0,
+     "shares": 3002286.0,
+     "weight": 9.22,
+     "change": "add",
+     "shares_chg_pct": 12.1
+    },
+    {
+     "name": "NVIDIA CORPORATION",
+     "class": "COM",
+     "cusip": "67066G104",
+     "putCall": "",
+     "value": 773586958.0,
+     "shares": 3866195.0,
+     "weight": 3.17,
+     "change": "reduce",
+     "shares_chg_pct": -17.6
+    },
+    {
+     "name": "BROADCOM INC",
+     "class": "COM",
+     "cusip": "11135F101",
+     "putCall": "",
+     "value": 497845413.0,
+     "shares": 1317923.0,
+     "weight": 2.04,
+     "change": "reduce",
+     "shares_chg_pct": -28.2
+    },
+    {
+     "name": "AMAZON COM INC",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 482753142.0,
+     "shares": 2025481.0,
+     "weight": 1.98,
+     "change": "reduce",
+     "shares_chg_pct": -53.8
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 472506037.0,
+     "shares": 1322176.0,
+     "weight": 1.94,
+     "change": "reduce",
+     "shares_chg_pct": -33.8
+    },
+    {
+     "name": "LAM RESEARCH CORP",
+     "class": "COM NEW",
+     "cusip": "512807306",
+     "putCall": "",
+     "value": 406560606.0,
+     "shares": 938224.0,
+     "weight": 1.67,
+     "change": "reduce",
+     "shares_chg_pct": -40.3
+    },
+    {
+     "name": "VANGUARD INDEX FDS",
+     "class": "S&P 500 ETF SHS",
+     "cusip": "922908363",
+     "putCall": "",
+     "value": 314820655.0,
+     "shares": 458381.0,
+     "weight": 1.29,
+     "change": "add",
+     "shares_chg_pct": 189.0
+    },
+    {
+     "name": "ADVANCED MICRO DEVICES INC",
+     "class": "COM",
+     "cusip": "007903107",
+     "putCall": "",
+     "value": 312896715.0,
+     "shares": 538632.0,
+     "weight": 1.28,
+     "change": "reduce",
+     "shares_chg_pct": -58.3
+    },
+    {
+     "name": "ISHARES INC",
+     "class": "MSCI STH KOR ETF",
+     "cusip": "464286772",
+     "putCall": "",
+     "value": 279585467.0,
+     "shares": 1384772.0,
+     "weight": 1.15,
+     "change": "reduce",
+     "shares_chg_pct": -21.6
+    },
+    {
+     "name": "MICROSOFT CORP",
+     "class": "COM",
+     "cusip": "594918104",
+     "putCall": "",
+     "value": 265551446.0,
+     "shares": 711896.0,
+     "weight": 1.09,
+     "change": "reduce",
+     "shares_chg_pct": -34.4
+    },
+    {
+     "name": "NEWMONT CORP",
+     "class": "COM",
+     "cusip": "651639106",
+     "putCall": "",
+     "value": 251728878.0,
+     "shares": 2695170.0,
+     "weight": 1.03,
+     "change": "add",
+     "shares_chg_pct": 16.3
+    },
+    {
+     "name": "APPLIED MATLS INC",
+     "class": "COM",
+     "cusip": "038222105",
+     "putCall": "",
+     "value": 210700998.0,
+     "shares": 291426.0,
+     "weight": 0.86,
+     "change": "reduce",
+     "shares_chg_pct": -48.0
+    },
+    {
+     "name": "ORACLE CORP",
+     "class": "COM",
+     "cusip": "68389X105",
+     "putCall": "",
+     "value": 210001314.0,
+     "shares": 1432967.0,
+     "weight": 0.86,
+     "change": "reduce",
+     "shares_chg_pct": -10.0
+    },
+    {
+     "name": "SEAGATE TECHNOLOGY HLDNGS PL",
+     "class": "ORD SHS",
+     "cusip": "G7997R103",
+     "putCall": "",
+     "value": 192828230.0,
+     "shares": 199822.0,
+     "weight": 0.79,
+     "change": "reduce",
+     "shares_chg_pct": -39.3
+    },
+    {
+     "name": "JOHNSON & JOHNSON",
+     "class": "COM",
+     "cusip": "478160104",
+     "putCall": "",
+     "value": 169940216.0,
+     "shares": 669135.0,
+     "weight": 0.7,
+     "change": "reduce",
+     "shares_chg_pct": -4.0
+    },
+    {
+     "name": "VANGUARD INTL EQUITY INDEX F",
+     "class": "FTSE EMR MKT ETF",
+     "cusip": "922042858",
+     "putCall": "",
+     "value": 163957626.0,
+     "shares": 2746819.0,
+     "weight": 0.67,
+     "change": "add",
+     "shares_chg_pct": 0.9
+    },
+    {
+     "name": "GE VERNOVA INC",
+     "class": "COM",
+     "cusip": "36828A101",
+     "putCall": "",
+     "value": 144235212.0,
+     "shares": 122768.0,
+     "weight": 0.59,
+     "change": "reduce",
+     "shares_chg_pct": -71.8
+    },
+    {
+     "name": "UNION PAC CORP",
+     "class": "COM",
+     "cusip": "907818108",
+     "putCall": "",
+     "value": 139880352.0,
+     "shares": 514266.0,
+     "weight": 0.57,
+     "change": "reduce",
+     "shares_chg_pct": -3.5
+    },
+    {
+     "name": "MICRON TECHNOLOGY INC",
+     "class": "COM",
+     "cusip": "595112103",
+     "putCall": "",
+     "value": 134666397.0,
+     "shares": 116666.0,
+     "weight": 0.55,
+     "change": "reduce",
+     "shares_chg_pct": -92.1
+    },
+    {
+     "name": "ISHARES TR",
+     "class": "MBS ETF",
+     "cusip": "464288588",
+     "putCall": "",
+     "value": 131080336.0,
+     "shares": 1386800.0,
+     "weight": 0.54,
+     "change": "add",
+     "shares_chg_pct": 2.0
+    },
+    {
+     "name": "ALTRIA GROUP INC",
+     "class": "COM",
+     "cusip": "02209S103",
+     "putCall": "",
+     "value": 124273191.0,
+     "shares": 1727216.0,
+     "weight": 0.51,
+     "change": "add",
+     "shares_chg_pct": 1.3
+    },
+    {
+     "name": "AMPHENOL CORP",
+     "class": "CL A",
+     "cusip": "032095101",
+     "putCall": "",
+     "value": 123002948.0,
+     "shares": 697612.0,
+     "weight": 0.5,
+     "change": "reduce",
+     "shares_chg_pct": -19.2
+    },
+    {
+     "name": "ASML HLDG NV",
+     "class": "N Y REGISTRY SHS",
+     "cusip": "N07059210",
+     "putCall": "",
+     "value": 122698712.0,
+     "shares": 61675.0,
+     "weight": 0.5,
+     "change": "reduce",
+     "shares_chg_pct": -33.1
+    },
+    {
+     "name": "BARRICK MNG CORP",
+     "class": "COM SHS",
+     "cusip": "06849F108",
+     "putCall": "",
+     "value": 121387233.0,
+     "shares": 3304836.0,
+     "weight": 0.5,
+     "change": "add",
+     "shares_chg_pct": 7.3
+    },
+    {
+     "name": "CELESTICA INC",
+     "class": "COM",
+     "cusip": "15101Q207",
+     "putCall": "",
+     "value": 120635278.0,
+     "shares": 330689.0,
+     "weight": 0.49,
+     "change": "reduce",
+     "shares_chg_pct": -37.1
+    },
+    {
+     "name": "VISTRA CORP",
+     "class": "COM",
+     "cusip": "92840M102",
+     "putCall": "",
+     "value": 119241378.0,
+     "shares": 751695.0,
+     "weight": 0.49,
+     "change": "add",
+     "shares_chg_pct": 115.7
+    },
+    {
+     "name": "SHELL PLC",
+     "class": "SPON ADS",
+     "cusip": "780259305",
+     "putCall": "",
+     "value": 118338679.0,
+     "shares": 1526163.0,
+     "weight": 0.49,
+     "change": "add",
+     "shares_chg_pct": 388.9
+    },
+    {
+     "name": "SEA LTD",
+     "class": "SPONSORD ADS",
+     "cusip": "81141R100",
+     "putCall": "",
+     "value": 115433272.0,
+     "shares": 1204563.0,
+     "weight": 0.47,
+     "change": "reduce",
+     "shares_chg_pct": -10.0
+    },
+    {
+     "name": "ISHARES TR",
+     "class": "IBOXX INV CP ETF",
+     "cusip": "464287242",
+     "putCall": "",
+     "value": 114578035.0,
+     "shares": 1050500.0,
+     "weight": 0.47,
+     "change": "add",
+     "shares_chg_pct": 2.8
+    },
+    {
+     "name": "NUCOR CORP",
+     "class": "COM",
+     "cusip": "670346105",
+     "putCall": "",
+     "value": 114364973.0,
+     "shares": 513423.0,
+     "weight": 0.47,
+     "change": "reduce",
+     "shares_chg_pct": -17.0
+    },
+    {
+     "name": "PACCAR INC",
+     "class": "COM",
+     "cusip": "693718108",
+     "putCall": "",
+     "value": 113646373.0,
+     "shares": 946107.0,
+     "weight": 0.47,
+     "change": "add",
+     "shares_chg_pct": 21.8
+    },
+    {
+     "name": "WESTERN DIGITAL CORP",
+     "class": "COM",
+     "cusip": "958102105",
+     "putCall": "",
+     "value": 110124909.0,
+     "shares": 172415.0,
+     "weight": 0.45,
+     "change": "reduce",
+     "shares_chg_pct": -30.8
+    },
+    {
+     "name": "ISHARES INC",
+     "class": "CORE MSCI EMKT",
+     "cusip": "46434G103",
+     "putCall": "",
+     "value": 110034384.0,
+     "shares": 1328276.0,
+     "weight": 0.45,
+     "change": "reduce",
+     "shares_chg_pct": -1.1
+    },
+    {
+     "name": "CSX CORP",
+     "class": "COM",
+     "cusip": "126408103",
+     "putCall": "",
+     "value": 105990236.0,
+     "shares": 2229965.0,
+     "weight": 0.43,
+     "change": "reduce",
+     "shares_chg_pct": -6.1
+    },
+    {
+     "name": "PETROLEO BRASILEIRO S A",
+     "class": "SPONSORED ADR",
+     "cusip": "71654V408",
+     "putCall": "",
+     "value": 105436776.0,
+     "shares": 6524553.0,
+     "weight": 0.43,
+     "change": "add",
+     "shares_chg_pct": 466.9
+    },
+    {
+     "name": "APPLE INC",
+     "class": "COM",
+     "cusip": "037833100",
+     "putCall": "",
+     "value": 105436129.0,
+     "shares": 364377.0,
+     "weight": 0.43,
+     "change": "reduce",
+     "shares_chg_pct": -35.3
+    },
+    {
+     "name": "ELI LILLY & CO",
+     "class": "COM",
+     "cusip": "532457108",
+     "putCall": "",
+     "value": 104377997.0,
+     "shares": 87023.0,
+     "weight": 0.43,
+     "change": "add",
+     "shares_chg_pct": 22.9
+    },
+    {
+     "name": "PG&E CORP",
+     "class": "COM",
+     "cusip": "69331C108",
+     "putCall": "",
+     "value": 99764701.0,
+     "shares": 5931314.0,
+     "weight": 0.41,
+     "change": "add",
+     "shares_chg_pct": 24078.9
+    },
+    {
+     "name": "KLA CORP",
+     "class": "COM NEW",
+     "cusip": "482480100",
+     "putCall": "",
+     "value": 98982000.0,
+     "shares": 328070.0,
+     "weight": 0.41,
+     "change": "add",
+     "shares_chg_pct": 201.9
+    },
+    {
+     "name": "COMFORT SYS USA INC",
+     "class": "COM",
+     "cusip": "199908104",
+     "putCall": "",
+     "value": 96136467.0,
+     "shares": 48506.0,
+     "weight": 0.39,
+     "change": "reduce",
+     "shares_chg_pct": -43.9
+    },
+    {
+     "name": "NXP SEMICONDUCTORS N V",
+     "class": "COM",
+     "cusip": "N6596X109",
+     "putCall": "",
+     "value": 94820927.0,
+     "shares": 337405.0,
+     "weight": 0.39,
+     "change": "add",
+     "shares_chg_pct": 28.4
+    },
+    {
+     "name": "WELLS FARGO & CO",
+     "class": "COM",
+     "cusip": "949746101",
+     "putCall": "",
+     "value": 94693375.0,
+     "shares": 1145854.0,
+     "weight": 0.39,
+     "change": "add",
+     "shares_chg_pct": 21.6
+    },
+    {
+     "name": "EDISON INTL",
+     "class": "COM",
+     "cusip": "281020107",
+     "putCall": "",
+     "value": 91917012.0,
+     "shares": 1234614.0,
+     "weight": 0.38,
+     "change": "add",
+     "shares_chg_pct": 777.1
+    },
+    {
+     "name": "ISHARES INC",
+     "class": "MSCI EMRG CHN",
+     "cusip": "46434G764",
+     "putCall": "",
+     "value": 90076787.0,
+     "shares": 880516.0,
+     "weight": 0.37,
+     "change": "reduce",
+     "shares_chg_pct": -17.9
+    },
+    {
+     "name": "MARATHON PETE CORP",
+     "class": "COM",
+     "cusip": "56585A102",
+     "putCall": "",
+     "value": 89286100.0,
+     "shares": 349224.0,
+     "weight": 0.37,
+     "change": "add",
+     "shares_chg_pct": 351.9
+    },
+    {
+     "name": "STEEL DYNAMICS INC",
+     "class": "COM",
+     "cusip": "858119100",
+     "putCall": "",
+     "value": 86848315.0,
+     "shares": 378490.0,
+     "weight": 0.36,
+     "change": "reduce",
+     "shares_chg_pct": -13.6
+    },
+    {
+     "name": "EVERSOURCE ENERGY",
+     "class": "COM",
+     "cusip": "30040W108",
+     "putCall": "",
+     "value": 86372768.0,
+     "shares": 1195140.0,
+     "weight": 0.35,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "TE CONNECTIVITY PLC",
+     "class": "ORD SHS",
+     "cusip": "G87052109",
+     "putCall": "",
+     "value": 86030616.0,
+     "shares": 426718.0,
+     "weight": 0.35,
+     "change": "add",
+     "shares_chg_pct": 26.9
+    },
+    {
+     "name": "ANALOG DEVICES INC",
+     "class": "COM",
+     "cusip": "032654105",
+     "putCall": "",
+     "value": 80708121.0,
+     "shares": 203208.0,
+     "weight": 0.33,
+     "change": "add",
+     "shares_chg_pct": 269.0
+    }
+   ],
+   "sold": [
+    {
+     "name": "CISCO SYS INC",
+     "cusip": "17275R102",
+     "putCall": "",
+     "value": 63848190.0,
+     "shares": 822892.0
+    },
+    {
+     "name": "ASE TECHNOLOGY HLDG CO LTD",
+     "cusip": "00215W100",
+     "putCall": "",
+     "value": 33557583.0,
+     "shares": 1547859.0
+    },
+    {
+     "name": "COREWEAVE INC",
+     "cusip": "21873S108",
+     "putCall": "",
+     "value": 28201017.0,
+     "shares": 364025.0
+    },
+    {
+     "name": "PRIMORIS SVCS CORP",
+     "cusip": "74164F103",
+     "putCall": "",
+     "value": 19477757.0,
+     "shares": 136170.0
+    },
+    {
+     "name": "BROOKFIELD CORP",
+     "cusip": "11271J107",
+     "putCall": "",
+     "value": 19286643.0,
+     "shares": 477453.0
+    },
+    {
+     "name": "APPLIED OPTOELECTRONICS INC",
+     "cusip": "03823U102",
+     "putCall": "",
+     "value": 18942662.0,
+     "shares": 223935.0
+    },
+    {
+     "name": "PALANTIR TECHNOLOGIES INC",
+     "cusip": "69608A108",
+     "putCall": "",
+     "value": 18751048.0,
+     "shares": 128186.0
+    },
+    {
+     "name": "NEBIUS GROUP N.V.",
+     "cusip": "N97284108",
+     "putCall": "",
+     "value": 16296961.0,
+     "shares": 157064.0
+    },
+    {
+     "name": "SUN LIFE FINANCIAL INC.",
+     "cusip": "866796105",
+     "putCall": "",
+     "value": 15651779.0,
+     "shares": 250635.0
+    },
+    {
+     "name": "BRISTOL-MYERS SQUIBB CO",
+     "cusip": "110122108",
+     "putCall": "",
+     "value": 14658438.0,
+     "shares": 241689.0
+    },
+    {
+     "name": "THOMSON REUTERS CORP",
+     "cusip": "884903808",
+     "putCall": "",
+     "value": 14388612.0,
+     "shares": 159909.0
+    },
+    {
+     "name": "CULLEN FROST BANKERS INC",
+     "cusip": "229899109",
+     "putCall": "",
+     "value": 12732676.0,
+     "shares": 92885.0
+    },
+    {
+     "name": "TWILIO INC",
+     "cusip": "90138F102",
+     "putCall": "",
+     "value": 12273112.0,
+     "shares": 97545.0
+    },
+    {
+     "name": "PINTEREST INC",
+     "cusip": "72352L106",
+     "putCall": "",
+     "value": 12114285.0,
+     "shares": 660539.0
+    },
+    {
+     "name": "HUT 8 CORP",
+     "cusip": "44812J104",
+     "putCall": "",
+     "value": 11523860.0,
+     "shares": 245659.0
+    }
+   ]
+  },
+  {
+   "cik": 1697748,
+   "name": "ARK Investment Management",
+   "person": "캐시 우드",
+   "agent": "wood",
+   "period": "2026-06-30",
+   "filed": "2026-08-14",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1697748/000110465926096910/",
+   "total_value": 15402788184.0,
+   "prev_total_value": 12859485476.0,
+   "positions": 191,
+   "counts": {
+    "new": 16,
+    "add": 78,
+    "reduce": 93,
+    "hold": 4,
+    "sold": 7
+   },
+   "top10_weight": 39.4,
+   "holdings": [
+    {
+     "name": "Tesla Inc",
+     "class": "Common Stock",
+     "cusip": "88160R101",
+     "putCall": "",
+     "value": 1160772073.0,
+     "shares": 2759800.0,
+     "weight": 7.54,
+     "change": "reduce",
+     "shares_chg_pct": -2.5
+    },
+    {
+     "name": "Advanced Micro Devices Inc",
+     "class": "Common Stock",
+     "cusip": "007903107",
+     "putCall": "",
+     "value": 822826048.0,
+     "shares": 1416443.0,
+     "weight": 5.34,
+     "change": "reduce",
+     "shares_chg_pct": -47.8
+    },
+    {
+     "name": "Space Exploration Technologies Corp",
+     "class": "Common Stock",
+     "cusip": "84615Q103",
+     "putCall": "",
+     "value": 765113281.0,
+     "shares": 4478013.0,
+     "weight": 4.97,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Tempus AI Inc",
+     "class": "Common Stock",
+     "cusip": "88023B103",
+     "putCall": "",
+     "value": 580611200.0,
+     "shares": 10022634.0,
+     "weight": 3.77,
+     "change": "add",
+     "shares_chg_pct": 4.3
+    },
+    {
+     "name": "Robinhood Markets Inc",
+     "class": "Common Stock",
+     "cusip": "770700102",
+     "putCall": "",
+     "value": 525069168.0,
+     "shares": 5236031.0,
+     "weight": 3.41,
+     "change": "reduce",
+     "shares_chg_pct": -12.8
+    },
+    {
+     "name": "CRISPR Therapeutics AG",
+     "class": "Common Stock",
+     "cusip": "H17182108",
+     "putCall": "",
+     "value": 515999631.0,
+     "shares": 9460939.0,
+     "weight": 3.35,
+     "change": "reduce",
+     "shares_chg_pct": -16.4
+    },
+    {
+     "name": "Shopify Inc",
+     "class": "Common Stock",
+     "cusip": "82509L107",
+     "putCall": "",
+     "value": 474523465.0,
+     "shares": 4155925.0,
+     "weight": 3.08,
+     "change": "reduce",
+     "shares_chg_pct": -0.5
+    },
+    {
+     "name": "Twist Bioscience Corp",
+     "class": "Common Stock",
+     "cusip": "90184D100",
+     "putCall": "",
+     "value": 468083756.0,
+     "shares": 4549803.0,
+     "weight": 3.04,
+     "change": "reduce",
+     "shares_chg_pct": -28.3
+    },
+    {
+     "name": "10X Genomics Inc",
+     "class": "Common Stock",
+     "cusip": "88025U109",
+     "putCall": "",
+     "value": 383517223.0,
+     "shares": 10003057.0,
+     "weight": 2.49,
+     "change": "reduce",
+     "shares_chg_pct": -14.6
+    },
+    {
+     "name": "Amazon.com Inc",
+     "class": "Common Stock",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 379241133.0,
+     "shares": 1591177.0,
+     "weight": 2.46,
+     "change": "add",
+     "shares_chg_pct": 17.4
+    },
+    {
+     "name": "Palantir Technologies Inc",
+     "class": "Common Stock",
+     "cusip": "69608A108",
+     "putCall": "",
+     "value": 374777381.0,
+     "shares": 3212286.0,
+     "weight": 2.43,
+     "change": "add",
+     "shares_chg_pct": 3.3
+    },
+    {
+     "name": "Alphabet Inc",
+     "class": "Common Stock",
+     "cusip": "02079K107",
+     "putCall": "",
+     "value": 368641312.0,
+     "shares": 1043334.0,
+     "weight": 2.39,
+     "change": "add",
+     "shares_chg_pct": 44.8
+    },
+    {
+     "name": "Coinbase Global Inc",
+     "class": "Common Stock",
+     "cusip": "19260Q107",
+     "putCall": "",
+     "value": 367129713.0,
+     "shares": 2511319.0,
+     "weight": 2.38,
+     "change": "add",
+     "shares_chg_pct": 5.8
+    },
+    {
+     "name": "ROBLOX Corp",
+     "class": "Common Stock",
+     "cusip": "771049103",
+     "putCall": "",
+     "value": 351615103.0,
+     "shares": 6465890.0,
+     "weight": 2.28,
+     "change": "add",
+     "shares_chg_pct": 9.7
+    },
+    {
+     "name": "Beam Therapeutics Inc",
+     "class": "Common Stock",
+     "cusip": "07373V105",
+     "putCall": "",
+     "value": 351260447.0,
+     "shares": 10234862.0,
+     "weight": 2.28,
+     "change": "reduce",
+     "shares_chg_pct": -15.6
+    },
+    {
+     "name": "Teradyne Inc",
+     "class": "Common Stock",
+     "cusip": "880770102",
+     "putCall": "",
+     "value": 311971420.0,
+     "shares": 644782.0,
+     "weight": 2.03,
+     "change": "reduce",
+     "shares_chg_pct": -48.2
+    },
+    {
+     "name": "Intellia Therapeutics Inc",
+     "class": "Common Stock",
+     "cusip": "45826J105",
+     "putCall": "",
+     "value": 285536575.0,
+     "shares": 16875684.0,
+     "weight": 1.85,
+     "change": "add",
+     "shares_chg_pct": 16.3
+    },
+    {
+     "name": "Circle Internet Group Inc",
+     "class": "Common Stock",
+     "cusip": "172573107",
+     "putCall": "",
+     "value": 285477674.0,
+     "shares": 4558162.0,
+     "weight": 1.85,
+     "change": "add",
+     "shares_chg_pct": 1.1
+    },
+    {
+     "name": "NVIDIA Corp",
+     "class": "Common Stock",
+     "cusip": "67066G104",
+     "putCall": "",
+     "value": 276373746.0,
+     "shares": 1381247.0,
+     "weight": 1.79,
+     "change": "add",
+     "shares_chg_pct": 33.4
+    },
+    {
+     "name": "CoreWeave Inc",
+     "class": "Common Stock",
+     "cusip": "21873S108",
+     "putCall": "",
+     "value": 264496911.0,
+     "shares": 2657192.0,
+     "weight": 1.72,
+     "change": "add",
+     "shares_chg_pct": 4.7
+    },
+    {
+     "name": "Deere & Co",
+     "class": "Common Stock",
+     "cusip": "244199105",
+     "putCall": "",
+     "value": 249307586.0,
+     "shares": 393025.0,
+     "weight": 1.62,
+     "change": "reduce",
+     "shares_chg_pct": -1.5
+    },
+    {
+     "name": "Block Inc",
+     "class": "Common Stock",
+     "cusip": "852234103",
+     "putCall": "",
+     "value": 235445950.0,
+     "shares": 3097973.0,
+     "weight": 1.53,
+     "change": "hold",
+     "shares_chg_pct": 0.1
+    },
+    {
+     "name": "Kratos Defense & Security Solutions Inc.",
+     "class": "Common Stock",
+     "cusip": "50077B207",
+     "putCall": "",
+     "value": 232974116.0,
+     "shares": 4672566.0,
+     "weight": 1.51,
+     "change": "add",
+     "shares_chg_pct": 33.8
+    },
+    {
+     "name": "Taiwan Semiconductor Manufacturing Company Ltd",
+     "class": "ADR",
+     "cusip": "874039100",
+     "putCall": "",
+     "value": 230325325.0,
+     "shares": 482286.0,
+     "weight": 1.5,
+     "change": "reduce",
+     "shares_chg_pct": -23.2
+    },
+    {
+     "name": "Natera Inc",
+     "class": "Common Stock",
+     "cusip": "632307104",
+     "putCall": "",
+     "value": 186989592.0,
+     "shares": 688855.0,
+     "weight": 1.21,
+     "change": "add",
+     "shares_chg_pct": 0.7
+    },
+    {
+     "name": "Illumina Inc",
+     "class": "Common Stock",
+     "cusip": "452327109",
+     "putCall": "",
+     "value": 183744158.0,
+     "shares": 1045010.0,
+     "weight": 1.19,
+     "change": "reduce",
+     "shares_chg_pct": -7.5
+    },
+    {
+     "name": "Cerebras Systems Inc",
+     "class": "Common Stock",
+     "cusip": "15675D103",
+     "putCall": "",
+     "value": 168979473.0,
+     "shares": 764613.0,
+     "weight": 1.1,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Rocket Lab Corp",
+     "class": "Common Stock",
+     "cusip": "773121108",
+     "putCall": "",
+     "value": 165812192.0,
+     "shares": 1631207.0,
+     "weight": 1.08,
+     "change": "reduce",
+     "shares_chg_pct": -27.3
+    },
+    {
+     "name": "Bullish",
+     "class": "Common Stock",
+     "cusip": "G16910120",
+     "putCall": "",
+     "value": 158063147.0,
+     "shares": 6746186.0,
+     "weight": 1.03,
+     "change": "add",
+     "shares_chg_pct": 2.8
+    },
+    {
+     "name": "Broadcom Inc",
+     "class": "Common Stock",
+     "cusip": "11135F101",
+     "putCall": "",
+     "value": 153820556.0,
+     "shares": 407202.0,
+     "weight": 1.0,
+     "change": "hold",
+     "shares_chg_pct": -0.1
+    },
+    {
+     "name": "Recursion Pharmaceuticals Inc",
+     "class": "Common Stock",
+     "cusip": "75629V104",
+     "putCall": "",
+     "value": 151709111.0,
+     "shares": 41337632.0,
+     "weight": 0.98,
+     "change": "add",
+     "shares_chg_pct": 2.8
+    },
+    {
+     "name": "Archer Aviation Inc",
+     "class": "Common Stock",
+     "cusip": "03945R102",
+     "putCall": "",
+     "value": 151189352.0,
+     "shares": 31963922.0,
+     "weight": 0.98,
+     "change": "reduce",
+     "shares_chg_pct": -14.6
+    },
+    {
+     "name": "Absci Corp",
+     "class": "Common Stock",
+     "cusip": "00091E109",
+     "putCall": "",
+     "value": 149803896.0,
+     "shares": 12925271.0,
+     "weight": 0.97,
+     "change": "reduce",
+     "shares_chg_pct": -5.8
+    },
+    {
+     "name": "Veracyte Inc",
+     "class": "Common Stock",
+     "cusip": "92337F107",
+     "putCall": "",
+     "value": 134841222.0,
+     "shares": 2295951.0,
+     "weight": 0.88,
+     "change": "reduce",
+     "shares_chg_pct": -24.8
+    },
+    {
+     "name": "Meta Platforms Inc",
+     "class": "Common Stock",
+     "cusip": "30303M102",
+     "putCall": "",
+     "value": 134610910.0,
+     "shares": 238973.0,
+     "weight": 0.87,
+     "change": "add",
+     "shares_chg_pct": 55.2
+    },
+    {
+     "name": "ARK 21Shares Bitcoin ETF",
+     "class": "ETP",
+     "cusip": "040919102",
+     "putCall": "",
+     "value": 125605835.0,
+     "shares": 6454565.0,
+     "weight": 0.82,
+     "change": "reduce",
+     "shares_chg_pct": -3.6
+    },
+    {
+     "name": "L3Harris Technologies Inc",
+     "class": "Common Stock",
+     "cusip": "502431109",
+     "putCall": "",
+     "value": 125296306.0,
+     "shares": 431179.0,
+     "weight": 0.81,
+     "change": "add",
+     "shares_chg_pct": 10.6
+    },
+    {
+     "name": "BitMine Immersion Technologies",
+     "class": "Common Stock",
+     "cusip": "09175A206",
+     "putCall": "",
+     "value": 117282236.0,
+     "shares": 8811588.0,
+     "weight": 0.76,
+     "change": "reduce",
+     "shares_chg_pct": -9.2
+    },
+    {
+     "name": "Personalis Inc",
+     "class": "Common Stock",
+     "cusip": "71535D106",
+     "putCall": "",
+     "value": 110835941.0,
+     "shares": 8271339.0,
+     "weight": 0.72,
+     "change": "add",
+     "shares_chg_pct": 4.1
+    },
+    {
+     "name": "GeneDx Holdings Corp",
+     "class": "Common Stock",
+     "cusip": "81663L200",
+     "putCall": "",
+     "value": 110539494.0,
+     "shares": 1610189.0,
+     "weight": 0.72,
+     "change": "add",
+     "shares_chg_pct": 21.6
+    },
+    {
+     "name": "BWX Technologies Inc",
+     "class": "Common Stock",
+     "cusip": "05605H100",
+     "putCall": "",
+     "value": 107034337.0,
+     "shares": 549881.0,
+     "weight": 0.69,
+     "change": "reduce",
+     "shares_chg_pct": -11.7
+    },
+    {
+     "name": "AeroVironment Inc",
+     "class": "Common Stock",
+     "cusip": "008073108",
+     "putCall": "",
+     "value": 100280355.0,
+     "shares": 607502.0,
+     "weight": 0.65,
+     "change": "add",
+     "shares_chg_pct": 8.6
+    },
+    {
+     "name": "X-Energy Inc",
+     "class": "Common Stock",
+     "cusip": "98386P102",
+     "putCall": "",
+     "value": 99361493.0,
+     "shares": 5411846.0,
+     "weight": 0.65,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Eli Lilly & Co",
+     "class": "Common Stock",
+     "cusip": "532457108",
+     "putCall": "",
+     "value": 92660897.0,
+     "shares": 77254.0,
+     "weight": 0.6,
+     "change": "add",
+     "shares_chg_pct": 509.5
+    },
+    {
+     "name": "Roku Inc",
+     "class": "Common Stock",
+     "cusip": "77543R102",
+     "putCall": "",
+     "value": 82314834.0,
+     "shares": 595880.0,
+     "weight": 0.53,
+     "change": "reduce",
+     "shares_chg_pct": -84.4
+    },
+    {
+     "name": "Guardant Health Inc",
+     "class": "Common Stock",
+     "cusip": "40131M109",
+     "putCall": "",
+     "value": 75977634.0,
+     "shares": 506416.0,
+     "weight": 0.49,
+     "change": "add",
+     "shares_chg_pct": 4.1
+    },
+    {
+     "name": "DoorDash Inc",
+     "class": "Common Stock",
+     "cusip": "25809K105",
+     "putCall": "",
+     "value": 70147050.0,
+     "shares": 380139.0,
+     "weight": 0.46,
+     "change": "add",
+     "shares_chg_pct": 9.8
+    },
+    {
+     "name": "Snowflake Inc",
+     "class": "Common Stock",
+     "cusip": "833445109",
+     "putCall": "",
+     "value": 68597731.0,
+     "shares": 269539.0,
+     "weight": 0.45,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Trimble Inc",
+     "class": "Common Stock",
+     "cusip": "896239100",
+     "putCall": "",
+     "value": 68155382.0,
+     "shares": 1331680.0,
+     "weight": 0.44,
+     "change": "add",
+     "shares_chg_pct": 6.7
+    },
+    {
+     "name": "SoFi Technologies Inc",
+     "class": "Common Stock",
+     "cusip": "83406F102",
+     "putCall": "",
+     "value": 67102642.0,
+     "shares": 3742479.0,
+     "weight": 0.44,
+     "change": "reduce",
+     "shares_chg_pct": -2.4
+    }
+   ],
+   "sold": [
+    {
+     "name": "Honeywell International Inc",
+     "cusip": "438516106",
+     "putCall": "",
+     "value": 8749395.0,
+     "shares": 38709.0
+    },
+    {
+     "name": "Brera Holdings PLC",
+     "cusip": "G13311116",
+     "putCall": "",
+     "value": 7595296.0,
+     "shares": 9687877.0
+    },
+    {
+     "name": "Intercontinental Exchange Inc",
+     "cusip": "45866F104",
+     "putCall": "",
+     "value": 4589588.0,
+     "shares": 29181.0
+    },
+    {
+     "name": "Palo Alto Networks Inc",
+     "cusip": "697435105",
+     "putCall": "",
+     "value": 1742037.0,
+     "shares": 10866.0
+    },
+    {
+     "name": "Salesforce Inc",
+     "cusip": "79466L302",
+     "putCall": "",
+     "value": 1131594.0,
+     "shares": 6062.0
+    },
+    {
+     "name": "Pinterest Inc",
+     "cusip": "72352L106",
+     "putCall": "",
+     "value": 660754.0,
+     "shares": 36028.0
+    },
+    {
+     "name": "iShares Russell 1000 ETF",
+     "cusip": "464287622",
+     "putCall": "",
+     "value": 125.0,
+     "shares": 0.0
+    }
+   ]
+  },
+  {
+   "cik": 1649339,
+   "name": "Scion Asset Management",
+   "person": "마이클 버리",
+   "agent": "burry",
+   "period": "2025-09-30",
+   "filed": "2025-11-03",
+   "prev_period": "2025-06-30",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1649339/000164933925000007/",
+   "total_value": 1381198076.0,
+   "prev_total_value": 578337040.0,
+   "positions": 8,
+   "counts": {
+    "new": 7,
+    "add": 1,
+    "reduce": 0,
+    "hold": 0,
+    "sold": 14
+   },
+   "top10_weight": 100.0,
+   "holdings": [
+    {
+     "name": "PALANTIR TECHNOLOGIES INC",
+     "class": "CL A",
+     "cusip": "69608A108",
+     "putCall": "Put",
+     "value": 912100000.0,
+     "shares": 5000000.0,
+     "weight": 66.04,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "NVIDIA CORPORATION",
+     "class": "COM",
+     "cusip": "67066G104",
+     "putCall": "Put",
+     "value": 186580000.0,
+     "shares": 1000000.0,
+     "weight": 13.51,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "PFIZER INC",
+     "class": "COM",
+     "cusip": "717081103",
+     "putCall": "Call",
+     "value": 152880000.0,
+     "shares": 6000000.0,
+     "weight": 11.07,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "HALLIBURTON CO",
+     "class": "COM",
+     "cusip": "406216101",
+     "putCall": "Call",
+     "value": 61500000.0,
+     "shares": 2500000.0,
+     "weight": 4.45,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "MOLINA HEALTHCARE INC",
+     "class": "COM",
+     "cusip": "60855R100",
+     "putCall": "",
+     "value": 23920000.0,
+     "shares": 125000.0,
+     "weight": 1.73,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "LULULEMON ATHLETICA INC",
+     "class": "COM",
+     "cusip": "550021109",
+     "putCall": "",
+     "value": 17793000.0,
+     "shares": 100000.0,
+     "weight": 1.29,
+     "change": "add",
+     "shares_chg_pct": 100.0
+    },
+    {
+     "name": "SLM CORP",
+     "class": "COM",
+     "cusip": "78442P106",
+     "putCall": "",
+     "value": 13287895.0,
+     "shares": 480054.0,
+     "weight": 0.96,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "BRUKER CORP",
+     "class": "6.375 PREF SER A",
+     "cusip": "116794207",
+     "putCall": "",
+     "value": 13137181.0,
+     "shares": 48334.0,
+     "weight": 0.95,
+     "change": "new",
+     "shares_chg_pct": null
+    }
+   ],
+   "sold": [
+    {
+     "name": "UNITEDHEALTH GROUP INC",
+     "cusip": "91324P102",
+     "putCall": "Call",
+     "value": 109189500.0,
+     "shares": 350000.0
+    },
+    {
+     "name": "REGENERON PHARMACEUTICALS",
+     "cusip": "75886F107",
+     "putCall": "Call",
+     "value": 105000000.0,
+     "shares": 200000.0
+    },
+    {
+     "name": "LULULEMON ATHLETICA INC",
+     "cusip": "550021109",
+     "putCall": "Call",
+     "value": 95032000.0,
+     "shares": 400000.0
+    },
+    {
+     "name": "META PLATFORMS INC",
+     "cusip": "30303M102",
+     "putCall": "Call",
+     "value": 73809000.0,
+     "shares": 100000.0
+    },
+    {
+     "name": "LAUDER ESTEE COS INC",
+     "cusip": "518439104",
+     "putCall": "Call",
+     "value": 40400000.0,
+     "shares": 500000.0
+    },
+    {
+     "name": "JD.COM INC",
+     "cusip": "47215P106",
+     "putCall": "Call",
+     "value": 32640000.0,
+     "shares": 1000000.0
+    },
+    {
+     "name": "ALIBABA GROUP HLDG LTD",
+     "cusip": "01609W102",
+     "putCall": "Call",
+     "value": 28352500.0,
+     "shares": 250000.0
+    },
+    {
+     "name": "ASML HOLDING N V",
+     "cusip": "N07059210",
+     "putCall": "Call",
+     "value": 20034750.0,
+     "shares": 25000.0
+    },
+    {
+     "name": "V F CORP",
+     "cusip": "918204108",
+     "putCall": "Call",
+     "value": 17625000.0,
+     "shares": 1500000.0
+    },
+    {
+     "name": "LAUDER ESTEE COS INC",
+     "cusip": "518439104",
+     "putCall": "",
+     "value": 12120000.0,
+     "shares": 150000.0
+    },
+    {
+     "name": "BRUKER CORP",
+     "cusip": "116794108",
+     "putCall": "",
+     "value": 10300000.0,
+     "shares": 250000.0
+    },
+    {
+     "name": "REGENERON PHARMACEUTICALS",
+     "cusip": "75886F107",
+     "putCall": "",
+     "value": 7875000.0,
+     "shares": 15000.0
+    },
+    {
+     "name": "MERCADOLIBRE INC",
+     "cusip": "58733R102",
+     "putCall": "",
+     "value": 7840890.0,
+     "shares": 3000.0
+    },
+    {
+     "name": "UNITEDHEALTH GROUP INC",
+     "cusip": "91324P102",
+     "putCall": "",
+     "value": 6239400.0,
+     "shares": 20000.0
+    }
+   ]
+  },
+  {
+   "cik": 1336528,
+   "name": "Pershing Square",
+   "person": "빌 애크먼",
+   "agent": null,
+   "period": "2026-03-31",
+   "filed": "2026-05-15",
+   "prev_period": "2025-12-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1336528/000117266126002336/",
+   "total_value": 13714299861.0,
+   "prev_total_value": 15526737802.0,
+   "positions": 11,
+   "counts": {
+    "new": 1,
+    "add": 1,
+    "reduce": 5,
+    "hold": 4,
+    "sold": 1
+   },
+   "top10_weight": 99.9,
+   "holdings": [
+    {
+     "name": "BROOKFIELD CORP",
+     "class": "CL A LTD VT SH",
+     "cusip": "11271J107",
+     "putCall": "",
+     "value": 2415946008.0,
+     "shares": 59697208.0,
+     "weight": 17.62,
+     "change": "reduce",
+     "shares_chg_pct": -2.8
+    },
+    {
+     "name": "AMAZON COM INC",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 2385104083.0,
+     "shares": 11451981.0,
+     "weight": 17.39,
+     "change": "add",
+     "shares_chg_pct": 19.2
+    },
+    {
+     "name": "UBER TECHNOLOGIES INC",
+     "class": "COM",
+     "cusip": "90353T100",
+     "putCall": "",
+     "value": 2154934398.0,
+     "shares": 29958771.0,
+     "weight": 15.71,
+     "change": "reduce",
+     "shares_chg_pct": -0.8
+    },
+    {
+     "name": "MICROSOFT CORP",
+     "class": "COM",
+     "cusip": "594918104",
+     "putCall": "",
+     "value": 2092970053.0,
+     "shares": 5654078.0,
+     "weight": 15.26,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "RESTAURANT BRANDS INTL INC",
+     "class": "COM",
+     "cusip": "76131D103",
+     "putCall": "",
+     "value": 1673501194.0,
+     "shares": 22645483.0,
+     "weight": 12.2,
+     "change": "reduce",
+     "shares_chg_pct": -1.0
+    },
+    {
+     "name": "META PLATFORMS INC",
+     "class": "CL A",
+     "cusip": "30303M102",
+     "putCall": "",
+     "value": 1522358404.0,
+     "shares": 2660861.0,
+     "weight": 11.1,
+     "change": "hold",
+     "shares_chg_pct": -0.5
+    },
+    {
+     "name": "HOWARD HUGHES HOLDINGS INC",
+     "class": "COM",
+     "cusip": "44267T102",
+     "putCall": "",
+     "value": 1192581569.0,
+     "shares": 18852064.0,
+     "weight": 8.7,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "SEAPORT ENTMT GROUP INC",
+     "class": "COMMON STOCK",
+     "cusip": "812215200",
+     "putCall": "",
+     "value": 107910794.0,
+     "shares": 5023780.0,
+     "weight": 0.79,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL C",
+     "cusip": "02079K107",
+     "putCall": "",
+     "value": 89421720.0,
+     "shares": 311726.0,
+     "weight": 0.65,
+     "change": "reduce",
+     "shares_chg_pct": -94.9
+    },
+    {
+     "name": "HERTZ GLOBAL HLDGS INC",
+     "class": "COM NEW",
+     "cusip": "42806J700",
+     "putCall": "",
+     "value": 70261595.0,
+     "shares": 15241127.0,
+     "weight": 0.51,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 9310043.0,
+     "shares": 32376.0,
+     "weight": 0.07,
+     "change": "reduce",
+     "shares_chg_pct": -95.2
+    }
+   ],
+   "sold": [
+    {
+     "name": "HILTON WORLDWIDE HLDGS INC",
+     "cusip": "43300A203",
+     "putCall": "",
+     "value": 869983734.0,
+     "shares": 3028664.0
+    }
+   ]
+  },
+  {
+   "cik": 1061768,
+   "name": "Baupost Group",
+   "person": "세스 클라먼",
+   "agent": null,
+   "period": "2026-06-30",
+   "filed": "2026-08-13",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1061768/000106176826000010/",
+   "total_value": 5415853000.0,
+   "prev_total_value": 5115380000.0,
+   "positions": 23,
+   "counts": {
+    "new": 3,
+    "add": 6,
+    "reduce": 9,
+    "hold": 5,
+    "sold": 2
+   },
+   "top10_weight": 74.9,
+   "holdings": [
+    {
+     "name": "AMAZON COM INC",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 892310000.0,
+     "shares": 3743854.0,
+     "weight": 16.48,
+     "change": "add",
+     "shares_chg_pct": 20.0
+    },
+    {
+     "name": "ELEVANCE HEALTH INC FORMERLY",
+     "class": "COM",
+     "cusip": "036752103",
+     "putCall": "",
+     "value": 493140000.0,
+     "shares": 1275154.0,
+     "weight": 9.11,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "RESTAURANT BRANDS INTL INC",
+     "class": "COM",
+     "cusip": "76131D103",
+     "putCall": "",
+     "value": 489612000.0,
+     "shares": 6753112.0,
+     "weight": 9.04,
+     "change": "reduce",
+     "shares_chg_pct": -16.4
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL C",
+     "cusip": "02079K107",
+     "putCall": "",
+     "value": 484744000.0,
+     "shares": 1371931.0,
+     "weight": 8.95,
+     "change": "add",
+     "shares_chg_pct": 16.2
+    },
+    {
+     "name": "FERGUSON ENTERPRISES INC",
+     "class": "COMMON STOCK NEW",
+     "cusip": "31488V107",
+     "putCall": "",
+     "value": 344269000.0,
+     "shares": 1450594.0,
+     "weight": 6.36,
+     "change": "add",
+     "shares_chg_pct": 0.6
+    },
+    {
+     "name": "GENUINE PARTS CO",
+     "class": "COM",
+     "cusip": "372460105",
+     "putCall": "",
+     "value": 332253000.0,
+     "shares": 2816178.0,
+     "weight": 6.13,
+     "change": "add",
+     "shares_chg_pct": 89.0
+    },
+    {
+     "name": "UNION PAC CORP",
+     "class": "COM",
+     "cusip": "907818108",
+     "putCall": "",
+     "value": 322427000.0,
+     "shares": 1185395.0,
+     "weight": 5.95,
+     "change": "reduce",
+     "shares_chg_pct": -23.1
+    },
+    {
+     "name": "VISA INC",
+     "class": "COM CL A",
+     "cusip": "92826C839",
+     "putCall": "",
+     "value": 240628000.0,
+     "shares": 701355.0,
+     "weight": 4.44,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "WESCO INTL INC",
+     "class": "COM",
+     "cusip": "95082P105",
+     "putCall": "",
+     "value": 228979000.0,
+     "shares": 662881.0,
+     "weight": 4.23,
+     "change": "reduce",
+     "shares_chg_pct": -53.9
+    },
+    {
+     "name": "AON PLC",
+     "class": "SHS CL A",
+     "cusip": "G0403H108",
+     "putCall": "",
+     "value": 227871000.0,
+     "shares": 687000.0,
+     "weight": 4.21,
+     "change": "reduce",
+     "shares_chg_pct": -10.7
+    },
+    {
+     "name": "TELEFLEX INCORPORATED",
+     "class": "COM",
+     "cusip": "879369106",
+     "putCall": "",
+     "value": 178605000.0,
+     "shares": 1409000.0,
+     "weight": 3.3,
+     "change": "reduce",
+     "shares_chg_pct": -11.7
+    },
+    {
+     "name": "NORWEGIAN CRUISE LINE HLDGS",
+     "class": "SHS",
+     "cusip": "G66721104",
+     "putCall": "",
+     "value": 163180000.0,
+     "shares": 7730000.0,
+     "weight": 3.01,
+     "change": "add",
+     "shares_chg_pct": 112.9
+    },
+    {
+     "name": "MOLINA HEALTHCARE INC",
+     "class": "COM",
+     "cusip": "60855R100",
+     "putCall": "",
+     "value": 144906000.0,
+     "shares": 633609.0,
+     "weight": 2.68,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "CME GROUP INC",
+     "class": "COM",
+     "cusip": "12572Q105",
+     "putCall": "",
+     "value": 136694000.0,
+     "shares": 619000.0,
+     "weight": 2.52,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "HERBALIFE LTD",
+     "class": "COM SHS",
+     "cusip": "G4412G101",
+     "putCall": "",
+     "value": 121767000.0,
+     "shares": 9259844.0,
+     "weight": 2.25,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "EAGLE MATLS INC",
+     "class": "COM",
+     "cusip": "26969P108",
+     "putCall": "",
+     "value": 119422000.0,
+     "shares": 530763.0,
+     "weight": 2.21,
+     "change": "reduce",
+     "shares_chg_pct": -40.5
+    },
+    {
+     "name": "GDS HLDGS LTD",
+     "class": "SPONSORED ADS",
+     "cusip": "36165L108",
+     "putCall": "",
+     "value": 113208000.0,
+     "shares": 3769818.0,
+     "weight": 2.09,
+     "change": "add",
+     "shares_chg_pct": 23.8
+    },
+    {
+     "name": "AMERICOLD REALTY TRUST INC",
+     "class": "COM",
+     "cusip": "03064D108",
+     "putCall": "",
+     "value": 107371000.0,
+     "shares": 6830230.0,
+     "weight": 1.98,
+     "change": "reduce",
+     "shares_chg_pct": -12.2
+    },
+    {
+     "name": "LIBERTY GLOBAL LTD",
+     "class": "COM CL C",
+     "cusip": "G61188127",
+     "putCall": "",
+     "value": 93975000.0,
+     "shares": 8543161.0,
+     "weight": 1.74,
+     "change": "reduce",
+     "shares_chg_pct": -36.2
+    },
+    {
+     "name": "GRUPO AEROMEXICO SAB DE CV",
+     "class": "SPONSORED ADS",
+     "cusip": "40054J109",
+     "putCall": "",
+     "value": 87843000.0,
+     "shares": 4880188.0,
+     "weight": 1.62,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "AXALTA COATING SYS LTD",
+     "class": "COM",
+     "cusip": "G0750C108",
+     "putCall": "",
+     "value": 43608000.0,
+     "shares": 1274356.0,
+     "weight": 0.81,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "DNOW INC",
+     "class": "COM",
+     "cusip": "67011P100",
+     "putCall": "",
+     "value": 36160000.0,
+     "shares": 2788000.0,
+     "weight": 0.67,
+     "change": "reduce",
+     "shares_chg_pct": -23.1
+    },
+    {
+     "name": "PERSHING SQUARE INC",
+     "class": "COMMON STOCK",
+     "cusip": "71531U102",
+     "putCall": "",
+     "value": 12881000.0,
+     "shares": 392000.0,
+     "weight": 0.24,
+     "change": "new",
+     "shares_chg_pct": null
+    }
+   ],
+   "sold": [
+    {
+     "name": "WILLIS TOWERS WATSON PLC LTD",
+     "cusip": "G96629103",
+     "putCall": "",
+     "value": 259632000.0,
+     "shares": 893126.0
+    },
+    {
+     "name": "VAXCYTE INC",
+     "cusip": "92243G108",
+     "putCall": "",
+     "value": 46488000.0,
+     "shares": 800000.0
+    }
+   ]
+  },
+  {
+   "cik": 1029160,
+   "name": "Soros Fund Management",
+   "person": "조지 소로스",
+   "agent": null,
+   "period": "2026-06-30",
+   "filed": "2026-08-14",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1029160/000090266426003507/",
+   "total_value": 8143628824.0,
+   "prev_total_value": 9119078018.0,
+   "positions": 266,
+   "counts": {
+    "new": 98,
+    "add": 50,
+    "reduce": 77,
+    "hold": 41,
+    "sold": 95
+   },
+   "top10_weight": 25.2,
+   "holdings": [
+    {
+     "name": "AMAZON COM INC",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 281843962.0,
+     "shares": 1182529.0,
+     "weight": 3.46,
+     "change": "reduce",
+     "shares_chg_pct": -39.2
+    },
+    {
+     "name": "TAIWAN SEMICONDUCTOR MANUFAC",
+     "class": "SPONSORED ADS",
+     "cusip": "874039100",
+     "putCall": "",
+     "value": 249366996.0,
+     "shares": 522158.0,
+     "weight": 3.06,
+     "change": "hold",
+     "shares_chg_pct": -0.0
+    },
+    {
+     "name": "GLOBAL PMTS INC",
+     "class": "NOTE 1.500% 3/0",
+     "cusip": "37940XAU6",
+     "putCall": "",
+     "value": 222694485.0,
+     "shares": 247500000.0,
+     "weight": 2.73,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 213094728.0,
+     "shares": 596286.0,
+     "weight": 2.62,
+     "change": "add",
+     "shares_chg_pct": 3.9
+    },
+    {
+     "name": "NVIDIA CORPORATION",
+     "class": "COM",
+     "cusip": "67066G104",
+     "putCall": "",
+     "value": 213022817.0,
+     "shares": 1064635.0,
+     "weight": 2.62,
+     "change": "reduce",
+     "shares_chg_pct": -0.8
+    },
+    {
+     "name": "ELECTRONIC ARTS INC",
+     "class": "COM",
+     "cusip": "285512109",
+     "putCall": "",
+     "value": 199091790.0,
+     "shares": 970990.0,
+     "weight": 2.44,
+     "change": "add",
+     "shares_chg_pct": 0.5
+    },
+    {
+     "name": "BILL HOLDINGS INC",
+     "class": "NOTE 4/0",
+     "cusip": "090043AF7",
+     "putCall": "",
+     "value": 181356254.0,
+     "shares": 209679000.0,
+     "weight": 2.23,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "PG&E CORP",
+     "class": "NOTE 4.250%12/0",
+     "cusip": "69331CAL2",
+     "putCall": "",
+     "value": 179601903.0,
+     "shares": 175000000.0,
+     "weight": 2.21,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "RIVIAN AUTOMOTIVE INC",
+     "class": "NOTE 4.625% 3/1",
+     "cusip": "76954AAB9",
+     "putCall": "",
+     "value": 155838659.0,
+     "shares": 131565000.0,
+     "weight": 1.91,
+     "change": "reduce",
+     "shares_chg_pct": -8.3
+    },
+    {
+     "name": "APPLE INC",
+     "class": "COM",
+     "cusip": "037833100",
+     "putCall": "",
+     "value": 153227116.0,
+     "shares": 529538.0,
+     "weight": 1.88,
+     "change": "add",
+     "shares_chg_pct": 5.8
+    },
+    {
+     "name": "LINDE PLC",
+     "class": "SHS",
+     "cusip": "G54950103",
+     "putCall": "",
+     "value": 138738090.0,
+     "shares": 267349.0,
+     "weight": 1.7,
+     "change": "add",
+     "shares_chg_pct": 2.9
+    },
+    {
+     "name": "LUMENTUM HLDGS INC",
+     "class": "NOTE 0.500% 6/1",
+     "cusip": "55024UAF6",
+     "putCall": "",
+     "value": 119272441.0,
+     "shares": 18256000.0,
+     "weight": 1.46,
+     "change": "reduce",
+     "shares_chg_pct": -14.6
+    },
+    {
+     "name": "TKO GROUP HOLDINGS INC",
+     "class": "CL A",
+     "cusip": "87256C101",
+     "putCall": "",
+     "value": 116388786.0,
+     "shares": 578157.0,
+     "weight": 1.43,
+     "change": "reduce",
+     "shares_chg_pct": -4.3
+    },
+    {
+     "name": "SUPER MICRO COMPUTER INC",
+     "class": "7 DEP CM SR A WI",
+     "cusip": "86800U500",
+     "putCall": "",
+     "value": 111471398.0,
+     "shares": 2175408.0,
+     "weight": 1.37,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "SELECT SECTOR SPDR TR",
+     "class": "ST STR ENERG ETF",
+     "cusip": "81369Y506",
+     "putCall": "Put",
+     "value": 106220000.0,
+     "shares": 2000000.0,
+     "weight": 1.3,
+     "change": "reduce",
+     "shares_chg_pct": -59.6
+    },
+    {
+     "name": "AMERICAN ELEC PWR CO INC",
+     "class": "COM",
+     "cusip": "025537101",
+     "putCall": "",
+     "value": 105070080.0,
+     "shares": 768000.0,
+     "weight": 1.29,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "ENTERGY CORP NEW",
+     "class": "COM",
+     "cusip": "29364G103",
+     "putCall": "",
+     "value": 104971932.0,
+     "shares": 913912.0,
+     "weight": 1.29,
+     "change": "add",
+     "shares_chg_pct": 1084.2
+    },
+    {
+     "name": "DROPBOX INC",
+     "class": "NOTE 3/0",
+     "cusip": "26210CAD6",
+     "putCall": "",
+     "value": 104610636.0,
+     "shares": 103500000.0,
+     "weight": 1.28,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "JD.COM INC",
+     "class": "NOTE 0.250% 6/0",
+     "cusip": "47215PAJ5",
+     "putCall": "",
+     "value": 98546765.0,
+     "shares": 100000000.0,
+     "weight": 1.21,
+     "change": "reduce",
+     "shares_chg_pct": -33.4
+    },
+    {
+     "name": "ITRON INC",
+     "class": "COM",
+     "cusip": "465741106",
+     "putCall": "",
+     "value": 98458420.0,
+     "shares": 1137853.0,
+     "weight": 1.21,
+     "change": "add",
+     "shares_chg_pct": 46.4
+    },
+    {
+     "name": "DIGITAL RLTY TR INC",
+     "class": "COM",
+     "cusip": "253868103",
+     "putCall": "",
+     "value": 96904600.0,
+     "shares": 539618.0,
+     "weight": 1.19,
+     "change": "add",
+     "shares_chg_pct": 839.8
+    },
+    {
+     "name": "BLACKLINE INC",
+     "class": "NOTE 1.000% 6/0",
+     "cusip": "09239BAF6",
+     "putCall": "",
+     "value": 93258284.0,
+     "shares": 101000000.0,
+     "weight": 1.15,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "LUMENTUM HLDGS INC",
+     "class": "NOTE 0.500%12/1",
+     "cusip": "55024UAD1",
+     "putCall": "",
+     "value": 88270935.0,
+     "shares": 10250000.0,
+     "weight": 1.08,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "CHART INDS INC",
+     "class": "COM",
+     "cusip": "16115Q308",
+     "putCall": "",
+     "value": 86967723.0,
+     "shares": 416233.0,
+     "weight": 1.07,
+     "change": "reduce",
+     "shares_chg_pct": -11.5
+    },
+    {
+     "name": "NEBIUS GROUP N.V.",
+     "class": "SHS CLASS A",
+     "cusip": "N97284108",
+     "putCall": "",
+     "value": 85612700.0,
+     "shares": 310000.0,
+     "weight": 1.05,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "WEBSTER FINL CORP",
+     "class": "COM",
+     "cusip": "947890109",
+     "putCall": "",
+     "value": 85092677.0,
+     "shares": 1113487.0,
+     "weight": 1.04,
+     "change": "add",
+     "shares_chg_pct": 56.4
+    },
+    {
+     "name": "IDACORP INC",
+     "class": "COM",
+     "cusip": "451107106",
+     "putCall": "",
+     "value": 82622661.0,
+     "shares": 546085.0,
+     "weight": 1.01,
+     "change": "reduce",
+     "shares_chg_pct": -5.4
+    },
+    {
+     "name": "TAIWAN SEMICONDUCTOR MANUFAC",
+     "class": "SPONSORED ADS",
+     "cusip": "874039100",
+     "putCall": "Put",
+     "value": 81186900.0,
+     "shares": 170000.0,
+     "weight": 1.0,
+     "change": "reduce",
+     "shares_chg_pct": -54.7
+    },
+    {
+     "name": "NVIDIA CORPORATION",
+     "class": "COM",
+     "cusip": "67066G104",
+     "putCall": "Put",
+     "value": 80036000.0,
+     "shares": 400000.0,
+     "weight": 0.98,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "NEXTERA ENERGY INC",
+     "class": "UNIT 02/15/2029",
+     "cusip": "65339F655",
+     "putCall": "",
+     "value": 77944001.0,
+     "shares": 1627578.0,
+     "weight": 0.96,
+     "change": "add",
+     "shares_chg_pct": 35.6
+    },
+    {
+     "name": "H2O AMERICA",
+     "class": "COM",
+     "cusip": "784305104",
+     "putCall": "",
+     "value": 76227943.0,
+     "shares": 1254368.0,
+     "weight": 0.94,
+     "change": "add",
+     "shares_chg_pct": 2.1
+    },
+    {
+     "name": "APOGEE THERAPEUTICS INC",
+     "class": "COM",
+     "cusip": "03770N101",
+     "putCall": "",
+     "value": 74926085.0,
+     "shares": 564500.0,
+     "weight": 0.92,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "CMS ENERGY CORP",
+     "class": "COM",
+     "cusip": "125896100",
+     "putCall": "",
+     "value": 74232693.0,
+     "shares": 970362.0,
+     "weight": 0.91,
+     "change": "reduce",
+     "shares_chg_pct": -6.2
+    },
+    {
+     "name": "SNAP INC",
+     "class": "NOTE 0.500% 5/0",
+     "cusip": "83304AAK2",
+     "putCall": "",
+     "value": 71946418.0,
+     "shares": 88000000.0,
+     "weight": 0.88,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "MICROSOFT CORP",
+     "class": "COM",
+     "cusip": "594918104",
+     "putCall": "",
+     "value": 70862982.0,
+     "shares": 189971.0,
+     "weight": 0.87,
+     "change": "reduce",
+     "shares_chg_pct": -10.4
+    },
+    {
+     "name": "BRIGHTHOUSE FINL INC",
+     "class": "COM",
+     "cusip": "10922N103",
+     "putCall": "",
+     "value": 70658625.0,
+     "shares": 1116250.0,
+     "weight": 0.87,
+     "change": "add",
+     "shares_chg_pct": 31.8
+    },
+    {
+     "name": "SMURFIT WESTROCK PLC",
+     "class": "SHS",
+     "cusip": "G8267P108",
+     "putCall": "",
+     "value": 69982035.0,
+     "shares": 1512798.0,
+     "weight": 0.86,
+     "change": "reduce",
+     "shares_chg_pct": -40.0
+    },
+    {
+     "name": "BERKSHIRE HATHAWAY INC DEL",
+     "class": "CL B NEW",
+     "cusip": "084670702",
+     "putCall": "",
+     "value": 66690478.0,
+     "shares": 133277.0,
+     "weight": 0.82,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "SOUTHERN CO",
+     "class": "NOTE 3.250% 6/1",
+     "cusip": "842587ED5",
+     "putCall": "",
+     "value": 65774926.0,
+     "shares": 65000000.0,
+     "weight": 0.81,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "DIGITALBRIDGE GROUP INC",
+     "class": "CL A NEW",
+     "cusip": "25401T603",
+     "putCall": "",
+     "value": 64994554.0,
+     "shares": 4118793.0,
+     "weight": 0.8,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "COREWEAVE INC",
+     "class": "COM CL A",
+     "cusip": "21873S108",
+     "putCall": "Put",
+     "value": 64701000.0,
+     "shares": 650000.0,
+     "weight": 0.79,
+     "change": "reduce",
+     "shares_chg_pct": -77.1
+    },
+    {
+     "name": "MEDLINE INC",
+     "class": "COM CL A",
+     "cusip": "58507V107",
+     "putCall": "",
+     "value": 64612343.0,
+     "shares": 1638244.0,
+     "weight": 0.79,
+     "change": "add",
+     "shares_chg_pct": 27.3
+    },
+    {
+     "name": "DEXCOM INC",
+     "class": "NOTE 0.375% 5/1",
+     "cusip": "252131AM9",
+     "putCall": "",
+     "value": 63521812.0,
+     "shares": 67977000.0,
+     "weight": 0.78,
+     "change": "add",
+     "shares_chg_pct": 7.9
+    },
+    {
+     "name": "BROADCOM INC",
+     "class": "COM",
+     "cusip": "11135F101",
+     "putCall": "",
+     "value": 62421677.0,
+     "shares": 165246.0,
+     "weight": 0.77,
+     "change": "add",
+     "shares_chg_pct": 6.5
+    },
+    {
+     "name": "WEC ENERGY GROUP INC",
+     "class": "COM",
+     "cusip": "92939U106",
+     "putCall": "",
+     "value": 61697648.0,
+     "shares": 528369.0,
+     "weight": 0.76,
+     "change": "add",
+     "shares_chg_pct": 3.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "DEP SHS RP1/20 B",
+     "cusip": "02079K602",
+     "putCall": "",
+     "value": 60171083.0,
+     "shares": 1200000.0,
+     "weight": 0.74,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "ELASTIC N V",
+     "class": "ORD SHS",
+     "cusip": "N14506104",
+     "putCall": "Call",
+     "value": 56888854.0,
+     "shares": 997700.0,
+     "weight": 0.7,
+     "change": "add",
+     "shares_chg_pct": 31.1
+    },
+    {
+     "name": "STATE STR SPDR S&P 500 ETF T",
+     "class": "TR UNIT",
+     "cusip": "78462F103",
+     "putCall": "Put",
+     "value": 56007750.0,
+     "shares": 75000.0,
+     "weight": 0.69,
+     "change": "reduce",
+     "shares_chg_pct": -93.7
+    },
+    {
+     "name": "SPIRIT AEROSYSTEMS INC",
+     "class": "NOTE 3.250%11/0",
+     "cusip": "85205TAQ3",
+     "putCall": "",
+     "value": 53916813.0,
+     "shares": 34500000.0,
+     "weight": 0.66,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "KENVUE INC",
+     "class": "COM",
+     "cusip": "49177J102",
+     "putCall": "",
+     "value": 52488214.0,
+     "shares": 2746636.0,
+     "weight": 0.64,
+     "change": "reduce",
+     "shares_chg_pct": -13.0
+    }
+   ],
+   "sold": [
+    {
+     "name": "SPDR SERIES TRUST",
+     "cusip": "78468R556",
+     "putCall": "Put",
+     "value": 217632327.0,
+     "shares": 1196900.0
+    },
+    {
+     "name": "JAZZ INVESTMENTS I LTD",
+     "cusip": "472145AF8",
+     "putCall": "",
+     "value": 158441825.0,
+     "shares": 130399000.0
+    },
+    {
+     "name": "SEALED AIR CORP NEW",
+     "cusip": "81211K100",
+     "putCall": "",
+     "value": 115713148.0,
+     "shares": 2751799.0
+    },
+    {
+     "name": "AMICUS THERAPEUTIC",
+     "cusip": "03152W109",
+     "putCall": "",
+     "value": 83191070.0,
+     "shares": 5753186.0
+    },
+    {
+     "name": "HONEYWELL INTL INC",
+     "cusip": "438516106",
+     "putCall": "",
+     "value": 80930494.0,
+     "shares": 358052.0
+    },
+    {
+     "name": "HOLOGIC INC",
+     "cusip": "436440101",
+     "putCall": "",
+     "value": 76614396.0,
+     "shares": 1013552.0
+    },
+    {
+     "name": "CLEARWATER ANALYTICS HLDGS I",
+     "cusip": "185123106",
+     "putCall": "",
+     "value": 69564228.0,
+     "shares": 2941405.0
+    },
+    {
+     "name": "SALESFORCE INC",
+     "cusip": "79466L302",
+     "putCall": "",
+     "value": 67442191.0,
+     "shares": 361291.0
+    },
+    {
+     "name": "PENUMBRA INC",
+     "cusip": "70975L107",
+     "putCall": "",
+     "value": 66801623.0,
+     "shares": 203434.0
+    },
+    {
+     "name": "VARONIS SYS INC",
+     "cusip": "922280AD4",
+     "putCall": "",
+     "value": 59454300.0,
+     "shares": 68055000.0
+    },
+    {
+     "name": "TRI POINTE HOMES INC",
+     "cusip": "87265H109",
+     "putCall": "",
+     "value": 48665837.0,
+     "shares": 1041426.0
+    },
+    {
+     "name": "ONESTREAM INC",
+     "cusip": "68278B107",
+     "putCall": "",
+     "value": 43925328.0,
+     "shares": 1830222.0
+    },
+    {
+     "name": "APELLIS PHARMACEUTICALS INC",
+     "cusip": "03753U106",
+     "putCall": "",
+     "value": 42482880.0,
+     "shares": 1056000.0
+    },
+    {
+     "name": "NCL CORP LTD",
+     "cusip": "62886HBD2",
+     "putCall": "",
+     "value": 39494469.0,
+     "shares": 40175000.0
+    },
+    {
+     "name": "ETSY INC",
+     "cusip": "29786AAJ5",
+     "putCall": "",
+     "value": 36698779.0,
+     "shares": 37500000.0
+    }
+   ]
+  },
+  {
+   "cik": 1709323,
+   "name": "Himalaya Capital",
+   "person": "리 루",
+   "agent": null,
+   "period": "2026-06-30",
+   "filed": "2026-08-14",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1709323/000204358526000022/",
+   "total_value": 3702921099.0,
+   "prev_total_value": 3201226867.0,
+   "positions": 8,
+   "counts": {
+    "new": 0,
+    "add": 2,
+    "reduce": 0,
+    "hold": 6,
+    "sold": 6
+   },
+   "top10_weight": 100.0,
+   "holdings": [
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 908899121.0,
+     "shares": 2543300.0,
+     "weight": 24.55,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL C",
+     "cusip": "02079K107",
+     "putCall": "",
+     "value": 866117829.0,
+     "shares": 2451300.0,
+     "weight": 23.39,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "PDD HOLDINGS INC",
+     "class": "SPON ADS",
+     "cusip": "722304102",
+     "putCall": "",
+     "value": 820858157.0,
+     "shares": 10761119.0,
+     "weight": 22.17,
+     "change": "add",
+     "shares_chg_pct": 133.5
+    },
+    {
+     "name": "BERKSHIRE HATHAWAY INC DEL",
+     "class": "CL B NEW",
+     "cusip": "084670702",
+     "putCall": "",
+     "value": 554591244.0,
+     "shares": 1108318.0,
+     "weight": 14.98,
+     "change": "add",
+     "shares_chg_pct": 23.5
+    },
+    {
+     "name": "EAST WEST BANCORP INC",
+     "class": "COM",
+     "cusip": "27579R104",
+     "putCall": "",
+     "value": 358399151.0,
+     "shares": 2776351.0,
+     "weight": 9.68,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "CROCS INC",
+     "class": "COM",
+     "cusip": "227046109",
+     "putCall": "",
+     "value": 107018900.0,
+     "shares": 887093.0,
+     "weight": 2.89,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "TENCENT MUSIC ENTERTAINM",
+     "class": "SPON ADS",
+     "cusip": "88034P109",
+     "putCall": "",
+     "value": 55033481.0,
+     "shares": 6590836.0,
+     "weight": 1.49,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "APPLE INC",
+     "class": "COM",
+     "cusip": "037833100",
+     "putCall": "",
+     "value": 32003216.0,
+     "shares": 110600.0,
+     "weight": 0.86,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    }
+   ],
+   "sold": [
+    {
+     "name": "BK OF AMERICA CORP",
+     "cusip": "060505104",
+     "putCall": "",
+     "value": 146151866.0,
+     "shares": 2997987.0
+    },
+    {
+     "name": "OCCIDENTAL PETE CORP",
+     "cusip": "674599105",
+     "putCall": "",
+     "value": 95322500.0,
+     "shares": 1466500.0
+    },
+    {
+     "name": "S&P GLOBAL INC",
+     "cusip": "78409V104",
+     "putCall": "",
+     "value": 51663072.0,
+     "shares": 121463.0
+    },
+    {
+     "name": "BLOCK H & R INC",
+     "cusip": "093671105",
+     "putCall": "",
+     "value": 51637996.0,
+     "shares": 1626906.0
+    },
+    {
+     "name": "MOODYS CORP",
+     "cusip": "615369105",
+     "putCall": "",
+     "value": 51383270.0,
+     "shares": 117784.0
+    },
+    {
+     "name": "MSCI INC",
+     "cusip": "55354G100",
+     "putCall": "",
+     "value": 10208310.0,
+     "shares": 18939.0
+    }
+   ]
+  },
+  {
+   "cik": 1536411,
+   "name": "Duquesne Family Office",
+   "person": "스탠리 드러켄밀러",
+   "agent": null,
+   "period": "2026-06-30",
+   "filed": "2026-08-14",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1536411/000153641126000006/",
+   "total_value": 5210856000.0,
+   "prev_total_value": 3376828000.0,
+   "positions": 95,
+   "counts": {
+    "new": 48,
+    "add": 17,
+    "reduce": 10,
+    "hold": 20,
+    "sold": 23
+   },
+   "top10_weight": 45.8,
+   "holdings": [
+    {
+     "name": "Natera Inc",
+     "class": "COM",
+     "cusip": "632307104",
+     "putCall": "",
+     "value": 864923000.0,
+     "shares": 3186306.0,
+     "weight": 16.6,
+     "change": "add",
+     "shares_chg_pct": 4.0
+    },
+    {
+     "name": "Taiwan Semiconductor Manufac",
+     "class": "SPONSORED ADS",
+     "cusip": "874039100",
+     "putCall": "",
+     "value": 281613000.0,
+     "shares": 589680.0,
+     "weight": 5.4,
+     "change": "add",
+     "shares_chg_pct": 19.1
+    },
+    {
+     "name": "Stmicroelectronics N V",
+     "class": "NY REGISTRY",
+     "cusip": "861012102",
+     "putCall": "",
+     "value": 232375000.0,
+     "shares": 3102880.0,
+     "weight": 4.46,
+     "change": "add",
+     "shares_chg_pct": 18.8
+    },
+    {
+     "name": "Invesco Exchange Traded Fd T",
+     "class": "S&P500 EQL WGT",
+     "cusip": "46137V357",
+     "putCall": "Call",
+     "value": 174684000.0,
+     "shares": 821000.0,
+     "weight": 3.35,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Insmed Inc",
+     "class": "COM PAR $.01",
+     "cusip": "457669307",
+     "putCall": "",
+     "value": 151900000.0,
+     "shares": 1424690.0,
+     "weight": 2.92,
+     "change": "add",
+     "shares_chg_pct": 23.4
+    },
+    {
+     "name": "Ishares Inc",
+     "class": "MSCI BRAZIL ETF",
+     "cusip": "464286400",
+     "putCall": "Call",
+     "value": 145866000.0,
+     "shares": 4228000.0,
+     "weight": 2.8,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Insmed Inc",
+     "class": "COM PAR $.01",
+     "cusip": "457669307",
+     "putCall": "Call",
+     "value": 143937000.0,
+     "shares": 1350000.0,
+     "weight": 2.76,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Ypf Sociedad Anonima",
+     "class": "SPON ADR CL D",
+     "cusip": "984245100",
+     "putCall": "",
+     "value": 142726000.0,
+     "shares": 3138897.0,
+     "weight": 2.74,
+     "change": "reduce",
+     "shares_chg_pct": -3.0
+    },
+    {
+     "name": "Amazon Com Inc",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 129085000.0,
+     "shares": 541600.0,
+     "weight": 2.48,
+     "change": "add",
+     "shares_chg_pct": 1082.5
+    },
+    {
+     "name": "Bbb Foods Inc",
+     "class": "CL A COM",
+     "cusip": "G0896C103",
+     "putCall": "",
+     "value": 120915000.0,
+     "shares": 2901733.0,
+     "weight": 2.32,
+     "change": "reduce",
+     "shares_chg_pct": -6.7
+    },
+    {
+     "name": "Alphabet Inc",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 120184000.0,
+     "shares": 336300.0,
+     "weight": 2.31,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Ishares Inc",
+     "class": "MSCI BRAZIL ETF",
+     "cusip": "464286400",
+     "putCall": "",
+     "value": 118548000.0,
+     "shares": 3436170.0,
+     "weight": 2.28,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Seagate Technology Hldngs Pl",
+     "class": "ORD SHS",
+     "cusip": "G7997R103",
+     "putCall": "",
+     "value": 117730000.0,
+     "shares": 122000.0,
+     "weight": 2.26,
+     "change": "add",
+     "shares_chg_pct": 140.6
+    },
+    {
+     "name": "Fox Corp",
+     "class": "CL A COM",
+     "cusip": "35137L105",
+     "putCall": "",
+     "value": 114992000.0,
+     "shares": 2204600.0,
+     "weight": 2.21,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Amazon Com Inc",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "Call",
+     "value": 109470000.0,
+     "shares": 459300.0,
+     "weight": 2.1,
+     "change": "add",
+     "shares_chg_pct": 129.7
+    },
+    {
+     "name": "United Airls Hldgs Inc",
+     "class": "COM",
+     "cusip": "910047109",
+     "putCall": "",
+     "value": 108084000.0,
+     "shares": 794795.0,
+     "weight": 2.07,
+     "change": "add",
+     "shares_chg_pct": 202.8
+    },
+    {
+     "name": "Sea Ltd",
+     "class": "SPONSORD ADS",
+     "cusip": "81141R100",
+     "putCall": "",
+     "value": 105404000.0,
+     "shares": 1099905.0,
+     "weight": 2.02,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Cdw Corp",
+     "class": "COM",
+     "cusip": "12514G108",
+     "putCall": "",
+     "value": 104629000.0,
+     "shares": 743950.0,
+     "weight": 2.01,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Newamsterdam Pharma Company",
+     "class": "ORDINARY SHARES",
+     "cusip": "N62509109",
+     "putCall": "",
+     "value": 104047000.0,
+     "shares": 3070146.0,
+     "weight": 2.0,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Ishares Tr",
+     "class": "RUSSELL 2000 ETF",
+     "cusip": "464287655",
+     "putCall": "Call",
+     "value": 99149000.0,
+     "shares": 330000.0,
+     "weight": 1.9,
+     "change": "add",
+     "shares_chg_pct": 317.7
+    },
+    {
+     "name": "Sandisk Corp",
+     "class": "COM",
+     "cusip": "80004C200",
+     "putCall": "",
+     "value": 79353000.0,
+     "shares": 34900.0,
+     "weight": 1.52,
+     "change": "reduce",
+     "shares_chg_pct": -8.5
+    },
+    {
+     "name": "Revolution Medicines Inc",
+     "class": "COM",
+     "cusip": "76155X100",
+     "putCall": "",
+     "value": 74835000.0,
+     "shares": 399587.0,
+     "weight": 1.44,
+     "change": "add",
+     "shares_chg_pct": 26.5
+    },
+    {
+     "name": "State Str Spdr S&P 500 Etf T",
+     "class": "TR UNIT",
+     "cusip": "78462F103",
+     "putCall": "Call",
+     "value": 67209000.0,
+     "shares": 90000.0,
+     "weight": 1.29,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Bitdeer Technologies Group",
+     "class": "CL A ORD SHS",
+     "cusip": "G11448100",
+     "putCall": "",
+     "value": 64670000.0,
+     "shares": 4074993.0,
+     "weight": 1.24,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Crh Plc",
+     "class": "ORD",
+     "cusip": "G25508105",
+     "putCall": "",
+     "value": 59230000.0,
+     "shares": 553555.0,
+     "weight": 1.14,
+     "change": "add",
+     "shares_chg_pct": 46.6
+    },
+    {
+     "name": "Delta Air Lines Inc",
+     "class": "COM NEW",
+     "cusip": "247361702",
+     "putCall": "",
+     "value": 56477000.0,
+     "shares": 603000.0,
+     "weight": 1.08,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Tesla Inc",
+     "class": "COM",
+     "cusip": "88160R101",
+     "putCall": "Call",
+     "value": 52996000.0,
+     "shares": 126000.0,
+     "weight": 1.02,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Fluor Corp",
+     "class": "COM",
+     "cusip": "343412102",
+     "putCall": "",
+     "value": 51457000.0,
+     "shares": 982200.0,
+     "weight": 0.99,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "D R Horton Inc",
+     "class": "COM",
+     "cusip": "23331A109",
+     "putCall": "",
+     "value": 48701000.0,
+     "shares": 299000.0,
+     "weight": 0.93,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Coupang Inc",
+     "class": "CL A",
+     "cusip": "22266T109",
+     "putCall": "",
+     "value": 46334000.0,
+     "shares": 2667485.0,
+     "weight": 0.89,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Advanced Micro Devices Inc",
+     "class": "COM",
+     "cusip": "007903107",
+     "putCall": "",
+     "value": 42348000.0,
+     "shares": 72900.0,
+     "weight": 0.81,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Palo Alto Networks Inc",
+     "class": "COM",
+     "cusip": "697435105",
+     "putCall": "",
+     "value": 39780000.0,
+     "shares": 116650.0,
+     "weight": 0.76,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Cleveland-Cliffs Inc New",
+     "class": "COM",
+     "cusip": "185899101",
+     "putCall": "",
+     "value": 39590000.0,
+     "shares": 4216184.0,
+     "weight": 0.76,
+     "change": "add",
+     "shares_chg_pct": 82.2
+    },
+    {
+     "name": "Hut 8 Corp",
+     "class": "COM",
+     "cusip": "44812J104",
+     "putCall": "",
+     "value": 36267000.0,
+     "shares": 314150.0,
+     "weight": 0.7,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Cdw Corp",
+     "class": "COM",
+     "cusip": "12514G108",
+     "putCall": "Call",
+     "value": 35160000.0,
+     "shares": 250000.0,
+     "weight": 0.67,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Caris Life Sciences Inc",
+     "class": "COM",
+     "cusip": "142152107",
+     "putCall": "",
+     "value": 33759000.0,
+     "shares": 1894450.0,
+     "weight": 0.65,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Global X Fds",
+     "class": "GB MSCI AR ETF",
+     "cusip": "37950E259",
+     "putCall": "",
+     "value": 30019000.0,
+     "shares": 328800.0,
+     "weight": 0.58,
+     "change": "reduce",
+     "shares_chg_pct": -15.1
+    },
+    {
+     "name": "Fox Corp",
+     "class": "CL B COM",
+     "cusip": "35137L204",
+     "putCall": "",
+     "value": 29631000.0,
+     "shares": 632600.0,
+     "weight": 0.57,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Woodward Inc",
+     "class": "COM",
+     "cusip": "980745103",
+     "putCall": "",
+     "value": 28587000.0,
+     "shares": 67194.0,
+     "weight": 0.55,
+     "change": "reduce",
+     "shares_chg_pct": -68.2
+    },
+    {
+     "name": "Meta Platforms Inc",
+     "class": "CL A",
+     "cusip": "30303M102",
+     "putCall": "Call",
+     "value": 28165000.0,
+     "shares": 50000.0,
+     "weight": 0.54,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Nuvation Bio Inc",
+     "class": "COM CL A",
+     "cusip": "67080N101",
+     "putCall": "",
+     "value": 25786000.0,
+     "shares": 4539800.0,
+     "weight": 0.49,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "Protagonist Therapeutics Inc",
+     "class": "COM",
+     "cusip": "74366E102",
+     "putCall": "",
+     "value": 25607000.0,
+     "shares": 208900.0,
+     "weight": 0.49,
+     "change": "add",
+     "shares_chg_pct": 30.8
+    },
+    {
+     "name": "Roku Inc",
+     "class": "COM CL A",
+     "cusip": "77543R102",
+     "putCall": "",
+     "value": 25425000.0,
+     "shares": 184055.0,
+     "weight": 0.49,
+     "change": "reduce",
+     "shares_chg_pct": -75.5
+    },
+    {
+     "name": "Cavco Inds Inc Del",
+     "class": "COM",
+     "cusip": "149568107",
+     "putCall": "",
+     "value": 24268000.0,
+     "shares": 39500.0,
+     "weight": 0.47,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Adma Biologics Inc",
+     "class": "COM",
+     "cusip": "000899104",
+     "putCall": "",
+     "value": 23303000.0,
+     "shares": 2784110.0,
+     "weight": 0.45,
+     "change": "add",
+     "shares_chg_pct": 80.1
+    },
+    {
+     "name": "Hyperliquid Strategies Inc",
+     "class": "COM",
+     "cusip": "44916Y106",
+     "putCall": "",
+     "value": 23150000.0,
+     "shares": 2941500.0,
+     "weight": 0.44,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Rambus Inc Del",
+     "class": "COM",
+     "cusip": "750917106",
+     "putCall": "",
+     "value": 22964000.0,
+     "shares": 173000.0,
+     "weight": 0.44,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Rhythm Pharmaceuticals Inc",
+     "class": "COM",
+     "cusip": "76243J105",
+     "putCall": "",
+     "value": 22608000.0,
+     "shares": 203618.0,
+     "weight": 0.43,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Champion Homes Inc",
+     "class": "COM",
+     "cusip": "830830105",
+     "putCall": "",
+     "value": 22418000.0,
+     "shares": 254400.0,
+     "weight": 0.43,
+     "change": "new",
+     "shares_chg_pct": null
+    },
+    {
+     "name": "Daktronics Inc",
+     "class": "COM",
+     "cusip": "234264109",
+     "putCall": "",
+     "value": 21968000.0,
+     "shares": 1123109.0,
+     "weight": 0.42,
+     "change": "add",
+     "shares_chg_pct": 99.6
+    }
+   ],
+   "sold": [
+    {
+     "name": "Broadcom Inc",
+     "cusip": "11135F101",
+     "putCall": "",
+     "value": 60650000.0,
+     "shares": 195955.0
+    },
+    {
+     "name": "Option Care Health Inc",
+     "cusip": "68404L201",
+     "putCall": "",
+     "value": 50301000.0,
+     "shares": 1868550.0
+    },
+    {
+     "name": "Figure Technology Solutio",
+     "cusip": "349381103",
+     "putCall": "",
+     "value": 39057000.0,
+     "shares": 1150415.0
+    },
+    {
+     "name": "Restaurant Brands Intl Inc",
+     "cusip": "76131D103",
+     "putCall": "",
+     "value": 33583000.0,
+     "shares": 454435.0
+    },
+    {
+     "name": "Lattice Semiconductor Corp",
+     "cusip": "518415104",
+     "putCall": "",
+     "value": 29974000.0,
+     "shares": 323135.0
+    },
+    {
+     "name": "Humana Inc",
+     "cusip": "444859102",
+     "putCall": "",
+     "value": 23842000.0,
+     "shares": 137505.0
+    },
+    {
+     "name": "Twilio Inc",
+     "cusip": "90138F102",
+     "putCall": "",
+     "value": 22869000.0,
+     "shares": 181760.0
+    },
+    {
+     "name": "Jabil Inc",
+     "cusip": "466313103",
+     "putCall": "",
+     "value": 21835000.0,
+     "shares": 82200.0
+    },
+    {
+     "name": "Ishares S&P Gsci Commodity-",
+     "cusip": "46428R107",
+     "putCall": "",
+     "value": 20737000.0,
+     "shares": 643000.0
+    },
+    {
+     "name": "Bloom Energy Corp",
+     "cusip": "093712107",
+     "putCall": "",
+     "value": 18470000.0,
+     "shares": 136320.0
+    },
+    {
+     "name": "Intel Corp",
+     "cusip": "458140100",
+     "putCall": "",
+     "value": 18155000.0,
+     "shares": 411400.0
+    },
+    {
+     "name": "Cloudflare Inc",
+     "cusip": "18915M107",
+     "putCall": "",
+     "value": 10840000.0,
+     "shares": 52535.0
+    },
+    {
+     "name": "Lyondellbasell Industries Nv",
+     "cusip": "N53745100",
+     "putCall": "",
+     "value": 10588000.0,
+     "shares": 131435.0
+    },
+    {
+     "name": "Twist Bioscience Corp",
+     "cusip": "90184D100",
+     "putCall": "",
+     "value": 9789000.0,
+     "shares": 206000.0
+    },
+    {
+     "name": "Coherent Corp",
+     "cusip": "19247G107",
+     "putCall": "",
+     "value": 9624000.0,
+     "shares": 40400.0
+    }
+   ]
+  },
+  {
+   "cik": 1608046,
+   "name": "국민연금 (NPS)",
+   "person": "국민연금공단",
+   "agent": null,
+   "period": "2026-06-30",
+   "filed": "2026-08-13",
+   "prev_period": "2026-03-31",
+   "filing_url": "https://www.sec.gov/Archives/edgar/data/1608046/000119312526347818/",
+   "total_value": 155079663358.0,
+   "prev_total_value": 131679039771.0,
+   "positions": 552,
+   "counts": {
+    "new": 19,
+    "add": 352,
+    "reduce": 141,
+    "hold": 40,
+    "sold": 29
+   },
+   "top10_weight": 33.5,
+   "holdings": [
+    {
+     "name": "NVIDIA CORPORATION",
+     "class": "COM",
+     "cusip": "67066G104",
+     "putCall": "",
+     "value": 10171499316.0,
+     "shares": 50834621.0,
+     "weight": 6.56,
+     "change": "reduce",
+     "shares_chg_pct": -0.9
+    },
+    {
+     "name": "APPLE INC",
+     "class": "COM",
+     "cusip": "037833100",
+     "putCall": "",
+     "value": 9120026489.0,
+     "shares": 31517924.0,
+     "weight": 5.88,
+     "change": "add",
+     "shares_chg_pct": 1.6
+    },
+    {
+     "name": "MICROSOFT CORP",
+     "class": "COM",
+     "cusip": "594918104",
+     "putCall": "",
+     "value": 5684729680.0,
+     "shares": 15239745.0,
+     "weight": 3.67,
+     "change": "add",
+     "shares_chg_pct": 2.2
+    },
+    {
+     "name": "AMAZON COM INC",
+     "class": "COM",
+     "cusip": "023135106",
+     "putCall": "",
+     "value": 4998167363.0,
+     "shares": 20970745.0,
+     "weight": 3.22,
+     "change": "add",
+     "shares_chg_pct": 2.6
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL A",
+     "cusip": "02079K305",
+     "putCall": "",
+     "value": 4680938399.0,
+     "shares": 13098297.0,
+     "weight": 3.02,
+     "change": "add",
+     "shares_chg_pct": 2.4
+    },
+    {
+     "name": "ALPHABET INC",
+     "class": "CAP STK CL C",
+     "cusip": "02079K107",
+     "putCall": "",
+     "value": 3727875298.0,
+     "shares": 10550690.0,
+     "weight": 2.4,
+     "change": "reduce",
+     "shares_chg_pct": -0.6
+    },
+    {
+     "name": "BROADCOM INC",
+     "class": "COM",
+     "cusip": "11135F101",
+     "putCall": "",
+     "value": 3631259754.0,
+     "shares": 9612865.0,
+     "weight": 2.34,
+     "change": "add",
+     "shares_chg_pct": 2.5
+    },
+    {
+     "name": "INVESCO EXCH TRADED FD TR II",
+     "class": "PURBTA MSCI US",
+     "cusip": "46138E461",
+     "putCall": "",
+     "value": 3546096271.0,
+     "shares": 47382366.0,
+     "weight": 2.29,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "MICRON TECHNOLOGY INC",
+     "class": "COM",
+     "cusip": "595112103",
+     "putCall": "",
+     "value": 3331465626.0,
+     "shares": 2886160.0,
+     "weight": 2.15,
+     "change": "hold",
+     "shares_chg_pct": 0.4
+    },
+    {
+     "name": "ISHARES TR",
+     "class": "CORE S&P500 ETF",
+     "cusip": "464287200",
+     "putCall": "",
+     "value": 3084943766.0,
+     "shares": 4119355.0,
+     "weight": 1.99,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "META PLATFORMS INC",
+     "class": "CL A",
+     "cusip": "30303M102",
+     "putCall": "",
+     "value": 2732448252.0,
+     "shares": 4850873.0,
+     "weight": 1.76,
+     "change": "add",
+     "shares_chg_pct": 3.3
+    },
+    {
+     "name": "TESLA INC",
+     "class": "COM",
+     "cusip": "88160R101",
+     "putCall": "",
+     "value": 2532853621.0,
+     "shares": 6022001.0,
+     "weight": 1.63,
+     "change": "add",
+     "shares_chg_pct": 2.2
+    },
+    {
+     "name": "ADVANCED MICRO DEVICES INC",
+     "class": "COM",
+     "cusip": "007903107",
+     "putCall": "",
+     "value": 2091720396.0,
+     "shares": 3600765.0,
+     "weight": 1.35,
+     "change": "add",
+     "shares_chg_pct": 1.4
+    },
+    {
+     "name": "ELI LILLY & CO",
+     "class": "COM",
+     "cusip": "532457108",
+     "putCall": "",
+     "value": 2018379214.0,
+     "shares": 1682782.0,
+     "weight": 1.3,
+     "change": "add",
+     "shares_chg_pct": 1.3
+    },
+    {
+     "name": "JPMORGAN CHASE & CO",
+     "class": "COM",
+     "cusip": "46625H100",
+     "putCall": "",
+     "value": 1816546640.0,
+     "shares": 5549588.0,
+     "weight": 1.17,
+     "change": "add",
+     "shares_chg_pct": 0.7
+    },
+    {
+     "name": "LAM RESEARCH CORP",
+     "class": "COM NEW",
+     "cusip": "512807306",
+     "putCall": "",
+     "value": 1457235924.0,
+     "shares": 3362878.0,
+     "weight": 0.94,
+     "change": "hold",
+     "shares_chg_pct": -0.1
+    },
+    {
+     "name": "APPLIED MATLS INC",
+     "class": "COM",
+     "cusip": "038222105",
+     "putCall": "",
+     "value": 1418562873.0,
+     "shares": 1962051.0,
+     "weight": 0.91,
+     "change": "add",
+     "shares_chg_pct": 0.5
+    },
+    {
+     "name": "BERKSHIRE HATHAWAY INC DEL",
+     "class": "CL B NEW",
+     "cusip": "084670702",
+     "putCall": "",
+     "value": 1403556421.0,
+     "shares": 2804925.0,
+     "weight": 0.91,
+     "change": "add",
+     "shares_chg_pct": 2.6
+    },
+    {
+     "name": "INTEL CORP",
+     "class": "COM",
+     "cusip": "458140100",
+     "putCall": "",
+     "value": 1396229068.0,
+     "shares": 9999492.0,
+     "weight": 0.9,
+     "change": "reduce",
+     "shares_chg_pct": -2.0
+    },
+    {
+     "name": "JOHNSON & JOHNSON",
+     "class": "COM",
+     "cusip": "478160104",
+     "putCall": "",
+     "value": 1327493063.0,
+     "shares": 5226968.0,
+     "weight": 0.86,
+     "change": "add",
+     "shares_chg_pct": 1.3
+    },
+    {
+     "name": "EXXON MOBIL CORP",
+     "class": "COM",
+     "cusip": "30231G102",
+     "putCall": "",
+     "value": 1321264951.0,
+     "shares": 9664021.0,
+     "weight": 0.85,
+     "change": "add",
+     "shares_chg_pct": 1.8
+    },
+    {
+     "name": "VISA INC",
+     "class": "COM CL A",
+     "cusip": "92826C839",
+     "putCall": "",
+     "value": 1185762956.0,
+     "shares": 3456128.0,
+     "weight": 0.76,
+     "change": "add",
+     "shares_chg_pct": 1.7
+    },
+    {
+     "name": "WALMART INC",
+     "class": "COM",
+     "cusip": "931142103",
+     "putCall": "",
+     "value": 1168182441.0,
+     "shares": 10314166.0,
+     "weight": 0.75,
+     "change": "add",
+     "shares_chg_pct": 3.5
+    },
+    {
+     "name": "CISCO SYS INC",
+     "class": "COM",
+     "cusip": "17275R102",
+     "putCall": "",
+     "value": 1140935494.0,
+     "shares": 9713396.0,
+     "weight": 0.74,
+     "change": "add",
+     "shares_chg_pct": 0.9
+    },
+    {
+     "name": "KLA CORP",
+     "class": "COM NEW",
+     "cusip": "482480100",
+     "putCall": "",
+     "value": 1096673309.0,
+     "shares": 3634859.0,
+     "weight": 0.71,
+     "change": "add",
+     "shares_chg_pct": 899.4
+    },
+    {
+     "name": "CATERPILLAR INC",
+     "class": "COM",
+     "cusip": "149123101",
+     "putCall": "",
+     "value": 1075678918.0,
+     "shares": 1010122.0,
+     "weight": 0.69,
+     "change": "add",
+     "shares_chg_pct": 2.2
+    },
+    {
+     "name": "ABBVIE INC",
+     "class": "COM",
+     "cusip": "00287Y109",
+     "putCall": "",
+     "value": 1008968950.0,
+     "shares": 4009573.0,
+     "weight": 0.65,
+     "change": "add",
+     "shares_chg_pct": 1.5
+    },
+    {
+     "name": "GE AEROSPACE",
+     "class": "COM NEW",
+     "cusip": "369604301",
+     "putCall": "",
+     "value": 910452623.0,
+     "shares": 2436124.0,
+     "weight": 0.59,
+     "change": "add",
+     "shares_chg_pct": 1.9
+    },
+    {
+     "name": "COSTCO WHOLESALE CORPORATION",
+     "class": "COM",
+     "cusip": "22160K105",
+     "putCall": "",
+     "value": 904344107.0,
+     "shares": 966727.0,
+     "weight": 0.58,
+     "change": "add",
+     "shares_chg_pct": 3.6
+    },
+    {
+     "name": "MASTERCARD INCORPORATED",
+     "class": "CL A",
+     "cusip": "57636Q104",
+     "putCall": "",
+     "value": 886994390.0,
+     "shares": 1727014.0,
+     "weight": 0.57,
+     "change": "hold",
+     "shares_chg_pct": 0.3
+    },
+    {
+     "name": "BANK OF AMER CORP",
+     "class": "COM",
+     "cusip": "060505104",
+     "putCall": "",
+     "value": 885265895.0,
+     "shares": 15536432.0,
+     "weight": 0.57,
+     "change": "hold",
+     "shares_chg_pct": 0.3
+    },
+    {
+     "name": "WESTERN DIGITAL CORP",
+     "class": "COM",
+     "cusip": "958102105",
+     "putCall": "",
+     "value": 882009725.0,
+     "shares": 1380902.0,
+     "weight": 0.57,
+     "change": "reduce",
+     "shares_chg_pct": -4.0
+    },
+    {
+     "name": "MARVELL TECHNOLOGY INC",
+     "class": "COM",
+     "cusip": "573874104",
+     "putCall": "",
+     "value": 833056534.0,
+     "shares": 2796524.0,
+     "weight": 0.54,
+     "change": "reduce",
+     "shares_chg_pct": -2.5
+    },
+    {
+     "name": "PROCTER & GAMBLE CO",
+     "class": "COM",
+     "cusip": "742718109",
+     "putCall": "",
+     "value": 826948565.0,
+     "shares": 5639311.0,
+     "weight": 0.53,
+     "change": "add",
+     "shares_chg_pct": 3.1
+    },
+    {
+     "name": "UNITEDHEALTH GROUP INC",
+     "class": "COM",
+     "cusip": "91324P102",
+     "putCall": "",
+     "value": 818929089.0,
+     "shares": 1970332.0,
+     "weight": 0.53,
+     "change": "add",
+     "shares_chg_pct": 1.2
+    },
+    {
+     "name": "SEAGATE TECHNOLOGY HLDNGS PL",
+     "class": "ORD SHS",
+     "cusip": "G7997R103",
+     "putCall": "",
+     "value": 805490325.0,
+     "shares": 834705.0,
+     "weight": 0.52,
+     "change": "add",
+     "shares_chg_pct": 0.8
+    },
+    {
+     "name": "HOME DEPOT INC",
+     "class": "COM",
+     "cusip": "437076102",
+     "putCall": "",
+     "value": 791159990.0,
+     "shares": 2243280.0,
+     "weight": 0.51,
+     "change": "add",
+     "shares_chg_pct": 2.5
+    },
+    {
+     "name": "COCA COLA CO",
+     "class": "COM",
+     "cusip": "191216100",
+     "putCall": "",
+     "value": 759894655.0,
+     "shares": 9350248.0,
+     "weight": 0.49,
+     "change": "add",
+     "shares_chg_pct": 0.7
+    },
+    {
+     "name": "T ROWE PRICE EXCHANGE-TRADED",
+     "class": "PRICE GRW STOCK",
+     "cusip": "87283Q305",
+     "putCall": "",
+     "value": 754666842.0,
+     "shares": 15814477.0,
+     "weight": 0.49,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "CHEVRON CORPORATION",
+     "class": "COM",
+     "cusip": "166764100",
+     "putCall": "",
+     "value": 750205228.0,
+     "shares": 4525852.0,
+     "weight": 0.48,
+     "change": "add",
+     "shares_chg_pct": 1.0
+    },
+    {
+     "name": "MERCK & CO INC",
+     "class": "COM",
+     "cusip": "58933Y105",
+     "putCall": "",
+     "value": 744243987.0,
+     "shares": 5791782.0,
+     "weight": 0.48,
+     "change": "add",
+     "shares_chg_pct": 0.5
+    },
+    {
+     "name": "NETFLIX INC.",
+     "class": "COM",
+     "cusip": "64110L106",
+     "putCall": "",
+     "value": 693865700.0,
+     "shares": 9718007.0,
+     "weight": 0.45,
+     "change": "add",
+     "shares_chg_pct": 2.8
+    },
+    {
+     "name": "GOLDMAN SACHS GROUP INC",
+     "class": "COM",
+     "cusip": "38141G104",
+     "putCall": "",
+     "value": 678086164.0,
+     "shares": 670463.0,
+     "weight": 0.44,
+     "change": "reduce",
+     "shares_chg_pct": -0.6
+    },
+    {
+     "name": "PHILIP MORRIS INTL INC",
+     "class": "COM",
+     "cusip": "718172109",
+     "putCall": "",
+     "value": 675325633.0,
+     "shares": 3732937.0,
+     "weight": 0.44,
+     "change": "add",
+     "shares_chg_pct": 3.3
+    },
+    {
+     "name": "HARBOR ETF TRUST",
+     "class": "PANA DY CORE ETF",
+     "cusip": "41151J745",
+     "putCall": "",
+     "value": 668030237.0,
+     "shares": 24565625.0,
+     "weight": 0.43,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    },
+    {
+     "name": "PALO ALTO NETWORKS INC",
+     "class": "COM",
+     "cusip": "697435105",
+     "putCall": "",
+     "value": 667001700.0,
+     "shares": 1955902.0,
+     "weight": 0.43,
+     "change": "reduce",
+     "shares_chg_pct": -9.1
+    },
+    {
+     "name": "GE VERNOVA INC",
+     "class": "COM",
+     "cusip": "36828A101",
+     "putCall": "",
+     "value": 663308333.0,
+     "shares": 564585.0,
+     "weight": 0.43,
+     "change": "add",
+     "shares_chg_pct": 3.0
+    },
+    {
+     "name": "INTERNATIONAL BUSINESS MACHS",
+     "class": "COM",
+     "cusip": "459200101",
+     "putCall": "",
+     "value": 660836470.0,
+     "shares": 2349975.0,
+     "weight": 0.43,
+     "change": "add",
+     "shares_chg_pct": 2.8
+    },
+    {
+     "name": "TEXAS INSTRS INC",
+     "class": "COM",
+     "cusip": "882508104",
+     "putCall": "",
+     "value": 632111088.0,
+     "shares": 2120680.0,
+     "weight": 0.41,
+     "change": "add",
+     "shares_chg_pct": 0.9
+    },
+    {
+     "name": "ADVISORS INNER CIRCLE FD",
+     "class": "LSV DISCIPLINED",
+     "cusip": "0075W0155",
+     "putCall": "",
+     "value": 627384496.0,
+     "shares": 18162000.0,
+     "weight": 0.4,
+     "change": "hold",
+     "shares_chg_pct": 0.0
+    }
+   ],
+   "sold": [
+    {
+     "name": "HONEYWELL INTL INC",
+     "cusip": "438516106",
+     "putCall": "",
+     "value": 329808962.0,
+     "shares": 1459138.0
+    },
+    {
+     "name": "CARNIVAL CORP",
+     "cusip": "143658300",
+     "putCall": "",
+     "value": 76871649.0,
+     "shares": 2970311.0
+    },
+    {
+     "name": "COTERRA ENERGY INC",
+     "cusip": "127097103",
+     "putCall": "",
+     "value": 16085124.0,
+     "shares": 457744.0
+    },
+    {
+     "name": "PINTEREST INC",
+     "cusip": "72352L106",
+     "putCall": "",
+     "value": 3755702.0,
+     "shares": 204782.0
+    },
+    {
+     "name": "GARTNER INC",
+     "cusip": "366651107",
+     "putCall": "",
+     "value": 3314215.0,
+     "shares": 20931.0
+    },
+    {
+     "name": "GODADDY INC",
+     "cusip": "380237107",
+     "putCall": "",
+     "value": 3065238.0,
+     "shares": 37078.0
+    },
+    {
+     "name": "UNIVERSAL HLTH SVCS INC",
+     "cusip": "913903100",
+     "putCall": "",
+     "value": 2963743.0,
+     "shares": 16560.0
+    },
+    {
+     "name": "HUBSPOT INC",
+     "cusip": "443573100",
+     "putCall": "",
+     "value": 2895758.0,
+     "shares": 11863.0
+    },
+    {
+     "name": "SOLVENTUM CORP",
+     "cusip": "83444M101",
+     "putCall": "",
+     "value": 2416818.0,
+     "shares": 37011.0
+    },
+    {
+     "name": "THE TRADE DESK INC",
+     "cusip": "88339J105",
+     "putCall": "",
+     "value": 2152441.0,
+     "shares": 94863.0
+    },
+    {
+     "name": "TAL ED GROUP",
+     "cusip": "874080104",
+     "putCall": "",
+     "value": 1329756.0,
+     "shares": 116953.0
+    },
+    {
+     "name": "ZEBRA TECHNOLOGIES CORPORATI",
+     "cusip": "989207105",
+     "putCall": "",
+     "value": 1199910.0,
+     "shares": 5739.0
+    },
+    {
+     "name": "DUPONT DE NEMOURS INC",
+     "cusip": "26614N102",
+     "putCall": "",
+     "value": 1195884.0,
+     "shares": 26111.0
+    },
+    {
+     "name": "BUILDERS FIRSTSOURCE INC",
+     "cusip": "12008R107",
+     "putCall": "",
+     "value": 1190986.0,
+     "shares": 14466.0
+    },
+    {
+     "name": "HOLOGIC INC",
+     "cusip": "436440101",
+     "putCall": "",
+     "value": 1134455.0,
+     "shares": 15008.0
+    }
+   ]
+  }
+ ]
+}

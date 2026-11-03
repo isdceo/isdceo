@@ -76,6 +76,42 @@
   td:nth-child(3){white-space:nowrap} td:first-child{white-space:nowrap}
   @media (max-width: 520px) { .spark{width:48px} th,td{padding-left:3px;padding-right:3px} }
   @media (max-width: 860px) { .indices { grid-template-columns: repeat(2, 1fr); } .main { grid-template-columns: 1fr; } }
+  /* 투자사 보유 현황 */
+  .inst { margin-top: 12px; }
+  .inst-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: thin; }
+  .chip { flex: none; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px;
+    cursor: pointer; font-size: 13px; text-align: left; }
+  .chip span { color: var(--text-3); font-size: 11px; margin-left: 6px; }
+  .chip:hover { border-color: var(--text-3); }
+  .chip[aria-selected="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .chip[aria-selected="true"] span { color: inherit; opacity: .7; }
+  .chip.sm { padding: 3px 10px; font-size: 12px; margin: 4px 4px 0 0; }
+  .holders { margin-top: 10px; font-size: 12px; line-height: 1.9; }
+  .kpis { display: grid; grid-template-columns: repeat(5, auto); gap: 12px 24px; margin-bottom: 14px; justify-content: start; }
+  .kpis b { font-size: 18px; font-variant-numeric: tabular-nums; } .kpis b.small { font-size: 13px; font-weight: 500; }
+  .warn { background: color-mix(in srgb, #eda100 15%, transparent); border: 1px solid color-mix(in srgb, #eda100 45%, transparent);
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 13px; }
+  .h-grid { display: grid; grid-template-columns: 1fr 260px; gap: 20px; align-items: start; }
+  .htable td { padding: 7px 6px; }
+  .htable td:nth-child(2) { text-align: left; } .htable th:nth-child(2) { text-align: left; }
+  .htable td:nth-child(3) { width: 34%; white-space: nowrap; }
+  .wbar { display: inline-block; width: calc(100% - 52px); height: 8px; background: var(--grid); border-radius: 4px; vertical-align: middle; overflow: hidden; }
+  .wbar span { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
+  .wnum { display: inline-block; width: 48px; text-align: right; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+    background: color-mix(in srgb, currentColor 10%, transparent); }
+  .b-new { color: var(--accent); font-weight: 600; } .b-opt { color: var(--text-2); }
+  .side h3 { font-size: 12px; color: var(--text-2); margin: 0 0 6px; font-weight: 600; }
+  .side ul { margin: 0 0 16px; padding-left: 18px; font-size: 13px; }
+  .side li { margin-bottom: 3px; }
+  .more { margin-top: 10px; width: 100%; }
+  .tipline { border-top: 1px solid var(--border); padding-top: 10px; }
+  code { font-size: 12px; background: var(--grid); padding: 1px 5px; border-radius: 4px; }
+  @media (max-width: 860px) {
+    .h-grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); }
+    .htable td:nth-child(4), .htable th:nth-child(4) { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -108,6 +144,7 @@
         <svg id="chart" role="img" aria-label="가격 차트"></svg>
         <div class="tip" id="tip"></div>
       </div>
+      <div id="c-holders" class="holders"></div>
     </div>
 
     <div class="card">
@@ -125,10 +162,22 @@
     </div>
   </section>
 
+  <section class="card inst" aria-label="투자사 보유 현황">
+    <div class="inst-head">
+      <h2 style="margin:0">세계 주요 투자사 보유 현황 <span class="sub">· SEC 13F 공시</span></h2>
+      <span class="sub" id="h-gen"></span>
+    </div>
+    <div class="chips" id="funds" role="tablist"></div>
+    <div id="h-body"></div>
+  </section>
+
   <p class="note">※ 현재 표시되는 시세는 데모용 샘플 데이터(가상)입니다. 실제 투자 판단에 사용하지 마세요.
-  상승=빨강 ▲, 하락=파랑 ▼ (한국 시장 관례).</p>
+  상승=빨강 ▲, 하락=파랑 ▼ (한국 시장 관례).<br>
+  ※ 투자사 보유 현황은 SEC 13F 실제 공시입니다. 미국 상장 증권 롱 포지션만 포함되고(한국 주식·공매도·현금 제외), 분기 종료 후 최대 45일 늦게 공개됩니다.
+  갱신: <code>python3 tools/fetch_13f.py</code></p>
 </div>
 
+<script src="data/holdings.js"></script>
 <script>
 /* ===== 데이터 계층: 나중에 실제 API로 교체하려면 getSeries()만 바꾸면 됩니다 ===== */
 const UNIVERSE = [
@@ -142,10 +191,10 @@ const UNIVERSE = [
   { id:'035720', name:'카카오',       base:42000,  vol:.022, cur:'₩' },
   { id:'005380', name:'현대차',       base:245000, vol:.018, cur:'₩' },
   { id:'373220', name:'LG에너지솔루션', base:360000, vol:.026, cur:'₩' },
-  { id:'AAPL',   name:'Apple',        base:225, vol:.015, cur:'$' },
-  { id:'NVDA',   name:'NVIDIA',       base:140, vol:.030, cur:'$' },
-  { id:'TSLA',   name:'Tesla',        base:250, vol:.033, cur:'$' },
-  { id:'MSFT',   name:'Microsoft',    base:420, vol:.014, cur:'$' },
+  { id:'AAPL',   name:'Apple',        base:225, vol:.015, cur:'$', cusip:'037833100' },
+  { id:'NVDA',   name:'NVIDIA',       base:140, vol:.030, cur:'$', cusip:'67066G104' },
+  { id:'TSLA',   name:'Tesla',        base:250, vol:.033, cur:'$', cusip:'88160R101' },
+  { id:'MSFT',   name:'Microsoft',    base:420, vol:.014, cur:'$', cusip:'594918104' },
 ];
 const DAYS = 180;
 function rng(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
@@ -277,8 +326,82 @@ function hover(ev){
   tip.style.top = y(p.v) + 'px';
 }
 function leave(){ const h=$('#hv'); if (h) h.style.display='none'; $('#tip').style.display='none'; }
-function select(id){ selected = id; renderIndices(); renderWatch(); renderChart(); }
-function renderAll(){ renderIndices(); renderWatch(); renderRanges(); renderChart(); }
+/* ===== 투자사 보유 현황 (data/holdings.js ← tools/fetch_13f.py) ===== */
+const H = window.HOLDINGS;
+let fundIdx = Math.min(store.get('fund', 0), H ? H.funds.length - 1 : 0);
+let showAll = false;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const usd = v => v >= 1e9 ? '$' + (v/1e9).toFixed(1) + 'B' : v >= 1e6 ? '$' + (v/1e6).toFixed(0) + 'M' : '$' + Math.round(v/1e3) + 'K';
+const title = s => s.toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
+const CHG = {
+  new:    h => `<span class="badge b-new">신규</span>`,
+  add:    h => `<span class="badge up">▲ 추가 ${h.shares_chg_pct != null ? '+' + h.shares_chg_pct + '%' : ''}</span>`,
+  reduce: h => `<span class="badge down">▼ 축소 ${h.shares_chg_pct ?? ''}%</span>`,
+  hold:   h => `<span class="badge flat">유지</span>`,
+};
+const daysAgo = d => Math.round((Date.now() - new Date(d)) / 864e5);
+function renderFunds(){
+  if (!H) { $('#h-body').innerHTML = '<p class="sub">data/holdings.js가 없습니다. <code>python3 tools/fetch_13f.py</code>를 실행하세요.</p>'; return; }
+  $('#h-gen').textContent = `수집일 ${H.generated}`;
+  $('#funds').innerHTML = H.funds.map((f, i) =>
+    `<button class="chip" role="tab" aria-selected="${i===fundIdx}" data-f="${i}">${esc(f.person)}<span>${esc(f.name)}</span></button>`).join('');
+  const f = H.funds[fundIdx];
+  const stale = daysAgo(f.period) > 200;
+  const list = showAll ? f.holdings : f.holdings.slice(0, 15);
+  const maxW = Math.max(...f.holdings.map(h => h.weight));
+  const delta = f.prev_total_value ? (f.total_value / f.prev_total_value - 1) * 100 : null;
+  const news = f.holdings.filter(h => h.change === 'new').slice(0, 8);
+  $('#h-body').innerHTML = `
+    ${stale ? `<div class="warn">⚠ 최신 공시가 ${f.period} 기준입니다 (${daysAgo(f.period)}일 전). 이후 13F 제출이 없어 현재 보유와 다를 수 있습니다.</div>` : ''}
+    <div class="kpis">
+      <div><div class="sub">13F 평가액</div><b>${usd(f.total_value)}</b>${delta != null ? ` <span class="chg ${cls(delta)}">${arrow(delta)} ${Math.abs(delta).toFixed(1)}%</span>` : ''}</div>
+      <div><div class="sub">보유 종목</div><b>${f.positions.toLocaleString()}</b></div>
+      <div><div class="sub">상위 10개 비중</div><b>${f.top10_weight}%</b></div>
+      <div><div class="sub">이번 분기</div><b class="small">신규 ${f.counts.new} · 추가 ${f.counts.add} · 축소 ${f.counts.reduce} · 전량매도 ${f.counts.sold}</b></div>
+      <div><div class="sub">기준 분기 / 제출일</div><b class="small">${f.period} / ${f.filed}</b> <a class="sub" href="${f.filing_url}" target="_blank" rel="noopener">원문 ↗</a></div>
+    </div>
+    <div class="h-grid">
+      <div>
+        <table class="htable">
+          <thead><tr><th>#</th><th>종목</th><th>비중</th><th>평가액</th><th>전분기 대비</th></tr></thead>
+          <tbody>${list.map((h, i) => `
+            <tr>
+              <td class="sub">${i+1}</td>
+              <td>${esc(title(h.name))}${h.putCall ? ` <span class="badge b-opt">${h.putCall==='Put'?'풋옵션':'콜옵션'}</span>` : ''}<div class="tkr">${esc(h.class)} · ${h.cusip}</div></td>
+              <td><div class="wbar"><span style="width:${(h.weight/maxW*100).toFixed(1)}%"></span></div><span class="wnum">${h.weight.toFixed(1)}%</span></td>
+              <td>${usd(h.value)}</td>
+              <td>${CHG[h.change](h)}</td>
+            </tr>`).join('')}</tbody>
+        </table>
+        ${f.holdings.length > 15 ? `<button class="btn more" id="more">${showAll ? '접기' : `상위 ${f.holdings.length}개 모두 보기`}</button>` : ''}
+      </div>
+      <div class="side">
+        <h3>신규 편입</h3>
+        ${news.length ? `<ul>${news.map(h => `<li>${esc(title(h.name))}${h.putCall ? ` (${h.putCall})` : ''} <span class="sub">${h.weight.toFixed(2)}%</span></li>`).join('')}</ul>` : '<p class="sub">없음 (상위 목록 기준)</p>'}
+        <h3>전량 매도</h3>
+        ${f.sold.length ? `<ul>${f.sold.slice(0, 8).map(h => `<li>${esc(title(h.name))}${h.putCall ? ` (${h.putCall})` : ''} <span class="sub">전분기 ${usd(h.value)}</span></li>`).join('')}</ul>` : '<p class="sub">없음</p>'}
+        ${f.agent ? `<p class="sub tipline">💬 토론 에이전트 <code>${f.agent}</code>의 실제 모델 포트폴리오입니다.</p>` : ''}
+      </div>
+    </div>`;
+}
+function renderHolders(){
+  const el = $('#c-holders'), u = byId(selected);
+  if (!H || u.idx) { el.innerHTML = ''; return; }
+  if (!u.cusip) { el.innerHTML = `<span class="sub">주요 투자사 보유: 13F는 미국 상장 증권만 공시하므로 이 종목은 표시할 수 없습니다.</span>`; return; }
+  const rows = H.funds.map(f => ({ f, h: f.holdings.find(h => h.cusip === u.cusip && !h.putCall) })).filter(x => x.h)
+    .sort((a, b) => b.h.weight - a.h.weight);
+  el.innerHTML = `<span class="sub">주요 투자사 보유 (13F, 상위 50 기준):</span> ` + (rows.length
+    ? rows.map(({f, h}) => `<button class="chip sm" data-f="${H.funds.indexOf(f)}">${esc(f.person)} <b>${h.weight.toFixed(1)}%</b> ${CHG[h.change](h)}</button>`).join('')
+    : '<span class="sub">없음</span>');
+}
+function pickFund(i){ fundIdx = i; showAll = false; store.set('fund', i); renderFunds();
+  $('.inst').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+$('#funds').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { fundIdx = +b.dataset.f; showAll = false; store.set('fund', fundIdx); renderFunds(); } });
+$('#h-body').addEventListener('click', e => { if (e.target.id === 'more') { showAll = !showAll; renderFunds(); } });
+$('#c-holders').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) pickFund(+b.dataset.f); });
+
+function select(id){ selected = id; renderIndices(); renderWatch(); renderChart(); renderHolders(); }
+function renderAll(){ renderIndices(); renderWatch(); renderRanges(); renderChart(); renderHolders(); renderFunds(); }
 
 /* ===== 이벤트 ===== */
 $('#indices').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) select(b.dataset.id); });
@@ -292,7 +415,7 @@ $('#watch').addEventListener('click', e => {
   }
   const tr = e.target.closest('[data-id]'); if (tr) select(tr.dataset.id);
 });
-document.querySelector('thead').addEventListener('click', e => {
+$('#watch').closest('table').querySelector('thead').addEventListener('click', e => {
   const k = e.target.dataset.k; if (!k) return;
   sort = { k, dir: sort.k===k ? -sort.dir : (k==='name'?1:-1) }; renderWatch();
 });
