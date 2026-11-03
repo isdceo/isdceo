@@ -117,11 +117,14 @@ class Validation(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "휴장"):
             pick(d, "buffett", "2026-11-26", "US", "AAPL")
 
-    def test_one_pick_per_agent_per_round(self):
+    def test_one_pick_per_agent_per_market(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        pick(d, "buffett", "2026-11-10", "US", "AAPL")           # 시장이 다르면 허용
         with self.assertRaisesRegex(ValueError, "이미"):
-            pick(d, "buffett", "2026-11-10", "US", "AAPL")
+            pick(d, "buffett", "2026-11-10", "KR", "000660")
+        self.assertEqual({p["pick_id"] for p in L.read_ledger(d, "picks")},
+                         {"2026-11-10-claude-buffett-KR", "2026-11-10-claude-buffett-US"})
 
     def test_same_stock_allowed_for_different_agents(self):
         d = new_league()
@@ -298,8 +301,8 @@ class Receipts(unittest.TestCase):
         p = self.repo / "league" / "imports" / "shushu" / f"{rd}.csv"
         p.parent.mkdir(parents=True, exist_ok=True)
         body = "round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
-        for i, (m, t) in enumerate(rows, 1):
-            body += f"{rd},s{i},1,{m},{t},{t},{rd}T{locked}:00+09:00,근거,위험,https://x|{rd}\n"
+        for a, m, t in rows:
+            body += f"{rd},{a},1,{m},{t},{t},{rd}T{locked}:00+09:00,근거,위험,https://x|{rd}\n"
         p.write_text(body)
         self.run("add", "."); self.run("commit", "-qm", "submit")
         after = self.run("rev-parse", "HEAD")
@@ -309,29 +312,29 @@ class Receipts(unittest.TestCase):
         return L.process_push(ev, run_id="1", run_created_at=None, cwd=self.repo)
 
     def test_on_time_accepted_with_hash_and_commit(self):
-        r = self.push("2026-11-10", [("KR", "005930"), ("US", "AAPL")], "2026-11-10T08:29:59+09:00")[0]
+        r = self.push("2026-11-10", [("s1", "KR", "005930"), ("s1", "US", "AAPL")], "2026-11-10T08:29:59+09:00")[0]
         self.assertEqual((r["status"], r["imported"]), ("accepted", 2))
         self.assertEqual(len(r["csv_sha256"]), 64)
         picks = L.read_ledger(self.repo / "league", "picks")
         self.assertEqual(picks[0]["submission"]["commit"], r["commit"])
 
     def test_late_push_not_accepted_even_if_csv_claims_early(self):
-        r = self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:30:01+09:00", locked="08:00")[0]
+        r = self.push("2026-11-10", [("s1", "KR", "005930"), ("s1", "US", "AAPL")], "2026-11-10T08:30:01+09:00", locked="08:00")[0]
         self.assertEqual(r["status"], "late")
         self.assertEqual(L.read_ledger(self.repo / "league", "picks"), [])
 
     def test_resubmission_after_acceptance_rejected(self):
-        self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:00:00+09:00")
-        r = self.push("2026-11-10", [("KR", "000660")], "2026-11-10T08:10:00+09:00")[0]
+        self.push("2026-11-10", [("s1", "KR", "005930"), ("s1", "US", "AAPL")], "2026-11-10T08:00:00+09:00")
+        r = self.push("2026-11-10", [("s1", "KR", "000660"), ("s1", "US", "MSFT")], "2026-11-10T08:10:00+09:00")[0]
         self.assertEqual(r["status"], "rejected")
-        self.assertEqual(len(L.read_ledger(self.repo / "league", "picks")), 1)
+        self.assertEqual(len(L.read_ledger(self.repo / "league", "picks")), 2)
 
     def test_locked_at_after_push_rejected(self):
-        r = self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:00:00+09:00", locked="08:20")[0]
+        r = self.push("2026-11-10", [("s1", "KR", "005930"), ("s1", "US", "AAPL")], "2026-11-10T08:00:00+09:00", locked="08:20")[0]
         self.assertEqual(r["status"], "rejected")
 
     def test_append_only_guard(self):
-        self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:00:00+09:00")
+        self.push("2026-11-10", [("s1", "KR", "005930"), ("s1", "US", "AAPL")], "2026-11-10T08:00:00+09:00")
         self.run("add", "."); self.run("commit", "-qm", "ledger")
         base = self.run("rev-parse", "HEAD")
         p = self.repo / "league" / "ledger" / "picks.jsonl"
@@ -342,12 +345,14 @@ class Receipts(unittest.TestCase):
 
 class Weekly(unittest.TestCase):
     def _week(self, d, results, team="claude"):
-        """results: {agent: [점수...]} → W46 월~금 라운드로 기록"""
+        """results: {agent: [점수...]} → W46 월~금 라운드, 하루 KR·US 순서로 최대 10건 기록"""
         days = ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13"]
+        slots = [(rd, m) for rd in days for m in ("KR", "US")]
         cfg = L.load_config(d)
         for agent, scores in results.items():
-            for rd, sc in zip(days, scores):
-                rec = L.make_pick(team, agent, 1, rd, "KR", "005930", "삼성전자", f"{rd}T08:00:00+09:00",
+            for (rd, m), sc in zip(slots, scores):
+                t = "005930" if m == "KR" else "AAPL"
+                rec = L.make_pick(team, agent, 1, rd, m, t, t, f"{rd}T08:00:00+09:00",
                                   "", [], [{"url": "x", "as_of": rd}], cfg)
                 L.append(d, "picks", rec)
                 if sc is not None:
@@ -356,54 +361,96 @@ class Weekly(unittest.TestCase):
 
     def test_bottom_eliminated(self):
         d = new_league()
-        w = self._week(d, {"buffett": [1, 1, 1], "lynch": [2, 2, 2], "dalio": [0, 0, 0],
-                           "wood": [1, 0, 1], "burry": [-1, -1, -1]})
+        w = self._week(d, {"buffett": [1] * 6, "lynch": [2] * 6, "dalio": [0] * 6,
+                           "wood": [1, 0] * 3, "burry": [-1] * 6})
         self.assertEqual(w["decision"]["eliminate"], "burry")
         self.assertEqual(w["decision"]["replacement"], "momentum")
 
     def test_hold_when_bottom_has_too_few_scores(self):
         d = new_league()
-        w = self._week(d, {"buffett": [1, 1, 1], "lynch": [2, 2, 2], "dalio": [0, 0, 0],
-                           "wood": [1, 0, 1], "burry": [-1, -1, None, None, None]})
+        w = self._week(d, {"buffett": [1] * 8, "lynch": [2] * 8, "dalio": [0] * 8,
+                           "wood": [1, 0] * 4, "burry": [-1] * 5 + [None] * 5})
         self.assertIsNone(w["decision"]["eliminate"])
-        self.assertTrue(any("2건" in r for r in w["decision"]["hold_reasons"]))
+        self.assertTrue(any("5건 < 6건" in r for r in w["decision"]["hold_reasons"]))
 
     def test_tiebreak_by_median(self):
         d = new_league()
-        # dalio, burry 평균 0 동점 → 중앙값: dalio 0, burry -1 → burry 탈락
-        w = self._week(d, {"buffett": [1, 1, 1], "lynch": [2, 2, 2], "dalio": [0, 0, 0],
-                           "wood": [1, 1, 1], "burry": [2, -1, -1]})
+        # dalio, burry 평균 0 동점 → 중앙값: dalio 0, burry -0.5 → burry 탈락
+        w = self._week(d, {"buffett": [1] * 6, "lynch": [2] * 6, "dalio": [0] * 6,
+                           "wood": [1] * 6, "burry": [3, -1, -1, -1, 0, 0]})
         self.assertEqual(w["decision"]["eliminate"], "burry")
 
     def test_full_tie_holds(self):
         d = new_league()
-        w = self._week(d, {"buffett": [1, 1, 1], "lynch": [2, 2, 2], "dalio": [0, 0, 0],
-                           "wood": [1, 1, 1], "burry": [0, 0, 0]})
+        w = self._week(d, {"buffett": [1] * 6, "lynch": [2] * 6, "dalio": [0] * 6,
+                           "wood": [1] * 6, "burry": [0] * 6})
         self.assertIsNone(w["decision"]["eliminate"])
         self.assertTrue(any("동점" in r for r in w["decision"]["hold_reasons"]))
 
 
 class CsvImport(unittest.TestCase):
-    def test_import_all_or_nothing(self):
+    H = "round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+
+    def run_csv(self, body):
         d = new_league()
         f = d / "in.csv"
-        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
-                     "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험1|위험2,https://x|2026-11-09\n"
-                     "2026-11-10,s2,1,KR,005930,삼성전자,2026-11-10T08:45:00+09:00,근거,위험,https://x|2026-11-09\n")
-        ok, bad = L.import_csv(d, f, "shushu")
-        self.assertEqual((len(ok), len(bad)), (1, 1))
-        self.assertIn("마감", bad[0]["errors"][0])
+        f.write_text(self.H + body)
+        return d, *L.import_csv(d, f, "shushu")
+
+    def test_import_ok_both_markets(self):
+        d, ok, bad = self.run_csv(
+            "2026-11-10,s1,1,KR,005930,삼성전자,2026-11-10T08:10:00+09:00,근거,위험1|위험2,https://x|2026-11-09\n"
+            "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n")
+        self.assertEqual(bad, [])
+        ps = L.read_ledger(d, "picks")
+        self.assertEqual([(p["market"], p["base_session"], p["eval_session"]) for p in ps],
+                         [("KR", "2026-11-09", "2026-11-10"), ("US", "2026-11-09", "2026-11-10")])
+
+    def test_missing_market_rejected(self):
+        d, ok, bad = self.run_csv(
+            "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n")
+        self.assertTrue(any("KR 종목 누락" in e for b in bad for e in b["errors"]))
+        self.assertEqual(L.read_ledger(d, "picks"), [])
+
+    def test_us_holiday_only_kr_required(self):
+        d, ok, bad = self.run_csv(       # 11/26 추수감사절: 미국 휴장 → 한국 1종목만
+            "2026-11-26,s1,1,KR,005930,삼성전자,2026-11-26T08:10:00+09:00,근거,위험,https://x|2026-11-25\n")
+        self.assertEqual(bad, [])
+
+    def test_import_all_or_nothing(self):
+        d, ok, bad = self.run_csv(
+            "2026-11-10,s1,1,KR,005930,삼성전자,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n"
+            "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:45:00+09:00,근거,위험,https://x|2026-11-09\n")
+        self.assertTrue(any("마감" in e for b in bad for e in b["errors"]))
         self.assertEqual(L.read_ledger(d, "picks"), [])         # 오류가 하나라도 있으면 아무것도 기록 안 함
 
-    def test_import_ok(self):
+    def test_more_than_five_agents_rejected(self):
+        rows = "".join(f"2026-11-10,s{i},1,{m},{t},{t},2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n"
+                       for i in range(1, 7) for m, t in (("KR", "005930"), ("US", "AAPL")))
+        d, ok, bad = self.run_csv(rows)
+        self.assertTrue(any("5명 초과" in e for b in bad for e in b["errors"]))
+
+
+class Excess(unittest.TestCase):
+    def test_excess_vs_benchmark(self):
         d = new_league()
-        f = d / "in.csv"
-        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
-                     "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n")
-        ok, bad = L.import_csv(d, f, "shushu")
-        self.assertEqual(bad, [])
-        p = L.read_ledger(d, "picks")[0]
-        self.assertEqual((p["team"], p["base_session"], p["eval_session"]), ("shushu", "2026-11-09", "2026-11-10"))
+        pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
+        price(d, "KR", "005930", "2026-11-09", 100000)
+        price(d, "KR", "005930", "2026-11-10", 102000)
+        price(d, "KR", "KOSPI", "2026-11-09", 2500.0)
+        price(d, "KR", "KOSPI", "2026-11-10", 2525.0)            # 지수 +1%
+        w = L.run_scoring(d, today=date(2026, 11, 11))[0]
+        self.assertEqual((w["score"], w["benchmark_return"], w["score_excess"]), (2.0, 1.0, 1.0))
+
+    def test_missing_benchmark_does_not_hold(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "US", "AAPL")
+        checked(d, "US", "AAPL")
+        price(d, "US", "AAPL", "2026-11-09", 200.0)
+        price(d, "US", "AAPL", "2026-11-10", 199.0)
+        w = L.run_scoring(d, today=date(2026, 11, 11))[0]
+        self.assertEqual((w["status"], w["score"], w["score_excess"]), ("final", -0.5, None))
 
 
 if __name__ == "__main__":

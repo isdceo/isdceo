@@ -208,8 +208,16 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
             return out
         total, price_only = compute_scores(base["close"], ev["close"], ratio, div)
         refs = [c["hash"] for c in divs + splits]
+    # 참고: 시장 대비 초과 점수 = 공식 점수 − 같은 구간 벤치마크 지수 수익률 (지수는 가격지수)
+    bench = cfg.get("benchmarks", {}).get(m)
+    bb_, be_ = prices.get((m, bench, base_s.isoformat())), prices.get((m, bench, s.isoformat()))
+    bench_ret = excess = None
+    if bench and bb_ and be_ and bb_.get("close") and be_.get("close"):
+        bench_ret = round((be_["close"] / bb_["close"] - 1) * 100, 2)
+        excess = round(total - bench_ret, 2)
     final = base.get("status") == "final" and ev.get("status") == "final"
     out.update(status="final" if final else "provisional", score=total, score_price_only=price_only,
+               benchmark=bench, benchmark_return=bench_ret, score_excess=excess,
                eval_session=s.isoformat(), delayed=s != eval_s, reason="거래정지 후 지연 채점" if s != eval_s else None,
                base_close=base["close"], eval_close=ev["close"], price_basis=bb,
                adjustment={"split": ratio, "dividend": div, "corporate_action_refs": refs})
@@ -224,7 +232,7 @@ def run_scoring(d: Path, today: date | None = None, now: str | None = None) -> l
     for p in read_ledger(d, "picks"):
         cur = evaluate_pick(p, prices, cfg, today, cas)
         old = prev.get(p["pick_id"])
-        keys = ("status", "score", "score_price_only", "reason", "eval_session")
+        keys = ("status", "score", "score_price_only", "score_excess", "reason", "eval_session")
         if old and all(old.get(k) == cur.get(k) for k in keys):
             continue
         if old is None and cur["status"] == "pending":
@@ -243,6 +251,9 @@ def iso_week(day: date) -> str:
     y, w, _ = day.isocalendar()
     return f"{y}-W{w:02d}"
 
+def _avg(v):
+    return round(statistics.mean(v), 2) if v else None
+
 def weekly(d: Path, week: str, team: str = "claude") -> dict:
     cfg = load_config(d)
     w = cfg["weekly"]
@@ -254,8 +265,13 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
     rows = []
     for a in members:
         mine = [p for p in picks if p["agent_id"] == a["id"]]
-        vals = [scores[p["pick_id"]]["score"] for p in mine
-                if p["pick_id"] in scores and scores[p["pick_id"]]["status"] == "final"]
+        fin = [(p, scores[p["pick_id"]]) for p in mine
+               if p["pick_id"] in scores and scores[p["pick_id"]]["status"] == "final"]
+        vals = [sc["score"] for _, sc in fin]
+        exc = [sc["score_excess"] for _, sc in fin if sc.get("score_excess") is not None]
+        by_m = {mk: [sc["score"] for p, sc in fin if p["market"] == mk] for mk in ("KR", "US")}
+        exc_m = {mk: [sc["score_excess"] for p, sc in fin if p["market"] == mk and sc.get("score_excess") is not None]
+                 for mk in ("KR", "US")}
         held = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") in ("held", "pending", "provisional", None))
         void = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") == "void")
         rows.append({"agent_id": a["id"], "label": a["label"], "version": a.get("version", 1),
@@ -263,7 +279,10 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
                      "avg": round(statistics.mean(vals), 2) if vals else None,
                      "median": round(statistics.median(vals), 2) if vals else None,
                      "min": min(vals) if vals else None, "max": max(vals) if vals else None,
-                     "sum": round(sum(vals), 2) if vals else 0.0, "new_this_week": a.get("joined_week") == week})
+                     "sum": round(sum(vals), 2) if vals else 0.0, "new_this_week": a.get("joined_week") == week,
+                     "avg_excess": _avg(exc),
+                     "markets": {mk: {"avg": _avg(by_m[mk]), "scored": len(by_m[mk]), "avg_excess": _avg(exc_m[mk])}
+                                 for mk in ("KR", "US")}})
     nz = lambda v: -1e9 if v is None else v      # 0점은 유효한 값이므로 `or`를 쓰면 안 됨
     key = lambda r: (nz(r["avg"]), nz(r["median"]), nz(r["min"]))
     rows.sort(key=key, reverse=True)
@@ -295,11 +314,14 @@ def team_summary(d: Path) -> dict:
     out = {}
     for p in read_ledger(d, "picks"):
         s = scores.get(p["pick_id"])
-        t = out.setdefault(p["team"], {"daily": {}, "markets": {"KR": [], "US": []}, "all": []})
+        t = out.setdefault(p["team"], {"daily": {}, "markets": {"KR": [], "US": []}, "all": [],
+                                       "excess": {"KR": [], "US": []}})
         if s and s["status"] == "final":
             t["daily"].setdefault(p["round_date"], []).append(s["score"])
             t["markets"][p["market"]].append(s["score"])
             t["all"].append(s["score"])
+            if s.get("score_excess") is not None:
+                t["excess"][p["market"]].append(s["score_excess"])
     res = {}
     for team, t in out.items():
         days = sorted(t["daily"])
@@ -307,9 +329,10 @@ def team_summary(d: Path) -> dict:
         for dd in days:
             daysum = round(sum(t["daily"][dd]), 2); cum = round(cum + daysum, 2)
             series.append({"date": dd, "sum": daysum, "cumulative": cum, "n": len(t["daily"][dd])})
-        res[team] = {"cumulative": cum, "avg": round(statistics.mean(t["all"]), 2) if t["all"] else None,
-                     "scored": len(t["all"]), "series": series,
-                     "markets": {m: {"avg": round(statistics.mean(v), 2) if v else None, "scored": len(v), "sum": round(sum(v), 2)}
+        res[team] = {"cumulative": cum, "avg": _avg(t["all"]), "scored": len(t["all"]), "series": series,
+                     "avg_excess": _avg(t["excess"]["KR"] + t["excess"]["US"]),
+                     "markets": {m: {"avg": _avg(v), "scored": len(v), "sum": round(sum(v), 2),
+                                     "avg_excess": _avg(t["excess"][m])}
                                  for m, v in t["markets"].items()}}
     return res
 
@@ -336,17 +359,20 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
     elif locked > lock_deadline(rd, cfg):
         errs.append(f"마감({cfg['lock_deadline']} KST) 이후 확정: {rec['locked_at']}")
     same = [p for p in existing if p["team"] == rec["team"] and p["round_date"] == rec["round_date"]]
-    if any(p["agent_id"] == rec["agent_id"] for p in same):
-        errs.append(f"{rec['agent_id']}는 이 라운드에 이미 추천함")
+    if any(p["agent_id"] == rec["agent_id"] and p["market"] == rec["market"] for p in same):
+        errs.append(f"{rec['agent_id']}는 이 라운드 {rec['market']} 종목을 이미 추천함")
     if len({p["agent_id"] for p in same} | {rec["agent_id"]}) > cfg["agents_per_team"]:
         errs.append(f"팀 인원 {cfg['agents_per_team']}명 초과")
     return errs
+
+def open_markets(round_date: date, cfg: dict) -> set[str]:
+    return {m for m in ("KR", "US") if round_sessions(m, round_date, cfg)}
 
 def make_pick(team, agent_id, agent_version, round_date, market, ticker, name, locked_at,
               rationale, risks, sources, cfg, snapshot_sha256=None, agent_label=None) -> dict:
     rd = date.fromisoformat(round_date)
     rs = round_sessions(market, rd, cfg)
-    return {"pick_id": f"{round_date}-{team}-{agent_id}", "team": team, "agent_id": agent_id,
+    return {"pick_id": f"{round_date}-{team}-{agent_id}-{market}", "team": team, "agent_id": agent_id,
             "agent_version": agent_version, "agent_label": agent_label, "round_date": round_date,
             "market": market, "ticker": ticker, "name": name, "locked_at": locked_at,
             "base_session": rs[0].isoformat() if rs else None, "eval_session": rs[1].isoformat() if rs else None,
@@ -383,6 +409,14 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
             if not ver.isdigit():
                 errs.append("agent_version 없음 (정수)")
             (bad if errs else ok).append({"line": i, "pick": rec, "errors": errs} if errs else rec)
+    # 파일 단위 검사: 에이전트마다 그날 열린 시장(KR·US)에서 각 1종목 필수
+    rows = ok + [b["pick"] for b in bad]
+    for (agent, rd) in sorted({(r["agent_id"], r["round_date"]) for r in rows}):
+        need = open_markets(date.fromisoformat(rd), cfg)
+        have = {r["market"] for r in rows if r["agent_id"] == agent and r["round_date"] == rd}
+        if need - have:
+            bad.append({"line": 0, "pick": {"agent_id": agent, "round_date": rd},
+                        "errors": [f"{agent}: {rd}에 열린 시장 {'·'.join(sorted(need))} 중 {'·'.join(sorted(need - have))} 종목 누락"]})
     if not dry_run and not bad:
         for rec in ok:
             append(d, "picks", rec)
@@ -572,51 +606,62 @@ def make_sample(d: Path):
     agents = {"claude": [a["id"] for a in roster["claude"]], "shushu": [a["id"] for a in roster["shushu"]]}
     skill = {"buffett": .25, "lynch": .1, "dalio": 0, "wood": -.1, "burry": -.35, "s1": .2, "s2": 0, "s3": .05, "s4": -.2, "s5": .1}
     # 예외 사례 전용 종목 (다른 추천과 가격이 섞이지 않도록 무작위 선택에서 제외)
+    # 예외 사례 전용 종목 (다른 추천과 가격이 섞이지 않도록 무작위 선택에서 제외). 키: (팀, 에이전트, 일, 시장)
     special_cases = {
-        ("claude", "lynch", 11): ("US", "KO", "split"),        # 평가일 1→4 분할
-        ("claude", "dalio", 12): ("KR", "105560", "dividend"), # 평가일 배당락
-        ("shushu", "s4", 13): ("KR", "068270", "halt"),        # 평가일 거래정지 → 다음 세션 지연 채점
-        ("claude", "wood", 13): ("US", "JPM", "missing"),      # 평가 종가 누락 → 보류
-        ("claude", "buffett", 12): ("US", "AMZN", "unchecked"),# 배당·분할 확인 기록 없음 → 보류
+        ("claude", "lynch", 11, "US"): ("KO", "split"),         # 평가일 1→4 분할
+        ("claude", "dalio", 12, "KR"): ("105560", "dividend"),  # 평가일 배당락
+        ("shushu", "s4", 13, "KR"): ("068270", "halt"),         # 평가일 거래정지 → 다음 세션 지연 채점
+        ("claude", "wood", 13, "US"): ("JPM", "missing"),       # 평가 종가 누락 → 보류
+        ("claude", "buffett", 12, "US"): ("AMZN", "unchecked"), # 배당·분할 확인 기록 없음 → 보류
     }
-    reserved = {(m, t) for m, t, _ in special_cases.values()}
+    reserved = {(k[3], t) for k, (t, _) in special_cases.items()}
     dec = lambda m: 2 if m == "US" else -1
+    # 벤치마크 지수: 세션별 시장 수익률 (종목 수익률 = 시장 + 에이전트 성향 + 개별 잡음)
+    bench = cfg["benchmarks"]
+    mret, level = {}, {"KR": 2650.0, "US": 6800.0}
+    for m in ("KR", "US"):
+        x = date(2026, 11, 2)
+        while x <= date(2026, 11, 20):
+            if is_session(m, x, cfg):
+                mret[(m, x.isoformat())] = rnd.gauss(0.0005, 0.009)
+                level[m] = round(level[m] * (1 + mret[(m, x.isoformat())]), 2)
+                put_price(m, bench[m], x.isoformat(), level[m])
+            x += timedelta(days=1)
     for rd in days:
         for team, ids in agents.items():
             for aid in ids:
-                case = special_cases.get((team, aid, rd.day))
-                if case:
-                    m, t, kind = case
-                else:
-                    kind = None
-                    m = rnd.choice(["KR", "US"])
-                    if not round_sessions(m, rd, cfg):
-                        m = "KR" if m == "US" else "US"
-                    t = rnd.choice(sorted(x for x in uni[m] if (m, x) not in reserved))
-                rec = make_pick(team, aid, 1, rd.isoformat(), m, t, uni[m][t],
-                                f"{rd.isoformat()}T08:{rnd.randint(5, 29):02d}:00+09:00",
-                                f"[예시] {uni[m][t]} 선정 근거 요약", ["[예시] 실적 하회 위험", "[예시] 환율 변동"],
-                                [{"title": "예시 출처", "url": "https://example.com", "as_of": prev_session(m, rd, cfg).isoformat()}],
-                                cfg, agent_label=aid)
-                bs, es = rec["base_session"], rec["eval_session"]
-                b = base_px[(m, t)]
-                put_price(m, t, bs, b)
-                close = round(b * (1 + rnd.gauss(skill[aid] / 100, 0.018)), dec(m))
-                if kind == "split":
-                    put_price(m, t, es, round(close / 4, dec(m)))
-                    put_ca(type="split", market=m, ticker=t, ex_date=es, ratio=4.0)
-                elif kind == "dividend":
-                    div = round(b * 0.01, 0)
-                    put_price(m, t, es, round(close - div, dec(m)))
-                    put_ca(type="dividend", market=m, ticker=t, ex_date=es, amount=div, currency="KRW",
-                           pay_date="2026-12-10")
-                elif kind == "halt":
-                    put_price(m, t, es, None, halted=True)
-                    put_price(m, t, next_session(m, date.fromisoformat(es), cfg).isoformat(), round(b * 0.985, dec(m)))
-                elif kind != "missing":
-                    put_price(m, t, es, close)
-                    base_px[(m, t)] = close
-                submit_pick(d, rec)
+                for m in sorted(open_markets(rd, cfg)):
+                    case = special_cases.get((team, aid, rd.day, m))
+                    if case:
+                        t, kind = case
+                    else:
+                        kind = None
+                        t = rnd.choice(sorted(x for x in uni[m] if (m, x) not in reserved))
+                    rec = make_pick(team, aid, 1, rd.isoformat(), m, t, uni[m][t],
+                                    f"{rd.isoformat()}T08:{rnd.randint(5, 29):02d}:00+09:00",
+                                    f"[예시] {uni[m][t]} 선정 근거 요약", ["[예시] 실적 하회 위험", "[예시] 환율 변동"],
+                                    [{"title": "예시 출처", "url": "https://example.com", "as_of": prev_session(m, rd, cfg).isoformat()}],
+                                    cfg, agent_label=aid)
+                    bs, es = rec["base_session"], rec["eval_session"]
+                    b = base_px[(m, t)]
+                    put_price(m, t, bs, b)
+                    r = mret[(m, es)] * rnd.uniform(0.7, 1.4) + rnd.gauss(skill[aid] / 100, 0.015)
+                    close = round(b * (1 + r), dec(m))
+                    if kind == "split":
+                        put_price(m, t, es, round(close / 4, dec(m)))
+                        put_ca(type="split", market=m, ticker=t, ex_date=es, ratio=4.0)
+                    elif kind == "dividend":
+                        div = round(b * 0.01, 0)
+                        put_price(m, t, es, round(close - div, dec(m)))
+                        put_ca(type="dividend", market=m, ticker=t, ex_date=es, amount=div, currency="KRW",
+                               pay_date="2026-12-10")
+                    elif kind == "halt":
+                        put_price(m, t, es, None, halted=True)
+                        put_price(m, t, next_session(m, date.fromisoformat(es), cfg).isoformat(), round(b * 0.985, dec(m)))
+                    elif kind != "missing":
+                        put_price(m, t, es, close)
+                        base_px[(m, t)] = close
+                    submit_pick(d, rec)
     # 배당·분할 확인 기록 (AMZN은 일부러 누락)
     for m in ("KR", "US"):
         for t in sorted(uni[m]):

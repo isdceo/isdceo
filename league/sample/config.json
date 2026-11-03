@@ -2,7 +2,7 @@
   "timezone": "Asia/Seoul",
   "collect_time": "07:00",
   "lock_deadline": "08:30",
-  "picks_per_agent_per_round": 1,
+  "picks_per_agent_per_round": "시장별 1종목 (KR 1 + US 1). 그날 열린 시장은 모두 필수, 한쪽 휴장 시 열린 시장 1종목",
   "agents_per_team": 5,
   "teams": {
     "claude": {
@@ -15,8 +15,8 @@
     }
   },
   "weekly": {
-    "min_scored_for_elimination": 3,
-    "min_total_scored_in_week": 15,
+    "min_scored_for_elimination": 6,
+    "min_total_scored_in_week": 30,
     "protect_first_week": false,
     "halt_void_after_sessions": 5,
     "missing_price_wait_sessions": 3
@@ -39,6 +39,12 @@
       "세금",
       "수수료",
       "환율"
-    ]
+    ],
+    "reference_excess": "시장 대비 초과 점수 = 공식 점수 − 같은 구간 벤치마크 지수 수익률 (KR: KOSPI, US: S&P 500, 가격지수). 순위에는 쓰지 않음"
+  },
+  "max_picks_per_team_per_round": 10,
+  "benchmarks": {
+    "KR": "KOSPI",
+    "US": "SPX"
   }
 }
