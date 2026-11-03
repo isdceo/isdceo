@@ -107,7 +107,7 @@ league/
     corrections.jsonl           # 정정 기록 (원본 수정 대신 추가)
     imports/claude-team/*.csv   # 외부 팀 제출 원본
   weekly/2026-W45.json          # 주간 순위·교체 결정
-  reviews/2026-W45/value.md     # 주간 복기
+  reviews/2026-W45/buffett.md   # 주간 복기
 ```
 
 ### picks.jsonl (한 줄 = 추천 1건)
@@ -150,7 +150,7 @@ league/
 ### roster.json
 
 ```json
-[{"id":"value","label":"가치형","style_ref":"워런 버핏의 공개된 투자 원칙",
+[{"id":"buffett","label":"가치형","style_ref":"워런 버핏의 공개된 투자 원칙",
   "status":"active","joined_week":"2026-W45","eliminated_week":null,"current_version":2}]
 ```
 
