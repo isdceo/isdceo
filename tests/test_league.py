@@ -234,9 +234,9 @@ class CsvImport(unittest.TestCase):
     def test_import_all_or_nothing(self):
         d = new_league()
         f = d / "in.csv"
-        f.write_text("round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources\n"
-                     "2026-11-10,s1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험1|위험2,https://x|2026-11-09\n"
-                     "2026-11-10,s2,KR,005930,삼성전자,2026-11-10T08:45:00+09:00,근거,위험,https://x|2026-11-09\n")
+        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+                     "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험1|위험2,https://x|2026-11-09\n"
+                     "2026-11-10,s2,1,KR,005930,삼성전자,2026-11-10T08:45:00+09:00,근거,위험,https://x|2026-11-09\n")
         ok, bad = L.import_csv(d, f, "shushu")
         self.assertEqual((len(ok), len(bad)), (1, 1))
         self.assertIn("마감", bad[0]["errors"][0])
@@ -245,8 +245,8 @@ class CsvImport(unittest.TestCase):
     def test_import_ok(self):
         d = new_league()
         f = d / "in.csv"
-        f.write_text("round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources\n"
-                     "2026-11-10,s1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n")
+        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+                     "2026-11-10,s1,1,US,AAPL,Apple,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n")
         ok, bad = L.import_csv(d, f, "shushu")
         self.assertEqual(bad, [])
         p = L.read_ledger(d, "picks")[0]

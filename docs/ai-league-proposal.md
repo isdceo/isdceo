@@ -310,3 +310,4 @@ round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources
 | 1. 원장·채점 엔진 | ✅ 완료 | `tools/league.py`, `tests/test_league.py`(27개), `league/config.json`, `league/universe.json`(예시), `league/agents/roster.json` |
 | 예시 데이터 | ✅ | `league/sample/` (분할·배당락·거래정지·가격 누락 사례 포함, 2026-W46) |
 | 2. 화면 | ⏳ 다음 | |
+| Codex(슈슈 팀) 안내서 | ✅ | `docs/codex-team-guide.md`, 제출 폴더 `league/imports/shushu/` |

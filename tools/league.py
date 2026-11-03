@@ -318,7 +318,7 @@ def submit_pick(d: Path, rec: dict) -> dict:
     return append(d, "picks", rec)
 
 def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[list, list]:
-    """CSV 열: round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources
+    """CSV 열: round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources
     risks는 ' | '로 구분, sources는 'url|기준일;url|기준일'. 가격은 입력받지 않는다 (공통 가격 원장 사용)."""
     cfg = load_config(d)
     ok, bad = [], []
@@ -326,13 +326,20 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
     with open(path, newline="", encoding="utf-8-sig") as f:
         for i, row in enumerate(csv.DictReader(f), 2):
             srcs = [dict(zip(("url", "as_of"), s.split("|"))) for s in (row.get("sources") or "").split(";") if s.strip()]
-            rec = make_pick(team, row["agent_id"].strip(), None, row["round_date"].strip(), row["market"].strip().upper(),
+            ver = (row.get("agent_version") or "").strip()
+            rec = make_pick(team, row["agent_id"].strip(), int(ver) if ver.isdigit() else None, row["round_date"].strip(), row["market"].strip().upper(),
                             row["ticker"].strip(), row.get("name", "").strip(), row["locked_at"].strip(),
                             row.get("rationale", ""), [r.strip() for r in (row.get("risks") or "").split("|") if r.strip()],
                             srcs, cfg)
             errs = validate_pick(rec, d, cfg, existing + ok)
             if not srcs:
                 errs.append("데이터 출처(sources) 없음")
+            if not (row.get("rationale") or "").strip():
+                errs.append("선정 근거(rationale) 없음")
+            if not rec["risks"]:
+                errs.append("위험 요인(risks) 없음")
+            if not ver.isdigit():
+                errs.append("agent_version 없음 (정수)")
             (bad if errs else ok).append({"line": i, "pick": rec, "errors": errs} if errs else rec)
     if not dry_run and not bad:
         for rec in ok:
