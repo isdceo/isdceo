@@ -1,0 +1,6 @@
+{
+  "_note": "제안 범위: KR = KOSPI200 + KOSDAQ150, US = S&P 500 + NASDAQ-100. 실제 구성 종목은 데이터 제공처 확정 후 채운다. 아래는 예시 데이터용 일부 종목.",
+  "status": "sample",
+  "KR": {"005930": "삼성전자", "000660": "SK하이닉스", "035420": "NAVER", "035720": "카카오", "005380": "현대차", "373220": "LG에너지솔루션", "068270": "셀트리온", "105560": "KB금융"},
+  "US": {"AAPL": "Apple", "MSFT": "Microsoft", "NVDA": "NVIDIA", "AMZN": "Amazon", "GOOGL": "Alphabet", "TSLA": "Tesla", "JPM": "JPMorgan Chase", "KO": "Coca-Cola"}
+}

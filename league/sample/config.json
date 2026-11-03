@@ -1,0 +1,21 @@
+{
+  "timezone": "Asia/Seoul",
+  "collect_time": "07:00",
+  "lock_deadline": "08:30",
+  "dividend_mode": "include",
+  "dividend_mode_note": "미정 — 사용자와 논의 중. include: 평가일 배당락 현금배당 포함 / exclude: 가격 수익률만",
+  "picks_per_agent_per_round": 1,
+  "agents_per_team": 5,
+  "teams": {
+    "claude": {"label": "Claude 팀", "source": "이 저장소의 투자자 에이전트 5명 (.claude/agents)"},
+    "shushu": {"label": "슈슈 팀 (Codex)", "source": "CSV 가져오기 (league/imports/shushu/)"}
+  },
+  "weekly": {
+    "min_scored_for_elimination": 3,
+    "min_total_scored_in_week": 15,
+    "protect_first_week": false,
+    "halt_void_after_sessions": 5,
+    "missing_price_wait_sessions": 3
+  },
+  "calendar_overrides": {"KR": {"closed": []}, "US": {"closed": []}}
+}
