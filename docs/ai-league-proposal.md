@@ -311,3 +311,5 @@ round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources
 | 예시 데이터 | ✅ | `league/sample/` (분할·배당락·거래정지·가격 누락 사례 포함, 2026-W46) |
 | 2. 화면 | ⏳ 다음 | |
 | Codex(슈슈 팀) 안내서 | ✅ | `docs/codex-team-guide.md`, 제출 폴더 `league/imports/shushu/` |
+| 운영 기준 v1.1 (2026-11-04) | ✅ | 서버 push 시각 판정·영수증(`.github/workflows/league-submission.yml`), 원장 보호(`league-ledger-guard.yml`), 배당락일 귀속 총수익 점수 + 주가 참고 점수, 시장별 일정·시간 정합성 검사(`league.py schedule`), 테스트 41개 |
+| 실제 GitHub 검증 | ✅ | sandbox 제출로 `late`·`accepted`·재제출 `rejected` 판정과 영수증 커밋 확인 (`league/sandbox/`) |
