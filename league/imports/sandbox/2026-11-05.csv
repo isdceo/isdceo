@@ -1,0 +1,2 @@
+round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources
+2026-11-05,s1,1,US,MSFT,Microsoft,2026-11-04T00:10:00+09:00,[시험 제출] 영수증 커밋 검증용,시험 데이터,https://example.com|2026-11-03
