@@ -1,6 +1,6 @@
 """AI 투자 리그 규칙 테스트.  실행: python3 -m unittest discover -s tests -v"""
 import json, shutil, sys, tempfile, unittest
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
@@ -20,8 +20,16 @@ def new_league():
 
 
 def price(d, m, t, s, close, **kw):
-    L.append(d, "prices", {"market": m, "ticker": t, "session": s, "close": close, "split_factor": 1.0,
-                           "cash_dividend_exdate": 0.0, "halted": False, "status": "final", **kw})
+    L.append(d, "prices", {"market": m, "ticker": t, "session": s, "close": close, "basis": "unadjusted",
+                           "halted": False, "status": "final", **kw})
+
+
+def checked(d, m, t, frm="2026-11-01", to="2026-11-30"):
+    L.append(d, "corporate_actions", {"type": "checked", "market": m, "ticker": t, "from": frm, "to": to, "source": "test"})
+
+
+def ca(d, **kw):
+    L.append(d, "corporate_actions", {"source": "test", **kw})
 
 
 def pick(d, agent, rd, m, t, locked="08:00", team="claude"):
@@ -40,9 +48,9 @@ class Score(unittest.TestCase):
         # 1→4 분할: 기준 400, 평가 101 → 실질 404 → +1%
         self.assertEqual(L.compute_score(400, 101, split_factor=4), 1.0)
 
-    def test_dividend_modes(self):
-        self.assertEqual(L.compute_score(100, 99, dividend=1, dividend_mode="include"), 0.0)
-        self.assertEqual(L.compute_score(100, 99, dividend=1, dividend_mode="exclude"), -1.0)
+    def test_total_and_price_only(self):
+        # 배당락 1원: 총수익 0점, 주가만 −1점
+        self.assertEqual(L.compute_scores(100, 99, dividend=1), (0.0, -1.0))
 
 
 class Calendar(unittest.TestCase):
@@ -126,6 +134,7 @@ class Scoring(unittest.TestCase):
     def test_pending_then_final(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
         price(d, "KR", "005930", "2026-11-09", 100000)
         price(d, "KR", "005930", "2026-11-10", 102300)
         self.assertEqual(L.run_scoring(d, today=date(2026, 11, 10)), [])          # 아직 평가일 장중
@@ -136,6 +145,7 @@ class Scoring(unittest.TestCase):
     def test_missing_price_is_held_not_zero(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
         price(d, "KR", "005930", "2026-11-09", 100000)
         w = L.run_scoring(d, today=date(2026, 11, 11))
         self.assertEqual(w[0]["status"], "held")
@@ -144,6 +154,7 @@ class Scoring(unittest.TestCase):
     def test_provisional_until_price_final(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
         price(d, "KR", "005930", "2026-11-09", 100000)
         price(d, "KR", "005930", "2026-11-10", 101000, status="provisional")
         self.assertEqual(L.run_scoring(d, today=date(2026, 11, 11))[0]["status"], "provisional")
@@ -153,6 +164,7 @@ class Scoring(unittest.TestCase):
     def test_correction_after_final_is_appended(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
         price(d, "KR", "005930", "2026-11-09", 100000)
         price(d, "KR", "005930", "2026-11-10", 101000)
         L.run_scoring(d, today=date(2026, 11, 11))
@@ -167,6 +179,7 @@ class Scoring(unittest.TestCase):
     def test_halt_delayed_scoring(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
         price(d, "KR", "005930", "2026-11-09", 100000)
         price(d, "KR", "005930", "2026-11-10", None, halted=True)
         self.assertEqual(L.run_scoring(d, today=date(2026, 11, 11))[0]["status"], "held")
@@ -177,6 +190,7 @@ class Scoring(unittest.TestCase):
     def test_long_halt_void(self):
         d = new_league()
         pick(d, "buffett", "2026-11-10", "KR", "005930")
+        checked(d, "KR", "005930")
         price(d, "KR", "005930", "2026-11-09", 100000)
         cfg = L.load_config(d)
         s = date(2026, 11, 10)
@@ -185,6 +199,145 @@ class Scoring(unittest.TestCase):
             s = L.next_session("KR", s, cfg)
         w = L.run_scoring(d, today=date(2026, 11, 25))[0]
         self.assertEqual(w["status"], "void")
+
+
+class Dividends(unittest.TestCase):
+    def setUp(self):
+        self.d = new_league()
+        pick(self.d, "buffett", "2026-11-10", "KR", "005930")       # 기준 11/9, 평가 11/10
+        price(self.d, "KR", "005930", "2026-11-09", 100000)
+        price(self.d, "KR", "005930", "2026-11-10", 99000)
+
+    def score(self):
+        return L.run_scoring(self.d, today=date(2026, 11, 11))[0]
+
+    def test_unverified_corporate_actions_held(self):
+        w = self.score()
+        self.assertEqual((w["status"], w["score"]), ("held", None))
+        self.assertIn("배당", w["reason"])
+
+    def test_exdate_on_eval_session_included(self):
+        checked(self.d, "KR", "005930")
+        ca(self.d, type="dividend", market="KR", ticker="005930", ex_date="2026-11-10", amount=1000, pay_date="2027-04-20")
+        w = self.score()
+        self.assertEqual((w["score"], w["score_price_only"]), (0.0, -1.0))
+
+    def test_exdate_on_base_session_not_included(self):
+        # 기준일 종가에 산 사람은 그날이 배당락일이면 배당을 못 받는다
+        checked(self.d, "KR", "005930")
+        ca(self.d, type="dividend", market="KR", ticker="005930", ex_date="2026-11-09", amount=1000, pay_date="2026-11-10")
+        self.assertEqual(self.score()["score"], -1.0)
+
+    def test_pay_date_alone_does_not_count(self):
+        checked(self.d, "KR", "005930")
+        ca(self.d, type="dividend", market="KR", ticker="005930", ex_date="2026-09-29", amount=1000, pay_date="2026-11-10")
+        self.assertEqual(self.score()["score"], -1.0)
+
+    def test_dividend_and_split_same_window_held(self):
+        checked(self.d, "KR", "005930")
+        ca(self.d, type="dividend", market="KR", ticker="005930", ex_date="2026-11-10", amount=1000)
+        ca(self.d, type="split", market="KR", ticker="005930", ex_date="2026-11-10", ratio=2)
+        self.assertEqual(self.score()["status"], "held")
+
+    def test_adjusted_prices_not_double_counted(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "KR", "005930")
+        price(d, "KR", "005930", "2026-11-09", 99000, basis="adjusted_total")   # 배당 반영된 수정 기준가
+        price(d, "KR", "005930", "2026-11-10", 99000, basis="adjusted_total")
+        ca(d, type="dividend", market="KR", ticker="005930", ex_date="2026-11-10", amount=1000)
+        w = L.run_scoring(d, today=date(2026, 11, 11))[0]
+        self.assertEqual((w["score"], w["score_price_only"]), (0.0, None))
+
+    def test_mixed_price_basis_held(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "KR", "005930")
+        price(d, "KR", "005930", "2026-11-09", 100000)
+        price(d, "KR", "005930", "2026-11-10", 99000, basis="adjusted_total")
+        self.assertEqual(L.run_scoring(d, today=date(2026, 11, 11))[0]["status"], "held")
+
+
+class Timing(unittest.TestCase):
+    def test_base_close_before_deadline_before_eval_open_for_a_year(self):
+        """2026-11 ~ 2027-10 모든 라운드에서: 기준 종가 확정 < 08:30 마감 < 평가 세션 개장 (KR·US 각각)"""
+        cfg = L.load_config(ROOT / "league")
+        bad, n = [], 0
+        for r in L.schedule(date(2026, 11, 2), date(2027, 10, 29), cfg):   # 달력 라이브러리 제공 범위(약 1년) 안
+            for m in ("KR", "US"):
+                if r[m]:
+                    n += 1
+                    if not r[m]["ok"]:
+                        bad.append(r[m])
+        self.assertGreater(n, 400)
+        self.assertEqual(bad, [])
+
+    def test_us_base_is_previous_us_session_not_same_day(self):
+        cfg = L.load_config(ROOT / "league")
+        t = L.timing("US", date(2026, 11, 10), cfg)
+        self.assertEqual(t["base_session"], "2026-11-09")
+        self.assertEqual(t["base_close_kst"], "2026-11-10T06:00+09:00")   # 미국 11/9 16:00 EST
+        self.assertEqual(t["eval_open_kst"], "2026-11-10T23:30+09:00")
+
+
+class Receipts(unittest.TestCase):
+    """임시 git 저장소에서 push 이벤트를 흉내 내 영수증 처리 검증."""
+    def setUp(self):
+        import subprocess
+        self.repo = Path(tempfile.mkdtemp())
+        lg = self.repo / "league"
+        (lg / "ledger").mkdir(parents=True)
+        (lg / "agents").mkdir()
+        for f in ("config.json", "universe.json"):
+            shutil.copy(ROOT / "league" / f, lg / f)
+        shutil.copy(ROOT / "league" / "agents" / "roster.json", lg / "agents" / "roster.json")
+        self.run = lambda *a: subprocess.run(["git", *a], cwd=self.repo, check=True, capture_output=True, text=True).stdout.strip()
+        self.run("init", "-q"); self.run("config", "user.email", "t@t"); self.run("config", "user.name", "t")
+        self.run("add", "."); self.run("commit", "-qm", "init")
+
+    def push(self, rd, rows, pushed_at, locked="07:50"):
+        before = self.run("rev-parse", "HEAD")
+        p = self.repo / "league" / "imports" / "shushu" / f"{rd}.csv"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        body = "round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+        for i, (m, t) in enumerate(rows, 1):
+            body += f"{rd},s{i},1,{m},{t},{t},{rd}T{locked}:00+09:00,근거,위험,https://x|{rd}\n"
+        p.write_text(body)
+        self.run("add", "."); self.run("commit", "-qm", "submit")
+        after = self.run("rev-parse", "HEAD")
+        ts = int(datetime.fromisoformat(pushed_at).timestamp())
+        ev = {"before": before, "after": after, "ref": "refs/heads/main", "pusher": {"name": "shushu"},
+              "repository": {"pushed_at": ts}, "commits": []}
+        return L.process_push(ev, run_id="1", run_created_at=None, cwd=self.repo)
+
+    def test_on_time_accepted_with_hash_and_commit(self):
+        r = self.push("2026-11-10", [("KR", "005930"), ("US", "AAPL")], "2026-11-10T08:29:59+09:00")[0]
+        self.assertEqual((r["status"], r["imported"]), ("accepted", 2))
+        self.assertEqual(len(r["csv_sha256"]), 64)
+        picks = L.read_ledger(self.repo / "league", "picks")
+        self.assertEqual(picks[0]["submission"]["commit"], r["commit"])
+
+    def test_late_push_not_accepted_even_if_csv_claims_early(self):
+        r = self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:30:01+09:00", locked="08:00")[0]
+        self.assertEqual(r["status"], "late")
+        self.assertEqual(L.read_ledger(self.repo / "league", "picks"), [])
+
+    def test_resubmission_after_acceptance_rejected(self):
+        self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:00:00+09:00")
+        r = self.push("2026-11-10", [("KR", "000660")], "2026-11-10T08:10:00+09:00")[0]
+        self.assertEqual(r["status"], "rejected")
+        self.assertEqual(len(L.read_ledger(self.repo / "league", "picks")), 1)
+
+    def test_locked_at_after_push_rejected(self):
+        r = self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:00:00+09:00", locked="08:20")[0]
+        self.assertEqual(r["status"], "rejected")
+
+    def test_append_only_guard(self):
+        self.push("2026-11-10", [("KR", "005930")], "2026-11-10T08:00:00+09:00")
+        self.run("add", "."); self.run("commit", "-qm", "ledger")
+        base = self.run("rev-parse", "HEAD")
+        p = self.repo / "league" / "ledger" / "picks.jsonl"
+        p.write_text(p.read_text().replace("005930", "000660"))
+        self.run("commit", "-qam", "tamper")
+        self.assertTrue(L.append_only_violations(base, "HEAD", cwd=self.repo))
 
 
 class Weekly(unittest.TestCase):

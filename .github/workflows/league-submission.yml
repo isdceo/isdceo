@@ -1,0 +1,55 @@
+# 추천 CSV push → GitHub 서버 push 시각 기준 정시 판정 → 영수증(submissions.jsonl) 기록·커밋
+# 판정 근거: push 이벤트 페이로드의 repository.pushed_at (서버 기록). 보조: 이 워크플로 실행의 created_at (서버 기록).
+# 커밋 작성 시각(author/committer date)은 수정 가능하므로 쓰지 않는다.
+name: league-submission
+on:
+  push:
+    paths:
+      - 'league/imports/*/*.csv'
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: league-ledger-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  receipt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q -r requirements.txt
+      - name: Server-side run timestamp
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "created_at=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }} --jq .created_at)" >> "$GITHUB_OUTPUT"
+      - name: Record receipt
+        run: |
+          python3 tools/league.py receipt "$GITHUB_EVENT_PATH" \
+            --run-id "${{ github.run_id }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --run-created-at "${{ steps.run.outputs.created_at }}" | tee receipt.txt
+          echo "pushed_at(raw)=$(jq -r '.repository.pushed_at' "$GITHUB_EVENT_PATH") run_created_at=${{ steps.run.outputs.created_at }}" | tee -a receipt.txt
+          { echo '### 제출 영수증'; echo '```'; cat receipt.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify ledgers
+        run: |
+          python3 tools/league.py verify
+          python3 tools/league.py verify --dir league/sandbox
+      - name: Commit receipt
+        run: |
+          git config user.name "league-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add league/ledger league/sandbox 2>/dev/null || true
+          if git diff --cached --quiet; then echo "기록할 영수증 없음"; exit 0; fi
+          git commit -q -m "league: submission receipt for ${GITHUB_SHA::7}" -m "$(cat receipt.txt)"
+          for i in 1 2 3; do
+            git fetch -q origin "$GITHUB_REF_NAME" && git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

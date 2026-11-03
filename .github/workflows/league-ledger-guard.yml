@@ -1,0 +1,28 @@
+# 원장 보호: league/**/ledger/*.jsonl 은 끝에 줄을 추가하는 변경만 허용, 해시 체인 검증.
+name: league-ledger-guard
+on:
+  push:
+    paths:
+      - 'league/**/ledger/*.jsonl'
+  pull_request:
+    paths:
+      - 'league/**/ledger/*.jsonl'
+permissions:
+  contents: read
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Append-only check
+        run: |
+          BASE="${{ github.event.before || github.event.pull_request.base.sha }}"
+          HEAD="${{ github.sha }}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then echo "비교 기준 없음"; exit 0; fi
+          python3 tools/league.py append-only "$BASE" --to "$HEAD"
+      - name: Hash chains
+        run: |
+          for d in league league/sandbox league/sample; do [ -d "$d/ledger" ] && python3 tools/league.py verify --dir "$d"; done; true
