@@ -45,8 +45,12 @@ jobs:
         run: |
           git config user.name "league-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add league/ledger league/sandbox 2>/dev/null || true
-          if git diff --cached --quiet; then echo "기록할 영수증 없음"; exit 0; fi
+          for p in league/ledger league/sandbox; do [ -e "$p" ] && git add "$p"; done
+          if git diff --cached --quiet; then
+            # 처리한 제출이 있는데 기록할 변경이 없으면 영수증 유실 → 실패로 알린다
+            if grep -qE ' (accepted|late|rejected) ' receipt.txt; then echo "::error::영수증이 생성됐지만 커밋할 변경이 없음"; exit 1; fi
+            echo "기록할 영수증 없음"; exit 0
+          fi
           git commit -q -m "league: submission receipt for ${GITHUB_SHA::7}" -m "$(cat receipt.txt)"
           for i in 1 2 3; do
             git fetch -q origin "$GITHUB_REF_NAME" && git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
