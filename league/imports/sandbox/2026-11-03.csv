@@ -1,0 +1,2 @@
+round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources
+2026-11-03,s1,1,KR,000660,SK하이닉스,2026-11-03T08:00:00+09:00,[시험 제출] 지각 판정 검증용 (CSV 확정 시각은 마감 전으로 적음),시험 데이터,https://example.com|2026-11-02
