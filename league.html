@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 투자 리그</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f4f2; --surface: #fcfcfb; --border: #e2e1dc; --grid: #ebeae6;
+    --text: #0b0b0b; --text-2: #52514e; --text-3: #85847d;
+    --accent: #2a78d6;
+    --up: #d12f2f; --down: #2a64c8;                 /* 한국식: 상승=빨강, 하락=파랑 */
+    --team-claude: #6250d6; --team-shushu: #eb6834;  /* 검증 통과: CVD ΔE 29.1 (light) */
+    --warn-bg: #fdf3dc; --warn-bd: #f0d48a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #111110; --surface: #1a1a19; --border: #2d2d2b; --grid: #272725;
+      --text: #f0efec; --text-2: #c3c2b7; --text-3: #8d8c84;
+      --accent: #3987e5; --up: #ff6b6b; --down: #6aa2ff;
+      --team-claude: #9085e9; --team-shushu: #d95926;
+      --warn-bg: #2f2716; --warn-bd: #5a4a20;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #111110; --surface: #1a1a19; --border: #2d2d2b; --grid: #272725;
+    --text: #f0efec; --text-2: #c3c2b7; --text-3: #8d8c84;
+    --accent: #3987e5; --up: #ff6b6b; --down: #6aa2ff;
+    --team-claude: #9085e9; --team-shushu: #d95926;
+    --warn-bg: #2f2716; --warn-bd: #5a4a20;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--text-2); margin: 0 0 10px; }
+  h3 { font-size: 13px; margin: 14px 0 6px; color: var(--text-2); }
+  .sub { color: var(--text-3); font-size: 12px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+  button, select { font: inherit; color: var(--text); }
+  .btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .btn:hover { border-color: var(--text-3); }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: var(--surface); padding: 6px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+  select { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; white-space: nowrap;
+    background: color-mix(in srgb, currentColor 12%, transparent); }
+  .b-sample { color: #b26a00; font-weight: 600; } .b-ok { color: #1a8a5a; } .b-bad { color: var(--up); }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; overflow-x: auto; }
+  .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; cursor: pointer;
+    color: var(--text-2); white-space: nowrap; }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+  .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--text-3); }
+  .num { font-variant-numeric: tabular-nums; }
+  .callout { background: var(--warn-bg); border: 1px solid var(--warn-bd); border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
+  .callout.info { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: right; font-weight: 500; color: var(--text-3); font-size: 12px; padding: 6px; white-space: nowrap; }
+  td { padding: 8px 6px; border-top: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+  th.l, td.l { text-align: left; }
+  tr.out td { opacity: .55; }
+  .scroll { overflow-x: auto; }
+  .agent b { font-weight: 600; } .agent .sub { display: block; }
+  /* 0 기준 막대 */
+  .zbar { position: relative; width: 90px; height: 8px; background: var(--grid); border-radius: 4px; display: inline-block; vertical-align: middle; margin-left: 6px; }
+  .zbar::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--text-3); }
+  .zbar span { position: absolute; top: 0; height: 100%; }
+  .zbar span.pos { left: 50%; background: var(--up); border-radius: 0 4px 4px 0; }
+  .zbar span.neg { right: 50%; background: var(--down); border-radius: 4px 0 0 4px; }
+  /* 라운드 카드 */
+  .days { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .days button { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  .days button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+  .pcard { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .pcard .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .prow { display: grid; grid-template-columns: 28px 1fr auto; gap: 4px 8px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--border); cursor: pointer; }
+  .prow:first-of-type { border-top: 0; }
+  .prow .mk { font-size: 11px; font-weight: 600; color: var(--text-2); }
+  .prow .sc { font-size: 16px; font-weight: 600; text-align: right; }
+  .prow .meta { grid-column: 2 / 4; font-size: 11px; color: var(--text-3); }
+  .detail { grid-column: 1 / 4; font-size: 12px; background: color-mix(in srgb, var(--text) 4%, transparent); border-radius: 8px; padding: 8px 10px; margin-top: 4px; cursor: auto; }
+  .detail dt { color: var(--text-3); margin-top: 6px; } .detail dd { margin: 0; word-break: break-all; }
+  .st { font-size: 11px; }
+  .st-final { color: #1a8a5a; } .st-provisional { color: var(--accent); } .st-held, .st-pending { color: #b26a00; } .st-void { color: var(--text-3); }
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .team { border-top: 4px solid; }
+  .team.claude { border-top-color: var(--team-claude); } .team.shushu { border-top-color: var(--team-shushu); }
+  .kv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  .kv b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-2); }
+  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .chartbox { position: relative; }
+  #cum { width: 100%; height: 260px; display: block; touch-action: pan-y; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.12); display: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  ul.plain { margin: 0; padding-left: 18px; } ul.plain li { margin: 3px 0; }
+  .rules li { margin: 6px 0; }
+  @media (max-width: 760px) {
+    .kpis { grid-template-columns: 1fr; } .kv { grid-template-columns: repeat(2, 1fr); }
+    .hide-sm { display: none; } .zbar { display: none; } .agent b { white-space: nowrap; }
+    .prow .mk { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>AI 투자 리그</h1>
+      <div class="sub" id="status"></div>
+    </div>
+    <div class="row">
+      <a class="btn" href="index.html" style="text-decoration:none;color:inherit">← 시장 대시보드</a>
+      <button class="btn" id="theme" aria-label="테마 전환">🌓</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="league">리그</button>
+    <button role="tab" data-tab="teams">팀 대결</button>
+    <button role="tab" data-tab="records">기록</button>
+    <button role="tab" data-tab="rules">규칙</button>
+  </nav>
+
+  <main id="view"></main>
+
+  <p class="sub" style="margin-top:20px">모의 예측 평가입니다. 실제 주문·투자 권유가 아니며, 점수는 이미 확정된 종가로 계산합니다.
+    에이전트는 투자 철학을 참고한 스타일이며 실존 인물의 추천이 아닙니다. 상승=빨강, 하락=파랑.</p>
+</div>
+
+<script>
+/* ───── 데이터 로드: 실제 원장(data/league.js) → 없거나 비어 있으면 예시(data/league-sample.js) ───── */
+function loadScript(src) {
+  return new Promise((ok, fail) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
+}
+(async () => {
+  const forceSample = new URLSearchParams(location.search).has('sample');
+  if (!forceSample) { try { await loadScript('data/league.js'); } catch {} }
+  if (!window.LEAGUE || !window.LEAGUE.picks || !window.LEAGUE.picks.length) {
+    window.LEAGUE = null;
+    try { await loadScript('data/league-sample.js'); } catch {}
+  }
+  init();
+})();
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('league.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('league.' + k, JSON.stringify(v)); } catch {} },
+};
+const cls = v => v == null ? 'flat' : v > 0 ? 'up' : v < 0 ? 'down' : 'flat';
+const pt = (v, unit = '') => v == null ? '–' : (v > 0 ? '+' : '') + v.toFixed(2) + unit;
+const pct = v => v == null ? '–' : v.toFixed(0) + '%';
+const MK = { KR: '', US: '' };   // 국기 이모지는 Windows 등에서 글자로 깨져서 쓰지 않음
+const ST = { final: '확정', provisional: '잠정', held: '보류', pending: '대기', void: '무효' };
+const TEAMS = ['claude', 'shushu'];
+
+let L, state;
+function init() {
+  L = window.LEAGUE;
+  if (!L) { $('#view').innerHTML = '<div class="card">리그 데이터가 없습니다. <code>python3 tools/league.py export</code>를 실행하세요.</div>'; return; }
+  const weeks = Object.keys(L.weekly.claude || {}).sort();
+  state = {
+    tab: store.get('tab', 'league'),
+    team: store.get('team', 'claude'),
+    week: weeks[weeks.length - 1],
+    day: null, open: null,
+  };
+  $('#status').innerHTML =
+    (L.sample ? '<span class="badge b-sample">예시 데이터 (가상)</span> ' : '') +
+    (L.ledger_ok ? '<span class="badge b-ok">원장 해시 검증 정상</span> ' : '<span class="badge b-bad">원장 검증 실패</span> ') +
+    `<span>생성 ${esc(L.generated.slice(0, 16).replace('T', ' '))}</span>`;
+  $('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { state.tab = b.dataset.tab; store.set('tab', state.tab); render(); } });
+  render();
+}
+
+/* ───── 공통 조회 ───── */
+const scoreOf = id => (L._scoreIdx ||= Object.fromEntries(L.scores.map(s => [s.pick_id, s])))[id];
+const teamLabel = t => L.config.teams[t]?.label || t;
+function agentInfo(team, id) {
+  const r = L.roster[team] || [], b = L.roster[team === 'claude' ? 'bench' : 'bench_' + team] || [];
+  return r.find(a => a.id === id) || b.find(a => a.id === id) || { id, label: id };
+}
+
+/* ───── 렌더 ───── */
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === state.tab));
+  ({ league: renderLeague, teams: renderTeams, records: renderRecords, rules: renderRules })[state.tab]();
+}
+
+function zbar(v, max) {
+  if (v == null) return '';
+  const w = Math.min(Math.abs(v) / (max || 1), 1) * 50;
+  return `<span class="zbar" aria-hidden="true"><span class="${v >= 0 ? 'pos' : 'neg'}" style="width:${w}%"></span></span>`;
+}
+
+function renderLeague() {
+  const weeks = Object.keys(L.weekly[state.team] || {}).sort();
+  const W = (L.weekly[state.team] || {})[state.week];
+  const days = [...new Set(L.picks.filter(p => p.team === state.team).map(p => p.round_date))]
+    .filter(d => W && weekOf(d) === state.week).sort();
+  if (!state.day || !days.includes(state.day)) state.day = days[days.length - 1];
+  const maxAbs = Math.max(...(W?.ranking || []).map(r => Math.abs(r.avg ?? 0)), 0.01);
+  const dec = W?.decision || {};
+  const elim = dec.eliminate ? agentInfo(state.team, dec.eliminate) : null;
+  const repl = dec.replacement ? agentInfo(state.team, dec.replacement) : null;
+
+  $('#view').innerHTML = `
+    <div class="row" style="margin-bottom:12px">
+      <div class="seg" id="teamSeg">${TEAMS.map(t => `<button data-team="${t}" aria-pressed="${t === state.team}">${esc(teamLabel(t))}</button>`).join('')}</div>
+      <select id="weekSel" aria-label="주차">${weeks.map(w => `<option ${w === state.week ? 'selected' : ''}>${w}</option>`).join('')}</select>
+    </div>
+    ${W ? `
+    <div class="callout ${elim ? '' : 'info'}">
+      ${elim ? `<b>이번 주 탈락: ${esc(elim.label)}</b> → ${repl ? `승인된 대기 후보 <b>${esc(repl.label)}</b>가 다음 월요일 07:05부터 참가` : '승인된 대기 후보 없음 — 자리 비움'}`
+             : dec.hold_reasons?.length ? `<b>교체 보류</b>: ${dec.hold_reasons.map(esc).join(' · ')}` : '집계 전'}
+      ${(dec.notes || []).map(n => `<div class="sub">${esc(n)}</div>`).join('')}
+    </div>
+    <div class="card">
+      <h2>${esc(state.week)} 순위 · ${esc(teamLabel(state.team))} <span class="sub">— 확정 점수 평균 (한국·미국 같은 비중)</span></h2>
+      <div class="scroll"><table>
+        <thead><tr><th>#</th><th class="l">에이전트</th><th>평균 점수</th><th>초과</th><th class="hide-sm">KR 평균</th><th class="hide-sm">US 평균</th>
+          <th>확정/기대</th><th>제출률</th><th class="hide-sm">보류·무효</th><th class="hide-sm">최고/최저</th></tr></thead>
+        <tbody>${W.ranking.map(r => { const a = agentInfo(state.team, r.agent_id); return `
+          <tr class="${r.agent_id === dec.eliminate ? 'out' : ''}">
+            <td>${r.rank}</td>
+            <td class="l agent"><b>${esc(a.label)}</b>${r.agent_id === dec.eliminate ? ' <span class="badge b-bad">탈락</span>' : ''}
+              <span class="sub"><span class="hide-sm">${esc(a.style_ref || '')} · </span>v${r.version}</span></td>
+            <td class="${cls(r.avg)}"><b>${pt(r.avg)}</b>${zbar(r.avg, maxAbs)}</td>
+            <td class="${cls(r.avg_excess)}">${pt(r.avg_excess)}</td>
+            <td class="hide-sm ${cls(r.markets.KR.avg)}">${pt(r.markets.KR.avg)}</td>
+            <td class="hide-sm ${cls(r.markets.US.avg)}">${pt(r.markets.US.avg)}</td>
+            <td>${r.scored}/${r.expected}</td>
+            <td>${pct(r.submit_rate)}</td>
+            <td class="hide-sm">${r.held_or_pending} · ${r.void}</td>
+            <td class="hide-sm"><span class="up">${pt(r.max)}</span> / <span class="down">${pt(r.min)}</span></td>
+          </tr>`; }).join('')}</tbody>
+      </table></div>
+      <p class="sub" style="margin:8px 0 0">초과 = 공식 점수 − 같은 기간 지수(KOSPI·S&P 500) 수익률. 배당 효과가 섞인 단순 차이이며 순위에 쓰지 않습니다.
+        제출률·보류·무효는 평균에서 빠진 건을 드러내기 위해 함께 표시합니다.</p>
+    </div>
+    <div class="card">
+      <h2>라운드별 추천</h2>
+      <div class="days" id="days">${days.map(d => `<button data-day="${d}" aria-pressed="${d === state.day}">${d.slice(5).replace('-', '/')} (${'일월화수목금토'[new Date(d + 'T00:00:00').getDay()]})</button>`).join('')}</div>
+      <div class="picks" id="picks">${renderPicks()}</div>
+    </div>` : '<div class="card">이 팀의 기록이 없습니다.</div>'}`;
+
+  $('#teamSeg').onclick = e => { const b = e.target.closest('[data-team]'); if (b) { state.team = b.dataset.team; store.set('team', state.team); state.open = null; render(); } };
+  $('#weekSel').onchange = e => { state.week = e.target.value; state.day = null; render(); };
+  const dd = $('#days'); if (dd) dd.onclick = e => { const b = e.target.closest('[data-day]'); if (b) { state.day = b.dataset.day; state.open = null; render(); } };
+  const pk = $('#picks'); if (pk) pk.onclick = e => {
+    if (e.target.closest('.detail')) return;
+    const r = e.target.closest('[data-pick]'); if (r) { state.open = state.open === r.dataset.pick ? null : r.dataset.pick; $('#picks').innerHTML = renderPicks(); }
+  };
+}
+
+function weekOf(d) {
+  const dt = new Date(d + 'T00:00:00Z'); const day = (dt.getUTCDay() + 6) % 7;
+  dt.setUTCDate(dt.getUTCDate() - day + 3);
+  const y = dt.getUTCFullYear(), jan4 = new Date(Date.UTC(y, 0, 4));
+  const w = 1 + Math.round(((dt - jan4) / 864e5 - 3 + ((jan4.getUTCDay() + 6) % 7)) / 7);
+  return `${y}-W${String(w).padStart(2, '0')}`;
+}
+
+function renderPicks() {
+  const ps = L.picks.filter(p => p.team === state.team && p.round_date === state.day);
+  const byAgent = {};
+  ps.forEach(p => (byAgent[p.agent_id] ||= []).push(p));
+  const order = (L.roster[state.team] || []).map(a => a.id);
+  const ids = Object.keys(byAgent).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  if (!ids.length) return '<p class="sub">이 날짜의 추천이 없습니다.</p>';
+  return ids.map(id => {
+    const a = agentInfo(state.team, id);
+    const rows = byAgent[id].sort((x, y) => x.market.localeCompare(y.market)).map(p => {
+      const s = scoreOf(p.pick_id) || { status: 'pending' };
+      const open = state.open === p.pick_id;
+      return `<div class="prow" data-pick="${esc(p.pick_id)}" role="button" aria-expanded="${open}" tabindex="0">
+        <span class="mk">${p.market}</span>
+        <span><b>${esc(p.name)}</b> <span class="sub">${esc(p.ticker)}</span> <span class="st st-${s.status}">● ${ST[s.status] || s.status}</span></span>
+        <span class="sc ${cls(s.score)}">${s.score == null ? '–' : pt(s.score)}</span>
+        <span class="meta">주가 ${pt(s.score_price_only)} · 초과 ${pt(s.score_excess)} · 기준 ${p.base_session?.slice(5)} → 평가 ${(s.eval_session || p.eval_session)?.slice(5)}${s.reason ? ' · ' + esc(s.reason) : ''}</span>
+        ${open ? `<dl class="detail">
+          <dt>선정 근거</dt><dd>${esc(p.rationale)}</dd>
+          <dt>위험 요인</dt><dd>${(p.risks || []).map(esc).join(' · ')}</dd>
+          <dt>출처 (기준일)</dt><dd>${(p.sources || []).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a> (${esc(x.as_of)}${x.retrieved_at ? ', 확보 ' + esc(x.retrieved_at.slice(11, 16)) : ''})`).join('<br>')}</dd>
+          <dt>확정 시각 · 지침 버전</dt><dd>${esc(p.locked_at)} · v${p.agent_version ?? '?'}</dd>
+          ${s.base_close != null ? `<dt>종가 (기준 → 평가)</dt><dd>${s.base_close.toLocaleString()} → ${s.eval_close.toLocaleString()}${s.adjustment?.split !== 1 ? ` · 분할 ×${s.adjustment.split}` : ''}${s.adjustment?.dividend ? ` · 배당 ${s.adjustment.dividend.toLocaleString()}` : ''}${s.benchmark ? ` · ${esc(s.benchmark)} ${pt(s.benchmark_return, '%')}` : ''}</dd>` : ''}
+          <dt>레코드 해시</dt><dd class="num">${esc(p.hash?.slice(0, 16))}…</dd>
+        </dl>` : ''}
+      </div>`;
+    }).join('');
+    return `<div class="pcard"><div class="head"><b>${esc(a.label)}</b><span class="sub">${esc(a.style_ref || '')}</span></div>${rows}</div>`;
+  }).join('');
+}
+
+/* ───── 팀 대결 ───── */
+function renderTeams() {
+  const T = L.teams;
+  const subRate = t => {
+    const ws = Object.values(L.weekly[t] || {}); let e = 0, p = 0;
+    ws.forEach(w => w.ranking.forEach(r => { e += r.expected; p += r.picks; }));
+    return e ? p / e * 100 : null;
+  };
+  const tile = t => { const x = T[t] || {}; return `
+    <div class="card team ${t}">
+      <h2 style="margin-bottom:2px">${esc(teamLabel(t))}</h2>
+      <div class="sub">${esc(L.config.teams[t]?.source || '')}</div>
+      <div class="kv">
+        <div><span class="sub">누적 합산점</span><b class="${cls(x.cumulative)}">${pt(x.cumulative)}</b></div>
+        <div><span class="sub">평균 점수</span><b class="${cls(x.avg)}">${pt(x.avg)}</b></div>
+        <div><span class="sub">초과 평균</span><b class="${cls(x.avg_excess)}">${pt(x.avg_excess)}</b></div>
+        <div><span class="sub">확정 건수 · 제출률</span><b>${x.scored ?? 0}</b><span class="sub">${pct(subRate(t))}</span></div>
+      </div>
+    </div>`; };
+  const n = TEAMS.reduce((a, t) => a + (T[t]?.scored || 0), 0);
+  $('#view').innerHTML = `
+    <div class="callout">
+      <b>합산점은 각 추천 점수를 더한 "점"입니다.</b> 실제 포트폴리오의 누적 수익률이 아닙니다.
+      확정 ${n}건 · ${new Set(L.picks.map(p => p.round_date)).size}거래일 기록으로는 장기 투자 실력을 판단할 수 없습니다.
+    </div>
+    <div class="kpis">${TEAMS.map(tile).join('')}</div>
+    <div class="card">
+      <div class="row" style="margin-bottom:8px"><h2 style="margin:0">누적 합산점 추이</h2><span class="spacer"></span>
+        <div class="legend">${TEAMS.map(t => `<span><i style="background:var(--team-${t})"></i>${esc(teamLabel(t))}</span>`).join('')}</div></div>
+      <div class="chartbox"><svg id="cum" role="img" aria-label="팀별 누적 합산점 추이"></svg><div class="tip" id="tip"></div></div>
+    </div>
+    <div class="card">
+      <h2>시장별 성적</h2>
+      <div class="scroll"><table>
+        <thead><tr><th class="l">시장</th>${TEAMS.map(t => `<th colspan="3">${esc(teamLabel(t))}</th>`).join('')}</tr>
+          <tr><th></th>${TEAMS.map(() => '<th>평균</th><th>초과</th><th>확정</th>').join('')}</tr></thead>
+        <tbody>${['KR', 'US'].map(m => `<tr><td class="l">${m === 'KR' ? '한국' : '미국'} <span class="sub">${m}</span></td>${TEAMS.map(t => { const x = T[t]?.markets?.[m] || {}; return `
+          <td class="${cls(x.avg)}">${pt(x.avg)}</td><td class="${cls(x.avg_excess)}">${pt(x.avg_excess)}</td><td>${x.scored ?? 0}</td>`; }).join('')}</tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>일별 합산점</h2>
+      <div class="scroll"><table>
+        <thead><tr><th class="l">날짜</th>${TEAMS.map(t => `<th>${esc(teamLabel(t))}</th><th class="hide-sm">건수</th>`).join('')}</tr></thead>
+        <tbody>${dates().map(d => `<tr><td class="l">${d}</td>${TEAMS.map(t => { const s = (T[t]?.series || []).find(x => x.date === d); return `
+          <td class="${cls(s?.sum)}">${s ? pt(s.sum) : '–'}</td><td class="hide-sm">${s?.n ?? 0}</td>`; }).join('')}</tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  drawCum();
+}
+const dates = () => [...new Set(TEAMS.flatMap(t => (L.teams[t]?.series || []).map(s => s.date)))].sort();
+
+function drawCum() {
+  const svg = $('#cum'); if (!svg) return;
+  const D = dates(), W = svg.clientWidth || 600, H = 260, m = { l: 44, r: W < 500 ? 56 : 92, t: 12, b: 26 };
+  const val = (t, d) => { let c = null; for (const s of L.teams[t]?.series || []) { if (s.date <= d) c = s.cumulative; } return c; };
+  const all = TEAMS.flatMap(t => D.map(d => val(t, d))).filter(v => v != null).concat([0]);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const raw = (hi - lo) / 4 || 1, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(k => k * mag).find(v => v >= raw);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const ticks = []; for (let v = lo; v <= hi + step / 2; v += step) ticks.push(+v.toFixed(6));
+  const x = i => m.l + (D.length > 1 ? i / (D.length - 1) : .5) * (W - m.l - m.r);
+  const y = v => m.t + (1 - (v - lo) / (hi - lo)) * (H - m.t - m.b);
+  let g = '';
+  ticks.forEach(v => {
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${y(v) + 4}" font-size="11" text-anchor="end" fill="var(--text-3)">${Number.isInteger(step) ? v : v.toFixed(1)}</text>`; });
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}" stroke="var(--text-3)" stroke-dasharray="3 3"/>`;
+  D.forEach((d, i) => { if (D.length <= 8 || i % Math.ceil(D.length / 8) === 0 || i === D.length - 1)
+    g += `<text x="${x(i)}" y="${H - 8}" font-size="11" text-anchor="middle" fill="var(--text-3)">${d.slice(5).replace('-', '/')}</text>`; });
+  const ends = [];
+  TEAMS.forEach(t => {
+    const pts = D.map((d, i) => [x(i), val(t, d)]).filter(p => p[1] != null);
+    if (!pts.length) return;
+    g += `<path d="${pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${y(p[1]).toFixed(1)}`).join('')}" fill="none" stroke="var(--team-${t})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach(p => g += `<circle cx="${p[0]}" cy="${y(p[1])}" r="3" fill="var(--team-${t})" stroke="var(--surface)" stroke-width="2"/>`);
+    ends.push({ t, x: pts[pts.length - 1][0], y: y(pts[pts.length - 1][1]) });
+  });
+  // 선 끝 직접 라벨 (겹치면 위아래로 벌림). 글자는 본문 색, 색은 옆의 표식으로만
+  ends.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+  ends.forEach(e => g += `<rect x="${e.x + 8}" y="${e.y - 4}" width="8" height="8" rx="2" fill="var(--team-${e.t})"/>
+    <text x="${e.x + 20}" y="${e.y + 4}" font-size="11" fill="var(--text-2)">${esc(W < 500 ? (e.t === 'claude' ? 'Claude' : '슈슈') : teamLabel(e.t).replace(' (Codex)', ''))}</text>`);
+  g += `<line id="hl" y1="${m.t}" y2="${H - m.b}" stroke="var(--text-3)" style="display:none"/><rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = g;
+  const box = svg.parentElement, tip = $('#tip');
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+    let bi = 0, bd = 1e9; D.forEach((_, i) => { const dd = Math.abs(x(i) - px); if (dd < bd) { bd = dd; bi = i; } });
+    const d = D[bi]; const hl = $('#hl'); hl.style.display = ''; hl.setAttribute('x1', x(bi)); hl.setAttribute('x2', x(bi));
+    tip.innerHTML = `<b>${d}</b>` + TEAMS.map(t => { const s = (L.teams[t]?.series || []).find(z => z.date === d);
+      return `<br><span style="color:var(--team-${t})">■</span> ${esc(teamLabel(t))}: 누적 <b class="${cls(val(t, d))}">${pt(val(t, d))}</b> · 당일 ${s ? pt(s.sum) + ` (${s.n}건)` : '–'}`; }).join('');
+    tip.style.display = 'block';
+    const tw = tip.offsetWidth; tip.style.left = Math.min(Math.max(x(bi) - tw / 2, 0), r.width - tw) + 'px'; tip.style.top = '4px';
+  };
+  const leave = () => { $('#hl').style.display = 'none'; tip.style.display = 'none'; };
+  box.onmousemove = move; box.onmouseleave = leave; box.ontouchstart = move; box.ontouchmove = move; box.ontouchend = leave;
+}
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => state?.tab === 'teams' && drawCum(), 120); });
+
+/* ───── 기록 ───── */
+function renderRecords() {
+  const appr = new Set(L.approvals.filter(a => a.decision === 'approved').map(a => a.team + ':' + a.agent_id));
+  const team = t => {
+    const mem = L.roster[t] || [], bench = L.roster[t === 'claude' ? 'bench' : 'bench_' + t] || [];
+    return `<div class="card team ${t}"><h2>${esc(teamLabel(t))}</h2>
+      <h3>현역</h3><ul class="plain">${mem.map(a => `<li><b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')} · v${a.version ?? 1}</span>
+        ${a.status === 'eliminated' ? `<span class="badge b-bad">${esc(a.eliminated_week)} 탈락</span>` : ''}</li>`).join('')}</ul>
+      <h3>대기 후보 (투입 순서)</h3><ul class="plain">${bench.map((a, i) => `<li>${i + 1}. <b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')}</span>
+        ${appr.has(t + ':' + a.id) ? '<span class="badge b-ok">승인</span>' : '<span class="badge">미승인</span>'}</li>`).join('') || '<li class="sub">없음</li>'}</ul></div>`;
+  };
+  $('#view').innerHTML = `
+    <div class="kpis">${TEAMS.map(team).join('')}</div>
+    <div class="card"><h2>제출 영수증 <span class="sub">— GitHub 서버 push 시각 기준 판정</span></h2>
+      ${L.submissions.length ? `<div class="scroll"><table><thead><tr><th class="l">라운드</th><th class="l">팀</th><th class="l">판정</th><th class="l">서버 push 시각</th><th class="l hide-sm">커밋 · CSV 해시</th><th>건수</th></tr></thead><tbody>
+        ${L.submissions.map(s => `<tr><td class="l">${esc(s.round_date)}</td><td class="l">${esc(teamLabel(s.team))}</td>
+          <td class="l"><span class="badge ${s.status === 'accepted' ? 'b-ok' : 'b-bad'}">${esc(s.status)}</span>${s.errors?.length ? `<div class="sub">${s.errors.map(esc).join('; ')}</div>` : ''}</td>
+          <td class="l">${esc(s.pushed_at || '')}</td><td class="l hide-sm num">${esc(s.commit?.slice(0, 7))} · ${esc(s.csv_sha256?.slice(0, 12))}</td><td>${s.imported}</td></tr>`).join('')}
+      </tbody></table></div>` : '<p class="sub">아직 제출 영수증이 없습니다.</p>'}</div>
+    <div class="card"><h2>정정 기록</h2>
+      ${L.corrections.length ? `<ul class="plain">${L.corrections.map(c => `<li>${esc(c.pick_id)}: ${pt(c.before)} → ${pt(c.after)} <span class="sub">${esc(c.reason)} · ${esc(c.at)}</span></li>`).join('')}</ul>` : '<p class="sub">정정된 점수가 없습니다.</p>'}</div>
+    <div class="card"><h2>승인 기록</h2>
+      ${L.approvals.length ? `<ul class="plain">${L.approvals.map(a => `<li>${esc(teamLabel(a.team))} · ${esc(a.label || a.agent_id)} — ${esc({ approved: '승인', rejected: '반려' }[a.decision] || a.decision)} <span class="sub">${esc(a.approved_at || '')}${a.guideline_sha256 ? ' · 지침 ' + esc(a.guideline_sha256.slice(0, 10)) : ''}</span></li>`).join('')}</ul>` : '<p class="sub">없음</p>'}</div>`;
+}
+
+/* ───── 규칙 ───── */
+function renderRules() {
+  const c = L.config, w = c.weekly;
+  $('#view').innerHTML = `<div class="card rules"><h2>핵심 규칙 요약</h2><ul class="plain">
+    <li><b>추천</b>: 매 평일 에이전트마다 한국 1종목 + 미국 1종목 (그날 열린 시장은 모두 필수, 한쪽 휴장이면 열린 시장만). 팀당 최대 ${c.max_picks_per_team_per_round}건.</li>
+    <li><b>마감</b>: 매일 ${c.lock_deadline} KST. GitHub 서버 push 시각으로 판정, 처음 접수된 제출이 최종.</li>
+    <li><b>기준·평가</b>: 직전 거래일 정규장 종가 → 라운드 당일(현지) 정규장 종가. 시간외·NXT 가격 미사용.</li>
+    <li><b>공식 점수</b>: ${esc(c.scoring.formula)}. ${esc(c.scoring.dividend_attribution)}</li>
+    <li><b>참고 점수</b>: 주가 변동 점수, 시장 대비 초과 점수(KOSPI·S&P 500). 순위에 쓰지 않음.</li>
+    <li><b>보류</b>: 가격·배당·분할 정보를 확인할 수 없으면 0점이 아니라 보류. 거래정지 ${w.halt_void_after_sessions}세션 초과 시 무효.</li>
+    <li><b>주간 교체</b>: 확정 평균 최하위 1명 탈락 → 승인된 대기 후보가 다음 월요일 07:05부터 참가.
+      보류 조건: 최하위 확정 ${w.min_scored_for_elimination}건 미만, 팀 확정 ${w.min_total_scored_in_week}건 미만, 완전 동점.</li>
+    <li><b>개선</b>: 주간 복기 → 운영자 승인 후 다음 라운드부터 새 지침 버전 적용. 과거 점수는 바꾸지 않음.</li>
+    <li><b>기록 보존</b>: 모든 원장은 추가 전용 + 해시 체인. 기존 줄 수정·삭제는 자동 검사에서 실패.</li>
+  </ul>
+  <p class="sub">전체 규칙: <code>docs/ai-league-proposal.md</code>, 참가 안내서: <code>docs/codex-team-guide.md</code></p></div>`;
+}
+
+/* ───── 테마 ───── */
+$('#theme').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next; store.set('theme', next);
+  if (state?.tab === 'teams') drawCum();
+});
+{ const t = store.get('theme', null); if (t) document.documentElement.dataset.theme = t; }
+</script>
+</body>
+</html>

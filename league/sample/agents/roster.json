@@ -132,5 +132,17 @@
    "eliminated_week": null,
    "version": 1
   }
+ ],
+ "bench_shushu": [
+  {
+   "id": "s6",
+   "label": "Codex 대기 1",
+   "style_ref": "슈슈 팀 대기 후보"
+  },
+  {
+   "id": "s7",
+   "label": "Codex 대기 2",
+   "style_ref": "슈슈 팀 대기 후보"
+  }
  ]
 }

@@ -597,7 +597,9 @@ def export(d: Path, out: Path):
     roster = load_roster(d)
     data = {"generated": datetime.now(KST).isoformat(timespec="seconds"), "config": cfg, "roster": roster,
             "picks": picks, "scores": list(latest_scores(d).values()), "corrections": read_ledger(d, "corrections"),
-            "weekly": {wk: weekly(d, wk) for wk in weeks}, "teams": team_summary(d),
+            "weekly": {team: {wk: weekly(d, wk, team) for wk in weeks} for team in cfg["teams"]},
+            "teams": team_summary(d), "submissions": read_ledger(d, "submissions"),
+            "approvals": read_ledger(d, "approvals"),
             "ledger_ok": not verify(d), "sample": (d / "SAMPLE").exists()}
     out.write_text("// 자동 생성: python3 tools/league.py export\nwindow.LEAGUE = "
                    + json.dumps(data, ensure_ascii=False) + ";\n")
@@ -617,6 +619,8 @@ def make_sample(d: Path):
     roster = json.loads((ROOT / "league" / "agents" / "roster.json").read_text())
     roster["shushu"] = [{"id": f"s{i}", "label": f"Codex {i}", "style_ref": "슈슈 팀 (Codex)", "status": "active",
                          "joined_week": "2026-W46", "eliminated_week": None, "version": 1} for i in range(1, 6)]
+    roster["bench_shushu"] = [{"id": "s6", "label": "Codex 대기 1", "style_ref": "슈슈 팀 대기 후보"},
+                              {"id": "s7", "label": "Codex 대기 2", "style_ref": "슈슈 팀 대기 후보"}]
     (d / "agents" / "roster.json").write_text(json.dumps(roster, ensure_ascii=False, indent=1))
     cfg = load_config(d)
     uni = json.loads((d / "universe.json").read_text())
@@ -696,7 +700,7 @@ def make_sample(d: Path):
                         put_price(m, t, es, close)
                         base_px[(m, t)] = close
                     submit_pick(d, rec)
-    for team, bid in (("claude", "momentum"), ("claude", "quant")):
+    for team, bid in (("claude", "momentum"), ("claude", "quant"), ("shushu", "s6"), ("shushu", "s7")):
         append(d, "approvals", {"type": "bench", "team": team, "agent_id": bid, "decision": "approved", "source": "SAMPLE"})
     # 배당·분할 확인 기록 (AMZN은 일부러 누락)
     for m in ("KR", "US"):
