@@ -16,7 +16,9 @@ argument-hint: "[라운드 날짜 YYYY-MM-DD] [official|sandbox]  (기본: 오�
 | 모드 | CSV 경로 | 기록 위치 |
 |---|---|---|
 | official | `league/imports/claude/<날짜>.csv` | 실제 리그 원장 |
-| sandbox | `league/imports/sandbox/<날짜>.csv` | `league/sandbox/` 시험 원장 (실제 리그에 반영 안 됨) |
+| sandbox | `league/imports/sandbox-claude/<날짜>.csv` | `league/sandbox/` 시험 원장 (실제 리그에 반영 안 됨) |
+
+sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 `league/sandbox/rounds/<날짜>/`에 둔다(`snapshot <날짜> --dir league/sandbox`). 아래 경로의 `league/rounds/`를 그렇게 바꿔 읽는다.
 
 ## 지켜야 할 것 (위반하면 즉시 중단하고 사용자에게 보고)
 
@@ -96,9 +98,9 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
 2. CSV를 만든다: `python3 tools/league.py make-csv league/rounds/<날짜>/claude/final.json --out <CSV 경로>`
 3. 사전 검증을 한다.
    - official: `python3 tools/league.py import-csv <CSV> --team claude --dry-run`
-   - sandbox: `python3 tools/league.py import-csv <CSV> --team sandbox --dir league/sandbox --dry-run`
+   - sandbox: `python3 tools/league.py import-csv <CSV> --team sandbox-claude --dir league/sandbox --dry-run`
    - 오류가 있으면 형식 오류만 해당 에이전트에게 고치게 하고 다시 검증한다. 08:20이 지나면 오류 없는 상태로 제출할 수 있는지 판단해 사용자에게 알린다.
-4. 토론 기록 `league/imports/<claude|sandbox>/<날짜>-debate.md`를 쓴다. 내용은 1·2단계 요약, 변경 내역, 각 r1/r2 파일 경로다.
+4. 토론 기록 `league/imports/<claude|sandbox-claude>/<날짜>-debate.md`를 쓴다. 내용은 1·2단계 요약, 변경 내역, 각 r1/r2 파일 경로다.
 5. 커밋과 push를 한다.
    - 먼저 `git pull --rebase`로 영수증 봇 커밋을 받는다.
    - CSV와 토론 기록, rounds 폴더를 커밋하고 push한다.

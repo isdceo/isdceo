@@ -182,6 +182,13 @@ class Readiness(unittest.TestCase):
         self.assertIn(items["한국 KOSPI200 + KOSDAQ150"]["status"], ("done", "todo"))
 
 
+class SandboxRouting(unittest.TestCase):
+    def test_sandbox_prefixed_teams_use_sandbox_ledger(self):
+        self.assertEqual(L.ledger_dir_for("sandbox").name, "sandbox")
+        self.assertEqual(L.ledger_dir_for("sandbox-claude").name, "sandbox")
+        self.assertEqual(L.ledger_dir_for("claude").name, "league")
+
+
 class Safeguards(unittest.TestCase):
     def test_extreme_move_held(self):
         d = new_league()

@@ -685,8 +685,9 @@ def changed_submission_files(event: dict, cwd=ROOT) -> list[str]:
     return sorted({f for f in files if SUBMISSION_RE.match(f)})
 
 def ledger_dir_for(team: str, cwd=ROOT) -> Path:
-    """sandbox 팀은 시험용 원장(league/sandbox)에 기록해 실제 원장을 오염시키지 않는다."""
-    return Path(cwd) / "league" / ("sandbox" if team == "sandbox" else "")
+    """sandbox 및 sandbox-<팀> 은 시험용 원장(league/sandbox)에 기록해 실제 원장을 오염시키지 않는다.
+    팀별 연습 경로(예: league/imports/sandbox-claude/)를 쓰면 다른 연습 제출과 섞이지 않는다."""
+    return Path(cwd) / "league" / ("sandbox" if team == "sandbox" or team.startswith("sandbox-") else "")
 
 def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_at: str | None = None,
                  cwd=ROOT) -> list[dict]:
