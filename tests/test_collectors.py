@@ -161,6 +161,19 @@ class Guidelines(unittest.TestCase):
         self.assertEqual([(x["version"], x["effective_round"]) for x in g], [(1, "2026-11-09"), (2, "2026-11-16")])
 
 
+class RosterValidation(unittest.TestCase):
+    def test_version_and_membership_checked(self):
+        d = new_league()
+        cfg = L.load_config(d)
+        mk = lambda agent, ver: L.make_pick("claude", agent, ver, "2026-11-10", "KR", "005930", "삼성전자",
+                                            "2026-11-10T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-09"}], cfg)
+        self.assertEqual(L.validate_pick(mk("buffett", 1), d, cfg, []), [])
+        self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk("buffett", 2), d, cfg, [])))
+        self.assertTrue(any("명단에 없음" in e for e in L.validate_pick(mk("nobody", 1), d, cfg, [])))
+        # 대기 후보는 승격 전에는 제출 불가
+        self.assertTrue(any("명단에 없음" in e for e in L.validate_pick(mk("momentum", 1), d, cfg, [])))
+
+
 class Safeguards(unittest.TestCase):
     def test_extreme_move_held(self):
         d = new_league()

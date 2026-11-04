@@ -524,6 +524,20 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         errs.append("locked_at에 시간대 필요 (예: +09:00)")
     elif locked > lock_deadline(rd, cfg):
         errs.append(f"마감({cfg['lock_deadline']} KST) 이후 확정: {rec['locked_at']}")
+    # 지침 버전·현역 여부: 팀 명단이 있을 때만 검사 (연습용 sandbox 등은 건너뜀)
+    team_roster = load_roster(d).get(rec["team"])
+    if team_roster:
+        wk = iso_week(rd)
+        m = next((x for x in team_roster if x["id"] == rec["agent_id"]), None)
+        if not m:
+            errs.append(f"{rec['agent_id']}는 {rec['team']} 팀 명단에 없음")
+        else:
+            if m.get("status") == "eliminated" and (m.get("eliminated_week") or "") < wk:
+                errs.append(f"{rec['agent_id']}는 {m.get('eliminated_week')}에 탈락 — 제출 불가")
+            if m.get("joined_week") and m["joined_week"] > wk:
+                errs.append(f"{rec['agent_id']}는 {m['joined_week']}부터 참가")
+            if rec.get("agent_version") is not None and m.get("version") is not None and int(rec["agent_version"]) != int(m["version"]):
+                errs.append(f"{rec['agent_id']} 지침 버전 불일치: 제출 v{rec['agent_version']} / 승인 v{m['version']}")
     same = [p for p in existing if p["team"] == rec["team"] and p["round_date"] == rec["round_date"]]
     if any(p["agent_id"] == rec["agent_id"] and p["market"] == rec["market"] for p in same):
         errs.append(f"{rec['agent_id']}는 이 라운드 {rec['market']} 종목을 이미 추천함")
