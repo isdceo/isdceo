@@ -770,8 +770,14 @@ def readiness(d: Path, root: Path = ROOT) -> list[dict]:
     add("대상 종목", "미국 S&P 500 + NASDAQ-100", 480 <= us <= 620, f"{us}종목")
     add("대상 종목", "한국 KOSPI200 + KOSDAQ150", 330 <= kr <= 360, f"{kr}종목" + (" (예시)" if kr < 330 else ""), "운영자: KRX 파일")
     prov = cfg.get("providers", {})
-    add("데이터", "한국 종가 제공처 연결 (KRX Open API)", None, f"설정 {prov.get('KR', {}).get('final')} · 승인·시험은 league-provider-check 결과로 확인", "운영자: 승인")
-    add("데이터", "미국 종가·배당 제공처 연결", None, f"설정 {prov.get('US', {}).get('final')} · 키 발급 후 league-provider-check", "운영자: 키")
+    ver = cfg.get("provider_verified", {})
+    def prov_item(m, label, who):
+        name = prov.get(m, {}).get("final")
+        v = ver.get(name)
+        add("데이터", label, True if v else None,
+            f"{name} · {v['date']} 수신 확인" if v else f"{name} · league-provider-check 로 시험 필요", who)
+    prov_item("KR", "한국 종가 제공처 연결", "운영자: 승인")
+    prov_item("US", "미국 종가·배당 제공처 연결", "운영자: 키")
     inq = (root / "docs" / "provider-inquiries.md")
     replied = False
     if inq.exists():
