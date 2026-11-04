@@ -258,6 +258,54 @@ def collect(d: Path, provider: Provider, market: str, tickers: list[str], sessio
     return res
 
 
+def due_sessions(d: Path, today: date) -> dict:
+    """채점·공통 자료에 필요한 (시장, 세션) → 종목 집합. 아직 확정 값이 없는 것만.
+    - 추천의 기준·평가 세션 중 오늘 이전에 끝난 세션
+    - 각 세션의 비교 지수(benchmarks)"""
+    cfg = L.load_config(d)
+    idx = L.price_index(d)
+    need: dict[tuple, set] = {}
+    for p in L.read_ledger(d, "picks"):
+        for s_ in (p.get("base_session"), p.get("eval_session")):
+            if s_ and date.fromisoformat(s_) < today:
+                need.setdefault((p["market"], s_), set()).add(p["ticker"])
+    for (m, s_), tks in list(need.items()):
+        b = cfg.get("benchmarks", {}).get(m)
+        if b:
+            tks.add(b)
+    out = {}
+    for (m, s_), tks in sorted(need.items()):
+        left = sorted(t for t in tks if (idx.get((m, t, s_)) or {}).get("status") != "final")
+        if left:
+            out[(m, s_)] = left
+    return out
+
+
+def collect_due(d: Path, today: date) -> dict:
+    """설정된 제공처(config.providers.<시장>.final / provisional)로 필요한 값을 받고 채점까지 돌린다.
+    키가 없으면 그 시장은 건너뛰고 사유를 남긴다 (실패로 멈추지 않음)."""
+    cfg = L.load_config(d)
+    provs = cfg.get("providers", {})
+    report = {"today": today.isoformat(), "collected": [], "skipped": [], "scoring": []}
+    for (m, s_), tks in due_sessions(d, today).items():
+        name = provs.get(m, {}).get("final")
+        if not name:
+            report["skipped"].append({"market": m, "session": s_, "reason": "config.providers 에 확정 제공처 없음"})
+            continue
+        try:
+            prov = PROVIDERS[name]()
+        except NotConfigured as e:
+            report["skipped"].append({"market": m, "session": s_, "provider": name, "reason": str(e)})
+            continue
+        r = collect(d, prov, m, tks, date.fromisoformat(s_), "final")
+        report["collected"].append({"market": m, "session": s_, "provider": name, "recorded": r["recorded"],
+                                    "failed": r["failed"], "provider_errors": r.get("provider_errors", []),
+                                    "discrepancies": len(r["discrepancies"])})
+    for w in L.run_scoring(d, today=today):
+        report["scoring"].append({"pick_id": w["pick_id"], "status": w["status"], "score": w.get("score"), "reason": w.get("reason")})
+    return report
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["collect"])

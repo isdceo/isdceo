@@ -52,5 +52,18 @@
   "open_license_sources": [
     "fsc_disclosure"
   ],
-  "open_license_sources_note": "이용허락 '제한 없음'이 확인된 출처만 (금융위원회_공시정보). 사용권이 확인되면 추가"
+  "open_license_sources_note": "이용허락 '제한 없음'이 확인된 출처만 (금융위원회_공시정보). 사용권이 확인되면 추가",
+  "providers": {
+    "KR": {
+      "final": "krx_openapi",
+      "provisional": null
+    },
+    "US": {
+      "final": "tiingo",
+      "provisional": "alpaca"
+    }
+  },
+  "providers_note": "사용권 확인 전 기술 검증 후보. 키가 없으면 수집을 건너뛴다",
+  "automation_enabled": false,
+  "automation_note": "true 로 바꾸면 league-daily 워크플로가 공통 자료(06:50)·수집·채점(10:30)·주간 마감(월 06:30)을 실행한다"
 }

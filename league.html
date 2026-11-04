@@ -412,8 +412,11 @@ function renderRecords() {
   const team = t => {
     const mem = L.roster[t] || [], bench = L.roster[t === 'claude' ? 'bench' : 'bench_' + t] || [];
     return `<div class="card team ${t}"><h2>${esc(teamLabel(t))}</h2>
-      <h3>현역</h3><ul class="plain">${mem.map(a => `<li><b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')} · v${a.version ?? 1}</span>
-        ${a.status === 'eliminated' ? `<span class="badge b-bad">${esc(a.eliminated_week)} 탈락</span>` : ''}</li>`).join('')}</ul>
+      <h3>명단 (현역 → 탈락)</h3><ul class="plain">${[...mem].sort((x, y) => (x.status === 'eliminated') - (y.status === 'eliminated')).map(a => {
+        const first = mem.map(m => m.joined_week).filter(Boolean).sort()[0];
+        return `<li><b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')} · v${a.version ?? 1}</span>
+        ${a.status === 'eliminated' ? `<span class="badge b-bad">${esc(a.eliminated_week)} 탈락</span>` : ''}
+        ${a.joined_week && first && a.joined_week > first ? `<span class="badge b-ok">${esc(a.joined_week)} 합류</span>` : ''}</li>`; }).join('')}</ul>
       <h3>대기 후보 (투입 순서)</h3><ul class="plain">${bench.map((a, i) => `<li>${i + 1}. <b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')}</span>
         ${appr.has(t + ':' + a.id) ? '<span class="badge b-ok">승인</span>' : '<span class="badge">미승인</span>'}</li>`).join('') || '<li class="sub">없음</li>'}</ul></div>`;
   };

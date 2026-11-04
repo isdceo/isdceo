@@ -8,7 +8,7 @@
   "note": "DART 공시 연결 전",
   "status": "not_configured"
  },
- "generated_at": "2026-11-04T08:56:20+09:00",
+ "generated_at": "2026-11-04T12:05:31+09:00",
  "institutional_13f": {
   "funds": [
    {
@@ -795,11 +795,11 @@
  "universe": {
   "counts": {
    "KR": 8,
-   "US": 8
+   "US": 518
   },
   "file": "sample/universe.json",
-  "sha256": "90197316a3c82d15ab7478943c956847ff19b4ef4946917148228a38991d44c0",
-  "status": "sample"
+  "sha256": "20347c57ae88bf658ad007347f18b64331730d2dd1a4913180b4f69bf521ef1a",
+  "status": "US real / KR sample"
  },
  "variant": "price-free"
 }

@@ -82,6 +82,49 @@ class MakeCsv(unittest.TestCase):
         self.assertEqual(ok[0]["risks"], ["위험1", "위험2"])
 
 
+class WeeklyCloseAndDue(unittest.TestCase):
+    def setUp(self):
+        self.d = Path(tempfile.mkdtemp()) / "sample"
+        L.make_sample(self.d, close_week=False)        # W46 예시: 마감 전 상태
+
+    def test_close_fixes_decision_and_updates_roster(self):
+        before = L.weekly(self.d, "2026-W46", "claude")["decision"]
+        recs = L.weekly_close(self.d, "2026-W46", now="2026-11-16T06:30:00+09:00")
+        self.assertEqual({r["team"] for r in recs}, {"claude", "shushu"})
+        c = next(r for r in recs if r["team"] == "claude")
+        self.assertEqual((c["eliminate"], c["replacement"], c["effective_week"]),
+                         (before["eliminate"], before["replacement"], "2026-W47"))
+        r = L.load_roster(self.d)
+        out = next(a for a in r["claude"] if a["id"] == before["eliminate"])
+        new = next(a for a in r["claude"] if a["id"] == before["replacement"])
+        self.assertEqual((out["status"], out["eliminated_week"]), ("eliminated", "2026-W46"))
+        self.assertEqual((new["status"], new["joined_week"]), ("active", "2026-W47"))
+        self.assertNotIn(before["replacement"], [b["id"] for b in r["bench"]])
+        # 마감한 주의 순위표에는 탈락자가 남고 신규 합류자는 없다
+        ids = [x["agent_id"] for x in L.weekly(self.d, "2026-W46", "claude")["ranking"]]
+        self.assertIn(before["eliminate"], ids)
+        self.assertNotIn(before["replacement"], ids)
+        # 다시 마감해도 중복 기록 없음
+        self.assertEqual(L.weekly_close(self.d, "2026-W46"), [])
+        self.assertEqual(L.verify(self.d), [])
+
+    def test_due_sessions_lists_only_missing_finals(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "KR", "005930")
+        price(d, "KR", "005930", "2026-11-09", 100000)
+        due = C.due_sessions(d, date(2026, 11, 11))
+        self.assertEqual(due, {("KR", "2026-11-09"): ["KOSPI"], ("KR", "2026-11-10"): ["005930", "KOSPI"]})
+        self.assertEqual(C.due_sessions(d, date(2026, 11, 10)), {("KR", "2026-11-09"): ["KOSPI"]})
+
+    def test_collect_due_skips_without_keys(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "US", "AAPL")
+        rep = C.collect_due(d, date(2026, 11, 11))
+        self.assertTrue(rep["skipped"])
+        self.assertTrue(all("환경변수" in x["reason"] for x in rep["skipped"]))
+        self.assertEqual(rep["collected"], [])
+
+
 class Safeguards(unittest.TestCase):
     def test_extreme_move_held(self):
         d = new_league()

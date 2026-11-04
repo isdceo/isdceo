@@ -20,7 +20,8 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
-LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks")
+LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks",
+           "weekly_decisions")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -279,6 +280,21 @@ def load_roster(d: Path) -> dict:
                         if isinstance(a, dict)]
         if isinstance(data, dict) and data.get("bench"):
             roster.setdefault("bench_" + team, data["bench"])
+    # 주간 마감 기록을 순서대로 적용: 탈락 → 상태 변경, 대체자 → 대기 명단에서 현역으로 (합류 주 = 다음 주)
+    for dec in read_ledger(d, "weekly_decisions"):
+        team, wk = dec["team"], dec["week"]
+        members = roster.setdefault(team, [])
+        bench_key = "bench" if team == "claude" else f"bench_{team}"
+        if dec.get("eliminate"):
+            for a in members:
+                if a["id"] == dec["eliminate"]:
+                    a["status"], a["eliminated_week"] = "eliminated", wk
+        if dec.get("replacement"):
+            bench = roster.get(bench_key, [])
+            b = next((x for x in bench if x["id"] == dec["replacement"]), {"id": dec["replacement"], "label": dec["replacement"]})
+            roster[bench_key] = [x for x in bench if x["id"] != dec["replacement"]]
+            members.append({**{k: v for k, v in b.items() if k not in ("approved", "approved_at")}, "status": "active",
+                            "joined_week": dec["effective_week"], "eliminated_week": None, "version": b.get("version", 1)})
     return roster
 
 def _avg(v):
@@ -288,7 +304,9 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
     cfg = load_config(d)
     w = cfg["weekly"]
     roster = load_roster(d)
-    members = [a for a in roster.get(team, []) if a["status"] == "active" or a.get("eliminated_week") == week]
+    members = [a for a in roster.get(team, [])
+               if (a["status"] == "active" or (a.get("eliminated_week") or "") >= week)
+               and (not a.get("joined_week") or a["joined_week"] <= week)]
     scores = latest_scores(d)
     picks = [p for p in read_ledger(d, "picks") if p["team"] == team and iso_week(date.fromisoformat(p["round_date"])) == week]
     # 이 주의 기대 제출 수 = 라운드별 열린 시장 수 (에이전트 합류 이후)
@@ -348,6 +366,31 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
         decision.setdefault("notes", []).append("승인된 대기 후보 없음 — 탈락 후 자리 비움 (빈자리는 미제출로 세지 않음)")
     decision["replacement"] = bench[0]["id"] if decision["eliminate"] and bench else None
     return {"week": week, "team": team, "ranking": rows, "decision": decision}
+
+def next_week(week: str) -> str:
+    y, w = map(int, week.split("-W"))
+    return iso_week(date.fromisocalendar(y, w, 1) + timedelta(days=7))
+
+def weekly_close(d: Path, week: str, now: str | None = None) -> list[dict]:
+    """주간 마감: 팀별 순위·교체 결정을 weekly_decisions 원장에 고정한다 (이미 마감된 팀·주는 건너뜀).
+    이후 명단은 load_roster 가 이 기록을 적용해 계산한다."""
+    cfg = load_config(d)
+    done = {(x["team"], x["week"]) for x in read_ledger(d, "weekly_decisions")}
+    out = []
+    for team in cfg["teams"]:
+        if (team, week) in done:
+            continue
+        w = weekly(d, week, team)
+        if not w["ranking"]:
+            continue
+        rec = {"team": team, "week": week, "effective_week": next_week(week),
+               "eliminate": w["decision"]["eliminate"], "replacement": w["decision"]["replacement"],
+               "hold_reasons": w["decision"]["hold_reasons"], "notes": w["decision"].get("notes", []),
+               "ranking": [{k: r[k] for k in ("rank", "agent_id", "avg", "avg_excess", "scored", "expected", "submit_rate", "void")}
+                           for r in w["ranking"]],
+               "closed_at": now or datetime.now(KST).isoformat(timespec="seconds")}
+        out.append(append(d, "weekly_decisions", rec))
+    return out
 
 # ───────────────────────── 팀 비교 ─────────────────────────
 
@@ -751,7 +794,7 @@ def write_snapshot(d: Path, round_date: date, variant: str, now: str | None = No
 
 # ───────────────────────── 예시 데이터 ─────────────────────────
 
-def make_sample(d: Path):
+def make_sample(d: Path, close_week: bool = True):
     """화면·계산 검증용 가상 데이터. 실제 시세 아님. 분할·배당·거래정지·가격 누락 사례를 일부러 포함."""
     import random, shutil
     if d.exists():
@@ -855,12 +898,14 @@ def make_sample(d: Path):
                        checked_at="2026-11-16T06:50:00+09:00")
     # 금요일(11/13) 미국분 일부는 아직 잠정 상태로 남기기 위해 채점 기준일을 11/16(월) 아침으로
     run_scoring(d, today=date(2026, 11, 16), now="2026-11-16T07:00:00+09:00")
+    if close_week:
+        weekly_close(d, "2026-W46", now="2026-11-16T06:30:00+09:00")
 
 # ───────────────────────── CLI ─────────────────────────
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -893,6 +938,19 @@ def main():
     elif a.cmd == "sample":
         make_sample(d)
         print(f"예시 데이터 생성: {d}")
+    elif a.cmd == "weekly-close":
+        wk = a.arg or iso_week(datetime.now(KST).date() - timedelta(days=7))
+        res = weekly_close(d, wk)
+        for r in res:
+            print(f"{r['team']} {r['week']}: 탈락 {r['eliminate'] or '없음'} → 대체 {r['replacement'] or '없음'}"
+                  + (f" · 보류: {'; '.join(r['hold_reasons'])}" if r['hold_reasons'] else ""))
+        if not res:
+            print(f"{wk}: 새로 마감할 팀 없음 (이미 마감했거나 기록 없음)")
+    elif a.cmd == "collect-due":
+        import collectors as C
+        today = date.fromisoformat(a.arg) if a.arg else datetime.now(KST).date()
+        rep = C.collect_due(d, today)
+        print(json.dumps(rep, ensure_ascii=False, indent=1))
     elif a.cmd == "make-csv":
         src = json.loads(Path(a.arg).read_text())
         out = make_csv(src["picks"], src["round_date"], Path(a.out))
