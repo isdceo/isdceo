@@ -30,6 +30,20 @@
 | 분기 | S&P 500·NASDAQ-100 변경 반영: `python3 tools/universe.py fetch-us --effective <적용일>` |
 | 수시 | 데이터 제공처 약관 변경, 문의 회신 → `docs/provider-inquiries.md` 회신 기록 |
 
+## 제출 경로 (공정성)
+
+- 슈슈 팀 당일 CSV는 운영자가 **GitHub에 직접** 올린다(웹 업로드 또는 push). Claude가 진행하는 대화에 붙여넣지 않는다.
+- Claude 팀 라운드는 별도 예약 세션(`/league-round <날짜> official`)에서 돈다. 그 세션은 마감 전 상대 팀 당일 파일을 열지 않는다.
+- 마감(08:30) 뒤에는 어느 쪽 파일이든 열람·공유해도 된다.
+
+## 운영 장애로 미제출일 때
+
+```bash
+python3 tools/league.py outage 2026-11-10 --team claude --reason "Claude 사용 한도 도달로 라운드 미실행" --kind operator
+python3 tools/league.py outage 2026-11-10 --team shushu --agent s3 --reason "분석 시간 초과" --kind team
+```
+- 두 팀 모두 미제출로 집계(소급 제출 없음). 사유는 화면 제출률 옆과 기록 탭에 표시된다.
+
 ## 문제가 생기면
 
 | 증상 | 원인 후보 | 대응 |

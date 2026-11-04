@@ -22,6 +22,10 @@ sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 
 
 ## 지켜야 할 것 (위반하면 즉시 중단하고 사용자에게 보고)
 
+- **official 모드는 별도 예약 세션에서 돈다.** 운영자가 슈슈 팀 CSV를 다루는 대화와 섞지 않는다. 이 세션에서 슈슈 팀 당일 파일이나 그 내용을 받았다면 진행을 멈추고 운영자에게 알린다.
+- 마감 전에는 `league/imports/shushu/`, `league/imports/sandbox-shushu/`의 **라운드 날짜 파일**을 읽지 않는다. `git pull` 뒤에도 그 경로는 열지 않는다(Grep·Glob 대상에서도 제외). 자기 팀 영수증이 `accepted`이고 08:30이 지난 뒤에만 열람 가능.
+- 마감까지 제출하지 못하면 다시 시도하지 말고 `python3 tools/league.py outage <날짜> --team claude --reason <사유>`로 기록할지 운영자에게 묻는다.
+
 - **마감 08:30 KST**까지 GitHub push가 끝나야 한다. 판정은 GitHub 서버 push 시각이다. **08:20까지 push하는 것을 목표**로 한다.
 - 같은 날짜로 한 번 접수(`accepted`)되면 끝이다. 고치려고 다시 push하지 않는다.
 - 08:30 이후 정보를 쓰지 않는다. 마감 전에는 **상대 팀의 당일 파일**(`league/imports/shushu/<날짜>*`)을 열지 않는다.

@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks",
-           "weekly_decisions", "guidelines")
+           "weekly_decisions", "guidelines", "outages")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -312,9 +312,12 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
     # 이 주의 기대 제출 수 = 라운드별 열린 시장 수 (에이전트 합류 이후)
     y, wk = map(int, week.split("-W"))
     week_days = [date.fromisocalendar(y, wk, i) for i in range(1, 6)]
+    outages = read_ledger(d, "outages")
     rows = []
     for a in members:
         mine = [p for p in picks if p["agent_id"] == a["id"]]
+        outs = [o for o in outages if (o["team"] == team) and (o.get("agent_id") in (None, a["id"]))
+                and iso_week(date.fromisoformat(o["round_date"])) == week]
         expected = sum(len(open_markets(dd, cfg)) for dd in week_days
                        if not a.get("joined_week") or iso_week(dd) >= a["joined_week"])
         fin = [(p, scores[p["pick_id"]]) for p in mine
@@ -329,6 +332,8 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
         rows.append({"agent_id": a["id"], "label": a["label"], "version": a.get("version", 1),
                      "picks": len(mine), "expected": expected, "missed": max(expected - len(mine), 0),
                      "submit_rate": round(len(mine) / expected * 100, 1) if expected else None,
+                     "outage_rounds": sorted({o["round_date"] for o in outs}),
+                     "outage_reasons": sorted({o["reason"] for o in outs}),
                      "void_rate": round(void / len(mine) * 100, 1) if mine else None,
                      "scored": len(vals), "held_or_pending": held, "void": void,
                      "avg": round(statistics.mean(vals), 2) if vals else None,
@@ -461,6 +466,17 @@ def review_data(d: Path, week: str, team: str = "claude") -> dict:
                        "picks": rows, "provisional_or_pending": sum(1 for x in rows if x["status"] != "final")})
     return {"week": week, "team": team, "decision": w["decision"], "agents": agents,
             "caution": "한 주 표본(에이전트당 최대 10건)은 운의 영향이 크다. 결과 하나에 맞춘 지침 변경을 피하고, 반복되는 판단 오류만 다룬다."}
+
+def record_outage(d: Path, team: str, round_date: str, reason: str, agent_id: str | None = None,
+                  kind: str = "operator", now: str | None = None) -> dict:
+    """운영 장애로 인한 미제출 기록 (두 팀 동일 기준: 미제출로 집계, 소급 제출 없음, 사유만 남겨 화면에 표시).
+    kind: operator(운영 측 — Claude 사용 한도, GitHub 장애 등) / team(팀 측)."""
+    date.fromisoformat(round_date)
+    if team not in load_config(d)["teams"]:
+        raise ValueError(f"알 수 없는 팀: {team}")
+    return append(d, "outages", {"team": team, "round_date": round_date, "agent_id": agent_id, "reason": reason,
+                                 "kind": kind, "counted_as": "missed",
+                                 "recorded_at": now or datetime.now(KST).isoformat(timespec="seconds")})
 
 # ───────────────────────── 팀 비교 ─────────────────────────
 
@@ -825,6 +841,7 @@ def export(d: Path, out: Path, public: bool = False):
             "weekly": {team: {wk: weekly(d, wk, team) for wk in weeks} for team in cfg["teams"]},
             "teams": team_summary(d), "submissions": read_ledger(d, "submissions"),
             "approvals": read_ledger(d, "approvals"),
+            "outages": read_ledger(d, "outages"),
             "ledger_ok": not verify(d), "sample": (d / "SAMPLE").exists(), "public": public}
     if public:
         # 지인 공유판: 원시 가격·배당 금액·내부 원장 경로 제외. 점수(%)·순위·종목명·근거만 남긴다.
@@ -1047,7 +1064,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -1056,6 +1073,9 @@ def main():
     ap.add_argument("--to", help="schedule: 끝 날짜")
     ap.add_argument("--public", action="store_true", help="export: 지인 공유판 (원시 가격 제외)")
     ap.add_argument("--variant", default="price-free", choices=["price-free", "with-prices"])
+    ap.add_argument("--reason", help="outage: 미제출 사유")
+    ap.add_argument("--agent", help="outage: 특정 에이전트만 해당하면 id")
+    ap.add_argument("--kind", default="operator", choices=["operator", "team"])
     ap.add_argument("--run-id", default="")
     ap.add_argument("--run-url", default="")
     ap.add_argument("--run-created-at")
@@ -1088,6 +1108,11 @@ def main():
                   + (f" · 보류: {'; '.join(r['hold_reasons'])}" if r['hold_reasons'] else ""))
         if not res:
             print(f"{wk}: 새로 마감할 팀 없음 (이미 마감했거나 기록 없음)")
+    elif a.cmd == "outage":
+        if not (a.arg and a.reason):
+            sys.exit("사용법: league.py outage <라운드 날짜> --team <팀> --reason <사유> [--agent <id>] [--kind operator|team]")
+        r = record_outage(d, a.team, a.arg, a.reason, a.agent, a.kind)
+        print(f"기록: {r['team']} {r['round_date']} {r.get('agent_id') or '팀 전체'} — {r['reason']} (미제출로 집계)")
     elif a.cmd == "readiness":
         mark = {"done": "✅", "todo": "⬜", "manual": "🔎"}
         items = readiness(d)

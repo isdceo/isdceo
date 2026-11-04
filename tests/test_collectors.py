@@ -189,6 +189,21 @@ class SandboxRouting(unittest.TestCase):
         self.assertEqual(L.ledger_dir_for("claude").name, "league")
 
 
+class Outages(unittest.TestCase):
+    def test_outage_counts_as_missed_with_reason(self):
+        d = new_league()
+        cfg = L.load_config(d)
+        for m, t in (("KR", "005930"), ("US", "AAPL")):
+            L.append(d, "picks", L.make_pick("claude", "buffett", 1, "2026-11-09", m, t, t, "2026-11-09T08:00:00+09:00", "", [], [], cfg))
+        L.record_outage(d, "claude", "2026-11-10", "Claude 사용 한도 도달로 라운드 미실행", now="2026-11-10T08:31:00+09:00")
+        r = [x for x in L.weekly(d, "2026-W46")["ranking"] if x["agent_id"] == "buffett"][0]
+        self.assertEqual((r["picks"], r["expected"], r["missed"]), (2, 10, 8))       # 장애일도 미제출로 집계
+        self.assertEqual(r["outage_rounds"], ["2026-11-10"])
+        self.assertIn("사용 한도", r["outage_reasons"][0])
+        with self.assertRaises(ValueError):
+            L.record_outage(d, "nobody", "2026-11-10", "x")
+
+
 class Safeguards(unittest.TestCase):
     def test_extreme_move_held(self):
         d = new_league()
