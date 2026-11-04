@@ -249,7 +249,7 @@ function renderLeague() {
             <td class="hide-sm"><span class="up">${pt(r.max)}</span> / <span class="down">${pt(r.min)}</span></td>
           </tr>`; }).join('')}</tbody>
       </table></div>
-      <p class="sub" style="margin:8px 0 0">초과 = 공식 점수 − 같은 기간 지수(KOSPI·S&P 500) 수익률. 배당 효과가 섞인 단순 차이이며 순위에 쓰지 않습니다.
+      <p class="sub" style="margin:8px 0 0">초과 = 공식 점수 − 같은 기간 비교 기준(KR: KOSPI 지수, US: SPY) 수익률. 배당 효과가 섞인 단순 차이이며 순위에 쓰지 않습니다.
         제출률·보류·무효는 평균에서 빠진 건을 드러내기 위해 함께 표시합니다.</p>
     </div>
     <div class="card">
@@ -442,7 +442,7 @@ function renderRules() {
     <li><b>마감</b>: 매일 ${c.lock_deadline} KST. GitHub 서버 push 시각으로 판정, 처음 접수된 제출이 최종.</li>
     <li><b>기준·평가</b>: 직전 거래일 정규장 종가 → 라운드 당일(현지) 정규장 종가. 시간외·NXT 가격 미사용.</li>
     <li><b>공식 점수</b>: ${esc(c.scoring.formula)}. ${esc(c.scoring.dividend_attribution)}</li>
-    <li><b>참고 점수</b>: 주가 변동 점수, 시장 대비 초과 점수(KOSPI·S&P 500). 순위에 쓰지 않음.</li>
+    <li><b>참고 점수</b>: 주가 변동 점수, 시장 대비 초과 점수(KR: KOSPI, US: SPY). 순위에 쓰지 않음.</li>
     <li><b>보류</b>: 가격·배당·분할 정보를 확인할 수 없으면 0점이 아니라 보류. 거래정지 ${w.halt_void_after_sessions}세션 초과 시 무효.</li>
     <li><b>주간 교체</b>: 확정 평균 최하위 1명 탈락 → 승인된 대기 후보가 다음 월요일 07:05부터 참가.
       보류 조건: 최하위 확정 ${w.min_scored_for_elimination}건 미만, 팀 확정 ${w.min_total_scored_in_week}건 미만, 완전 동점.</li>

@@ -40,15 +40,15 @@
       "수수료",
       "환율"
     ],
-    "reference_excess": "시장 대비 초과 점수 = 공식 점수 − 같은 구간 벤치마크 지수 수익률 (KR: KOSPI, US: S&P 500, 가격지수). 순위에는 쓰지 않음"
+    "reference_excess": "시장 대비 초과 점수 = 공식 점수 − 같은 구간 비교 기준 수익률 (KR: KOSPI 지수, US: SPY 종가). 순위에는 쓰지 않음"
   },
   "max_picks_per_team_per_round": 10,
   "benchmarks": {
     "KR": "KOSPI",
-    "US": "SPX"
+    "US": "SPY"
   },
   "extreme_move_hold_pct": 30,
-  "benchmarks_note": "US 비교 기준은 S&P 500 지수 라이선스 문제로 SPY 종가 대체를 검토 중 (docs/data-provider-research.md)",
+  "benchmarks_note": "US 비교 기준은 S&P 500 지수 라이선스 문제로 SPY(ETF) 종가로 대체 (2026-11-04 운영자 결정). SPY는 보수·배당 때문에 지수와 미세하게 다름",
   "open_license_sources": [
     "fsc_disclosure"
   ],

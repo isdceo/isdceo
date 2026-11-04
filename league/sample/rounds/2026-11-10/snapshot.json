@@ -8,7 +8,7 @@
   "note": "DART 공시 연결 전",
   "status": "not_configured"
  },
- "generated_at": "2026-11-04T12:05:31+09:00",
+ "generated_at": "2026-11-04T12:30:14+09:00",
  "institutional_13f": {
   "funds": [
    {
@@ -788,7 +788,7 @@
  "rules": {
   "benchmarks": {
    "KR": "KOSPI",
-   "US": "SPX"
+   "US": "SPY"
   },
   "scoring": "((평가 종가 + 귀속 현금배당) × 분할비율 ÷ 기준 종가 − 1) × 100"
  },

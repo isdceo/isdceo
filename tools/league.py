@@ -844,7 +844,7 @@ def make_sample(d: Path, close_week: bool = True):
     dec = lambda m: 2 if m == "US" else -1
     # 벤치마크 지수: 세션별 시장 수익률 (종목 수익률 = 시장 + 에이전트 성향 + 개별 잡음)
     bench = cfg["benchmarks"]
-    mret, level = {}, {"KR": 2650.0, "US": 6800.0}
+    mret, level = {}, {"KR": 2650.0, "US": 680.0}
     for m in ("KR", "US"):
         x = date(2026, 11, 2)
         while x <= date(2026, 11, 20):
