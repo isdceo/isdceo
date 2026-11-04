@@ -73,6 +73,22 @@ class Dividend(unittest.TestCase):
         self.assertFalse(D.record_kr_ca(d, r1))
         self.assertEqual(L.read_ledger(d, "corporate_actions"), [])      # 아무것도 기록 안 함 → 채점 보류
 
+    def test_record_date_notice_outside_window_ok(self):
+        d = new_league()
+        texts = {"A": "1주당 배당금(원) 보통주식 1,200 배당기준일 2026-06-30", "B": "주주명부폐쇄기간 - 기준일 2026-06-30"}
+        res = D.check_kr_corporate_actions(d, "033780", date(2026, 11, 4), date(2026, 11, 5), key="x",
+                                           items=[item("033780", "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정", "20260806", "B"),
+                                                  item("033780", "현금ㆍ현물배당결정", "20260806", "A")],
+                                           fetch_text=lambda no, key=None: texts[no])
+        self.assertTrue(res["checked"])
+
+    def test_record_date_in_window_without_amount_unresolved(self):
+        d = new_league()
+        res = D.check_kr_corporate_actions(d, "033780", date(2026, 11, 4), date(2026, 11, 5), key="x",
+                                           items=[item("033780", "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정", "20261020", "B")],
+                                           fetch_text=lambda no, key=None: "기준일 2026-11-06")
+        self.assertFalse(res["checked"])
+
     def test_no_related_disclosure_checks(self):
         d = new_league()
         res = D.check_kr_corporate_actions(d, "005930", date(2026, 11, 4), date(2026, 11, 5), key="x", items=[])

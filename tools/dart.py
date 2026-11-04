@@ -158,6 +158,12 @@ def parse_dividend(text: str) -> dict | None:
             "amount": float(a.group(1).replace(",", ""))}
 
 
+def parse_record_date(text: str) -> str | None:
+    """'현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정' 등에서 기준일만."""
+    m = re.search(r"기준일\s*:?\s*" + _DATE, text)
+    return date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat() if m else None
+
+
 def kr_ex_date(record_date: date, cfg: dict) -> date:
     """한국 배당락일 = 기준일의 직전 거래일 (T+2 결제)."""
     return L.prev_session("KR", record_date, cfg)
@@ -181,8 +187,24 @@ def check_kr_corporate_actions(d: Path, ticker: str, after: date, upto: date, ke
             and any(k in re.sub(r"\s+", "", it.get("report_nm", "")) for k in CA_KEYWORDS)]
     res = {"ticker": ticker, "window": [after.isoformat(), upto.isoformat()], "checked": False,
            "dividends": [], "splits": [], "unresolved": [], "related": [it.get("rcept_no") for it in mine]}
+    # 배당결정 공시를 먼저 처리하고, 기준일 결정(주주명부폐쇄) 공시는 기준일만 확인한다
+    mine.sort(key=lambda it: 1 if "주주명부폐쇄" in re.sub(r"\s+", "", it.get("report_nm", "")) else 0)
+    known_records = set()
     for it in mine:
         name = re.sub(r"\s+", "", it.get("report_nm", ""))
+        if "주주명부폐쇄" in name or ("기준일" in name and "배당결정" not in name):
+            try:
+                rdt = parse_record_date(fetch_text(it["rcept_no"], key) if key else fetch_text(it["rcept_no"]))
+            except Exception:
+                rdt = None
+            if not rdt:
+                res["unresolved"].append({"rcept_no": it["rcept_no"], "title": it.get("report_nm"), "reason": "기준일 해석 실패"})
+                continue
+            ex = kr_ex_date(date.fromisoformat(rdt), cfg)
+            if after < ex <= upto and rdt not in known_records:
+                res["unresolved"].append({"rcept_no": it["rcept_no"], "title": it.get("report_nm"),
+                                          "reason": f"배당락일 {ex}이 구간 안인데 배당금 공시를 찾지 못함"})
+            continue
         if "배당" in name:
             try:
                 p = parse_dividend(fetch_text(it["rcept_no"], key) if key else fetch_text(it["rcept_no"]))
@@ -191,6 +213,7 @@ def check_kr_corporate_actions(d: Path, ticker: str, after: date, upto: date, ke
             if not p:
                 res["unresolved"].append({"rcept_no": it["rcept_no"], "title": it.get("report_nm"), "reason": "배당기준일·금액 해석 실패"})
                 continue
+            known_records.add(p["record_date"])
             ex = kr_ex_date(date.fromisoformat(p["record_date"]), cfg)
             if after < ex <= upto:
                 res["dividends"].append({"ex_date": ex.isoformat(), "amount": p["amount"], "record_date": p["record_date"],
