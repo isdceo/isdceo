@@ -128,14 +128,46 @@ def fetch_us(effective: str) -> dict:
     return u
 
 
+def _xlsx_rows(path: str) -> list[list[str]]:
+    """KRX '다운로드 → Excel' 파일(확장자가 .csv여도 실제 xlsx인 경우 포함)을 표준 라이브러리로 읽는다."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+    ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    z = zipfile.ZipFile(path)
+    ss = []
+    if "xl/sharedStrings.xml" in z.namelist():
+        ss = ["".join(t.text or "" for t in si.iter(ns + "t")) for si in ET.fromstring(z.read("xl/sharedStrings.xml")).findall(ns + "si")]
+    sheet = sorted(n for n in z.namelist() if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", n))[0]
+    rows = []
+    for r in ET.fromstring(z.read(sheet)).iter(ns + "row"):
+        vals = []
+        for c in r.findall(ns + "c"):
+            v, t = c.find(ns + "v"), c.get("t")
+            if t == "s" and v is not None:
+                vals.append(ss[int(v.text)])
+            elif t == "inlineStr":
+                vals.append("".join(x.text or "" for x in c.iter(ns + "t")))
+            else:
+                vals.append(v.text if v is not None else "")
+        rows.append(vals)
+    return rows
+
+
 def read_krx_csv(path: str) -> dict:
     raw = Path(path).read_bytes()
-    for enc in ("utf-8-sig", "cp949"):
-        try:
-            text = raw.decode(enc); break
-        except UnicodeDecodeError:
-            continue
-    rows = list(csv.DictReader(io.StringIO(text)))
+    if raw[:2] == b"PK":                     # 실제로는 xlsx
+        table = _xlsx_rows(path)
+        rows = [dict(zip(table[0], r)) for r in table[1:]]
+    else:
+        for enc in ("utf-8-sig", "cp949"):
+            try:
+                text = raw.decode(enc); break
+            except UnicodeDecodeError:
+                continue
+        rows = list(csv.DictReader(io.StringIO(text)))
+    if not rows or not any("종목코드" in k or k.strip().lower() in ("code", "isu_srt_cd") for k in rows[0]):
+        cols = ", ".join(list(rows[0])[:8]) if rows else "없음"
+        raise SystemExit(f"{Path(path).name}: '종목코드' 열이 없음 (열: {cols}) — 지수 구성종목 화면에서 받은 파일인지 확인")
     code_k = next(k for k in rows[0] if "종목코드" in k or k.strip().lower() in ("code", "isu_srt_cd"))
     name_k = next(k for k in rows[0] if "종목명" in k or k.strip().lower() in ("name", "isu_abbrv"))
     return {r[code_k].strip().zfill(6): r[name_k].strip() for r in rows if r.get(code_k, "").strip()}
