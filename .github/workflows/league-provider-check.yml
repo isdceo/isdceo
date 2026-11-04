@@ -1,0 +1,52 @@
+# 데이터 제공처 연결 확인 (수동 실행). 임시 폴더에만 기록하고 저장소 원장은 건드리지 않는다.
+# 키는 저장소 Settings → Secrets and variables → Actions 에 넣는다:
+#   KRX_AUTH_KEY, TIINGO_TOKEN, ALPACA_KEY_ID, ALPACA_SECRET_KEY
+# 실행 로그에는 종가가 찍힌다. 비공개 저장소의 협업자만 볼 수 있다.
+name: league-provider-check
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: 제공처
+        type: choice
+        options: [krx_openapi, tiingo, alpaca]
+      market:
+        description: 시장
+        type: choice
+        options: [KR, US]
+      session:
+        description: 거래일 (YYYY-MM-DD)
+        required: true
+      tickers:
+        description: 종목 (쉼표 구분, 예 005930,000660,KOSPI 또는 AAPL,MSFT,SPY)
+        required: true
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q -r requirements.txt
+      - name: Collect into a temporary ledger
+        env:
+          KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
+          TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        run: |
+          D=$(mktemp -d); mkdir -p "$D/ledger"
+          set +e
+          python3 tools/collectors.py collect --provider "${{ inputs.provider }}" --market "${{ inputs.market }}" \
+            --session "${{ inputs.session }}" --tickers "${{ inputs.tickers }}" --role provisional --dir "$D"
+          rc=$?
+          set -e
+          echo "--- 기록된 값 ---"
+          [ -f "$D/ledger/prices.jsonl" ] && python3 -c "import json,sys
+          for l in open(sys.argv[1]): r=json.loads(l); print(r['market'], r['ticker'], r['session'], r['close'], r['source'])" "$D/ledger/prices.jsonl"
+          [ -f "$D/ledger/corporate_actions.jsonl" ] && cat "$D/ledger/corporate_actions.jsonl"
+          exit $rc
