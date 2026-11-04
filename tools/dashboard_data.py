@@ -40,6 +40,12 @@ def build(now: datetime | None = None) -> dict:
     now = now or datetime.now(L.KST)
     out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks")}
 
+    names = {}                                            # (팀, id) → 스타일명 (예: claude, buffett → 가치형)
+    for key, members in L.load_roster(L.ROOT / "league").items():
+        team = "claude" if key == "bench" else key.replace("bench_", "")
+        for m in members:
+            names[(team, m["id"])] = m.get("label") or m["id"]
+
     state = {"done": "완료", "todo": "남음", "manual": "확인 필요"}
     for r in L.readiness(L.ROOT / "league"):
         out["checklist"].append({"state": state[r["status"]], "area": r["area"], "item": r["item"],
@@ -62,7 +68,8 @@ def build(now: datetime | None = None) -> dict:
                 continue
             s = scores.get(p["pick_id"], {})
             out["picks"].append({"pick_id": p["pick_id"], "mode": mode, "round_date": p["round_date"],
-                                 "team": label(p["team"]), "agent": p.get("agent_label") or p["agent_id"],
+                                 "team": label(p["team"]), "agent_id": p["agent_id"],
+                                 "agent": p.get("agent_label") or names.get((team_of(p["team"]), p["agent_id"]), p["agent_id"]),
                                  "market": p["market"], "ticker": p["ticker"], "name": p.get("name") or "",
                                  "status": s.get("status") or "pending", "score": s.get("score"),
                                  "score_price_only": s.get("score_price_only"), "score_excess": s.get("score_excess"),
