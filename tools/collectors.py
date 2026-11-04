@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import argparse, json, os, sys, urllib.error, urllib.parse, urllib.request
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -281,6 +281,40 @@ def due_sessions(d: Path, today: date) -> dict:
     return out
 
 
+def kr_corporate_actions_due(d: Path, today: date) -> list[dict]:
+    """한국 추천 중 배당·분할 확인 기록이 없는 구간을 DART 공시로 확인한다. 키가 없으면 건너뛴다(채점 보류 유지)."""
+    try:
+        import dart
+        key = dart._key()
+    except Exception as e:
+        return [{"skipped": True, "reason": str(e)}]
+    cfg = L.load_config(d)
+    cas = L.corporate_actions(d)
+    todo = {}
+    for p in L.read_ledger(d, "picks"):
+        if p["market"] != "KR" or not p.get("eval_session"):
+            continue
+        b, e = date.fromisoformat(p["base_session"]), date.fromisoformat(p["eval_session"])
+        if e >= today or L.ca_for(cas, "KR", p["ticker"], b, e, cfg)[0]:
+            continue
+        todo[(p["ticker"], b, e)] = True
+    if not todo:
+        return []
+    lo = min(b for _, b, _ in todo) - timedelta(days=120)
+    hi = max(e for _, _, e in todo)
+    try:
+        items = dart.list_disclosures(lo, hi, key)
+    except Exception as ex:
+        return [{"error": f"{type(ex).__name__}: {str(ex)[:200]}"}]
+    out = []
+    for (t, b, e) in sorted(todo):
+        res = dart.check_kr_corporate_actions(d, t, b, e, key, items=[i for i in items if i.get("rcept_dt", "") <= e.strftime("%Y%m%d")])
+        recorded = dart.record_kr_ca(d, res)
+        out.append({"ticker": t, "window": res["window"], "checked": res["checked"], "recorded": recorded,
+                    "dividends": res["dividends"], "unresolved": res["unresolved"]})
+    return out
+
+
 def collect_due(d: Path, today: date) -> dict:
     """설정된 제공처(config.providers.<시장>.final / provisional)로 필요한 값을 받고 채점까지 돌린다.
     키가 없으면 그 시장은 건너뛰고 사유를 남긴다 (실패로 멈추지 않음)."""
@@ -301,6 +335,7 @@ def collect_due(d: Path, today: date) -> dict:
         report["collected"].append({"market": m, "session": s_, "provider": name, "recorded": r["recorded"],
                                     "failed": r["failed"], "provider_errors": r.get("provider_errors", []),
                                     "discrepancies": len(r["discrepancies"])})
+    report["kr_corporate_actions"] = kr_corporate_actions_due(d, today)
     for w in L.run_scoring(d, today=today):
         report["scoring"].append({"pick_id": w["pick_id"], "status": w["status"], "score": w.get("score"), "reason": w.get("reason")})
     return report

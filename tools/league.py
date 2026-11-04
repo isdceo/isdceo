@@ -851,6 +851,17 @@ def build_site(d: Path, out: Path) -> list[str]:
 
 # ───────────────────────── 공통 자료 (07:00 snapshot) ─────────────────────────
 
+def _snapshot_disclosures(round_date: date, universe_kr: dict) -> dict:
+    """OpenDART 최근 공시(대상 종목). 키가 없거나 오류면 상태만 기록하고 공통 자료 생성은 계속한다."""
+    import os
+    if not os.environ.get("DART_API_KEY"):
+        return {"status": "not_configured", "note": "DART_API_KEY 없음"}
+    try:
+        import dart
+        return dart.recent_for_snapshot(round_date, universe_kr)
+    except Exception as e:
+        return {"status": "error", "error": f"{type(e).__name__}: {str(e)[:200]}"}
+
 def snapshot(d: Path, round_date: date, variant: str = "price-free", now: str | None = None) -> tuple[dict, str]:
     """두 팀에 같은 시점의 같은 자료를 준다. variant:
     - price-free: 공개·자유 이용 가능한 자료만 (거래일·대상 범위 참조·기업행동 일정·SEC 13F). 사용권 확인 전 기본값.
@@ -891,7 +902,7 @@ def snapshot(d: Path, round_date: date, variant: str = "price-free", now: str | 
         "corporate_actions_upcoming": sorted(upcoming, key=lambda x: (x["ex_date"], x["market"], x["ticker"])),
         "corporate_actions_sources": sorted(open_src) if variant == "price-free" else "all",
         "institutional_13f": holdings,
-        "disclosures": {"status": "not_configured", "note": "DART 공시 연결 전"},
+        "disclosures": _snapshot_disclosures(round_date, uni.get("KR", {})),
         "rules": {"scoring": cfg["scoring"]["formula"], "benchmarks": cfg.get("benchmarks")},
         "notes": ["이 자료 이후 08:30 KST 전까지 추가 검색은 허용되며 출처·기준일·확보 시각을 기록한다."],
     }

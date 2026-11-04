@@ -5,7 +5,7 @@
    "label": "가치형",
    "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
    "status": "active",
-   "joined_week": "2026-W46",
+   "joined_week": null,
    "eliminated_week": null,
    "version": 1
   },
@@ -14,7 +14,7 @@
    "label": "성장형(GARP)",
    "style_ref": "피터 린치의 공개된 투자 원칙 참고",
    "status": "active",
-   "joined_week": "2026-W46",
+   "joined_week": null,
    "eliminated_week": null,
    "version": 1
   },
@@ -23,7 +23,7 @@
    "label": "거시형",
    "style_ref": "레이 달리오의 공개된 투자 원칙 참고",
    "status": "active",
-   "joined_week": "2026-W46",
+   "joined_week": null,
    "eliminated_week": null,
    "version": 1
   },
@@ -32,7 +32,7 @@
    "label": "혁신형",
    "style_ref": "캐시 우드의 공개된 투자 원칙 참고",
    "status": "active",
-   "joined_week": "2026-W46",
+   "joined_week": null,
    "eliminated_week": null,
    "version": 1
   },
@@ -41,7 +41,7 @@
    "label": "역발상형",
    "style_ref": "마이클 버리의 공개된 투자 원칙 참고",
    "status": "active",
-   "joined_week": "2026-W46",
+   "joined_week": null,
    "eliminated_week": null,
    "version": 1
   }

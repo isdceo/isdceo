@@ -5,10 +5,10 @@
  "corporate_actions_upcoming": [],
  "deadline_kst": "2026-11-10T08:30:00+09:00",
  "disclosures": {
-  "note": "DART 공시 연결 전",
+  "note": "DART_API_KEY 없음",
   "status": "not_configured"
  },
- "generated_at": "2026-11-04T12:31:43+09:00",
+ "generated_at": "2026-11-04T15:57:03+09:00",
  "institutional_13f": {
   "funds": [
    {
@@ -794,12 +794,12 @@
  },
  "universe": {
   "counts": {
-   "KR": 8,
+   "KR": 351,
    "US": 518
   },
   "file": "sample/universe.json",
-  "sha256": "20347c57ae88bf658ad007347f18b64331730d2dd1a4913180b4f69bf521ef1a",
-  "status": "US real / KR sample"
+  "sha256": "feaf37ad1b4ebf83bc2eaf4ea885f1460d7857f81dfecadd9ae3868ff2f26286",
+  "status": "US real / KR real"
  },
  "variant": "price-free"
 }
