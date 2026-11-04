@@ -67,6 +67,21 @@ class Collect(unittest.TestCase):
                 C.PROVIDERS[name]()
 
 
+class MakeCsv(unittest.TestCase):
+    def test_round_trip_through_import(self):
+        d = new_league()
+        picks = [{"agent_id": "buffett", "agent_version": 1, "market": m, "ticker": t, "name": n,
+                  "locked_at": "2026-11-10T08:15:00+09:00", "rationale": "근거, 쉼표와 \"따옴표\" 포함\n줄바꿈",
+                  "risks": ["위험1", "위험2"], "sources": [{"url": "https://x", "as_of": "2026-11-09",
+                                                         "retrieved_at": "2026-11-10T07:10:00+09:00"}]}
+                 for m, t, n in (("KR", "005930", "삼성전자"), ("US", "AAPL", "Apple"))]
+        out = L.make_csv(picks, "2026-11-10", d / "x.csv")
+        ok, bad = L.import_csv(d, out, "claude", dry_run=True)
+        self.assertEqual(bad, [])
+        self.assertEqual(ok[0]["sources"][0]["retrieved_at"], "2026-11-10T07:10:00+09:00")
+        self.assertEqual(ok[0]["risks"], ["위험1", "위험2"])
+
+
 class Safeguards(unittest.TestCase):
     def test_extreme_move_held(self):
         d = new_league()

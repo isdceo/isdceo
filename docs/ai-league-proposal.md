@@ -317,3 +317,4 @@ round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources
 | 실제 GitHub 검증 | ✅ | sandbox 제출로 `late`·`accepted`·재제출 `rejected` 판정과 영수증 커밋 확인 (`league/sandbox/`) |
 | 규칙 v1.2 (2026-11-04) | ✅ | 에이전트별 시장당 1종목(열린 시장 필수), 시장 대비 초과 점수(참고), 교체 보류 기준 6건/30건, 에이전트·팀 시장별 집계, 테스트 46개 |
 | 데이터 준비 골격 (2026-11-04) | ✅ | 수집기 골격 `tools/collectors.py` (KRX·Tiingo·Alpaca 연결부는 미검증, KIS 미구현, 가짜 응답 테스트), 거래일 검사·잠정/확정 대조(`price_checks`), 거래일 기준 기업행동 확인 범위, ±30% 급변 자동 보류, 지인 공유판(`export --public`, `build-site`), 공통 자료 2종(`snapshot --variant price-free|with-prices`), 제공처 문의 초안(`docs/provider-inquiries.md`), 테스트 64개 |
+| 대상 종목·라운드 스킬 (2026-11-04) | ✅ | 미국 대상 종목 518개(S&P 500 Wikipedia + NASDAQ-100 Nasdaq 공개 목록, 날짜별 판), 한국은 KRX 파일 가져오기 대기(`tools/universe.py import-kr`), Claude 팀 라운드 스킬(`/league-round`, 기본 sandbox), 확정 JSON→CSV 변환(`make-csv`), 테스트 65개 |

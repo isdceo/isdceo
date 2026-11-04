@@ -483,6 +483,22 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
             append(d, "picks", rec)
     return ok, bad
 
+CSV_COLUMNS = ["round_date", "agent_id", "agent_version", "market", "ticker", "name", "locked_at",
+               "rationale", "risks", "sources"]
+
+def make_csv(picks: list[dict], round_date: str, out: Path) -> Path:
+    """확정 추천(JSON 목록)을 제출 CSV로 변환. 각 항목:
+    {agent_id, agent_version, market, ticker, name, locked_at, rationale, risks:[...], sources:[{url, as_of, retrieved_at?}]}"""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+        w.writerow(CSV_COLUMNS)
+        for p in sorted(picks, key=lambda x: (x["agent_id"], x["market"])):
+            srcs = ";".join("|".join(x for x in (s_["url"], s_["as_of"], s_.get("retrieved_at")) if x) for s_ in p["sources"])
+            w.writerow([round_date, p["agent_id"], p["agent_version"], p["market"], str(p["ticker"]), p["name"],
+                        p["locked_at"], " ".join(str(p["rationale"]).split()), " | ".join(p["risks"]), srcs])
+    return out
+
 # ───────────────────────── 시간 정합성 / 일정 안내 ─────────────────────────
 
 def _kst(ts) -> datetime:
@@ -844,7 +860,7 @@ def make_sample(d: Path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -877,6 +893,10 @@ def main():
     elif a.cmd == "sample":
         make_sample(d)
         print(f"예시 데이터 생성: {d}")
+    elif a.cmd == "make-csv":
+        src = json.loads(Path(a.arg).read_text())
+        out = make_csv(src["picks"], src["round_date"], Path(a.out))
+        print(out)
     elif a.cmd == "build-site":
         out = Path(a.out or (ROOT / "site"))
         for f in build_site(d, out):
