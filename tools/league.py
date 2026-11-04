@@ -384,10 +384,21 @@ def lock_deadline(round_date: date, cfg: dict) -> datetime:
     hh, mm = map(int, cfg["lock_deadline"].split(":"))
     return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
 
+def universe_for(d: Path, round_date: date) -> dict:
+    """라운드 날짜에 적용되는 대상 목록: <d>/universe/<적용일>.json 중 적용일 ≤ 라운드 날짜인 최신 판 → 없으면 universe.json."""
+    for base in (d, ROOT / "league"):
+        ud = base / "universe"
+        if ud.exists():
+            cands = sorted(p for p in ud.glob("*.json") if re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.stem) and p.stem <= round_date.isoformat())
+            if cands:
+                return json.loads(cands[-1].read_text())
+        if (base / "universe.json").exists():
+            return json.loads((base / "universe.json").read_text())
+    return {}
+
 def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[str]:
     errs = []
-    uni = json.loads((d / "universe.json").read_text()) if (d / "universe.json").exists() \
-        else json.loads((ROOT / "league" / "universe.json").read_text())
+    uni = universe_for(d, date.fromisoformat(rec["round_date"]))
     rd = date.fromisoformat(rec["round_date"])
     if rec["market"] not in ("KR", "US"):
         errs.append("market은 KR 또는 US")

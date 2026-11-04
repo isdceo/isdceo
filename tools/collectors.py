@@ -144,7 +144,8 @@ class Tiingo(Provider):
         out = []
         for t in tickers:
             q = urllib.parse.urlencode({"startDate": session.isoformat(), "endDate": session.isoformat(), "token": self.token})
-            rows = self._try_get(f"Tiingo {t}", f"https://api.tiingo.com/tiingo/daily/{urllib.parse.quote(t.lower())}/prices?{q}")
+            sym = t.replace(".", "-").lower()          # Tiingo 표기: BRK.B → brk-b
+            rows = self._try_get(f"Tiingo {t}", f"https://api.tiingo.com/tiingo/daily/{urllib.parse.quote(sym)}/prices?{q}")
             for r in rows or []:
                 s = str(r.get("date", ""))[:10]
                 qt = Quote("US", t, s, _num(r.get("close")))
