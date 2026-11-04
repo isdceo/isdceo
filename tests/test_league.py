@@ -550,3 +550,17 @@ class Embargo(unittest.TestCase):
         for p in L.read_ledger(d, "picks"):
             self.assertNotIn(p["pick_id"], txt)
         self.assertIn('"picks": []', txt)
+
+
+class DashboardData(unittest.TestCase):
+    """운영자 현황판 데이터도 마감 전 라운드 종목을 싣지 않는다."""
+
+    def test_no_picks_before_deadline(self):
+        import dashboard_data as D
+        for now in ("2026-11-05T08:29:00+09:00", "2026-11-05T09:00:00+09:00", "2026-11-06T09:00:00+09:00"):
+            t = datetime.fromisoformat(now)
+            out = D.build(t)
+            cfg = L.load_config(L.ROOT / "league")
+            for p in out["picks"]:
+                self.assertGreaterEqual(t, L.lock_deadline(date.fromisoformat(p["round_date"]), cfg), p["pick_id"])
+            self.assertNotIn("ticker", json.dumps(out["teams"] + out["receipts"] + out["checklist"]))
