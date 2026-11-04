@@ -65,3 +65,10 @@ python3 tools/league.py outage 2026-11-10 --team shushu --agent s3 --reason "분
 | `automation_enabled` | 06:50 공통 자료 · 10:30 수집·채점 · 월 06:30 마감 | 꺼짐 |
 | `deploy_enabled` | 11:00 지인 공유판 배포 | 꺼짐 |
 | `season_start` | 리그 시작일 (YYYY-MM-DD) | 미정 |
+
+## 마감 전 추천 가리기 (내보내기)
+
+- `python3 tools/league.py export`와 `build-site`는 생성 시각이 그 라운드의 마감(08:30 KST)보다 이르면 해당 라운드 추천(`picks`)과 그 점수를 파일에 넣지 않는다. 두 팀, 운영자용·공유판 모두 같다.
+- 가려진 건수만 `embargoed`에 `팀|라운드: 건수`로 남는다. 08:30 이후 다시 내보내면 들어간다.
+- `build-site`는 마감 전 추천이 남아 있으면 실패한다. 예시 원장(`SAMPLE`)은 실제 추천이 아니라 예외.
+- 원장(`league/ledger/picks.jsonl`)과 `league/imports/` 원본 CSV는 저장소에 그대로 있으므로, 마감 전에는 라운드 세션이 상대 팀 경로를 열지 않는 규칙(league-round 스킬)이 계속 필요하다.

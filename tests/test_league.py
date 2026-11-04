@@ -509,3 +509,44 @@ class Excess(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Embargo(unittest.TestCase):
+    """마감(08:30 KST) 전 라운드의 추천은 내보내기 파일에 들어가지 않는다."""
+
+    def _setup(self):
+        d = new_league()
+        cfg = L.load_config(d)
+        for team, agent, t in (("claude", "buffett", "AAPL"), ("shushu", "s1", "MSFT")):
+            rec = L.make_pick(team, agent, 1, "2026-11-10", "US", t, t, "2026-11-10T08:00:00+09:00",
+                              "근거", ["위험"], [{"url": "x", "as_of": "2026-11-10"}], cfg)
+            L.append(d, "picks", rec)
+        return d
+
+    def _export(self, d, now):
+        out = d / "out.js"
+        L.export(d, out, public=True, now=datetime.fromisoformat(now))
+        return out.read_text(), json.loads(out.read_text().split("window.LEAGUE = ", 1)[1].rstrip().rstrip(";"))
+
+    def test_hidden_before_deadline(self):
+        d = self._setup()
+        ids = [p["pick_id"] for p in L.read_ledger(d, "picks")]
+        txt, data = self._export(d, "2026-11-10T08:29:59+09:00")
+        self.assertEqual(data["picks"], [])
+        for i in ids:
+            self.assertNotIn(i, txt)
+        self.assertEqual(data["embargoed"], {"claude|2026-11-10": 1, "shushu|2026-11-10": 1})
+
+    def test_shown_at_deadline(self):
+        _, data = self._export(self._setup(), "2026-11-10T08:30:00+09:00")
+        self.assertEqual(sorted(p["ticker"] for p in data["picks"]), ["AAPL", "MSFT"])
+        self.assertEqual(data["embargoed"], {})
+
+    def test_private_export_also_hidden(self):
+        d = self._setup()
+        out = d / "out.js"
+        L.export(d, out, public=False, now=datetime.fromisoformat("2026-11-10T07:00:00+09:00"))
+        txt = out.read_text()
+        for p in L.read_ledger(d, "picks"):
+            self.assertNotIn(p["pick_id"], txt)
+        self.assertIn('"picks": []', txt)

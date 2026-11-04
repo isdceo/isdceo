@@ -831,13 +831,31 @@ def _strip_prices(sc: dict) -> dict:
                            {"dividend_applied": bool(sc["adjustment"].get("dividend"))}
     return sc
 
-def export(d: Path, out: Path, public: bool = False):
+def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None) -> tuple[list[dict], dict]:
+    """마감(08:30 KST) 전 라운드의 추천은 내보내기에서 뺀다. 팀별로 몇 건이 가려졌는지만 남긴다."""
+    now = now or datetime.now(KST)
+    shown, hidden = [], {}
+    for p in picks:
+        if now < lock_deadline(date.fromisoformat(p["round_date"]), cfg):
+            key = f'{p["team"]}|{p["round_date"]}'
+            hidden[key] = hidden.get(key, 0) + 1
+        else:
+            shown.append(p)
+    return shown, hidden
+
+def export(d: Path, out: Path, public: bool = False, now: datetime | None = None):
     cfg = load_config(d)
-    picks = read_ledger(d, "picks")
+    now = now or datetime.now(KST)
+    if (d / "SAMPLE").exists():                     # 예시 원장: 실제 추천이 아니므로 가리지 않음
+        picks, embargoed = read_ledger(d, "picks"), {}
+    else:
+        picks, embargoed = embargo_picks(read_ledger(d, "picks"), cfg, now)
+    shown_ids = {p.get("pick_id") for p in picks}
     weeks = sorted({iso_week(date.fromisoformat(p["round_date"])) for p in picks})
     roster = load_roster(d)
-    data = {"generated": datetime.now(KST).isoformat(timespec="seconds"), "config": cfg, "roster": roster,
-            "picks": picks, "scores": list(latest_scores(d).values()), "corrections": read_ledger(d, "corrections"),
+    data = {"generated": now.isoformat(timespec="seconds"), "config": cfg, "roster": roster,
+            "picks": picks, "embargoed": embargoed,
+            "scores": [x for x in latest_scores(d).values() if x.get("pick_id") in shown_ids], "corrections": read_ledger(d, "corrections"),
             "weekly": {team: {wk: weekly(d, wk, team) for wk in weeks} for team in cfg["teams"]},
             "teams": team_summary(d), "submissions": read_ledger(d, "submissions"),
             "approvals": read_ledger(d, "approvals"),
@@ -866,6 +884,12 @@ def build_site(d: Path, out: Path) -> list[str]:
     leaked = [f for f in out.rglob("*.js") if re.search(r'"(base_close|eval_close|close)"\s*:', f.read_text())]
     if leaked:
         raise RuntimeError(f"원시 가격 필드가 배포 파일에 남음: {leaked}")
+    cfg = load_config(d)
+    built = json.loads((out / "data" / "league.js").read_text().split("window.LEAGUE = ", 1)[1].rstrip().rstrip(";"))
+    gen = datetime.fromisoformat(built["generated"])
+    early = [p.get("pick_id") for p in built["picks"] if not built.get("sample") and gen < lock_deadline(date.fromisoformat(p["round_date"]), cfg)]
+    if early:
+        raise RuntimeError(f"마감 전 추천이 배포 파일에 남음: {early}")
     return sorted(str(p.relative_to(out)) for p in out.rglob("*") if p.is_file())
 
 # ───────────────────────── 공통 자료 (07:00 snapshot) ─────────────────────────
