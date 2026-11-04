@@ -701,8 +701,10 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
         team, rd = SUBMISSION_RE.match(path).groups()
         d = ledger_dir_for(team, cwd)
         cfg = load_config(d)
-        content = _git("show", f"{event['after']}:{path}", cwd=cwd)
-        sha = hashlib.sha256(content.encode()).hexdigest()
+        # 원본 바이트 그대로 해시 (텍스트 모드로 읽으면 CRLF가 LF로 바뀌어 제출 파일과 해시가 달라진다)
+        raw = subprocess.run(["git", "show", f"{event['after']}:{path}"], cwd=cwd, check=True, capture_output=True).stdout
+        sha = hashlib.sha256(raw).hexdigest()
+        content = raw.decode("utf-8-sig", "replace")
         deadline = lock_deadline(date.fromisoformat(rd), cfg)
         rec = {"team": team, "round_date": rd, "path": path, "commit": event["after"], "before": event.get("before"),
                "ref": event.get("ref"), "pusher": (event.get("pusher") or {}).get("name"),
@@ -719,7 +721,7 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
         else:
             tmp = d / ".tmp_submission.csv"
             tmp.parent.mkdir(parents=True, exist_ok=True)
-            tmp.write_text(content)
+            tmp.write_bytes(raw)
             try:
                 ok, bad = import_csv(d, tmp, team, dry_run=True)
                 errs = [f"{b['line']}행: {'; '.join(b['errors'])}" for b in bad]

@@ -318,6 +318,22 @@ class Receipts(unittest.TestCase):
         picks = L.read_ledger(self.repo / "league", "picks")
         self.assertEqual(picks[0]["submission"]["commit"], r["commit"])
 
+    def test_receipt_hash_matches_raw_bytes_with_crlf(self):
+        import hashlib
+        before = self.run("rev-parse", "HEAD")
+        p = self.repo / "league" / "imports" / "shushu" / "2026-11-10.csv"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        body = ("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\r\n"
+                + "".join(f"2026-11-10,s1,1,{m},{t},{t},2026-11-10T07:50:00+09:00,근거,위험,https://x|2026-11-09\r\n"
+                          for m, t in (("KR", "005930"), ("US", "AAPL"))))
+        p.write_bytes(body.encode())
+        self.run("add", "."); self.run("commit", "-qm", "crlf")
+        ev = {"before": before, "after": self.run("rev-parse", "HEAD"), "ref": "refs/heads/main", "pusher": {"name": "x"},
+              "repository": {"pushed_at": int(datetime.fromisoformat("2026-11-10T08:00:00+09:00").timestamp())}, "commits": []}
+        r = L.process_push(ev, run_id="1", cwd=self.repo)[0]
+        self.assertEqual(r["status"], "accepted")
+        self.assertEqual(r["csv_sha256"], hashlib.sha256(body.encode()).hexdigest())
+
     def test_late_push_not_accepted_even_if_csv_claims_early(self):
         r = self.push("2026-11-10", [("s1", "KR", "005930"), ("s1", "US", "AAPL")], "2026-11-10T08:30:01+09:00", locked="08:00")[0]
         self.assertEqual(r["status"], "late")
