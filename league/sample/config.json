@@ -78,6 +78,10 @@
         "kospi_dd_trd"
       ],
       "note": "GitHub Actions에서 2026-11-03 종가 수신 확인 (삼성전자 219,500 / 에코프로비엠 87,600 / KOSPI 5,648.79). 갱신 시각은 미확인"
+    },
+    "tiingo": {
+      "date": "2026-11-04",
+      "note": "GitHub Actions에서 2026-11-03 종가 수신 (AAPL 331.90 / MSFT 520.99 / SPY 754.35 / BRK.B 557.07). AAPL은 Nasdaq 공개 목록 값과 일치. 배당(divCash)·분할(splitFactor) 응답과 확정 시각은 아직 미확인"
     }
   }
 }
