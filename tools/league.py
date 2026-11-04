@@ -788,7 +788,7 @@ def readiness(d: Path, root: Path = ROOT) -> list[dict]:
     g = guideline_check(d, None, root, register=False)
     bad = [x for x in g if x["status"] in ("unapproved_edit", "missing")]
     add("Claude 팀", "지침 버전 일치", not bad, "모두 일치" if not bad else ", ".join(f"{x['agent_id']}:{x['status']}" for x in bad))
-    rehearsal = list((root / "league" / "imports" / "sandbox").glob("*-debate.md"))
+    rehearsal = list((root / "league" / "imports").glob("sandbox*/*-debate.md"))
     add("Claude 팀", "연습 라운드 1회 이상 (/league-round sandbox)", bool(rehearsal), f"{len(rehearsal)}회", "Claude (운영자 승인 후)")
     roster = load_roster(d)
     appr = {(x["team"], x["agent_id"]) for x in read_ledger(d, "approvals") if x.get("decision") == "approved"}
