@@ -50,13 +50,37 @@ def _get(url: str) -> bytes:
         return r.read()
 
 
-def list_disclosures(start: date, end: date, key: str | None = None, sleep: float = 0.1) -> list[dict]:
-    """기간 내 전체 공시 목록 (유가·코스닥, 페이지 넘김). DART 목록 API는 회사 미지정 시 조회 기간 제한이 있어 짧게 쓴다."""
+_CORP_CODES: dict | None = None
+
+
+def corp_code_map(key: str | None = None) -> dict:
+    """종목코드(6자리) → DART 고유번호(8자리). corpCode.xml(zip)을 한 번 받아 메모리에 둔다."""
+    global _CORP_CODES
+    if _CORP_CODES is None:
+        import xml.etree.ElementTree as ET
+        raw = _get(f"{API}/corpCode.xml?" + urllib.parse.urlencode({"crtfc_key": key or _key()}))
+        with zipfile.ZipFile(io.BytesIO(raw)) as z:
+            root = ET.fromstring(z.read(z.namelist()[0]))
+        _CORP_CODES = {}
+        for c in root.iter("list"):
+            sc = (c.findtext("stock_code") or "").strip()
+            if sc:
+                _CORP_CODES[sc] = (c.findtext("corp_code") or "").strip()
+    return _CORP_CODES
+
+
+def list_disclosures(start: date, end: date, key: str | None = None, sleep: float = 0.1,
+                     corp_code: str | None = None) -> list[dict]:
+    """기간 내 공시 목록 (페이지 넘김). corp_code 를 주면 그 회사만 (긴 기간도 빠름).
+    회사 미지정 전체 조회는 시장 전체라 14일에 약 3분 걸린다(2026-11-04 실측)."""
     key = key or _key()
     out, page = [], 1
     while True:
-        q = urllib.parse.urlencode({"crtfc_key": key, "bgn_de": start.strftime("%Y%m%d"), "end_de": end.strftime("%Y%m%d"),
-                                    "page_no": page, "page_count": 100})
+        params = {"crtfc_key": key, "bgn_de": start.strftime("%Y%m%d"), "end_de": end.strftime("%Y%m%d"),
+                  "page_no": page, "page_count": 100}
+        if corp_code:
+            params["corp_code"] = corp_code
+        q = urllib.parse.urlencode(params)
         data = json.loads(_get(f"{API}/list.json?{q}"))
         st = data.get("status")
         if st == "013":                 # 조회된 데이터 없음
@@ -148,7 +172,11 @@ def check_kr_corporate_actions(d: Path, ticker: str, after: date, upto: date, ke
     - 분할·병합·무상증자·감자 공시가 있거나 원문 해석에 실패하면: 확인 못함 (채점 보류 → 운영자 확인)."""
     cfg = L.load_config(d)
     if items is None:
-        items = list_disclosures(upto - timedelta(days=lookback_days), upto, key)
+        cc = corp_code_map(key).get(ticker)
+        if not cc:
+            return {"ticker": ticker, "window": [after.isoformat(), upto.isoformat()], "checked": False, "dividends": [],
+                    "splits": [], "unresolved": [{"reason": "DART 고유번호를 찾지 못함"}], "related": []}
+        items = list_disclosures(upto - timedelta(days=lookback_days), upto, key, corp_code=cc)
     mine = [it for it in items if (it.get("stock_code") or "").strip() == ticker
             and any(k in re.sub(r"\s+", "", it.get("report_nm", "")) for k in CA_KEYWORDS)]
     res = {"ticker": ticker, "window": [after.isoformat(), upto.isoformat()], "checked": False,
@@ -190,7 +218,8 @@ def record_kr_ca(d: Path, res: dict, now: str | None = None):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["check", "recent"])
+    ap.add_argument("cmd", choices=["check", "recent", "ca"])
+    ap.add_argument("--tickers", default="", help="ca: 쉼표 구분 종목코드. 구간은 --date 라운드의 (기준 세션, 평가 세션]")
     ap.add_argument("--date", default=datetime.now(L.KST).date().isoformat())
     ap.add_argument("--days", type=int, default=14)
     a = ap.parse_args()
@@ -200,6 +229,22 @@ def main():
         sys.exit(f"설정 안 됨: {e}")
     rd = date.fromisoformat(a.date)
     uni = L.universe_for(L.ROOT / "league", rd).get("KR", {})
+    if a.cmd == "ca":
+        cfg = L.load_config(L.ROOT / "league")
+        rs = L.round_sessions("KR", rd, cfg)
+        if not rs:
+            sys.exit(f"{rd}는 한국 휴장일")
+        t0 = time.time()
+        for t in [x.strip() for x in a.tickers.split(",") if x.strip()]:
+            cc = corp_code_map().get(t)
+            items = list_disclosures(rs[1] - timedelta(days=120), rs[1], corp_code=cc) if cc else []
+            print(f"[{t} {uni.get(t, '')}] DART 고유번호 {cc} · 최근 120일 공시 {len(items)}건")
+            for it in items[:12]:
+                print(f"  {it['rcept_dt']} {it['report_nm'].strip()}")
+            res = check_kr_corporate_actions(L.ROOT / "league", t, rs[0], rs[1], items=items)
+            print(f"  → 구간 ({rs[0]}, {rs[1]}] 확인={res['checked']} 배당={res['dividends']} 미해결={res['unresolved']}")
+        print(f"소요 {time.time() - t0:.1f}초")
+        return
     try:
         snap = recent_for_snapshot(rd, uni, a.days)
     except urllib.error.HTTPError as e:

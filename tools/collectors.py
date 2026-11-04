@@ -300,15 +300,13 @@ def kr_corporate_actions_due(d: Path, today: date) -> list[dict]:
         todo[(p["ticker"], b, e)] = True
     if not todo:
         return []
-    lo = min(b for _, b, _ in todo) - timedelta(days=120)
-    hi = max(e for _, _, e in todo)
-    try:
-        items = dart.list_disclosures(lo, hi, key)
-    except Exception as ex:
-        return [{"error": f"{type(ex).__name__}: {str(ex)[:200]}"}]
     out = []
     for (t, b, e) in sorted(todo):
-        res = dart.check_kr_corporate_actions(d, t, b, e, key, items=[i for i in items if i.get("rcept_dt", "") <= e.strftime("%Y%m%d")])
+        try:                                    # 종목별 조회 (DART 고유번호 기준, 최근 120일)
+            res = dart.check_kr_corporate_actions(d, t, b, e, key)
+        except Exception as ex:
+            out.append({"ticker": t, "error": f"{type(ex).__name__}: {str(ex)[:200]}"})
+            continue
         recorded = dart.record_kr_ca(d, res)
         out.append({"ticker": t, "window": res["window"], "checked": res["checked"], "recorded": recorded,
                     "dividends": res["dividends"], "unresolved": res["unresolved"]})
