@@ -19,7 +19,7 @@ API 키를 받은 뒤 실제 응답으로 필드명·시각을 검증해야 한�
 """
 from __future__ import annotations
 
-import argparse, json, os, sys, urllib.parse, urllib.request
+import argparse, json, os, sys, urllib.error, urllib.parse, urllib.request
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
@@ -49,6 +49,24 @@ class Provider:
     markets: tuple = ()
     supplies_corporate_actions = False
 
+    def __init__(self):
+        self.errors: list[dict] = []     # 호출 단위 오류 (어느 API가 어떤 응답으로 실패했는지)
+
+    def _try_get(self, label: str, url: str, headers: dict | None = None):
+        """오류가 나도 멈추지 않고 기록. 응답 본문 앞부분을 남겨 원인(미승인·키 오류 등)을 구분한다. 키·토큰은 남기지 않는다."""
+        try:
+            return self._get(url, headers)
+        except urllib.error.HTTPError as e:
+            body = ""
+            try:
+                body = e.read().decode("utf-8", "replace")[:300]
+            except Exception:
+                pass
+            self.errors.append({"api": label, "http": e.code, "body": body})
+        except Exception as e:  # 네트워크 오류 등
+            self.errors.append({"api": label, "error": type(e).__name__, "detail": str(e)[:200]})
+        return None
+
     def fetch(self, market: str, tickers: list[str], session: date) -> list[Quote]:
         raise NotImplementedError
 
@@ -65,6 +83,7 @@ class MockProvider(Provider):
     supplies_corporate_actions = True
 
     def __init__(self, fixture: dict | str | Path):
+        super().__init__()
         self.data = fixture if isinstance(fixture, dict) else json.loads(Path(fixture).read_text())
 
     def fetch(self, market, tickers, session):
@@ -83,6 +102,7 @@ class KRXOpenAPI(Provider):
     BASE = "https://data-dbg.krx.co.kr/svc/apis"
 
     def __init__(self):
+        super().__init__()
         self.key = os.environ.get("KRX_AUTH_KEY")
         if not self.key:
             raise NotConfigured("KRX_AUTH_KEY 환경변수 없음")
@@ -90,9 +110,9 @@ class KRXOpenAPI(Provider):
     def fetch(self, market, tickers, session):
         d = session.strftime("%Y%m%d")
         rows = []
-        for path in ("sto/stk_bydd_trd", "sto/ksq_bydd_trd"):          # 유가증권, 코스닥
-            res = self._get(f"{self.BASE}/{path}?basDd={d}", {"AUTH_KEY": self.key})
-            rows += res.get("OutBlock_1", [])
+        for label, path in (("유가증권 일별매매정보", "sto/stk_bydd_trd"), ("코스닥 일별매매정보", "sto/ksq_bydd_trd")):
+            res = self._try_get(label, f"{self.BASE}/{path}?basDd={d}", {"AUTH_KEY": self.key})
+            rows += (res or {}).get("OutBlock_1", [])
         out = []
         want = set(tickers)
         for r in rows:
@@ -100,8 +120,8 @@ class KRXOpenAPI(Provider):
             if code in want:
                 out.append(Quote("KR", code, _ymd(r.get("BAS_DD")), _num(r.get("TDD_CLSPRC"))))
         if "KOSPI" in want:
-            res = self._get(f"{self.BASE}/idx/kospi_dd_trd?basDd={d}", {"AUTH_KEY": self.key})
-            for r in res.get("OutBlock_1", []):
+            res = self._try_get("KOSPI 시리즈 일별시세정보", f"{self.BASE}/idx/kospi_dd_trd?basDd={d}", {"AUTH_KEY": self.key})
+            for r in (res or {}).get("OutBlock_1", []):
                 if str(r.get("IDX_NM", "")).strip() == "코스피":
                     out.append(Quote("KR", "KOSPI", _ymd(r.get("BAS_DD")), _num(r.get("CLSPRC_IDX"))))
         return out
@@ -115,6 +135,7 @@ class Tiingo(Provider):
     supplies_corporate_actions = True
 
     def __init__(self):
+        super().__init__()
         self.token = os.environ.get("TIINGO_TOKEN")
         if not self.token:
             raise NotConfigured("TIINGO_TOKEN 환경변수 없음")
@@ -123,7 +144,7 @@ class Tiingo(Provider):
         out = []
         for t in tickers:
             q = urllib.parse.urlencode({"startDate": session.isoformat(), "endDate": session.isoformat(), "token": self.token})
-            rows = self._get(f"https://api.tiingo.com/tiingo/daily/{urllib.parse.quote(t.lower())}/prices?{q}")
+            rows = self._try_get(f"Tiingo {t}", f"https://api.tiingo.com/tiingo/daily/{urllib.parse.quote(t.lower())}/prices?{q}")
             for r in rows or []:
                 s = str(r.get("date", ""))[:10]
                 qt = Quote("US", t, s, _num(r.get("close")))
@@ -143,6 +164,7 @@ class Alpaca(Provider):
     markets = ("US",)
 
     def __init__(self):
+        super().__init__()
         self.kid, self.sec = os.environ.get("ALPACA_KEY_ID"), os.environ.get("ALPACA_SECRET_KEY")
         if not (self.kid and self.sec):
             raise NotConfigured("ALPACA_KEY_ID / ALPACA_SECRET_KEY 환경변수 없음")
@@ -150,8 +172,8 @@ class Alpaca(Provider):
     def fetch(self, market, tickers, session):
         q = urllib.parse.urlencode({"symbols": ",".join(tickers), "timeframe": "1Day", "start": session.isoformat(),
                                     "end": session.isoformat(), "adjustment": "raw", "feed": "sip"})
-        res = self._get(f"https://data.alpaca.markets/v2/stocks/bars?{q}",
-                        {"APCA-API-KEY-ID": self.kid, "APCA-API-SECRET-KEY": self.sec})
+        res = self._try_get("Alpaca bars", f"https://data.alpaca.markets/v2/stocks/bars?{q}",
+                            {"APCA-API-KEY-ID": self.kid, "APCA-API-SECRET-KEY": self.sec}) or {}
         out = []
         for sym, bars in (res.get("bars") or {}).items():
             for b in bars:
@@ -194,6 +216,7 @@ def collect(d: Path, provider: Provider, market: str, tickers: list[str], sessio
     got = {}
     for q in provider.fetch(market, tickers, session):
         got.setdefault(q.ticker, []).append(q)
+    res["provider_errors"] = list(getattr(provider, "errors", []))
     for t in tickers:
         qs = got.get(t, [])
         q = next((x for x in qs if x.session == session.isoformat()), None)
