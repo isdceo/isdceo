@@ -104,6 +104,8 @@ class WeeklyCloseAndDue(unittest.TestCase):
         ids = [x["agent_id"] for x in L.weekly(self.d, "2026-W46", "claude")["ranking"]]
         self.assertIn(before["eliminate"], ids)
         self.assertNotIn(before["replacement"], ids)
+        # 마감 후 다시 계산해도 결정은 기록된 값 그대로
+        self.assertEqual(L.weekly(self.d, "2026-W46", "claude")["decision"]["replacement"], before["replacement"])
         # 다시 마감해도 중복 기록 없음
         self.assertEqual(L.weekly_close(self.d, "2026-W46"), [])
         self.assertEqual(L.verify(self.d), [])
@@ -123,6 +125,40 @@ class WeeklyCloseAndDue(unittest.TestCase):
         self.assertTrue(rep["skipped"])
         self.assertTrue(all("환경변수" in x["reason"] for x in rep["skipped"]))
         self.assertEqual(rep["collected"], [])
+
+
+class Guidelines(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.d = new_league()
+        for aid in ("buffett", "lynch", "dalio", "wood", "burry"):
+            cur, arch = L.guideline_paths(aid, 1, self.root)
+            cur.parent.mkdir(parents=True, exist_ok=True); arch.parent.mkdir(parents=True, exist_ok=True)
+            cur.write_text(f"{aid} v1"); arch.write_text(f"{aid} v1")
+
+    def test_register_then_ok(self):
+        r = L.guideline_check(self.d, date(2026, 11, 9), root=self.root)
+        self.assertTrue(all(x["status"] == "registered" for x in r))
+        self.assertTrue(all(x["status"] == "ok" for x in L.guideline_check(self.d, date(2026, 11, 10), root=self.root)))
+
+    def test_unapproved_edit_detected(self):
+        L.guideline_check(self.d, date(2026, 11, 9), root=self.root)
+        (self.root / ".claude" / "agents" / "wood.md").write_text("wood v1 + 몰래 수정")
+        r = {x["agent_id"]: x["status"] for x in L.guideline_check(self.d, date(2026, 11, 10), root=self.root)}
+        self.assertEqual(r["wood"], "unapproved_edit")
+
+    def test_approved_new_version_registered_with_effective_round(self):
+        L.guideline_check(self.d, date(2026, 11, 9), root=self.root)
+        # 승인(PR 머지) 결과: v2 보관본 + 현재 파일 교체 + roster 버전 2
+        cur, arch = L.guideline_paths("lynch", 2, self.root)
+        arch.write_text("lynch v2"); cur.write_text("lynch v2")
+        r = json.loads((self.d / "agents" / "roster.json").read_text())
+        next(a for a in r["claude"] if a["id"] == "lynch")["version"] = 2
+        (self.d / "agents" / "roster.json").write_text(json.dumps(r, ensure_ascii=False))
+        res = {x["agent_id"]: x for x in L.guideline_check(self.d, date(2026, 11, 16), root=self.root)}
+        self.assertEqual(res["lynch"]["status"], "registered")
+        g = [x for x in L.read_ledger(self.d, "guidelines") if x["agent_id"] == "lynch"]
+        self.assertEqual([(x["version"], x["effective_round"]) for x in g], [(1, "2026-11-09"), (2, "2026-11-16")])
 
 
 class Safeguards(unittest.TestCase):

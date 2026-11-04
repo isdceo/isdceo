@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks",
-           "weekly_decisions")
+           "weekly_decisions", "guidelines")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -365,6 +365,12 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
     if decision["eliminate"] and not bench:
         decision.setdefault("notes", []).append("승인된 대기 후보 없음 — 탈락 후 자리 비움 (빈자리는 미제출로 세지 않음)")
     decision["replacement"] = bench[0]["id"] if decision["eliminate"] and bench else None
+    # 이미 마감한 주는 기록된 결정을 그대로 쓴다 (마감 뒤 명단·대기 순서가 바뀌어도 결정은 고정)
+    closed = next((x for x in read_ledger(d, "weekly_decisions") if x["team"] == team and x["week"] == week), None)
+    if closed:
+        decision = {"eliminate": closed["eliminate"], "replacement": closed["replacement"],
+                    "hold_reasons": closed.get("hold_reasons", []), "notes": closed.get("notes", []),
+                    "closed_at": closed.get("closed_at")}
     return {"week": week, "team": team, "ranking": rows, "decision": decision}
 
 def next_week(week: str) -> str:
@@ -391,6 +397,70 @@ def weekly_close(d: Path, week: str, now: str | None = None) -> list[dict]:
                "closed_at": now or datetime.now(KST).isoformat(timespec="seconds")}
         out.append(append(d, "weekly_decisions", rec))
     return out
+
+# ───────────────────────── 지침 버전 / 주간 복기 자료 ─────────────────────────
+# Claude 팀 지침: 현재 파일 .claude/agents/<id>.md, 버전 보관본 league/agents/claude/<id>/v<N>.md
+# guidelines 원장: 버전별 해시와 적용 시작 라운드. 승인 = 해당 버전이 들어간 PR 머지.
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def guideline_paths(agent_id: str, version: int, root: Path = ROOT) -> tuple[Path, Path]:
+    return root / ".claude" / "agents" / f"{agent_id}.md", root / "league" / "agents" / "claude" / agent_id / f"v{version}.md"
+
+def guideline_check(d: Path, round_date: date | None = None, root: Path = ROOT, register: bool = True) -> list[dict]:
+    """Claude 팀 현역·대기 에이전트마다: 현재 지침 파일 == roster 버전의 보관본 인지 확인.
+    - 같고 원장에 그 버전 기록이 없으면 (승인된 새 버전) 적용 시작 라운드와 함께 기록한다.
+    - 다르면 '승인되지 않은 수정'으로 보고한다 (라운드를 진행하지 말 것)."""
+    roster = load_roster(d)
+    seen = {(g["agent_id"], g["version"]): g for g in read_ledger(d, "guidelines")}
+    out = []
+    approved = {x["agent_id"] for x in read_ledger(d, "approvals")
+                if x.get("team") == "claude" and x.get("type") == "bench" and x.get("decision") == "approved"}
+    for a in roster.get("claude", []) + [b for b in roster.get("bench", []) if b["id"] in approved]:
+        if a.get("status") == "eliminated":
+            continue
+        v = int(a.get("version", 1))
+        cur, arch = guideline_paths(a["id"], v, root)
+        row = {"agent_id": a["id"], "version": v}
+        if not cur.exists() or not arch.exists():
+            row.update(status="missing", detail=f"{'현재 파일' if not cur.exists() else '보관본'} 없음")
+        elif _sha(cur) != _sha(arch):
+            row.update(status="unapproved_edit", detail=f"{cur.relative_to(root)} 가 v{v} 보관본과 다름 — 승인 안 된 수정")
+        elif (a["id"], v) in seen:
+            row.update(status="ok", effective_round=seen[(a["id"], v)].get("effective_round"))
+        else:
+            row.update(status="registered" if register else "new_version")
+            if register:
+                append(d, "guidelines", {"team": "claude", "agent_id": a["id"], "version": v, "sha256": _sha(arch),
+                                         "path": str(arch.relative_to(root)),
+                                         "effective_round": round_date.isoformat() if round_date else None,
+                                         "registered_at": datetime.now(KST).isoformat(timespec="seconds")})
+        out.append(row)
+    return out
+
+def review_data(d: Path, week: str, team: str = "claude") -> dict:
+    """주간 복기용 자료: 에이전트별 추천·결과(확정/잠정 구분)·근거 요약."""
+    w = weekly(d, week, team)
+    scores = latest_scores(d)
+    picks = [p for p in read_ledger(d, "picks") if p["team"] == team and iso_week(date.fromisoformat(p["round_date"])) == week]
+    agents = []
+    for r in w["ranking"]:
+        rows = []
+        for p in sorted((p for p in picks if p["agent_id"] == r["agent_id"]), key=lambda x: (x["round_date"], x["market"])):
+            s_ = scores.get(p["pick_id"], {})
+            rows.append({"pick_id": p["pick_id"], "round_date": p["round_date"], "market": p["market"], "ticker": p["ticker"],
+                         "name": p["name"], "agent_version": p.get("agent_version"),
+                         "status": s_.get("status", "pending"), "score": s_.get("score"),
+                         "score_price_only": s_.get("score_price_only"), "score_excess": s_.get("score_excess"),
+                         "benchmark_return": s_.get("benchmark_return"), "reason": s_.get("reason"),
+                         "rationale": p.get("rationale"), "risks": p.get("risks"),
+                         "sources": [x.get("url") for x in p.get("sources", [])]})
+        agents.append({**{k: r[k] for k in ("rank", "agent_id", "label", "version", "avg", "avg_excess", "scored", "expected",
+                                            "submit_rate", "held_or_pending", "void", "markets")},
+                       "picks": rows, "provisional_or_pending": sum(1 for x in rows if x["status"] != "final")})
+    return {"week": week, "team": team, "decision": w["decision"], "agents": agents,
+            "caution": "한 주 표본(에이전트당 최대 10건)은 운의 영향이 크다. 결과 하나에 맞춘 지침 변경을 피하고, 반복되는 판단 오류만 다룬다."}
 
 # ───────────────────────── 팀 비교 ─────────────────────────
 
@@ -905,7 +975,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -946,6 +1016,15 @@ def main():
                   + (f" · 보류: {'; '.join(r['hold_reasons'])}" if r['hold_reasons'] else ""))
         if not res:
             print(f"{wk}: 새로 마감할 팀 없음 (이미 마감했거나 기록 없음)")
+    elif a.cmd == "review-data":
+        wk = a.arg or iso_week(datetime.now(KST).date())
+        print(json.dumps(review_data(d, wk, a.team), ensure_ascii=False, indent=1))
+    elif a.cmd == "guideline-check":
+        rd = date.fromisoformat(a.arg) if a.arg else None
+        res = guideline_check(d, rd, register=not a.dry_run)
+        for r in res:
+            print(f"{r['agent_id']:<10} v{r['version']}  {r['status']}  {r.get('detail', '') or r.get('effective_round', '') or ''}")
+        sys.exit(1 if any(r["status"] in ("unapproved_edit", "missing") for r in res) else 0)
     elif a.cmd == "collect-due":
         import collectors as C
         today = date.fromisoformat(a.arg) if a.arg else datetime.now(KST).date()

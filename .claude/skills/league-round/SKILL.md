@@ -37,9 +37,13 @@ argument-hint: "[라운드 날짜 YYYY-MM-DD] [official|sandbox]  (기본: 오�
 3. 공통 자료를 확인한다: `league/rounds/<날짜>/snapshot.json`과 `.sha256`.
    - 없으면 `python3 tools/league.py snapshot <날짜>`(가격 제외판)로 만들고, 해시를 확인한다.
    - **가격 포함판(`--variant with-prices`)은 사용자가 사용권 확인을 알려준 뒤에만** 쓴다.
-4. 활성 멤버와 버전: `league/agents/roster.json`의 `claude` 항목에서 `status: active`인 멤버.
+4. 지침 확인: `python3 tools/league.py guideline-check <날짜>`
+   - 결과가 `unapproved_edit` 또는 `missing`이면 **진행하지 않고** 운영자에게 보고한다(승인 안 된 지침 수정).
+   - 승인(PR 머지)된 새 버전은 이때 적용 시작일과 함께 자동으로 기록된다.
+   - 실제 제출(official)일 때만 이 기록을 커밋한다. 연습(sandbox)에서는 `--dry-run`으로 실행한다.
+5. 활성 멤버와 버전: `league/agents/roster.json`의 `claude` 항목에서 `status: active`인 멤버. 주간 마감 기록이 반영된 명단은 `python3 tools/league.py export` 결과의 roster와 같다.
    - 월요일이면 `python3 tools/league.py weekly <지난주>`의 교체 결정을 확인한다. 탈락자가 있으면 승인된 대기 후보로 바꿔 진행한다.
-5. 대상 종목 목록: 라운드 날짜에 적용되는 판(`league/universe/<적용일>.json`).
+6. 대상 종목 목록: 라운드 날짜에 적용되는 판(`league/universe/<적용일>.json`).
    - 상태가 `KR sample`이면 한국 목록이 예시 8종목뿐이라는 점을 사용자에게 알린다.
 
 ## 1단계 — 독립 분석 (07:05–07:40, 병렬)
