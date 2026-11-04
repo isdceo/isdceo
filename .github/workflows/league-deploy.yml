@@ -1,0 +1,43 @@
+# 지인 공유판 배포 (Cloudflare Pages). 원시 가격이 없는 공유판(build-site)만 올린다.
+# 켜는 조건: league/config.json 의 deploy_enabled 가 true, 그리고 저장소 Secrets 에
+#   CLOUDFLARE_API_TOKEN (권한: Cloudflare Pages Edit), CLOUDFLARE_ACCOUNT_ID 가 있을 것.
+# 설정 방법: docs/deploy-cloudflare.md
+name: league-deploy
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * 1-6'     # 11:00 KST 월~토 (10:30 수집·채점 뒤)
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check switch and secrets
+        id: gate
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ON=$(python3 -c "import json;print(str(json.load(open('league/config.json')).get('deploy_enabled', False)).lower())")
+          if [ "$ON" != "true" ]; then echo "deploy_enabled=false — 배포 안 함"; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ -z "$CF_TOKEN" ] || [ -z "$CF_ACCOUNT" ]; then echo "::warning::Cloudflare Secrets 없음 — 배포 안 함"; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "go=true" >> "$GITHUB_OUTPUT"
+      - if: steps.gate.outputs.go == 'true'
+        run: pip install -q -r requirements.txt
+      - name: Build public site (no raw prices)
+        if: steps.gate.outputs.go == 'true'
+        run: python3 tools/league.py build-site --out site
+      - name: Deploy to Cloudflare Pages
+        if: steps.gate.outputs.go == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          PROJECT=$(python3 -c "import json;print(json.load(open('league/config.json')).get('cloudflare_project', 'isdceo-league'))")
+          npx --yes wrangler@4 pages deploy site --project-name "$PROJECT" --branch main --commit-dirty=true

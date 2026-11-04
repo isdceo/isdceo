@@ -65,5 +65,8 @@
   },
   "providers_note": "사용권 확인 전 기술 검증 후보. 키가 없으면 수집을 건너뛴다",
   "automation_enabled": false,
-  "automation_note": "true 로 바꾸면 league-daily 워크플로가 공통 자료(06:50)·수집·채점(10:30)·주간 마감(월 06:30)을 실행한다"
+  "automation_note": "true 로 바꾸면 league-daily 워크플로가 공통 자료(06:50)·수집·채점(10:30)·주간 마감(월 06:30)을 실행한다",
+  "deploy_enabled": false,
+  "cloudflare_project": "isdceo-league",
+  "deploy_note": "지인 공유판 배포. docs/deploy-cloudflare.md 의 Access 설정을 먼저 끝낸 뒤 true 로"
 }

@@ -174,6 +174,14 @@ class RosterValidation(unittest.TestCase):
         self.assertTrue(any("명단에 없음" in e for e in L.validate_pick(mk("momentum", 1), d, cfg, [])))
 
 
+class Readiness(unittest.TestCase):
+    def test_reports_known_gaps(self):
+        items = {i["item"]: i for i in L.readiness(L.ROOT / "league")}
+        self.assertEqual(items["미국 S&P 500 + NASDAQ-100"]["status"], "done")
+        self.assertEqual(items["자동화 스위치 (automation_enabled)"]["status"], "todo")
+        self.assertIn(items["한국 KOSPI200 + KOSDAQ150"]["status"], ("done", "todo"))
+
+
 class Safeguards(unittest.TestCase):
     def test_extreme_move_held(self):
         d = new_league()

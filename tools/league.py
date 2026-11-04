@@ -757,6 +757,44 @@ def append_only_violations(base: str, head: str, cwd=ROOT) -> list[str]:
             errs.append(f"{path}: 기존 줄이 수정되거나 삭제됨 (끝에 추가만 허용)")
     return errs
 
+def readiness(d: Path, root: Path = ROOT) -> list[dict]:
+    """리그 시작 준비 점검. 저장소 안에서 확인 가능한 것은 자동 판정, 나머지는 '수동 확인'으로 표시."""
+    cfg = load_config(d)
+    items = []
+    def add(area, item, ok, detail, who="Claude"):
+        items.append({"area": area, "item": item, "status": "done" if ok is True else ("todo" if ok is False else "manual"),
+                      "detail": detail, "who": who})
+    today = datetime.now(KST).date()
+    u = universe_for(d, today)
+    kr, us = len(u.get("KR", {})), len(u.get("US", {}))
+    add("대상 종목", "미국 S&P 500 + NASDAQ-100", 480 <= us <= 620, f"{us}종목")
+    add("대상 종목", "한국 KOSPI200 + KOSDAQ150", 330 <= kr <= 360, f"{kr}종목" + (" (예시)" if kr < 330 else ""), "운영자: KRX 파일")
+    prov = cfg.get("providers", {})
+    add("데이터", "한국 종가 제공처 연결 (KRX Open API)", None, f"설정 {prov.get('KR', {}).get('final')} · 승인·시험은 league-provider-check 결과로 확인", "운영자: 승인")
+    add("데이터", "미국 종가·배당 제공처 연결", None, f"설정 {prov.get('US', {}).get('final')} · 키 발급 후 league-provider-check", "운영자: 키")
+    inq = (root / "docs" / "provider-inquiries.md")
+    replied = False
+    if inq.exists():
+        t = inq.read_text().split("## 회신 기록")[-1]
+        replied = any(re.match(r"\|\s*\d{4}-\d{2}-\d{2}", ln) for ln in t.splitlines())
+    add("데이터", "제공처 사용권 문의 회신", replied or False, "회신 기록 있음" if replied else "docs/provider-inquiries.md 회신 기록 비어 있음", "운영자: 발송")
+    g = guideline_check(d, None, root, register=False)
+    bad = [x for x in g if x["status"] in ("unapproved_edit", "missing")]
+    add("Claude 팀", "지침 버전 일치", not bad, "모두 일치" if not bad else ", ".join(f"{x['agent_id']}:{x['status']}" for x in bad))
+    rehearsal = list((root / "league" / "imports" / "sandbox").glob("*-debate.md"))
+    add("Claude 팀", "연습 라운드 1회 이상 (/league-round sandbox)", bool(rehearsal), f"{len(rehearsal)}회", "Claude (운영자 승인 후)")
+    roster = load_roster(d)
+    appr = {(x["team"], x["agent_id"]) for x in read_ledger(d, "approvals") if x.get("decision") == "approved"}
+    for team in cfg["teams"]:
+        mem = [a for a in roster.get(team, []) if a.get("status") == "active"]
+        bench = roster.get("bench" if team == "claude" else f"bench_{team}", [])
+        nb = sum(1 for b_ in bench if (team, b_["id"]) in appr)
+        add(f"{cfg['teams'][team]['label']}", "현역 5명 · 승인된 대기 후보 2명 이상", len(mem) == 5 and nb >= 2, f"현역 {len(mem)} · 승인 대기 {nb}")
+    add("운영", "자동화 스위치 (automation_enabled)", bool(cfg.get("automation_enabled")), str(cfg.get("automation_enabled")), "운영자 결정")
+    add("운영", "지인 배포 (deploy_enabled + Cloudflare Access)", bool(cfg.get("deploy_enabled")), "docs/deploy-cloudflare.md", "운영자: 계정")
+    add("운영", "리그 시작일", bool(cfg.get("season_start")), cfg.get("season_start") or "미정", "운영자 결정")
+    return items
+
 # ───────────────────────── 화면용 내보내기 ─────────────────────────
 
 PRIVATE_SCORE_FIELDS = ("base_close", "eval_close")       # 원시 가격: 지인 공유판에서 제외
@@ -989,7 +1027,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -1030,6 +1068,16 @@ def main():
                   + (f" · 보류: {'; '.join(r['hold_reasons'])}" if r['hold_reasons'] else ""))
         if not res:
             print(f"{wk}: 새로 마감할 팀 없음 (이미 마감했거나 기록 없음)")
+    elif a.cmd == "readiness":
+        mark = {"done": "✅", "todo": "⬜", "manual": "🔎"}
+        items = readiness(d)
+        cur = None
+        for it in items:
+            if it["area"] != cur:
+                cur = it["area"]; print(f"\n[{cur}]")
+            print(f" {mark[it['status']]} {it['item']} — {it['detail']}  ({it['who']})")
+        n = sum(1 for x in items if x["status"] == "done")
+        print(f"\n완료 {n}/{len(items)} · ✅ 완료 ⬜ 남음 🔎 GitHub·사이트에서 확인 필요")
     elif a.cmd == "review-data":
         wk = a.arg or iso_week(datetime.now(KST).date())
         print(json.dumps(review_data(d, wk, a.team), ensure_ascii=False, indent=1))
