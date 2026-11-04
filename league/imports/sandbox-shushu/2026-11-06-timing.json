@@ -1,0 +1,66 @@
+{
+  "actual_date_kst": "2026-11-04",
+  "round_date": "2026-11-06",
+  "stages": [
+    {
+      "stage": "독립 분석",
+      "start_kst": "2026-11-04T16:31:08+09:00",
+      "end_kst": "2026-11-04T16:37:35.481952+09:00",
+      "elapsed_seconds": 387.482
+    },
+    {
+      "stage": "반론 1회",
+      "start_kst": "2026-11-04T16:37:35.481952+09:00",
+      "end_kst": "2026-11-04T16:40:06.246087+09:00",
+      "elapsed_seconds": 150.764
+    },
+    {
+      "stage": "응답·최종 확정",
+      "start_kst": "2026-11-04T16:40:06.246087+09:00",
+      "end_kst": "2026-11-04T16:42:43.701684+09:00",
+      "elapsed_seconds": 157.456
+    },
+    {
+      "stage": "CSV 생성·검증",
+      "start_kst": "2026-11-04T16:42:43.701684+09:00",
+      "end_kst": "2026-11-04T16:43:42.954906+09:00",
+      "elapsed_seconds": 59.253
+    }
+  ],
+  "analysis_to_validation_seconds": 754.955,
+  "includes_push": false,
+  "includes_receipt": false,
+  "live_morning_run": false,
+  "agent_independent_times": [
+    {
+      "agent_id": "s1",
+      "started_at": "2026-11-04T16:31:33+09:00",
+      "finished_at": "2026-11-04T16:34:33+09:00",
+      "elapsed_seconds": 180.0
+    },
+    {
+      "agent_id": "s2",
+      "started_at": "2026-11-04T16:31:38+09:00",
+      "finished_at": "2026-11-04T16:34:57+09:00",
+      "elapsed_seconds": 199.0
+    },
+    {
+      "agent_id": "s3",
+      "started_at": "2026-11-04T16:31:54+09:00",
+      "finished_at": "2026-11-04T16:34:27+09:00",
+      "elapsed_seconds": 153.0
+    },
+    {
+      "agent_id": "s4",
+      "started_at": "2026-11-04T16:32:46+09:00",
+      "finished_at": "2026-11-04T16:36:07+09:00",
+      "elapsed_seconds": 201.0
+    },
+    {
+      "agent_id": "s5",
+      "started_at": "2026-11-04T16:33:50.707804+09:00",
+      "finished_at": "2026-11-04T16:37:17+09:00",
+      "elapsed_seconds": 206.292
+    }
+  ]
+}

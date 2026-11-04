@@ -1,0 +1,21 @@
+검증 대상: league/imports/sandbox-shushu/2026-11-06.csv
+제공받은 원본 tools/league.py SHA-256: 31940b10b049221eb1fc396484a5cebd42fd93318d2e060af806f832b518691f
+
+1. 명단·버전 포함 검사
+python3 tools/league.py import-csv league/imports/sandbox-shushu/2026-11-06.csv --team shushu --dry-run
+검증 통과 10건, 오류 0건 (dry-run)
+
+2. sandbox 검사
+python3 tools/league.py import-csv league/imports/sandbox-shushu/2026-11-06.csv --team sandbox-shushu --dir league/sandbox --dry-run
+검증 통과 10건, 오류 0건 (dry-run)
+
+3. 추가 독립 검사
+216개 통과. 활성 5명, 시장별 한 종목, 버전, 대상 목록 포함, +09:00,
+실제 11월 4일 확정 시각, 확보시각 <= 확정시각 < 마감,
+근거 300~800자, 출처 필드, 한국 코드 문자열 보존,
+독립·반론 원본 해시 불변, 가격 열 없음, 원장 파일 쓰기 없음.
+
+CSV SHA-256: 41172f9dd95bb4682a31adbbd3f338b3a3825fe917f5150c03bfed336a014fec
+GitHub push: 미수행
+accepted 영수증: 미확인
+가격 채점: 미수행
