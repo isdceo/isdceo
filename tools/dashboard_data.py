@@ -5,7 +5,7 @@
 
 - 실전(league)과 연습(league/sandbox) 원장을 모두 읽는다.
 - 종목·점수는 export()와 같은 규칙을 쓴다: 라운드 마감(08:30 KST) 전 추천은 넣지 않고, 원시 가격은 빼고 점수(%)만 남긴다.
-- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices (각각 {"rows": [...]} JSON)
+- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents (각각 {"rows": [...]} JSON)
 """
 import argparse, json, sys
 from datetime import datetime
@@ -38,7 +38,7 @@ def _load(d: Path, now: datetime) -> dict:
 
 def build(now: datetime | None = None) -> dict:
     now = now or datetime.now(L.KST)
-    out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks")}
+    out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks", "agents")}
 
     names = {}                                            # (팀, id) → 스타일명 (예: claude, buffett → 가치형)
     for key, members in L.load_roster(L.ROOT / "league").items():
@@ -46,6 +46,26 @@ def build(now: datetime | None = None) -> dict:
         for m in members:
             lbl = m.get("label") or m["id"]
             names[(team, m["id"])] = f'{m["nickname"]} · {lbl}' if m.get("nickname") else lbl
+
+    # 에이전트 프로필 (애칭을 누르면 열리는 카드). 승인된 대기 후보만 싣는다.
+    approved = {(x["team"], x["agent_id"]) for x in L.read_ledger(L.ROOT / "league", "approvals")
+                if x.get("type") == "bench" and x.get("decision") == "approved"}
+    for key, members in L.load_roster(L.ROOT / "league").items():
+        team = "claude" if key == "bench" else key.replace("bench_", "")
+        if team not in TEAM_LABEL:
+            continue
+        bench = key.startswith("bench")
+        for i, m in enumerate(members, 1):
+            if bench and (team, m["id"]) not in approved:
+                continue
+            status = (f"대기 {i}순위" if bench else
+                      "탈락" if m.get("status") == "eliminated" else "현역")
+            out["agents"].append({"key": f"{TEAM_LABEL[team]}|{names[(team, m['id'])]}", "team": TEAM_LABEL[team],
+                                  "agent_id": m["id"], "name": names[(team, m["id"])],
+                                  "nickname": m.get("nickname") or "", "label": m.get("label") or m["id"],
+                                  "tagline": m.get("tagline") or "", "status": status,
+                                  "version": m.get("version", 1), "joined_week": m.get("joined_week") or "",
+                                  "eliminated_week": m.get("eliminated_week") or ""})
 
     state = {"done": "완료", "todo": "남음", "manual": "확인 필요"}
     for r in L.readiness(L.ROOT / "league"):

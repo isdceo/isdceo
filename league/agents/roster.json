@@ -8,7 +8,8 @@
       "joined_week": null,
       "eliminated_week": null,
       "version": 1,
-      "nickname": "뚝심이"
+      "nickname": "뚝심이",
+      "tagline": "경제적 해자·ROE·안전마진으로 오래 갈 좋은 기업을 고른다"
     },
     {
       "id": "lynch",
@@ -18,7 +19,8 @@
       "joined_week": null,
       "eliminated_week": null,
       "version": 1,
-      "nickname": "발굴왕"
+      "nickname": "발굴왕",
+      "tagline": "이익 성장률과 PEG로 아직 덜 알려진 성장주를 찾는다"
     },
     {
       "id": "dalio",
@@ -28,7 +30,8 @@
       "joined_week": null,
       "eliminated_week": null,
       "version": 1,
-      "nickname": "큰그림"
+      "nickname": "큰그림",
+      "tagline": "금리·물가·환율·경기 사이클로 큰 흐름을 읽는다"
     },
     {
       "id": "wood",
@@ -38,7 +41,8 @@
       "joined_week": null,
       "eliminated_week": null,
       "version": 1,
-      "nickname": "미래광"
+      "nickname": "미래광",
+      "tagline": "AI·로봇·에너지 저장 같은 기술 성장 곡선 위의 기업을 찾는다"
     },
     {
       "id": "burry",
@@ -48,7 +52,8 @@
       "joined_week": null,
       "eliminated_week": null,
       "version": 1,
-      "nickname": "삐딱이"
+      "nickname": "삐딱이",
+      "tagline": "버블 징후·회계 품질·숨은 부채를 파고들어 군중의 반대편에 선다"
     }
   ],
   "bench": [
@@ -60,7 +65,8 @@
       "approved": true,
       "guideline": ".claude/agents/momentum.md",
       "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
-      "nickname": "파도타기"
+      "nickname": "파도타기",
+      "tagline": "가격·거래량 추세와 지수 대비 상대강도를 따라간다"
     },
     {
       "id": "quant",
@@ -70,7 +76,8 @@
       "approved": true,
       "guideline": ".claude/agents/quant.md",
       "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
-      "nickname": "계산기"
+      "nickname": "계산기",
+      "tagline": "가치·퀄리티·모멘텀·저변동성 점수를 합쳐 고른다"
     },
     {
       "id": "dividend",
