@@ -50,6 +50,7 @@
 
 ## 4. 켜기
 
+0. **먼저 Tiingo 회신을 받는다.** Tiingo 무료 플랜은 "you may not display or share the data with another person or organization"이라 지인 공개는 회신 전에는 켜지 않는다(`docs/data-provider-research.md` 8장). KRX 회신도 받는 것을 권장한다.
 1. `league/config.json`에서 `"deploy_enabled": true`로 바꾸고 커밋한다.
 2. Actions → **league-deploy** → Run workflow로 첫 배포를 한다.
 3. 이후에는 매일(월~토) 11:00 KST에 자동 배포된다. 10:30 채점 뒤다.

@@ -106,6 +106,9 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 
 ## 화면에 쓸 때
 
+- **운영자 본인 확인용으로만 쓴다.** Tiingo 무료 플랜은 "you may not display or share the data with another person or organization"이다. 점수만이라도 다른 사람에게 보여 주려면 먼저 제공처 확인이 필요하다(`docs/data-provider-research.md` 8장).
+- 화면에 출처를 표시한다: 한국 종가·지수는 "한국거래소 통계정보"를 사용한 결과(KRX 약관 제10조③), 미국은 Tiingo.
+
 - 종목명·점수는 써도 되지만 **원 가격을 다른 곳에서 가져와 붙이지 않는다.**
 - 점수 상태를 구분해 표시한다: `final`만 확정, `provisional`은 "잠정", `pending`·`held`는 "채점 전/보류".
 - 점수는 모의 예측 점수이며 실제 수익률·투자 권유가 아니다.
