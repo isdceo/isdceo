@@ -2,6 +2,7 @@
 # 키는 저장소 Settings → Secrets and variables → Actions 에 넣는다:
 #   KRX_AUTH_KEY, TIINGO_TOKEN, ALPACA_KEY_ID, ALPACA_SECRET_KEY, DART_API_KEY
 # dart 를 고르면 입력한 한국 종목별로 최근 120일 공시와, 그 거래일 라운드 채점 구간의 배당·분할 확인 결과를 보여준다.
+# role=final 로 돌리면 제공처가 주는 배당(divCash)·분할(splitFactor) 기록도 함께 보여준다.
 # 실행 로그에는 종가가 찍힌다. 비공개 저장소의 협업자만 볼 수 있다.
 name: league-provider-check
 on:
@@ -21,6 +22,11 @@ on:
       tickers:
         description: 종목 (쉼표 구분, 예 005930,000660,KOSPI 또는 AAPL,MSFT,SPY)
         required: true
+      role:
+        description: 수집 구분 (final 이면 배당·분할도 기록해 보여줌. 임시 원장이라 실제 원장에는 영향 없음)
+        type: choice
+        options: [provisional, final]
+        default: provisional
 permissions:
   contents: read
 jobs:
@@ -48,7 +54,7 @@ jobs:
           D=$(mktemp -d); mkdir -p "$D/ledger"
           set +e
           python3 tools/collectors.py collect --provider "${{ inputs.provider }}" --market "${{ inputs.market }}" \
-            --session "${{ inputs.session }}" --tickers "${{ inputs.tickers }}" --role provisional --dir "$D"
+            --session "${{ inputs.session }}" --tickers "${{ inputs.tickers }}" --role "${{ inputs.role || 'provisional' }}" --dir "$D"
           rc=$?
           set -e
           echo "--- 기록된 값 ---"
