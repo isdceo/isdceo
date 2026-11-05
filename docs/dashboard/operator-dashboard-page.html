@@ -114,6 +114,15 @@
     .lg .tablebox .anim .chips { animation: bt-drop .45s var(--cds-ease-out, ease-out) both; }
   }
   .lg .tablebox .dealt, .lg .tablebox .chips { transform-box: fill-box; transform-origin: center; }
+  .lg .gcard.suit-d .corner, .lg .gcard.suit-d .pip { color: #c0392b; } .lg .gcard.suit-c .corner, .lg .gcard.suit-c .pip { color: #1f1a14; }
+  .lg .gcard .corner b { display: block; font-size: 11px; letter-spacing: .5px; }
+  .lg .gcard .picker { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6b6355; }
+  .lg .gcard .gname.stock { font-size: 21px; display: block; }
+  .lg .gcard.stockc { min-height: 0; }
+  .lg .gcard.stockc .gbody { gap: 4px; padding-bottom: 22px; }
+  .lg .benchrow { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); }
+  .lg .benchseat { font: inherit; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.25); color: var(--cream); border: 1px dashed rgba(212,178,92,.7); border-radius: 999px; padding: 4px 14px 4px 4px; cursor: pointer; }
+  .lg .benchseat small { display: block; font-size: 11px; color: rgba(244,236,214,.7); }
   .lg .felt .fine { text-align: center; font-size: 11px; color: rgba(244,236,214,.65); }
   .lg .avatar { display: inline-block; flex: none; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,.25); vertical-align: middle; }
   .lg .gcard .gname { display: flex; align-items: center; gap: 8px; }
@@ -530,8 +539,8 @@
         <div class="hand" data-draw="hand-claude" data-source="agents standings agent_total picks"></div></div>
       <div class="rail"><h3 data-draw="title-shushu">♥ 슈슈 팀 (Codex)</h3>
         <div class="hand" data-draw="hand-shushu" data-source="agents standings agent_total picks"></div></div>
-      <div class="rail"><h3>대기석 — 엎어 둔 카드</h3>
-        <div class="hand bench" data-draw="hand-bench" data-source="agents"></div></div>
+      <div class="rail"><h3>대기석 — 승인된 대기 후보</h3>
+        <div class="benchrow" data-draw="hand-bench" data-source="agents"></div></div>
       <div class="fine">카지노 테이블은 화면 연출입니다. 돈이나 베팅은 없고, 점수는 모의 예측 점수입니다.</div>
     </div>
   </section>
@@ -1039,8 +1048,23 @@
   const SUIT = {'Claude 팀': 's', '슈슈 팀 (Codex)': 'h'};
   const PIP = {s: '♠', h: '♥'};
   const BAR = {'Claude 팀': '#c0392b', '슈슈 팀 (Codex)': '#2463b5'};
-  dash.draw('title-claude', (el) => { el.textContent = '♠ CLAUDE 팀'; });
-  dash.draw('title-shushu', (el) => { el.textContent = '♥ 슈슈 팀 (Codex)'; });
+  const MK = {KR: {suit: '♦', cls: 'd', label: '한국'}, US: {suit: '♣', cls: 'c', label: '미국'}};
+  // 팀의 최근 공개 라운드(실전 우선) 종목들
+  const teamRound = (team) => {
+    const pk = dash.data('picks');
+    const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === team) : [];
+    const live = mine.filter((p) => p.mode === '실전');
+    const pool = live.length ? live : mine;
+    const last = pool.map((p) => p.round_date).sort().pop();
+    return {rows: last ? pool.filter((p) => p.round_date === last) : [], last, mode: last ? pool.find((p) => p.round_date === last).mode : null};
+  };
+  const agentOf = (p) => { const ag = dash.data('agents'); return ag.status === 'ok' ? ag.data.find((a) => a.team === p.team && a.agent_id === p.agent_id) : null; };
+  const titleFor = (team, label) => (el) => {
+    const tr = teamRound(team);
+    el.textContent = tr.last ? `${label} — 고른 종목 (${tr.mode} ${fmtTime(tr.last)} 라운드)` : `${label} — 고른 종목`;
+  };
+  dash.draw('title-claude', titleFor('Claude 팀', '♠ CLAUDE 팀'));
+  dash.draw('title-shushu', titleFor('슈슈 팀 (Codex)', '♥ 슈슈 팀 (Codex)'));
   const latestWeek = () => {
     const d = dash.data('standings');
     const ws = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort() : [];
@@ -1085,23 +1109,32 @@
       st.append('ellipse').attr('cx', x).attr('cy', yy).attr('rx', 11).attr('ry', 4.5).attr('fill', col[0]).attr('stroke', col[1]).attr('stroke-width', 1.4).attr('stroke-dasharray', '3 2.5');
     }
   };
-  const playingCard = (g, x, y, a, r, suit, delay, dx) => {
-    const c = g.append('g').attr('class', 'dealt').style('animation-delay', `${delay}s`).style('--dx', `${dx}px`);
-    c.append('rect').attr('x', x).attr('y', y).attr('width', 58).attr('height', 82).attr('rx', 6).attr('fill', a ? '#fff' : '#7a1e1e')
-      .attr('stroke', a ? '#c9c2b2' : '#f4ecd6').attr('stroke-width', a ? 1.2 : 3);
-    if (!a) {
-      c.append('rect').attr('x', x + 6).attr('y', y + 6).attr('width', 46).attr('height', 70).attr('rx', 3).attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-width', 1.2).attr('stroke-dasharray', '4 3');
-      return;
+  // SVG 종목 카드: 모서리에 시장·문양, 가운데 종목명, 아래 점수. p가 없으면 뒷면
+  const stockCard = (g, x, y, w, h, p, opts = {}) => {
+    const c = g.append('g').attr('class', 'dealt').style('animation-delay', `${opts.delay || 0}s`).style('--dx', `${opts.dx || 0}px`);
+    if (opts.rot) c.attr('transform', `rotate(${opts.rot} ${x + w / 2} ${y + h / 2})`);
+    c.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', h).attr('rx', w * 0.1).attr('fill', p ? '#fff' : '#7a1e1e')
+      .attr('stroke', p ? '#c9c2b2' : '#f4ecd6').attr('stroke-width', p ? 1 : 2.2);
+    if (!p) {
+      c.append('rect').attr('x', x + w * 0.12).attr('y', y + h * 0.1).attr('width', w * 0.76).attr('height', h * 0.8).attr('rx', 2).attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-dasharray', '3 2');
+      return c;
     }
-    const red = suit === '♥';
-    c.append('text').attr('x', x + 6).attr('y', y + 16).attr('font-size', 14).attr('font-family', 'Georgia, serif').attr('fill', red ? '#c0392b' : '#1f1a14').text(r ? r.league_rank : '?');
-    c.append('text').attr('x', x + 6).attr('y', y + 29).attr('font-size', 12).attr('fill', red ? '#c0392b' : '#1f1a14').text(suit);
-    const ch = AV_CHAR[a.agent_id];
-    const av = c.append('svg').attr('x', x + 13).attr('y', y + 18).attr('width', 32).attr('height', 32).attr('viewBox', '0 0 120 120');
-    if (ch) av.append('use').attr('href', '#av-' + ch);
-    c.append('text').attr('x', x + 29).attr('y', y + 64).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', '#1f1a14').text(short(a.nickname, 5));
-    c.append('text').attr('x', x + 29).attr('y', y + 76).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-family', 'Georgia, serif')
-      .attr('fill', r && r.avg != null ? (r.avg >= 0 ? '#1f7a45' : '#b3261e') : '#8a8273').text(r && r.avg != null ? `${pct(r.avg)}%` : '');
+    const mk = MK[p.market] || MK.US, red = mk.cls === 'd', f = w / 58;
+    c.append('text').attr('x', x + 4 * f).attr('y', y + 11 * f).attr('font-size', 9 * f).attr('font-weight', 700).attr('fill', red ? '#c0392b' : '#1f1a14').text(p.market);
+    c.append('text').attr('x', x + 4 * f).attr('y', y + 22 * f).attr('font-size', 10 * f).attr('fill', red ? '#c0392b' : '#1f1a14').text(mk.suit);
+    const nm = p.name || p.ticker;
+    const sp = nm.indexOf(' ');
+    const lines = nm.length <= 6 ? [nm] : sp > 0 ? [short(nm.slice(0, sp), 8), short(nm.slice(sp + 1), 8)] : [nm.slice(0, 5), short(nm.slice(5), 5)];
+    lines.forEach((ln, k) => c.append('text').attr('x', x + w / 2).attr('y', y + h * 0.44 + k * 11 * f).attr('text-anchor', 'middle').attr('font-size', 10.5 * f).attr('fill', '#1f1a14').text(ln));
+    if (opts.agent) {
+      const ch = AV_CHAR[opts.agent.agent_id];
+      const av = c.append('svg').attr('x', x + w - 20 * f).attr('y', y + 3 * f).attr('width', 17 * f).attr('height', 17 * f).attr('viewBox', '0 0 120 120');
+      if (ch) av.append('use').attr('href', '#av-' + ch);
+    }
+    c.append('text').attr('x', x + w / 2).attr('y', y + h - 6 * f).attr('text-anchor', 'middle').attr('font-size', 10 * f).attr('font-family', 'Georgia, serif')
+      .attr('fill', p.score == null ? '#8a8273' : p.status !== 'final' ? '#a8650b' : p.score >= 0 ? '#1f7a45' : '#b3261e')
+      .text(p.score == null ? (p.status === 'held' ? '보류' : '채점 전') : `${pct(p.score)}%`);
+    return c;
   };
   dash.draw('baccarat', (el) => {
     const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');
@@ -1153,11 +1186,11 @@
     side(470, '♠ CLAUDE', A, '#f2c230', 'end');
     svg.append('text').attr('x', 500).attr('y', 162).attr('text-anchor', 'middle').attr('font-size', 26).attr('fill', '#d4b25c').text('/');
     side(530, '슈슈 ♥', B, '#ff8a7a', 'start');
-    // 각 팀 상위 2명을 앞면 카드로 (실전 전이면 뒷면)
-    const top2 = (team) => byRank(team).filter((a) => rowOf(a)).slice(0, 2);
-    const ca = top2('Claude 팀'), cb = top2('슈슈 팀 (Codex)');
-    [0, 1].forEach((k) => playingCard(svg, 352 + k * 62, 192, ca[k], ca[k] ? rowOf(ca[k]) : null, '♠', 0.1 + k * 0.12, 120));
-    [0, 1].forEach((k) => playingCard(svg, 530 + k * 62, 192, cb[k], cb[k] ? rowOf(cb[k]) : null, '♥', 0.34 + k * 0.12, -120));
+    // 가운데: 각 팀 최근 라운드에서 점수가 가장 좋은 종목 2장 (실전 전이면 뒷면)
+    const best2 = (team) => teamRound(team).rows.filter((p) => p.score != null).sort((x, y) => y.score - x.score).slice(0, 2);
+    const ca = wk ? best2('Claude 팀') : [], cb = wk ? best2('슈슈 팀 (Codex)') : [];
+    [0, 1].forEach((k) => stockCard(svg, 352 + k * 62, 192, 58, 82, ca[k], {agent: ca[k] && agentOf(ca[k]), delay: 0.1 + k * 0.12, dx: 120}));
+    [0, 1].forEach((k) => stockCard(svg, 530 + k * 62, 192, 58, 82, cb[k], {agent: cb[k] && agentOf(cb[k]), delay: 0.34 + k * 0.12, dx: -120}));
     // 곡선 베팅 띠: 안쪽(순위) · 가운데(미국) · 바깥(한국)
     const R = {rank: [[282, 236], [312, 262]], us: [[312, 262], [360, 306]], kr: [[360, 306], [410, 354]]};
     const m = seats.length, t0 = 0.13 * Math.PI, span = 0.74 * Math.PI;
@@ -1174,15 +1207,12 @@
       const [rx, ry] = ellPt(cx, cy, 297, 249, tm);
       g.append('text').attr('x', rx).attr('y', ry + 4).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 700)
         .attr('fill', isRisk ? '#ffb3a8' : isLead ? '#ffe08a' : '#f4ecd6').text(r ? `${r.league_rank}위` : '—');
+      const rot = (90 - tm * 180 / Math.PI) * 0.55;
       const box = (key, mk, p, delay) => {
         const [bx, by] = ellPt(cx, cy, (R[key][0][0] + R[key][1][0]) / 2, (R[key][0][1] + R[key][1][1]) / 2, tm);
-        g.append('text').attr('x', bx).attr('y', by - 6).attr('text-anchor', 'middle').attr('font-size', 10).attr('letter-spacing', 1).attr('fill', mk === 'KR' ? '#f2c230' : '#ff8a7a').text(mk);
-        g.append('text').attr('x', bx).attr('y', by + 7).attr('text-anchor', 'middle').attr('font-size', 11.5).attr('fill', '#f4ecd6').text(p ? short(p.name || p.ticker, 6) : '—');
-        if (p && p.score != null) {
-          g.append('text').attr('x', bx).attr('y', by + 20).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-family', 'Georgia, serif')
-            .attr('fill', p.score > 0 ? '#9be3b5' : p.score < 0 ? '#ffb3a8' : '#f4ecd6').text(`${pct(p.score)}%`);
-          chipStack(g, bx + (Math.cos(tm) > 0 ? -38 : 38), by - 2, p.score, delay);
-        }
+        const w = key === 'kr' ? 40 : 37, h = key === 'kr' ? 52 : 46;
+        stockCard(g, bx - w / 2, by - h / 2, w, h, p, {rot, delay: delay - 0.3});
+        if (p && p.score != null) chipStack(g, bx + (Math.cos(tm) > 0 ? -34 : 34), by + 4, p.score, delay);
       };
       box('kr', 'KR', pp.KR, 0.6 + i * 0.05);
       box('us', 'US', pp.US, 0.65 + i * 0.05);
@@ -1222,49 +1252,32 @@
     el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · Claude 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9 라운드부터).';
   });
   const handFor = (team) => (el) => {
-    const ag = dash.data('agents'), stn = dash.data('standings'), tot = dash.data('agent_total'), pk = dash.data('picks');
-    const wk = latestWeek();
-    const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
-    const n = week.length;
-    const amax = Math.max(0.5, ...week.map((r) => r.avg).filter((v) => v != null).map((v) => Math.abs(v)));
-    const members = ag.status === 'ok' ? ag.data.filter((a) => a.team === team && !a.status.startsWith('대기')) : [];
-    const rowsOf = (a) => week.find((r) => r.team === team && r.agent_id === a.agent_id) || null;
-    members.sort((x, y) => (rowsOf(x)?.league_rank ?? 99) - (rowsOf(y)?.league_rank ?? 99));
-    const suit = SUIT[team] || 's';
-    d3.select(el).selectAll('button.gcard').data(members, (a) => a.key).join('button')
+    const tr = teamRound(team);
+    const rows = tr.rows.slice().sort((x, y) => (y.score ?? -1e9) - (x.score ?? -1e9) || x.agent.localeCompare(y.agent) || x.market.localeCompare(y.market));
+    const scored = rows.filter((p) => p.score != null);
+    const best = scored.length > 1 ? scored[0].pick_id : null, worst = scored.length > 1 ? scored[scored.length - 1].pick_id : null;
+    el.replaceChildren();
+    if (!rows.length) { d3.select(el).append('p').attr('class', 'fine').style('text-align', 'left').text('아직 공개된 종목이 없습니다(마감 전이거나 제출 전).'); return; }
+    d3.select(el).selectAll('button.gcard').data(rows, (p) => p.pick_id).join('button')
       .attr('type', 'button')
-      .attr('class', (a) => {
-        const r = rowsOf(a);
-        return `gcard suit-${suit}` + (a.status === '탈락' ? ' out' : '') + (r && r.league_rank === 1 && n > 1 ? ' lead' : '') + (r && r.league_rank === n && n > 1 ? ' danger' : '');
-      })
-      .on('click', (ev, a) => openProfile(a.team, a.name))
-      .each(function (a) {
-        const r = rowsOf(a);
+      .attr('class', (p) => `gcard stockc suit-${(MK[p.market] || MK.US).cls}` + (p.pick_id === best ? ' lead' : '') + (p.pick_id === worst ? ' danger' : ''))
+      .on('click', (ev, p) => { const a = agentOf(p); if (a) openProfile(a.team, a.name); })
+      .each(function (p) {
+        const mk = MK[p.market] || MK.US, a = agentOf(p);
         const card = d3.select(this).html('');
-        const rk = r ? String(r.league_rank) : '?';
-        for (const pos of ['tl', 'br']) { const c = card.append('div').attr('class', 'corner ' + pos); c.append('span').text(rk); c.append('small').text(PIP[suit]); }
+        for (const pos of ['tl', 'br']) { const c = card.append('div').attr('class', 'corner ' + pos); c.append('b').text(p.market); c.append('small').text(mk.suit); }
         const b = card.append('div').attr('class', 'gbody');
-        const flag = a.status === '탈락' ? '탈락' : r && r.out ? '탈락' : r && r.league_rank === 1 && n > 1 ? '선두' : r && r.league_rank === n && n > 1 ? '탈락 위기' : '';
-        b.append('div').attr('class', 'gtop').append('span').attr('class', 'flag').text(flag);
-        const nm = b.append('div').attr('class', 'gname'); drawAvatar(nm.node(), a, 40); nm.append('span').text(a.nickname || a.label); nm.append('span').attr('class', 'pip').text(PIP[suit]);
-        b.append('div').attr('class', 'gstyle').text(`${a.label} · v${a.version}`);
-        b.append('div').attr('class', 'gtag').text(a.tagline || '');
+        b.append('div').attr('class', 'gtop').append('span').attr('class', 'flag').text(p.pick_id === best ? '최고' : p.pick_id === worst ? '최저' : '');
+        b.append('div').attr('class', 'gname stock').text(p.name || p.ticker);
+        b.append('div').attr('class', 'gstyle').text(`${p.ticker} · ${mk.label} ${p.mode} ${fmtTime(p.round_date)}`);
         const st = b.append('div').attr('class', 'gstat');
-        st.append('span').attr('class', 'lbl').text('이번 주 평균');
-        st.append('span').attr('class', 'big ' + (r && r.avg != null ? (r.avg > 0 ? 'up' : r.avg < 0 ? 'down' : '') : 'none')).text(r && r.avg != null ? pct(r.avg) + '%' : '실전 전');
-        const bar = b.append('div').attr('class', 'bar');
-        if (r && r.avg != null) bar.append('i').style('width', `${Math.max(4, Math.abs(r.avg) / amax * 100)}%`).style('background', r.avg >= 0 ? BAR[team] : '#b3261e');
-        const t = tot.status === 'ok' ? tot.data.find((x) => x.team === team && x.agent === a.name && x.mode === '실전') : null;
-        b.append('div').attr('class', 'gmeta').text(r ? `확정 ${r.scored}/${r.expected} · 미제출 ${r.missed} · 보류 ${r.held}` : (t && t.final_n ? `시즌 확정 ${t.final_n}건 · 평균 ${pct(t.avg)}%` : '시즌 기록 없음'));
-        const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === team && p.agent === a.name) : [];
-        const last = mine.map((p) => p.round_date).sort().pop();
-        const lp = b.append('div').attr('class', 'gpicks');
-        if (!last) { lp.text('공개된 종목 없음'); return; }
-        const mode = mine.find((q) => q.round_date === last).mode;
-        lp.append('div').text(`${mode} ${fmtTime(last)}`);
-        mine.filter((p) => p.round_date === last && p.mode === mode).sort((x, y) => x.market.localeCompare(y.market)).forEach((p) => {
-          lp.append('div').text(`${p.market} ${p.name || p.ticker}${p.score != null ? ' ' + pct(p.score) + '%' : ''}`);
-        });
+        st.append('span').attr('class', 'lbl').text(p.status === 'final' ? '확정 점수' : p.score != null ? '잠정 점수' : '점수');
+        st.append('span').attr('class', 'big ' + (p.score == null ? 'none' : p.score > 0 ? 'up' : p.score < 0 ? 'down' : '')).text(p.score == null ? (p.status === 'held' ? '보류' : '채점 전') : `${pct(p.score)}%`);
+        if (p.score_excess != null) b.append('div').attr('class', 'gmeta').text(`시장 대비 ${pct(p.score_excess)}%p`);
+        if (p.reason) b.append('div').attr('class', 'gmeta').text(p.reason);
+        const pk = b.append('div').attr('class', 'gpicks picker');
+        if (a) drawAvatar(pk.node(), a, 24);
+        pk.append('span').text(`고른 사람: ${a ? a.nickname || a.label : p.agent}`);
       });
   };
   dash.draw('hand-claude', handFor('Claude 팀'));
@@ -1272,15 +1285,13 @@
   dash.draw('hand-bench', (el) => {
     const ag = dash.data('agents');
     const rows = ag.status === 'ok' ? ag.data.filter((a) => a.status.startsWith('대기')) : [];
-    d3.select(el).selectAll('button.gcard').data(rows, (a) => a.key).join('button')
-      .attr('type', 'button').attr('class', 'gcard back')
+    d3.select(el).selectAll('button.benchseat').data(rows, (a) => a.key).join('button')
+      .attr('type', 'button').attr('class', 'benchseat')
       .on('click', (ev, a) => openProfile(a.team, a.name))
       .each(function (a) {
-        const b = d3.select(this).html('').append('div').attr('class', 'gbody');
-        b.append('div').attr('class', 'gstyle').text(`${PIP[SUIT[a.team]] || ''} ${a.team} · ${a.status}`);
-        const nm = b.append('div').attr('class', 'gname'); drawAvatar(nm.node(), a, 32); nm.append('span').text(a.nickname || a.label);
-        b.append('div').attr('class', 'gstyle').text(a.label);
-        if (a.tagline) b.append('div').attr('class', 'gtag').text(a.tagline);
+        const b = d3.select(this).html('');
+        drawAvatar(this, a, 40);
+        const t = b.append('span'); t.append('span').text(a.nickname || a.label); t.append('small').text(`${a.team} · ${a.status} · ${a.label}`);
       });
   });
 
