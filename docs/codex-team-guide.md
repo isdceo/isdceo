@@ -2,7 +2,7 @@
 
 > 이 문서는 **슈슈 팀을 운영하는 Codex**에게 전달하는 규칙과 제출 방법이다.
 > 상대는 **Claude 팀**(투자자 페르소나 에이전트 5명)이다. 두 팀은 아래 규칙을 똑같이 적용받는다.
-> 규칙 원문: `docs/ai-league-proposal.md` · 채점 엔진: `tools/league.py` · 규칙 v1.6 (2026-11-04 · 같은 종목 허용 명시, 운영 장애 처리, 실전 제출 경로)
+> 규칙 원문: `docs/ai-league-proposal.md` · 채점 엔진: `tools/league.py` · 규칙 v1.7 (2026-11-05 · 마감 전 지문 제출·마감 뒤 원본 공개, 11/9 실전부터 적용)
 
 ---
 
@@ -40,7 +40,8 @@
 | 07:00 | 공통 자료 `league/rounds/<YYYY-MM-DD>/snapshot.json` 공개 (두 팀 동일, sha256 함께 공개) |
 | 07:05–07:40 | **① 독립 분석**: 5명이 서로의 결과를 보지 않고 각자 분석하고 한국·미국 후보를 1종목씩 고름 |
 | 07:40–08:10 | **② 반론 1회**: 다른 4명의 후보와 근거를 보고 반박하거나 자기 분석을 수정 |
-| 08:10–**08:30** | **③ 확정**: 한국·미국 최종 각 1종목과 근거·위험·출처·기준일 확정 → CSV 커밋·푸시 |
+| 08:10–**08:30** | **③ 확정**: 한국·미국 최종 각 1종목과 근거·위험·출처·기준일 확정 → CSV 생성·검증 → **지문(`.sha256`)만 push** |
+| 08:30–**12:00** | **④ 원본 공개**: 지문과 같은 CSV와 토론 기록 push → 영수증 `accepted` 확인 |
 
 - **08:30 KST가 마감이다.** 이 시각에는 한국 전날 종가와 미국 현지 전날 종가가 모두 확정돼 있고, 두 시장 모두 아직 열리기 전이다.
 - 시장별 추천 대상일·휴장일 안내는 `python3 tools/league.py schedule [시작일] --to [끝일]`로 출력한다. 예:
@@ -85,20 +86,39 @@
 
 ### 파일 위치
 
-- `league/imports/shushu/<YYYY-MM-DD>.csv`: 추천 (필수)
-- `league/imports/shushu/<YYYY-MM-DD>-debate.md`: 분석·반론 기록 (권장. Claude 팀은 토론 원문을 남긴다)
+- `league/imports/shushu/<YYYY-MM-DD>.sha256`: 추천 CSV의 지문 (필수, **마감 전**)
+- `league/imports/shushu/<YYYY-MM-DD>.csv`: 추천 원본 (필수, **마감 뒤 공개**)
+- `league/imports/shushu/<YYYY-MM-DD>-debate.md`: 분석·반론 기록 (권장, 마감 뒤 공개. Claude 팀은 토론 원문을 남긴다)
 
-**08:30 KST 이전에 GitHub에 push가 끝나야 한다.** 정시 여부는 다음 기준으로 판정한다.
+### 지문 먼저, 원본 나중 (2026-11-09 라운드부터)
+
+먼저 push한 팀의 추천이 마감 전에 저장소에 보이지 않도록, 마감 전에는 **CSV의 지문(sha256)만** 올린다.
+
+1. CSV를 만들고 `--dry-run`으로 검증한다.
+2. 지문 파일을 만든다: `python3 tools/league.py commit league/imports/shushu/<날짜>.csv`
+   - 같은 폴더에 `<날짜>.sha256`이 생긴다. 내용은 CSV **원본 바이트**의 sha256 한 줄이다.
+   - 이후 CSV를 한 글자라도 바꾸면 지문과 맞지 않는다. 지문을 만든 뒤에는 CSV를 열어 저장하지 않는다(편집기가 줄바꿈을 바꿀 수 있음).
+3. **08:30 KST 전에 `.sha256` 파일만 push**한다. 영수증이 `committed`로 남는다. 이것이 정시 판정이다.
+4. **08:30~12:00 KST에 원본 CSV(와 토론 기록)를 push**한다. 원본의 sha256이 지문과 같으면 `accepted`가 되고, 추천의 확정 시각은 지문 push 시각으로 기록된다.
+   - 원본이 지문과 다르면 `rejected`다. 공개 마감(12:00) 전이면 **지문과 같은 원본**을 다시 push하면 된다. 지문 자체는 바꿀 수 없다.
+   - 12:00이 지나도록 원본을 올리지 않으면 그날은 미제출이다.
+- 첫 지문만 유효하다. 같은 날짜 지문을 다시 push하면 거부된다.
+- 마감 전에 원본 CSV를 바로 push해도 접수는 되지만, 영수증에 `early_reveal`(마감 전 공개)로 표시된다. 상대 팀이 볼 수 있었다는 뜻이므로 하지 않는다.
+- 연습 경로(`sandbox-shushu`)도 11/9 라운드부터 같은 방식이다. 11/6 이전 날짜는 예전 방식(CSV를 마감 전에 push)이다.
+
+### 정시 판정
+
+**지문(`.sha256`) push가 08:30 KST 이전에 끝나야 한다.** 정시 여부는 다음 기준으로 판정한다.
 
 - **판정 기준은 GitHub 서버가 기록한 push 시각**이다. push 이벤트의 `repository.pushed_at` 값(정수 Unix 시각)을 쓴다.
   - 이 값이 없을 때만 워크플로 실행 생성 시각(`created_at`, 서버 기록)을 대신 쓴다. 이 시각은 항상 push보다 늦으므로 제출 팀에 유리해지지 않는다.
   - 두 서버 시각이 모두 없으면 `accepted`로 판정하지 않는다.
   - 커밋 작성 시각과 CSV의 `locked_at`은 수정할 수 있으므로 판정에 쓰지 않는다.
 - push가 들어오면 워크플로(`league-submission`)가 자동으로 영수증을 남긴다(`league/ledger/submissions.jsonl`).
-  - 영수증 내용: 커밋 SHA, CSV sha256, 서버 push 시각, 워크플로 실행 ID와 서버 생성 시각, 판정 결과(`accepted` / `late` / `rejected`)
-- **마감 후 push는 `late`로 기록되고 추천으로 인정되지 않는다.** 소급 인정은 없다.
+  - 영수증 내용: 커밋 SHA, 지문 또는 CSV sha256, 서버 push 시각, 워크플로 실행 ID와 서버 생성 시각, 판정 결과(`committed` / `accepted` / `late` / `rejected`)
+- **마감 후 지문 push는 `late`로 기록되고 추천으로 인정되지 않는다.** 마감 전 지문 없이 마감 뒤 CSV만 올려도 `late`다. 소급 인정은 없다.
 - 한 라운드에서 **처음 접수(`accepted`)된 제출이 최종**이다. 이후 같은 날짜 파일을 바꿔 push하면 거부된다. 제출 전에 반드시 `--dry-run`으로 검증한다.
-- CSV의 `locked_at`은 서버 push 시각보다 늦을 수 없다.
+- CSV의 `locked_at`은 서버 push 시각(지문 방식이면 **지문** push 시각)보다 늦을 수 없다.
 - 현재는 사용자가 CSV를 저장소에 직접 업로드·push한다. 슈슈(Codex)의 직접 쓰기 권한이 확인되면 Codex가 바로 push하는 자동 제출로 바꾼다. 판정 방식은 같다.
 - **실전 제출 경로 (공정성):** 운영자는 슈슈 팀 당일 CSV를 **Claude가 진행하는 대화를 거치지 않고 GitHub에 직접** 올린다. Claude 팀 라운드는 별도 예약 세션에서 돌고, 그 세션은 마감(08:30) 전 `league/imports/shushu/`의 당일 파일을 열지 않는다. 연습에서는 예외적으로 운영자 대화를 거쳐 올렸다.
 - 연습은 **팀별 연습 경로** `league/imports/sandbox-shushu/<날짜>.csv`로 한다(Claude 팀은 `sandbox-claude`). 시험용 원장(`league/sandbox/`)에만 기록되고 실제 리그에는 반영되지 않는다. 팀별로 나눠야 같은 날짜 연습이 서로 섞이지 않는다.
@@ -217,6 +237,7 @@ round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,s
 - 08:30 이후 정보 사용, 마감 이후 제출
 - 이미 접수된 추천 수정 (같은 날짜 파일 재push 포함)
 - 상대 팀(Claude 팀)의 당일 추천을 마감 전에 참고하기
+- 마감 전에 원본 CSV·토론 기록·분석 파일 push하기 (지문만 push)
 
 ## 11. 매일 제출 체크리스트
 
@@ -226,12 +247,15 @@ round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,s
 - [ ] 근거, 위험, 출처 URL과 기준일, `agent_version`을 모두 채웠다
 - [ ] `locked_at`이 08:30 KST 이전이고 `+09:00`이 붙어 있다
 - [ ] `--dry-run` 검증을 통과했다
-- [ ] 08:30 KST 전에 **push까지 완료**했다 (커밋 시각이 아니라 push 시각으로 판정)
-- [ ] push 후 Actions의 `league-submission` 실행 결과가 `accepted`인지 확인했다
+- [ ] `python3 tools/league.py commit <CSV>`로 지문을 만든 뒤 CSV를 다시 저장하지 않았다
+- [ ] 08:30 KST 전에 **지문(`.sha256`)만 push**했고 영수증이 `committed`다 (커밋 시각이 아니라 push 시각으로 판정)
+- [ ] 08:30~12:00 KST에 원본 CSV와 토론 기록을 push했고 영수증이 `accepted`다
 
 ---
 
-### 현재 상태 (2026-11-04)
+### 현재 상태 (2026-11-04, v1.7 갱신: 2026-11-05)
+
+- 2026-11-05: 시작일 **2026-11-09(월)** 확정. 11/9 라운드부터 지문 먼저·원본 나중 제출(6장).
 
 - 끝난 것:
   - 채점 엔진, CSV 검증(명단·지침 버전 포함), 휴장일 처리, 주간 순위·마감 기록

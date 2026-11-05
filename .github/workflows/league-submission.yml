@@ -1,4 +1,4 @@
-# 추천 CSV push → GitHub 서버 push 시각 기준 정시 판정 → 영수증(submissions.jsonl) 기록·커밋
+# 추천 지문(.sha256, 마감 전)·CSV(마감 뒤 공개) push → GitHub 서버 push 시각 기준 정시 판정 → 영수증(submissions.jsonl) 기록·커밋
 # 판정 근거: push 이벤트 페이로드의 repository.pushed_at (서버 기록). 보조: 이 워크플로 실행의 created_at (서버 기록).
 # 커밋 작성 시각(author/committer date)은 수정 가능하므로 쓰지 않는다.
 name: league-submission
@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - 'league/imports/*/*.csv'
+      - 'league/imports/*/*.sha256'
 permissions:
   contents: write
   actions: read
@@ -48,7 +49,7 @@ jobs:
           for p in league/ledger league/sandbox; do [ -e "$p" ] && git add "$p"; done
           if git diff --cached --quiet; then
             # 처리한 제출이 있는데 기록할 변경이 없으면 영수증 유실 → 실패로 알린다
-            if grep -qE ' (accepted|late|rejected) ' receipt.txt; then echo "::error::영수증이 생성됐지만 커밋할 변경이 없음"; exit 1; fi
+            if grep -qE ' (accepted|committed|late|rejected) ' receipt.txt; then echo "::error::영수증이 생성됐지만 커밋할 변경이 없음"; exit 1; fi
             echo "기록할 영수증 없음"; exit 0
           fi
           git commit -q -m "league: submission receipt for ${GITHUB_SHA::7}" -m "$(cat receipt.txt)"

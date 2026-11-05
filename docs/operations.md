@@ -72,3 +72,11 @@ python3 tools/league.py outage 2026-11-10 --team shushu --agent s3 --reason "분
 - 가려진 건수만 `embargoed`에 `팀|라운드: 건수`로 남는다. 08:30 이후 다시 내보내면 들어간다.
 - `build-site`는 마감 전 추천이 남아 있으면 실패한다. 예시 원장(`SAMPLE`)은 실제 추천이 아니라 예외.
 - 원장(`league/ledger/picks.jsonl`)과 `league/imports/` 원본 CSV는 저장소에 그대로 있으므로, 마감 전에는 라운드 세션이 상대 팀 경로를 열지 않는 규칙(league-round 스킬)이 계속 필요하다.
+
+## 지문 먼저, 원본 나중 제출 (v1.7, 2026-11-09 라운드부터)
+
+- 08:30 전에는 `<날짜>.sha256`(CSV 원본 바이트의 sha256)만 push → 영수증 `committed`. 원본 CSV·토론 기록은 08:30~12:00에 push → 해시가 같으면 `accepted`.
+- 설정: `league/config.json`의 `commit_reveal` (`from`, `reveal_deadline`). 연습 원장도 같은 설정을 쓴다.
+- 지문 파일 만들기: `python3 tools/league.py commit <CSV>`.
+- 마감 전 원본 push는 접수하되 `early_reveal: true`로 기록한다.
+- 현황판의 종목 공개(08:35 갱신)는 원본 공개 뒤라야 보이므로, 원본을 늦게 올린 팀은 그 다음 갱신에 나타난다.

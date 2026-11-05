@@ -681,6 +681,24 @@ def schedule(start: date, end: date, cfg: dict) -> list[dict]:
 
 import re, subprocess
 SUBMISSION_RE = re.compile(r"^league/imports/([a-z0-9_-]+)/(\d{4}-\d{2}-\d{2})\.csv$")
+COMMIT_RE = re.compile(r"^league/imports/([a-z0-9_-]+)/(\d{4}-\d{2}-\d{2})\.sha256$")
+SHA_RE = re.compile(r"^\s*([0-9a-f]{64})\b")
+
+def commit_reveal_applies(round_date: str, cfg: dict) -> bool:
+    """지문 먼저·원본 나중 제출 방식이 이 라운드에 적용되는가 (config.commit_reveal.from 이후 라운드)."""
+    cr = cfg.get("commit_reveal") or {}
+    return bool(cr.get("from")) and round_date >= cr["from"]
+
+def reveal_deadline(round_date: date, cfg: dict) -> datetime:
+    hh, mm = map(int, (cfg.get("commit_reveal") or {}).get("reveal_deadline", "12:00").split(":"))
+    return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
+
+def write_commitment(csv_path: Path) -> Path:
+    """제출 CSV의 원본 바이트 sha256을 같은 폴더의 <날짜>.sha256 에 쓴다. 이 파일만 마감 전에 push한다."""
+    sha = hashlib.sha256(Path(csv_path).read_bytes()).hexdigest()
+    out = Path(csv_path).with_suffix(".sha256")
+    out.write_text(f"{sha}  {Path(csv_path).name}\n")
+    return out
 ZERO_SHA = "0" * 40
 
 def _git(*args, cwd=ROOT) -> str:
@@ -698,7 +716,8 @@ def changed_submission_files(event: dict, cwd=ROOT) -> list[str]:
     if not files:
         for c in event.get("commits", []):
             files += c.get("added", []) + c.get("modified", [])
-    return sorted({f for f in files if SUBMISSION_RE.match(f)})
+    return sorted({f for f in files if SUBMISSION_RE.match(f) or COMMIT_RE.match(f)},
+                  key=lambda f: (0 if f.endswith(".sha256") else 1, f))     # 같은 push면 지문 먼저 처리
 
 def ledger_dir_for(team: str, cwd=ROOT) -> Path:
     """sandbox 및 sandbox-<팀> 은 시험용 원장(league/sandbox)에 기록해 실제 원장을 오염시키지 않는다.
@@ -714,6 +733,9 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
     judged_at, judged_src = (pushed_at, "push_event.repository.pushed_at") if pushed_at else (run_at, "workflow_run.created_at")
     receipts = []
     for path in changed_submission_files(event, cwd):
+        if COMMIT_RE.match(path):
+            receipts.append(_process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, run_url, run_at, cwd))
+            continue
         team, rd = SUBMISSION_RE.match(path).groups()
         d = ledger_dir_for(team, cwd)
         cfg = load_config(d)
@@ -727,14 +749,33 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                "csv_sha256": sha, "pushed_at": pushed_at.isoformat() if pushed_at else None,
                "run_id": str(run_id), "run_url": run_url, "run_created_at": run_at.isoformat() if run_at else None,
                "judged_by": judged_src, "deadline": deadline.isoformat(), "errors": [], "imported": 0}
-        prior = [s for s in read_ledger(d, "submissions") if s["team"] == team and s["round_date"] == rd and s["status"] == "accepted"]
+        subs = [s for s in read_ledger(d, "submissions") if s["team"] == team and s["round_date"] == rd]
+        prior = [s for s in subs if s["status"] == "accepted"]
+        cr = commit_reveal_applies(rd, cfg)
+        commitment = next((s for s in subs if s["status"] == "committed"), None) if cr else None
+        lock_time = judged_at            # 추천이 '확정'된 것으로 보는 시각: 보통 push 시각, 지문 방식이면 지문 push 시각
+        if cr:
+            rec["kind"] = "reveal"
         if judged_at is None:
             rec.update(status="rejected", errors=["서버 push 시각을 확인할 수 없음"])
         elif prior:
             rec.update(status="rejected", errors=[f"이미 접수된 제출이 있음 ({prior[0]['commit'][:7]}) — 확정 후 변경 불가"])
-        elif judged_at > deadline:
-            rec.update(status="late", errors=[f"마감 {cfg['lock_deadline']} KST 이후 push ({judged_at.isoformat(timespec='seconds')})"])
+        elif cr and commitment and sha != commitment["committed_sha256"]:
+            rec.update(status="rejected", errors=[f"원본 해시 {sha[:12]}가 마감 전 지문 {commitment['committed_sha256'][:12]}와 다름 — "
+                                                   f"지문과 같은 파일을 다시 push하면 됨 (공개 마감 {reveal_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST)"])
+        elif cr and commitment and judged_at > reveal_deadline(date.fromisoformat(rd), cfg):
+            rec.update(status="rejected", errors=[f"원본 공개 마감 {reveal_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
+        elif judged_at > deadline and not (cr and commitment):
+            why = " (마감 전 지문 제출 없음)" if cr else ""
+            rec.update(status="late", errors=[f"마감 {cfg['lock_deadline']} KST 이후 push ({judged_at.isoformat(timespec='seconds')}){why}"])
         else:
+            if cr and commitment:
+                lock_time = datetime.fromisoformat(commitment["judged_at"])
+                rec.update(commitment_commit=commitment["commit"], commitment_pushed_at=commitment["judged_at"])
+                if judged_at <= deadline:
+                    rec["early_reveal"] = True
+            elif cr:
+                rec["early_reveal"] = True     # 마감 전에 원본을 바로 올림: 접수는 하되 상대가 볼 수 있었음을 기록
             tmp = d / ".tmp_submission.csv"
             tmp.parent.mkdir(parents=True, exist_ok=True)
             tmp.write_bytes(raw)
@@ -743,11 +784,13 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                 errs = [f"{b['line']}행: {'; '.join(b['errors'])}" for b in bad]
                 errs += [f"round_date {r['round_date']}가 파일명 {rd}와 다름" for r in ok if r["round_date"] != rd]
                 errs += [f"locked_at {r['locked_at']}가 서버 push 시각보다 늦음" for r in ok
-                         if datetime.fromisoformat(r["locked_at"]) > judged_at]
+                         if datetime.fromisoformat(r["locked_at"]) > lock_time]
                 if errs or not ok:
                     rec.update(status="rejected", errors=errs or ["추천 없음"])
                 else:
                     meta = {"commit": event["after"], "csv_sha256": sha, "pushed_at": rec["pushed_at"], "run_id": str(run_id)}
+                    if rec.get("commitment_commit"):
+                        meta.update(commitment_commit=rec["commitment_commit"], committed_at=rec["commitment_pushed_at"])
                     for r in ok:
                         append(d, "picks", {**r, "submission": meta})
                     rec.update(status="accepted", imported=len(ok))
@@ -755,6 +798,36 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                 tmp.unlink(missing_ok=True)
         receipts.append(append(d, "submissions", rec))
     return receipts
+
+def _process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, run_url, run_at, cwd) -> dict:
+    """마감 전 지문(<날짜>.sha256) push. 첫 유효 지문만 인정하고, 원본은 마감 뒤 공개 마감까지 올린다."""
+    team, rd = COMMIT_RE.match(path).groups()
+    d = ledger_dir_for(team, cwd)
+    cfg = load_config(d)
+    raw = subprocess.run(["git", "show", f"{event['after']}:{path}"], cwd=cwd, check=True, capture_output=True).stdout
+    m = SHA_RE.match(raw.decode("utf-8-sig", "replace").lower())
+    deadline = lock_deadline(date.fromisoformat(rd), cfg)
+    rec = {"team": team, "round_date": rd, "path": path, "kind": "commitment", "commit": event["after"],
+           "before": event.get("before"), "ref": event.get("ref"), "pusher": (event.get("pusher") or {}).get("name"),
+           "committed_sha256": m.group(1) if m else None, "csv_sha256": None,
+           "pushed_at": pushed_at.isoformat() if pushed_at else None,
+           "judged_at": judged_at.isoformat() if judged_at else None,
+           "run_id": str(run_id), "run_url": run_url, "run_created_at": run_at.isoformat() if run_at else None,
+           "judged_by": judged_src, "deadline": deadline.isoformat(), "errors": [], "imported": 0}
+    subs = [s for s in read_ledger(d, "submissions") if s["team"] == team and s["round_date"] == rd]
+    if not commit_reveal_applies(rd, cfg):
+        rec.update(status="rejected", errors=["이 라운드는 지문 제출 대상이 아님 — CSV를 마감 전에 push"])
+    elif judged_at is None:
+        rec.update(status="rejected", errors=["서버 push 시각을 확인할 수 없음"])
+    elif not m:
+        rec.update(status="rejected", errors=["지문 파일 첫 줄이 64자리 sha256(소문자 16진수)이 아님"])
+    elif any(s["status"] in ("committed", "accepted") for s in subs):
+        rec.update(status="rejected", errors=["이미 지문 또는 접수된 제출이 있음 — 첫 지문만 유효"])
+    elif judged_at > deadline:
+        rec.update(status="late", errors=[f"마감 {cfg['lock_deadline']} KST 이후 지문 push ({judged_at.isoformat(timespec='seconds')})"])
+    else:
+        rec["status"] = "committed"
+    return append(d, "submissions", rec)
 
 def append_only_violations(base: str, head: str, cwd=ROOT) -> list[str]:
     """base→head 사이 원장(jsonl) 변경이 '끝에 줄 추가'뿐인지 검사. 기존 줄 수정·삭제·파일 삭제를 잡는다."""
@@ -1088,7 +1161,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -1165,6 +1238,10 @@ def main():
         src = json.loads(Path(a.arg).read_text())
         out = make_csv(src["picks"], src["round_date"], Path(a.out))
         print(out)
+    elif a.cmd == "commit":
+        out = write_commitment(Path(a.arg))
+        print(f"지문: {out}  ({out.read_text().split()[0]})")
+        print("마감(08:30) 전에는 이 .sha256 파일만 push하고, CSV·토론 기록·rounds 폴더는 08:30 이후 push한다.")
     elif a.cmd == "build-site":
         out = Path(a.out or (ROOT / "site"))
         for f in build_site(d, out):
@@ -1193,7 +1270,7 @@ def main():
     elif a.cmd == "receipt":
         event = json.loads(Path(a.arg).read_text())
         for r in process_push(event, a.run_id, a.run_url, a.run_created_at):
-            print(f"{r['team']} {r['round_date']} {r['status']} push={r['pushed_at']} sha256={r['csv_sha256'][:12]} {'; '.join(r['errors'])}")
+            print(f"{r['team']} {r['round_date']} {r['status']} push={r['pushed_at']} sha256={(r.get('csv_sha256') or r.get('committed_sha256') or '')[:12]} {'; '.join(r['errors'])}")
     elif a.cmd == "export":
         out = Path(a.out or (ROOT / "data" / ("league-public.js" if a.public else "league.js")))
         export(d, out, public=a.public)

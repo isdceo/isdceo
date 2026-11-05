@@ -90,5 +90,10 @@
     }
   },
   "season_start": "2026-11-09",
-  "season_start_note": "2026-11-04 운영자 결정. 첫 실전 라운드 2026-11-09(월), 마감 08:30 KST"
+  "season_start_note": "2026-11-04 운영자 결정. 첫 실전 라운드 2026-11-09(월), 마감 08:30 KST",
+  "commit_reveal": {
+    "from": "2026-11-09",
+    "reveal_deadline": "12:00",
+    "note": "마감(08:30) 전에는 CSV 원본의 sha256 지문(<날짜>.sha256)만 push하고, 원본 CSV는 08:30~12:00 KST에 push한다. 원본 해시가 지문과 같아야 접수. 마감 전 원본 push는 접수하되 early_reveal로 기록"
+  }
 }

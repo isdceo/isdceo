@@ -564,3 +564,107 @@ class DashboardData(unittest.TestCase):
             for p in out["picks"]:
                 self.assertGreaterEqual(t, L.lock_deadline(date.fromisoformat(p["round_date"]), cfg), p["pick_id"])
             self.assertNotIn("ticker", json.dumps(out["teams"] + out["receipts"] + out["checklist"]))
+
+
+class CommitReveal(Receipts):
+    """마감 전 지문(.sha256)만 push, 원본 CSV는 08:30~12:00에 공개."""
+    ROWS = [("s1", "KR", "005930"), ("s1", "US", "AAPL")]
+
+    def _csv(self, rd, rows, locked="07:50"):
+        body = "round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+        for a, m, t in rows:
+            body += f"{rd},{a},1,{m},{t},{t},{rd}T{locked}:00+09:00,근거,위험,https://x|{rd}\n"
+        return body
+
+    def _push_files(self, files: dict, pushed_at):
+        before = self.run("rev-parse", "HEAD")
+        for name, text in files.items():
+            p = self.repo / "league" / "imports" / "shushu" / name
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(text)
+        self.run("add", "."); self.run("commit", "-qm", "push")
+        ev = {"before": before, "after": self.run("rev-parse", "HEAD"), "ref": "refs/heads/main", "pusher": {"name": "x"},
+              "repository": {"pushed_at": int(datetime.fromisoformat(pushed_at).timestamp())}, "commits": []}
+        return L.process_push(ev, run_id="1", cwd=self.repo)
+
+    def _commit(self, rd, body, pushed_at, sha=None):
+        import hashlib
+        sha = sha or hashlib.sha256(body.encode()).hexdigest()
+        return self._push_files({f"{rd}.sha256": f"{sha}  {rd}.csv\n"}, pushed_at)[0]
+
+    def test_commit_then_reveal_accepted(self):
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        c = self._commit(rd, body, "2026-11-10T08:20:00+09:00")
+        self.assertEqual(c["status"], "committed")
+        self.assertEqual(L.read_ledger(self.repo / "league", "picks"), [])
+        r = self._push_files({f"{rd}.csv": body}, "2026-11-10T08:40:00+09:00")[0]
+        self.assertEqual((r["status"], r["imported"]), ("accepted", 2))
+        self.assertEqual(r["commitment_commit"], c["commit"])
+        pk = L.read_ledger(self.repo / "league", "picks")[0]
+        self.assertEqual(pk["submission"]["committed_at"], "2026-11-10T08:20:00+09:00")
+
+    def test_reveal_hash_mismatch_rejected_then_retry(self):
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        self._commit(rd, body, "2026-11-10T08:20:00+09:00")
+        bad = self._push_files({f"{rd}.csv": self._csv(rd, [("s1", "KR", "000660"), ("s1", "US", "MSFT")])},
+                               "2026-11-10T08:40:00+09:00")[0]
+        self.assertEqual(bad["status"], "rejected")
+        self.assertIn("지문", bad["errors"][0])
+        ok = self._push_files({f"{rd}.csv": body}, "2026-11-10T08:45:00+09:00")[0]
+        self.assertEqual(ok["status"], "accepted")
+
+    def test_late_commitment(self):
+        rd = "2026-11-10"
+        c = self._commit(rd, self._csv(rd, self.ROWS), "2026-11-10T08:30:01+09:00")
+        self.assertEqual(c["status"], "late")
+
+    def test_reveal_without_commitment_after_deadline_is_late(self):
+        rd = "2026-11-10"
+        r = self._push_files({f"{rd}.csv": self._csv(rd, self.ROWS)}, "2026-11-10T08:40:00+09:00")[0]
+        self.assertEqual(r["status"], "late")
+        self.assertIn("지문 제출 없음", r["errors"][0])
+
+    def test_reveal_after_reveal_deadline_rejected(self):
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        self._commit(rd, body, "2026-11-10T08:20:00+09:00")
+        r = self._push_files({f"{rd}.csv": body}, "2026-11-10T12:00:01+09:00")[0]
+        self.assertEqual(r["status"], "rejected")
+
+    def test_second_commitment_rejected(self):
+        rd = "2026-11-10"
+        self._commit(rd, self._csv(rd, self.ROWS), "2026-11-10T08:00:00+09:00")
+        c2 = self._commit(rd, self._csv(rd, [("s1", "KR", "000660"), ("s1", "US", "MSFT")]), "2026-11-10T08:10:00+09:00")
+        self.assertEqual(c2["status"], "rejected")
+
+    def test_early_reveal_flagged(self):
+        rd = "2026-11-10"
+        r = self._push_files({f"{rd}.csv": self._csv(rd, self.ROWS)}, "2026-11-10T08:10:00+09:00")[0]
+        self.assertEqual(r["status"], "accepted")
+        self.assertTrue(r.get("early_reveal"))
+
+    def test_locked_at_after_commitment_rejected(self):
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS, locked="08:25")
+        self._commit(rd, body, "2026-11-10T08:20:00+09:00")
+        r = self._push_files({f"{rd}.csv": body}, "2026-11-10T08:40:00+09:00")[0]
+        self.assertEqual(r["status"], "rejected")
+
+    def test_before_start_date_commitment_not_used(self):
+        rd = "2026-11-06"
+        c = self._commit(rd, self._csv(rd, self.ROWS), "2026-11-06T08:00:00+09:00")
+        self.assertEqual(c["status"], "rejected")
+
+    def test_write_commitment_matches_raw_bytes(self):
+        import hashlib
+        p = self.repo / "x" / "2026-11-10.csv"; p.parent.mkdir()
+        p.write_bytes("a,b\r\n1,2\r\n".encode())
+        out = L.write_commitment(p)
+        self.assertEqual(out.name, "2026-11-10.sha256")
+        self.assertEqual(out.read_text().split()[0], hashlib.sha256(p.read_bytes()).hexdigest())
+
+    def test_commit_and_csv_in_same_push_before_deadline_flagged(self):
+        import hashlib
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        sha = hashlib.sha256(body.encode()).hexdigest()
+        rs = self._push_files({f"{rd}.sha256": f"{sha}  {rd}.csv\n", f"{rd}.csv": body}, "2026-11-10T08:10:00+09:00")
+        self.assertEqual([r["status"] for r in rs], ["committed", "accepted"])
+        self.assertTrue(rs[1].get("early_reveal"))
