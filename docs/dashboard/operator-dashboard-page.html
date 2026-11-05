@@ -1,0 +1,1295 @@
+<meta name="dash-one-writer">
+<style>
+  .lg { font-family: var(--font-anthropic-sans); color: var(--color-fg); display: grid; gap: var(--cds-gap-lg); }
+  .lg h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+  .lg h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+  .lg .lead { color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 0; }
+  .lg .note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0 0 var(--cds-gap-sm); }
+  .lg .tabs { display: flex; gap: var(--cds-gap-xs); flex-wrap: wrap; border-bottom: 1px solid var(--color-border-line); }
+  .lg .tab { font: inherit; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--color-fg-muted); padding: var(--cds-pad-sm) var(--cds-pad-md); cursor: pointer; }
+  .lg .tab[aria-selected=true] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
+  .lg .page { display: grid; gap: var(--cds-gap-md); }
+  .lg [hidden] { display: none !important; }
+  .lg .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
+  .lg .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+  .lg .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .lg .tile .lbl { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .lg .tile .big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; margin-top: var(--cds-gap-xs); }
+  .lg .tile .sub { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin-top: var(--cds-gap-xs); }
+  .lg .wrap { overflow: auto; max-height: 32rem; }
+  .lg table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .lg th { position: sticky; top: 0; background: var(--color-panel); text-align: left; color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); padding: var(--cds-pad-xs) var(--cds-pad-sm) var(--cds-pad-xs) 0; border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .lg td { padding: var(--cds-pad-xs) var(--cds-pad-sm) var(--cds-pad-xs) 0; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+  .lg td.num, .lg th.num { text-align: right; }
+  .lg .ok { color: var(--color-ok); }
+  .lg .warn { color: var(--color-warn); }
+  .lg .bad { color: var(--color-bad); }
+  .lg .muted { color: var(--color-fg-muted); }
+  .lg .empty { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: var(--cds-gap-sm) 0 0; }
+  .lg .filters { display: flex; gap: var(--cds-gap-sm); flex-wrap: wrap; margin-bottom: var(--cds-gap-sm); }
+  .lg .filters select, .lg .filters input { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+  .lg .chart { position: relative; min-height: 220px; }
+  .lg .tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+  .lg .tip .d { color: var(--cds-text-secondary); }
+  .lg .agent-link { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; text-align: left; }
+  .lg .agent-link:hover { color: var(--color-fg); text-decoration-style: solid; }
+  .lg .chips { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); }
+  .lg .chip { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: 999px; padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; }
+  .lg .chip.bench { color: var(--color-fg-muted); border-style: dashed; }
+  .lg .chip:hover { border-color: var(--color-fg-muted); }
+  .lg .profile { display: none; position: sticky; top: 0; z-index: 5; box-shadow: var(--cds-shadow-popover); }
+  .lg .profile.open { display: block; }
+  .lg .profile .ph { display: flex; justify-content: space-between; align-items: start; gap: var(--cds-gap-sm); }
+  .lg .profile .pname { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); }
+  .lg .profile .pclose { font: inherit; background: none; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); color: var(--color-fg-muted); cursor: pointer; padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+  .lg .profile .pstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--cds-gap-sm); margin: var(--cds-gap-md) 0; }
+  .lg .profile .pstats .v { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
+  .lg .board { display: grid; gap: var(--cds-gap-lg); }
+  .lg .felt { --felt: #0d5c3a; --felt-dark: #083d27; --gold: #d4b25c; --cream: #f4ecd6; position: relative; border-radius: 28px; padding: var(--cds-pad-lg); background: radial-gradient(ellipse at 50% 35%, #157048 0%, var(--felt) 45%, var(--felt-dark) 100%); border: 3px solid #5a3a1a; box-shadow: 0 0 0 6px #2b1b0c, inset 0 0 0 2px var(--gold), inset 0 0 60px rgba(0,0,0,.45); color: var(--cream); display: grid; gap: var(--cds-gap-lg); }
+  .lg .felt .ttitle { text-align: center; font-family: var(--font-anthropic-serif); letter-spacing: .2em; color: var(--gold); font-size: var(--cds-font-size-heading); }
+  .lg .felt .tsub { text-align: center; font-size: var(--cds-font-size-caption); color: rgba(244,236,214,.75); margin-top: -8px; }
+  .lg .felt .seats { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--cds-gap-md); align-items: stretch; }
+  .lg .felt .seat { border: 2px solid var(--gold); border-radius: 999px; padding: var(--cds-pad-md) var(--cds-pad-lg); text-align: center; background: rgba(0,0,0,.12); }
+  .lg .felt .seat .sname { letter-spacing: .12em; font-size: var(--cds-font-size-caption); color: var(--gold); }
+  .lg .felt .seat .sv { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; color: var(--cream); }
+  .lg .felt .seat .sv.up { color: #9be3b5; } .lg .felt .seat .sv.down { color: #ffb3a8; }
+  .lg .felt .seat .smeta { font-size: var(--cds-font-size-caption); color: rgba(244,236,214,.75); }
+  .lg .felt .seat .win { display: inline-block; margin-top: 4px; font-size: var(--cds-font-size-caption); color: #2b1b0c; background: var(--gold); border-radius: 999px; padding: 0 10px; white-space: nowrap; }
+  .lg .felt .vs { align-self: center; font-family: var(--font-anthropic-serif); color: var(--gold); text-align: center; font-size: var(--cds-font-size-caption); white-space: pre-line; }
+  .lg .felt .road { background: var(--cream); border-radius: 10px; padding: var(--cds-pad-sm); color: #2b1b0c; }
+  .lg .felt .road .rhead { display: flex; justify-content: space-between; font-size: var(--cds-font-size-caption); margin-bottom: 4px; gap: var(--cds-gap-sm); flex-wrap: wrap; }
+  .lg .felt .road .grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(6, 22px); grid-auto-columns: 22px; gap: 2px; overflow-x: auto; background: repeating-linear-gradient(0deg, transparent 0 23px, #d8cfb6 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, #d8cfb6 23px 24px); min-height: 142px; }
+  .lg .felt .road .bead { width: 20px; height: 20px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; margin: 1px; }
+  .lg .felt .road .bead.c { background: #c0392b; } .lg .felt .road .bead.s { background: #2463b5; } .lg .felt .road .bead.t { background: #2e8b57; }
+  .lg .felt .road .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin: 0 3px 0 8px; vertical-align: -1px; }
+  .lg .felt .rail h3 { margin: 0 0 var(--cds-gap-sm); font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); color: var(--gold); letter-spacing: .08em; }
+  .lg .felt .hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-md); }
+  .lg .felt .hand.bench { grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); }
+  .lg .gcard { position: relative; text-align: left; font: inherit; color: #1f1a14; background: linear-gradient(180deg, #ffffff, #f7f3ea); border: 1px solid #d9d2c3; border-radius: 12px; padding: 0; cursor: pointer; display: flex; flex-direction: column; min-height: 16rem; box-shadow: 0 6px 14px rgba(0,0,0,.35); transition: transform .15s; }
+  .lg .gcard:hover { transform: translateY(-3px); }
+  .lg .gcard .corner { position: absolute; font-family: var(--font-anthropic-serif); line-height: 1; text-align: center; font-size: 15px; }
+  .lg .gcard .corner.tl { top: 8px; left: 9px; } .lg .gcard .corner.br { bottom: 8px; right: 9px; transform: rotate(180deg); }
+  .lg .gcard .corner small { display: block; font-size: 14px; }
+  .lg .gcard.suit-h .corner, .lg .gcard.suit-h .pip { color: #c0392b; } .lg .gcard.suit-s .corner, .lg .gcard.suit-s .pip { color: #1f1a14; }
+  .lg .gcard .gbody { padding: 12px 14px 26px 34px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .lg .gcard .gtop { display: flex; justify-content: flex-end; min-height: 18px; }
+  .lg .gcard .gname { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 24px; line-height: 1.1; }
+  .lg .gcard .gname .pip { font-size: 16px; margin-left: 4px; }
+  .lg .gcard .gstyle, .lg .gcard .gtag, .lg .gcard .gmeta, .lg .gcard .gpicks { font-size: 11.5px; color: #6b6355; }
+  .lg .gcard .gtag { line-height: 1.4; min-height: 2.8em; max-height: 2.8em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .lg .gcard .gstat { display: flex; justify-content: space-between; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .lg .gcard .gstat .lbl { font-size: 11.5px; color: #6b6355; }
+  .lg .gcard .gstat .big { font-family: var(--font-anthropic-serif); font-size: 19px; }
+  .lg .gcard .up { color: #1f7a45; } .lg .gcard .down { color: #b3261e; } .lg .gcard .none { color: #8a8273; }
+  .lg .gcard .bar { height: 5px; border-radius: 999px; background: #ebe5d8; overflow: hidden; }
+  .lg .gcard .bar i { display: block; height: 100%; border-radius: 999px; }
+  .lg .gcard .gpicks { border-top: 1px dashed #d9d2c3; padding-top: 4px; margin-top: auto; }
+  .lg .gcard .flag { font-size: 11px; border-radius: 999px; padding: 0 8px; }
+  .lg .gcard.lead { box-shadow: 0 0 0 3px #d4b25c, 0 0 22px rgba(212,178,92,.75); }
+  .lg .gcard.lead .flag { background: #d4b25c; color: #2b1b0c; }
+  .lg .gcard.danger { box-shadow: 0 0 0 3px #e0574a, 0 0 22px rgba(224,87,74,.7); }
+  .lg .gcard.danger .flag { background: #e0574a; color: #fff; }
+  .lg .gcard.out { opacity: .4; filter: grayscale(.8); }
+  .lg .gcard.back { min-height: 0; color: var(--cream); background: repeating-linear-gradient(45deg, #7a1e1e 0 6px, #8f2a2a 6px 12px); border: 6px solid #f4ecd6; box-shadow: 0 6px 14px rgba(0,0,0,.35); }
+  .lg .gcard.back .gbody { padding: 12px 14px; background: rgba(43,27,12,.72); border-radius: 6px; margin: 10px; gap: 2px; }
+  .lg .gcard.back .gname { font-size: 18px; color: #f4ecd6; }
+  .lg .gcard.back .gstyle, .lg .gcard.back .gtag { color: rgba(244,236,214,.8); }
+  @media (max-width: 560px) {
+    .lg .felt .seats { grid-template-columns: 1fr; }
+    .lg .felt .seat { border-radius: 24px; }
+    .lg .felt .vs { white-space: normal; }
+    .lg .felt { border-radius: 18px; padding: var(--cds-pad-md); }
+  }
+  .lg .felt .tablewrap { overflow-x: auto; margin: 0 -6px; -webkit-overflow-scrolling: touch; }
+  .lg .felt .tablebox { min-width: 760px; }
+  .lg .felt .tablebox svg { display: block; width: 100%; height: auto; }
+  .lg .felt .tablebox .seat { cursor: pointer; }
+  .lg .felt .tablebox .seat:hover .spot { stroke-width: 3.5; }
+  .lg .felt .swipe { display: none; text-align: center; font-size: 11px; color: rgba(244,236,214,.7); }
+  @media (max-width: 760px) { .lg .felt .swipe { display: block; } }
+  .lg .felt .fine { text-align: center; font-size: 11px; color: rgba(244,236,214,.65); }
+  .lg .avatar { display: inline-block; flex: none; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,.25); vertical-align: middle; }
+  .lg .gcard .gname { display: flex; align-items: center; gap: 8px; }
+  .lg .chip { display: inline-flex; align-items: center; gap: 6px; padding-left: 4px; }
+  .lg .profile .phead { display: flex; align-items: center; gap: var(--cds-gap-md); }
+  .lg [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="lg">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+    <radialGradient id="av-bgC" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#e08a62"/><stop offset="1" stop-color="#8e3b23"/></radialGradient>
+    <radialGradient id="av-bgS" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#6a9be0"/><stop offset="1" stop-color="#1f3f73"/></radialGradient>
+    <clipPath id="av-disc"><circle cx="60" cy="60" r="57"/></clipPath>
+
+    <!-- 뚝심이: 등껍질 배낭을 멘 느긋한 거북이 할아버지 -->
+    <g id="av-ttukshim">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)">
+        <ellipse cx="60" cy="104" rx="44" ry="28" fill="#8a5a2b" stroke="#5e3c1a" stroke-width="3"/>
+        <path d="M36 96 L48 88 L60 92 L72 88 L84 96 M48 88 L46 78 M72 88 L74 78 M60 92 V104" stroke="#5e3c1a" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+        <path d="M46 74 Q60 82 74 74 L76 104 H44 Z" fill="#8cc084" stroke="#4f7a46" stroke-width="2.5"/>
+        <path d="M52 86 L60 92 L68 86 L64 96 H56 Z" fill="#c0392b" stroke="#7a1e1e" stroke-width="1.5"/>
+      </g>
+      <ellipse cx="60" cy="54" rx="27" ry="25" fill="#9ccc8f" stroke="#4f7a46" stroke-width="2.8"/>
+      <path d="M38 40 Q42 30 50 34 M82 40 Q78 30 70 34" stroke="#f4f4f4" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M40 44 Q47 39 56 43 M64 43 Q73 39 80 44" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <circle cx="49" cy="53" r="8" fill="#ffffff" fill-opacity=".45" stroke="#3a2a1a" stroke-width="2.5"/>
+      <circle cx="71" cy="53" r="8" fill="#ffffff" fill-opacity=".45" stroke="#3a2a1a" stroke-width="2.5"/>
+      <path d="M57 53 H63" stroke="#3a2a1a" stroke-width="2.5"/>
+      <path d="M45 54 Q49 51 53 54 M67 54 Q71 51 75 54" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <circle cx="41" cy="63" r="4" fill="#f29b9b" fill-opacity=".7"/><circle cx="79" cy="63" r="4" fill="#f29b9b" fill-opacity=".7"/>
+      <path d="M50 66 Q60 74 70 66" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <!-- 삐딱이: 비스듬한 중절모, 한쪽 눈썹을 치켜든 의심 많은 표정 -->
+    <g id="av-ppittak">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)">
+        <path d="M16 120 Q22 88 46 84 L60 96 L74 84 Q98 88 104 120 Z" fill="#33374d" stroke="#1d2030" stroke-width="2.5"/>
+        <path d="M46 84 L54 100 L60 96 Z M74 84 L66 100 L60 96 Z" fill="#ffffff"/>
+        <path d="M44 82 L36 98 L50 90 Z M76 82 L84 98 L70 90 Z" fill="#454a66" stroke="#1d2030" stroke-width="2"/>
+        <rect x="53" y="74" width="14" height="14" fill="#f0c49c"/>
+      </g>
+      <ellipse cx="60" cy="58" rx="24" ry="27" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+      <path d="M36 54 Q34 66 40 72 M84 54 Q86 66 80 72" stroke="#3a2a22" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <g transform="rotate(-13 60 36)">
+        <ellipse cx="60" cy="38" rx="36" ry="7" fill="#262838" stroke="#12131c" stroke-width="2"/>
+        <path d="M39 38 Q40 15 60 15 Q80 15 81 38 Z" fill="#30334a" stroke="#12131c" stroke-width="2"/>
+        <path d="M51 16 Q60 22 69 16" stroke="#12131c" stroke-width="2" fill="none"/>
+        <rect x="40" y="30" width="40" height="6" fill="#b8352a"/>
+      </g>
+      <path d="M43 52 L54 53" stroke="#3a2a22" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M66 46 Q72 40 79 44" stroke="#3a2a22" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+      <ellipse cx="49" cy="59" rx="5" ry="3.2" fill="#fff" stroke="#2b2b2b" stroke-width="1.6"/>
+      <path d="M44 58 H54" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="49.5" cy="60" r="1.8" fill="#2b2b2b"/>
+      <ellipse cx="72" cy="56" rx="5.2" ry="5.6" fill="#fff" stroke="#2b2b2b" stroke-width="1.6"/>
+      <circle cx="73" cy="57" r="2.4" fill="#2b2b2b"/>
+      <path d="M58 61 Q61 67 57 69" stroke="#8a5a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M50 76 Q58 78 70 71" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <!-- 돋보기: 사냥모자를 쓰고 커다란 돋보기를 든 꼼꼼한 탐정 -->
+    <g id="av-dotbogi">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)">
+        <path d="M14 120 Q20 90 44 86 L60 98 L76 86 Q100 90 106 120 Z" fill="#9a7a52" stroke="#5e4428" stroke-width="2.5"/>
+        <path d="M30 100 Q60 84 90 100 L94 112 Q60 96 26 112 Z" fill="#b08d60" stroke="#5e4428" stroke-width="2"/>
+        <rect x="53" y="76" width="14" height="14" fill="#f0c49c"/>
+      </g>
+      <ellipse cx="58" cy="60" rx="23" ry="25" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+      <path d="M33 46 Q36 22 58 21 Q80 22 83 46 Q58 38 33 46 Z" fill="#b8955f" stroke="#5e4428" stroke-width="2.4"/>
+      <path d="M40 30 L76 42 M38 38 L70 28 M50 23 L48 44 M64 23 L66 43" stroke="#7a5c34" stroke-width="1.6" opacity=".8"/>
+      <path d="M34 45 Q24 50 28 60 L36 52 Z M82 45 Q92 50 88 60 L80 52 Z" fill="#a8865a" stroke="#5e4428" stroke-width="2"/>
+      <path d="M56 22 Q60 15 64 22" stroke="#5e4428" stroke-width="2.4" fill="none"/>
+      <path d="M41 53 Q47 50 53 53" stroke="#3a2a22" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <circle cx="47" cy="60" r="2.4" fill="#2b2b2b"/>
+      <path d="M56 64 Q58 68 55 70" stroke="#8a5a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="53" cy="77" rx="3.4" ry="2.6" fill="#7a2a1e"/>
+      <path d="M86 72 L102 94" stroke="#5e3c1a" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="74" cy="60" r="15" fill="#cfe6ff" fill-opacity=".45" stroke="#d4b25c" stroke-width="4.5"/>
+      <circle cx="74" cy="60" r="7.5" fill="#fff" stroke="#2b2b2b" stroke-width="1.8"/>
+      <circle cx="75.5" cy="61" r="4" fill="#2b2b2b"/>
+      <path d="M66 52 Q68 49 72 48" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <path d="M65 44 Q73 39 82 43" stroke="#3a2a22" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+  
+    <g id="av-balgul">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)"><path d="M14 120 Q20 90 44 86 L60 96 L76 86 Q100 90 106 120 Z" fill="#c98f2e" stroke="#7a5418" stroke-width="2.5"/>
+    <path d="M44 88 L48 120 M76 88 L72 120" stroke="#7a5418" stroke-width="5"/>
+    <rect x="53" y="76" width="14" height="14" fill="#f0c49c"/>
+    <path d="M92 118 L104 62" stroke="#6b4423" stroke-width="5" stroke-linecap="round"/>
+    <path d="M86 66 Q102 52 116 70" stroke="#9aa3ab" stroke-width="6" stroke-linecap="round" fill="none"/></g>
+      <ellipse cx="58" cy="60" rx="23" ry="24" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M32 46 Q34 22 58 22 Q82 22 84 46 Z" fill="#f2c230" stroke="#9a7410" stroke-width="2.6"/>
+    <rect x="28" y="44" width="60" height="6" rx="3" fill="#e0ad1c" stroke="#9a7410" stroke-width="2"/>
+    <circle cx="58" cy="35" r="6" fill="#fff8d0" stroke="#9a7410" stroke-width="2"/>
+    <path d="M43 58 Q48 54 53 58 M63 58 Q68 54 73 58" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M45 68 Q58 80 71 68 Z" fill="#7a2a1e" stroke="#2b2b2b" stroke-width="2"/>
+    <path d="M48 70 H68" stroke="#fff" stroke-width="2"/>
+    <ellipse cx="40" cy="66" rx="4" ry="2.5" fill="#8a6a50" opacity=".5"/>
+    <path d="M16 30 l3 -6 l3 6 l-3 6 Z" fill="#bfe9ff" stroke="#fff" stroke-width="1"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-keun">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)"><path d="M14 120 Q20 90 44 86 L60 98 L76 86 Q100 90 106 120 Z" fill="#6b5b4f" stroke="#3f342c" stroke-width="2.5"/>
+    <path d="M48 88 L60 100 L72 88 L68 120 H52 Z" fill="#a33b3b"/>
+    <rect x="53" y="76" width="14" height="14" fill="#f0c49c"/>
+    <circle cx="32" cy="96" r="15" fill="#4f8fd6" stroke="#1f3f73" stroke-width="2.5"/>
+    <path d="M17 96 H47 M32 81 V111 M22 86 Q32 96 22 106 M42 86 Q32 96 42 106" stroke="#d8ecff" stroke-width="1.8" fill="none"/>
+    <path d="M26 90 Q30 86 34 90 Q38 94 36 98 Q30 98 28 94 Z" fill="#7cc47c"/>
+    <path d="M20 110 Q26 104 30 106" stroke="#f5cfa6" stroke-width="6" stroke-linecap="round" fill="none"/></g>
+      <ellipse cx="60" cy="58" rx="23" ry="25" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M36 50 Q36 30 60 30 Q84 30 84 50 Q78 38 60 38 Q42 38 36 50 Z" fill="#d6d6d6" stroke="#8a8a8a" stroke-width="2"/>
+    <path d="M37 52 Q33 60 37 66 M83 52 Q87 60 83 66" stroke="#d6d6d6" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <circle cx="51" cy="57" r="6" fill="#fff" fill-opacity=".4" stroke="#3a2a1a" stroke-width="2.2"/>
+    <circle cx="69" cy="57" r="6" fill="#fff" fill-opacity=".4" stroke="#3a2a1a" stroke-width="2.2"/>
+    <path d="M57 57 H63" stroke="#3a2a1a" stroke-width="2.2"/>
+    <circle cx="51" cy="57.5" r="1.8" fill="#2b2b2b"/><circle cx="69" cy="57.5" r="1.8" fill="#2b2b2b"/>
+    <path d="M45 48 Q51 45 56 48 M64 48 Q69 45 75 48" stroke="#9a9a9a" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M48 72 Q60 86 72 72 Q66 78 60 78 Q54 78 48 72 Z" fill="#e6e6e6" stroke="#9a9a9a" stroke-width="1.8"/>
+    <path d="M53 70 Q60 74 67 70" stroke="#2b2b2b" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-mirae">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)"><path d="M14 120 Q20 90 44 86 L60 96 L76 86 Q100 90 106 120 Z" fill="#e9eef5" stroke="#8a93a0" stroke-width="2.5"/>
+    <path d="M60 96 V120" stroke="#8a93a0" stroke-width="2"/>
+    <path d="M78 98 l4 -8 l4 8 l-2 6 h-4 Z" fill="#e0574a" stroke="#7a1e1e" stroke-width="1.5"/>
+    <rect x="53" y="76" width="14" height="14" fill="#f0c49c"/></g>
+      <ellipse cx="60" cy="58" rx="23" ry="25" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M36 46 L40 26 L48 38 L54 20 L60 36 L68 18 L72 36 L82 26 L84 46 Q60 38 36 46 Z" fill="#5b3a8f" stroke="#2f1d4d" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M34 42 H86" stroke="#2b2b2b" stroke-width="3"/>
+    <circle cx="49" cy="42" r="7.5" fill="#f2a33a" stroke="#2b2b2b" stroke-width="2.4"/><circle cx="71" cy="42" r="7.5" fill="#f2a33a" stroke="#2b2b2b" stroke-width="2.4"/>
+    <circle cx="47" cy="40" r="2.4" fill="#fff" opacity=".8"/><circle cx="69" cy="40" r="2.4" fill="#fff" opacity=".8"/>
+    <path d="M50 54 l1.8 4 l4 .6 l-3 2.8 l.8 4 l-3.6 -2 l-3.6 2 l.8 -4 l-3 -2.8 l4 -.6 Z" fill="#2b2b2b"/>
+    <path d="M70 54 l1.8 4 l4 .6 l-3 2.8 l.8 4 l-3.6 -2 l-3.6 2 l.8 -4 l-3 -2.8 l4 -.6 Z" fill="#2b2b2b"/>
+    <path d="M47 70 Q60 84 73 70 Z" fill="#7a2a1e" stroke="#2b2b2b" stroke-width="2"/>
+    <path d="M52 72 Q60 76 68 72" stroke="#ff9a9a" stroke-width="3" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-pado">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)"><path d="M0 104 Q14 86 28 100 Q20 86 34 82 Q24 96 40 108 L40 120 H0 Z" fill="#2f7fd1" stroke="#fff" stroke-width="2.5"/>
+    <path d="M18 120 Q24 92 46 87 L60 97 L74 87 Q98 92 104 120 Z" fill="#2fa58f" stroke="#1d6b5c" stroke-width="2.5"/>
+    <circle cx="50" cy="104" r="3" fill="#f2c230"/><circle cx="80" cy="100" r="3" fill="#f2c230"/><circle cx="70" cy="114" r="3" fill="#f2c230"/><circle cx="88" cy="112" r="3" fill="#f2c230"/>
+    <rect x="53" y="77" width="14" height="14" fill="#e3b088"/></g>
+      <ellipse cx="60" cy="59" rx="23" ry="25" fill="#ecbd94" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M36 48 Q38 28 60 28 Q82 28 84 48 Q72 40 60 41 Q48 40 36 48 Z" fill="#f2c230" stroke="#9a7410" stroke-width="2.2"/>
+    <path d="M38 40 Q30 30 22 36" stroke="#f2c230" stroke-width="5" stroke-linecap="round"/>
+    <path d="M38 54 H82 L80 62 Q72 66 62 60 H58 Q48 66 40 62 Z" fill="#1f1f2a" stroke="#000" stroke-width="1.5"/>
+    <path d="M44 56 L50 56" stroke="#7bd3ff" stroke-width="2" stroke-linecap="round"/><path d="M66 56 L72 56" stroke="#7bd3ff" stroke-width="2" stroke-linecap="round"/>
+    <path d="M46 70 Q60 82 74 70 Z" fill="#fff" stroke="#2b2b2b" stroke-width="2.2"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-gyesan">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgC)"/>
+      <g clip-path="url(#av-disc)"><rect x="28" y="88" width="64" height="40" rx="8" fill="#b8c2cc" stroke="#5f6b77" stroke-width="2.5"/>
+    <rect x="44" y="96" width="32" height="14" rx="2" fill="#1f2a33"/>
+    <circle cx="50" cy="118" r="2.6" fill="#e0574a"/><circle cx="60" cy="118" r="2.6" fill="#f2c230"/><circle cx="70" cy="118" r="2.6" fill="#2fa58f"/>
+    <path d="M48 104 H72" stroke="#5be08a" stroke-width="2"/>
+    <rect x="54" y="80" width="12" height="10" fill="#8e98a3"/></g>
+      <path d="M60 22 V12" stroke="#5f6b77" stroke-width="3"/><circle cx="60" cy="10" r="4.5" fill="#e0574a" stroke="#7a1e1e" stroke-width="1.5"/>
+    <rect x="32" y="22" width="56" height="58" rx="14" fill="#cfd6de" stroke="#5f6b77" stroke-width="2.6"/>
+    <circle cx="29" cy="52" r="5" fill="#9aa3ab" stroke="#5f6b77" stroke-width="2"/><circle cx="91" cy="52" r="5" fill="#9aa3ab" stroke="#5f6b77" stroke-width="2"/>
+    <rect x="40" y="32" width="40" height="38" rx="8" fill="#1f2a33"/>
+    <rect x="47" y="42" width="8" height="8" rx="1.5" fill="#5be08a"/><rect x="65" y="42" width="8" height="8" rx="1.5" fill="#5be08a"/>
+    <path d="M50 60 Q60 66 70 60" stroke="#5be08a" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <text x="60" y="38.5" font-size="5" text-anchor="middle" fill="#5be08a" font-family="monospace">π=3.14</text>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-dandan">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)"><path d="M14 120 Q20 90 44 86 L60 96 L76 86 Q100 90 106 120 Z" fill="#a9b4bf" stroke="#5f6b77" stroke-width="2.5"/>
+    <path d="M30 96 L52 92 V108 C52 116 44 120 41 122 C38 120 30 116 30 108 Z" fill="#2f6fd0" stroke="#e0e6ee" stroke-width="2.5"/>
+    <path d="M35 104 L40 109 L48 100" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="53" y="76" width="14" height="12" fill="#f0c49c"/></g>
+      <ellipse cx="60" cy="60" rx="22" ry="23" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M34 62 Q32 28 60 26 Q88 28 86 62 L80 62 Q80 44 60 44 Q40 44 40 62 Z" fill="#b8c2cc" stroke="#5f6b77" stroke-width="2.6"/>
+    <path d="M38 44 Q60 30 82 44 L82 38 Q60 22 38 38 Z" fill="#8e98a3" stroke="#5f6b77" stroke-width="2"/>
+    <path d="M60 26 V16 Q66 12 70 18" stroke="#c0392b" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M45 54 L54 56 M75 54 L66 56" stroke="#3a2a22" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="50" cy="61" r="2.4" fill="#2b2b2b"/><circle cx="70" cy="61" r="2.4" fill="#2b2b2b"/>
+    <path d="M52 73 Q60 77 68 73" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-alzza">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)"><path d="M16 120 Q22 90 46 86 L60 98 L74 86 Q98 90 104 120 Z" fill="#8e2f45" stroke="#561a2a" stroke-width="2.5"/>
+    <path d="M48 88 L60 104 L72 88" fill="#fff" stroke="#ccc" stroke-width="1"/>
+    <rect x="54" y="76" width="12" height="13" fill="#f0c49c"/>
+    <path d="M84 96 L90 88 H100 L106 96 L95 110 Z" fill="#bfe9ff" stroke="#fff" stroke-width="2"/>
+    <path d="M84 96 H106 M90 88 L93 96 L95 110 M100 88 L97 96 L95 110" stroke="#7fb6d6" stroke-width="1.2" fill="none"/>
+    <path d="M80 112 Q86 104 90 104" stroke="#f5cfa6" stroke-width="7" stroke-linecap="round" fill="none"/></g>
+      <ellipse cx="60" cy="59" rx="22" ry="25" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <circle cx="60" cy="24" r="10" fill="#5a3826" stroke="#33200f" stroke-width="2.2"/>
+    <path d="M37 56 Q36 32 60 32 Q84 32 83 56 Q76 42 60 42 Q46 42 37 56 Z" fill="#5a3826" stroke="#33200f" stroke-width="2.2"/>
+    <path d="M37 60 l-3 6 l3 6 l3 -6 Z M83 60 l-3 6 l3 6 l3 -6 Z" fill="#bfe9ff" stroke="#fff" stroke-width="1"/>
+    <path d="M45 51 Q50 48 55 51 M65 51 Q70 48 75 51" stroke="#33200f" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <ellipse cx="50" cy="58" rx="3" ry="3.6" fill="#2b2b2b"/><ellipse cx="70" cy="58" rx="3" ry="3.6" fill="#2b2b2b"/>
+    <path d="M45 55 L47 56 M75 55 L73 56" stroke="#2b2b2b" stroke-width="1.6"/>
+    <circle cx="44" cy="66" r="3.5" fill="#f29b9b" fill-opacity=".6"/><circle cx="76" cy="66" r="3.5" fill="#f29b9b" fill-opacity=".6"/>
+    <path d="M52 72 Q60 78 68 72" stroke="#b3261e" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-ssuk">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)"><path d="M18 120 Q24 92 46 88 L60 96 L74 88 Q96 92 102 120 Z" fill="#5cb85c" stroke="#2e7d32" stroke-width="2.5"/>
+    <circle cx="60" cy="108" r="6" fill="#fff" opacity=".85"/><path d="M57 108 L59 111 L64 105" stroke="#2e7d32" stroke-width="2" fill="none"/>
+    <rect x="54" y="78" width="12" height="12" fill="#f0c49c"/></g>
+      <ellipse cx="60" cy="62" rx="24" ry="23" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M36 58 Q36 38 60 38 Q84 38 84 58 Q78 48 66 50 Q60 44 52 50 Q42 48 36 58 Z" fill="#7a4e2d" stroke="#4a2e18" stroke-width="2.2"/>
+    <path d="M60 40 V24" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+    <path d="M60 30 C52 30 46 24 46 16 C54 16 60 21 60 30 Z" fill="#7ed37e" stroke="#2e7d32" stroke-width="2"/>
+    <path d="M60 26 C68 26 74 20 74 12 C66 12 60 17 60 26 Z" fill="#7ed37e" stroke="#2e7d32" stroke-width="2"/>
+    <ellipse cx="50" cy="62" rx="3.4" ry="4" fill="#2b2b2b"/><ellipse cx="70" cy="62" rx="3.4" ry="4" fill="#2b2b2b"/>
+    <circle cx="51" cy="60.5" r="1.2" fill="#fff"/><circle cx="71" cy="60.5" r="1.2" fill="#fff"/>
+    <circle cx="42" cy="70" r="4.5" fill="#f29b9b" fill-opacity=".75"/><circle cx="78" cy="70" r="4.5" fill="#f29b9b" fill-opacity=".75"/>
+    <path d="M51 72 Q60 82 69 72 Z" fill="#7a2a1e" stroke="#2b2b2b" stroke-width="2"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-banjeon">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)"><path d="M14 120 Q20 90 44 86 L60 96 V120 Z" fill="#26262e" stroke="#000" stroke-width="2"/>
+    <path d="M106 120 Q100 90 76 86 L60 96 V120 Z" fill="#eeeeee" stroke="#9a9a9a" stroke-width="2"/>
+    <rect x="53" y="76" width="14" height="14" fill="#f0c49c"/>
+    <path d="M22 26 A40 40 0 0 1 98 26" stroke="#fff" stroke-width="2.4" stroke-dasharray="3 4" fill="none" opacity=".6"/></g>
+      <ellipse cx="60" cy="59" rx="23" ry="25" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M36 54 Q34 28 60 28 V44 Q48 42 38 56 Z" fill="#1f1f26" stroke="#000" stroke-width="2"/>
+    <path d="M84 54 Q86 28 60 28 V44 Q72 42 82 56 Z" fill="#f4f4f4" stroke="#9a9a9a" stroke-width="2"/>
+    <path d="M60 28 V44" stroke="#9a9a9a" stroke-width="1"/>
+    <path d="M44 52 Q49 49 54 52" stroke="#1f1f26" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <path d="M66 50 Q71 46 77 49" stroke="#7a7a7a" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <circle cx="49" cy="59" r="2.6" fill="#2b2b2b"/>
+    <path d="M66 59 Q71 55 76 59" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M48 71 Q58 79 72 68" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M70 69 L74 66" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-nachim">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)"><path d="M14 120 Q20 90 44 86 L60 98 L76 86 Q100 90 106 120 Z" fill="#1f2f55" stroke="#0e1730" stroke-width="2.5"/>
+    <circle cx="48" cy="106" r="2.4" fill="#d4b25c"/><circle cx="72" cy="106" r="2.4" fill="#d4b25c"/><circle cx="48" cy="116" r="2.4" fill="#d4b25c"/><circle cx="72" cy="116" r="2.4" fill="#d4b25c"/>
+    <rect x="53" y="76" width="14" height="14" fill="#f0c49c"/>
+    <path d="M52 86 Q60 96 68 86" stroke="#d4b25c" stroke-width="1.6" fill="none"/>
+    <circle cx="60" cy="100" r="8" fill="#f4ecd6" stroke="#d4b25c" stroke-width="2.5"/>
+    <path d="M60 94 L62 100 H58 Z" fill="#c0392b"/><path d="M58 100 H62 L60 106 Z" fill="#2b2b2b"/></g>
+      <ellipse cx="60" cy="60" rx="23" ry="24" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M38 66 Q40 86 60 86 Q80 86 82 66 Q76 76 60 76 Q44 76 38 66 Z" fill="#e8e8e8" stroke="#a0a0a0" stroke-width="2"/>
+    <path d="M30 44 Q60 30 90 44 L86 50 Q60 42 34 50 Z" fill="#1f2f55" stroke="#0e1730" stroke-width="2"/>
+    <path d="M36 44 Q38 22 60 20 Q82 22 84 44 Q60 36 36 44 Z" fill="#ffffff" stroke="#9aa3ab" stroke-width="2.2"/>
+    <path d="M54 34 h12 v6 h-12 Z" fill="#d4b25c" stroke="#9a7410" stroke-width="1.2"/>
+    <path d="M45 56 Q50 53 55 56 M65 56 Q70 53 75 56" stroke="#8a8a8a" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <circle cx="50" cy="61" r="2.4" fill="#2b2b2b"/><circle cx="70" cy="61" r="2.4" fill="#2b2b2b"/>
+    <path d="M52 72 Q60 77 68 72" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g>
+
+    <g id="av-sunpung">
+      <circle cx="60" cy="60" r="57" fill="url(#av-bgS)"/>
+      <g clip-path="url(#av-disc)"><path d="M88 20 V96 L118 96 Z" fill="#f4ecd6" stroke="#fff" stroke-width="2" opacity=".85"/>
+    <path d="M16 120 Q22 90 46 86 L60 96 L74 86 Q98 90 104 120 Z" fill="#ffffff" stroke="#9aa3ab" stroke-width="2.5"/>
+    <path d="M22 104 H98 M20 114 H100" stroke="#2463b5" stroke-width="4"/>
+    <path d="M48 86 Q60 94 72 86 Q86 88 96 80 Q88 92 74 92" fill="#c0392b" stroke="#7a1e1e" stroke-width="1.8"/>
+    <rect x="54" y="76" width="12" height="12" fill="#f0c49c"/></g>
+      <path d="M38 50 Q40 30 60 30 Q80 30 86 46 Q96 50 104 44 Q98 56 86 58 Q92 66 100 66 Q90 72 82 66 L82 54 Z" fill="#c26a2a" stroke="#7a3e12" stroke-width="2.2"/>
+    <ellipse cx="60" cy="59" rx="22" ry="24" fill="#f5cfa6" stroke="#8a5a3a" stroke-width="2.6"/>
+    <path d="M38 52 Q40 32 60 32 Q78 32 82 48 Q70 40 58 42 Q46 42 38 52 Z" fill="#c26a2a" stroke="#7a3e12" stroke-width="2.2"/>
+    <path d="M45 54 Q50 51 55 54 M65 54 Q70 51 75 54" stroke="#7a3e12" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M45 60 Q50 63 55 60 M65 60 Q70 63 75 60" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <circle cx="44" cy="67" r="3.5" fill="#f29b9b" fill-opacity=".6"/><circle cx="76" cy="67" r="3.5" fill="#f29b9b" fill-opacity=".6"/>
+    <path d="M52 72 Q60 79 68 72" stroke="#2b2b2b" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M10 40 Q20 36 28 40 M8 52 Q18 48 26 52" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7" fill="none"/>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+    </g></defs></svg>
+  <header>
+    <h1 id="title">AI 투자 리그 운영 현황</h1>
+    <p class="lead">운영자 전용 화면. 시작 준비 <b data-draw="ready-done" data-source="readiness" data-field="done">—</b> / <b data-draw="ready-total" data-source="readiness" data-field="total">—</b> 완료. 종목은 각 라운드 마감(08:30 KST)이 지난 뒤에만 실립니다.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="화면">
+    <button class="tab" role="tab" data-tab="ops" aria-selected="true">운영</button>
+    <button class="tab" role="tab" data-tab="cards" aria-selected="false">테이블</button>
+    <button class="tab" role="tab" data-tab="match" aria-selected="false">팀 대결</button>
+    <button class="tab" role="tab" data-tab="league" aria-selected="false">리그 순위</button>
+    <button class="tab" role="tab" data-tab="picks" aria-selected="false">추천·점수</button>
+  </nav>
+
+  <section class="card profile" id="profile" aria-live="polite">
+    <div class="ph">
+      <div data-draw="profile-head" data-source="agents"></div>
+      <button class="pclose" type="button" aria-label="프로필 닫기">닫기</button>
+    </div>
+    <div data-draw="profile-body" data-source="agents agent_total picks"></div>
+    <p class="note">평균은 확정된 점수만으로 계산합니다(채점 전·보류는 제외). 종목은 마감이 지난 라운드만 보입니다.</p>
+  </section>
+
+  <!-- 운영 -->
+  <section class="page" id="ops" data-page="ops">
+    <div class="tiles">
+      <div class="card tile">
+        <div class="lbl">시작 준비</div>
+        <div class="big"><span data-draw="ready-done2" data-source="readiness" data-field="done">—</span> / <span data-draw="ready-total2" data-source="readiness" data-field="total">—</span></div>
+        <div class="sub">남은 항목 <span data-draw="ready-left" data-source="readiness" data-field="left">—</span>개</div>
+      </div>
+      <div class="card tile">
+        <div class="lbl">Claude 팀 최근 제출</div>
+        <div class="big" data-draw="claude-status" data-source="teams" data-field="status" data-where="team=Claude 팀">—</div>
+        <div class="sub"><span data-draw="claude-mode" data-source="teams" data-field="mode" data-where="team=Claude 팀">—</span> · 라운드 <span data-draw="claude-round" data-source="teams" data-field="round" data-where="team=Claude 팀">—</span></div>
+      </div>
+      <div class="card tile">
+        <div class="lbl">슈슈 팀 (Codex) 최근 제출</div>
+        <div class="big" data-draw="shushu-status" data-source="teams" data-field="status" data-where="team=슈슈 팀 (Codex)">—</div>
+        <div class="sub"><span data-draw="shushu-mode" data-source="teams" data-field="mode" data-where="team=슈슈 팀 (Codex)">—</span> · 라운드 <span data-draw="shushu-round" data-source="teams" data-field="round" data-where="team=슈슈 팀 (Codex)">—</span></div>
+      </div>
+      <div class="card tile">
+        <div class="lbl">다음 점검</div>
+        <div class="big" data-draw="next-when" data-source="schedule" data-field="when" data-row="0">—</div>
+        <div class="sub" data-draw="next-task" data-source="schedule" data-field="task" data-row="0">—</div>
+      </div>
+    </div>
+
+    <section class="card" id="teams">
+      <h2>두 팀 최근 제출</h2>
+      <p class="note">마감 전에는 제출 상태만 보이고, 공개 종목 수는 0입니다.</p>
+      <div class="wrap">
+        <table data-source="teams" data-row-key="key">
+          <thead><tr><th data-field="mode">구분</th><th data-field="team">팀</th><th data-field="round">라운드</th><th data-field="status">영수증</th><th data-field="pushed_at">push 시각</th><th class="num" data-field="imported">접수 종목</th><th class="num" data-field="visible_picks">공개 종목</th></tr></thead>
+          <tbody data-draw="teams-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="checklist">
+        <h2>시작 전 체크리스트</h2>
+        <p class="note">남은 항목이 먼저 나옵니다.</p>
+        <div class="wrap">
+          <table data-source="checklist" data-row-key="item">
+            <thead><tr><th data-field="state">상태</th><th data-field="area">영역</th><th data-field="item">항목</th><th data-field="detail">내용</th><th data-field="who">담당</th></tr></thead>
+            <tbody data-draw="check-body"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card" id="schedule">
+        <h2>예약된 점검</h2>
+        <p class="note">한국 시간. 보고는 "Codex 전달사항 있음/없음"으로 시작합니다.</p>
+        <div class="wrap">
+          <table data-source="schedule" data-row-key="when">
+            <thead><tr><th data-field="when">시각</th><th data-field="task">작업</th><th data-field="codex">Codex 전달</th></tr></thead>
+            <tbody data-draw="sched-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card" id="receipts">
+        <h2>제출 영수증</h2>
+        <p class="note">GitHub 서버 push 시각으로 판정. 같은 날짜는 첫 접수만 유효합니다.</p>
+        <div class="wrap">
+          <table data-source="receipts" data-row-key="key">
+            <thead><tr><th data-field="mode">구분</th><th data-field="team">팀</th><th data-field="round">라운드</th><th data-field="status">결과</th><th data-field="pushed_at">push 시각</th><th data-field="commit">커밋</th><th class="num" data-field="imported">기록 수</th></tr></thead>
+            <tbody data-draw="rcpt-body"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card" id="providers">
+        <h2>데이터 제공처</h2>
+        <p class="note">이 화면에도 원 가격은 싣지 않고 점수(%)만 씁니다.</p>
+        <div class="wrap">
+          <table data-source="providers" data-row-key="provider">
+            <thead><tr><th data-field="provider">제공처</th><th data-field="market">용도</th><th data-field="state">상태</th><th data-field="note">비고</th></tr></thead>
+            <tbody data-draw="prov-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" id="notices">
+      <h2>Codex에 보낸 공지</h2>
+      <p class="note">저장소 docs/codex-notices 폴더.</p>
+      <ul data-source="notices" data-draw="notice-list"></ul>
+    </section>
+  </section>
+
+  <!-- 카드판 -->
+  <section class="page board" id="cards" data-page="cards" hidden>
+    <div class="felt">
+      <div class="ttitle">AI INVESTMENT LEAGUE · TABLE</div>
+      <div class="tsub">두 팀 10명이 마주 앉은 테이블. 카드 숫자는 10명 통합 순위이고, 주간 마감에서 꼴등 1장이 테이블을 떠납니다.</div>
+      <div class="tablewrap"><div class="tablebox" data-draw="baccarat" data-source="agents standings team_weeks team_daily"></div></div>
+      <div class="swipe">← 테이블을 옆으로 밀어서 보세요 →</div>
+      <div class="road">
+        <div class="rhead"><b>출목표 — 라운드별 이긴 팀 (그날 확정 종목의 종목당 평균)</b><span class="legend"><i style="background:#c0392b"></i>Claude 팀<i style="background:#2463b5"></i>슈슈 팀<i style="background:#2e8b57"></i>무승부</span></div>
+        <div class="grid" data-draw="road" data-source="team_daily"></div>
+        <p class="rhead" data-draw="road-note" data-source="team_daily"></p>
+      </div>
+      <div class="rail"><h3 data-draw="title-claude">♠ CLAUDE 팀</h3>
+        <div class="hand" data-draw="hand-claude" data-source="agents standings agent_total picks"></div></div>
+      <div class="rail"><h3 data-draw="title-shushu">♥ 슈슈 팀 (Codex)</h3>
+        <div class="hand" data-draw="hand-shushu" data-source="agents standings agent_total picks"></div></div>
+      <div class="rail"><h3>대기석 — 엎어 둔 카드</h3>
+        <div class="hand bench" data-draw="hand-bench" data-source="agents"></div></div>
+      <div class="fine">카지노 테이블은 화면 연출입니다. 돈이나 베팅은 없고, 점수는 모의 예측 점수입니다.</div>
+    </div>
+  </section>
+
+  <!-- 팀 대결 -->
+  <section class="page" id="match" data-page="match" hidden>
+    <section class="card" id="roster">
+      <h2>선수 명단</h2>
+      <p class="note">애칭을 누르면 프로필이 열립니다. 점선 테두리는 승인된 대기 후보입니다.</p>
+      <div class="grid">
+        <div><p class="note">Claude 팀</p><div class="chips" data-draw="roster-claude" data-source="agents"></div></div>
+        <div><p class="note">슈슈 팀 (Codex)</p><div class="chips" data-draw="roster-shushu" data-source="agents"></div></div>
+      </div>
+    </section>
+    <div class="filters">
+      <select data-draw="round-select" aria-label="라운드" data-source="picks"></select>
+    </div>
+    <p class="note">같은 라운드의 두 팀을 에이전트별로 나란히 봅니다. 점수 = 다음 거래일 종가 수익률(배당 포함). 주황색은 잠정 점수, 빈칸 옆 글자는 채점 상태(pending 대기 · held 보류)입니다.</p>
+    <div class="grid">
+      <section class="card" id="mu-claude">
+        <h2>Claude 팀</h2>
+        <p class="note">라운드 합계 <b data-draw="mt-claude" data-source="matchup_team" data-field="total" data-where="team=Claude 팀">—</b>%p · 확정 <span data-draw="mn-claude" data-source="matchup_team" data-field="final_n" data-where="team=Claude 팀">—</span>/<span data-draw="mc-claude" data-source="matchup_team" data-field="picks_n" data-where="team=Claude 팀">—</span>종목</p>
+        <div class="wrap">
+          <table data-source="matchup" data-row-key="key">
+            <thead><tr><th data-field="agent">에이전트</th><th data-field="kr_pick">한국 종목</th><th class="num" data-field="kr_score">점수(%)</th><th data-field="us_pick">미국 종목</th><th class="num" data-field="us_score">점수(%)</th><th class="num" data-field="total">합계(%p)</th></tr></thead>
+            <tbody data-draw="mu-claude" data-team="Claude 팀"></tbody>
+          </table>
+        </div>
+        <p class="empty" data-none="Claude 팀" hidden>이 라운드에는 공개된 종목이 없습니다. 마감 전이거나 제출하지 않았습니다.</p>
+      </section>
+      <section class="card" id="mu-shushu">
+        <h2>슈슈 팀 (Codex)</h2>
+        <p class="note">라운드 합계 <b data-draw="mt-shushu" data-source="matchup_team" data-field="total" data-where="team=슈슈 팀 (Codex)">—</b>%p · 확정 <span data-draw="mn-shushu" data-source="matchup_team" data-field="final_n" data-where="team=슈슈 팀 (Codex)">—</span>/<span data-draw="mc-shushu" data-source="matchup_team" data-field="picks_n" data-where="team=슈슈 팀 (Codex)">—</span>종목</p>
+        <div class="wrap">
+          <table data-source="matchup" data-row-key="key">
+            <thead><tr><th data-field="agent">에이전트</th><th data-field="kr_pick">한국 종목</th><th class="num" data-field="kr_score">점수(%)</th><th data-field="us_pick">미국 종목</th><th class="num" data-field="us_score">점수(%)</th><th class="num" data-field="total">합계(%p)</th></tr></thead>
+            <tbody data-draw="mu-shushu" data-team="슈슈 팀 (Codex)"></tbody>
+          </table>
+        </div>
+        <p class="empty" data-none="슈슈 팀 (Codex)" hidden>이 라운드에는 공개된 종목이 없습니다. 마감 전이거나 제출하지 않았습니다.</p>
+      </section>
+    </div>
+    <section class="card" id="agent-total">
+      <h2>에이전트 누적 (<span data-draw="mode-label" data-source="picks">—</span>)</h2>
+      <p class="note">선택한 라운드와 같은 구분(실전 또는 연습)의 모든 공개 라운드 합계. 합계는 확정 점수만.</p>
+      <div class="wrap">
+        <table data-source="agent_total" data-row-key="key">
+          <thead><tr><th data-field="team">팀</th><th data-field="agent">에이전트</th><th class="num" data-field="rounds">라운드</th><th class="num" data-field="final_n">확정 종목</th><th class="num" data-field="sum">합계(%p)</th><th class="num" data-field="avg">종목 평균(%)</th></tr></thead>
+          <tbody data-draw="at-body"></tbody>
+        </table>
+      </div>
+    </section>
+    <p class="empty" data-empty="picks">아직 마감이 지난 라운드가 없습니다. 연습 라운드는 11/5 08:30(Claude 팀), 11/6 08:30(슈슈 팀) 이후 나타납니다.</p>
+  </section>
+
+  <!-- 리그 순위 -->
+  <section class="page" id="league" data-page="league" hidden>
+    <section class="card" id="race">
+      <h2>팀 누적 성적 (실전)</h2>
+      <p class="note">지금까지 확정된 종목의 종목당 평균 점수(%). 다음 거래일 종가 기준, 배당 포함. 인원이 달라도 공정하게 비교하려고 합계 대신 평균을 씁니다.</p>
+      <div class="chart" data-source="team_daily" data-draw="race-chart"></div>
+      <p class="empty" data-empty="team_daily">11/9(월) 첫 실전 라운드가 채점되면 그려집니다.</p>
+    </section>
+    <section class="card" id="team-weeks">
+      <h2>주간 팀 대결 (실전)</h2>
+      <p class="note">그 주 확정 종목의 종목당 평균이 높은 팀이 이깁니다. 퇴출과는 관계없습니다.</p>
+      <div class="filters">
+        <select data-draw="week-select" aria-label="주" data-source="standings"></select>
+      </div>
+      <div class="wrap">
+        <table data-source="team_weeks" data-row-key="key">
+          <thead><tr><th data-field="team">팀</th><th class="num" data-field="avg">종목당 평균(%)</th><th class="num" data-field="scored">확정</th><th class="num" data-field="picks">제출</th><th class="num" data-field="expected">기대</th><th class="num" data-field="held">채점 전·보류</th><th data-field="hold">퇴출 보류 사유</th></tr></thead>
+          <tbody data-draw="tw-body"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="card" id="standings">
+      <h2>에이전트 주간 순위 — 두 팀 10명 통합 (실전)</h2>
+      <p class="note">확정 점수 평균 순(동점이면 중앙값, 그다음 최저점). 통합 꼴등 1명만 퇴출되고, 그 팀의 승인된 대기 후보가 다음 월요일 07:05부터 참가합니다. 보류: 팀마다 확정이 그 팀 기대 제출의 60% 미만, 꼴등 확정이 자기 기대의 60% 미만, 꼴등 동점. 채점 전·보류 건은 0점이 아니라 빼고 계산합니다.</p>
+      <div class="wrap">
+        <table data-source="standings" data-row-key="key">
+          <thead><tr><th class="num" data-field="league_rank">통합</th><th data-field="team">팀</th><th data-field="agent">에이전트</th><th class="num" data-field="avg">평균(%)</th><th class="num" data-field="median">중앙값(%)</th><th class="num" data-field="avg_excess">초과(%p)</th><th class="num" data-field="scored">확정</th><th class="num" data-field="picks">제출</th><th class="num" data-field="expected">기대</th><th class="num" data-field="missed">미제출</th><th class="num" data-field="held">채점 전·보류</th><th data-field="out">결과</th></tr></thead>
+          <tbody data-draw="stand-body"></tbody>
+        </table>
+      </div>
+      <p class="empty" data-empty="standings">실전 라운드가 시작되면 채워집니다.</p>
+    </section>
+  </section>
+
+  <!-- 추천·점수 -->
+  <section class="page" id="picks" data-page="picks" hidden>
+    <section class="card" id="picklist">
+      <h2>추천과 점수</h2>
+      <p class="note">마감이 지난 라운드만. 점수 = (평가 종가 + 귀속 배당) × 분할 ÷ 기준 종가 − 1. 초과 = 같은 구간 KOSPI·SPY 대비.</p>
+      <div class="filters">
+        <select class="f-mode" aria-label="구분"><option value="">실전·연습 모두</option><option>실전</option><option>연습</option></select>
+        <input class="f-q" type="search" placeholder="팀·에이전트·종목 검색" aria-label="검색">
+      </div>
+      <div class="wrap">
+        <table data-source="picks" data-row-key="pick_id">
+          <thead><tr><th data-field="mode">구분</th><th data-field="round_date">라운드</th><th data-field="team">팀</th><th data-field="agent">에이전트</th><th data-field="market">시장</th><th data-field="ticker">종목</th><th data-field="name">이름</th><th data-field="status">상태</th><th class="num" data-field="score">점수(%)</th><th class="num" data-field="score_excess">초과(%p)</th><th data-field="reason">보류 사유</th><th data-field="pick_id">ID</th></tr></thead>
+          <tbody data-draw="pick-body"></tbody>
+        </table>
+      </div>
+      <p class="empty" data-empty="picks">아직 마감이 지난 라운드가 없습니다. 연습 라운드는 11/5 08:30, 11/6 08:30 이후 나타납니다.</p>
+    </section>
+  </section>
+
+  <p class="note" id="sources-note">데이터 출처: 한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Tiingo · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다. 운영자 본인 확인용 화면이며, 모의 예측 점수로 투자 권유가 아닙니다.</p>
+</div>
+
+<script>
+  // 탭
+  const showTab = (name) => {
+    document.querySelectorAll('.lg .tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    document.querySelectorAll('.lg [data-page]').forEach((s) => { s.hidden = s.dataset.page !== name; });
+    dash.setLink(name);
+  };
+  document.querySelectorAll('.lg .tab').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  const h = location.hash.slice(1);
+  if (['ops', 'cards', 'match', 'league', 'picks'].includes(h)) showTab(h);
+
+  // 빈 데이터 안내: 데이터가 있으면 숨김
+  dash.onData(() => {
+    document.querySelectorAll('.lg [data-empty]').forEach((p) => {
+      const sec = p.closest('[data-page]');
+      if (sec && sec.hidden) return;
+      const d = dash.data(p.dataset.empty);
+      p.hidden = !(d.status === 'ok' && d.data.length === 0);
+    });
+  });
+  document.querySelectorAll('.lg .tab').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.lg [data-empty]').forEach((p) => {
+      const d = dash.data(p.dataset.empty);
+      p.hidden = !(d.status === 'ok' && d.data.length === 0);
+    });
+  }));
+
+  dash.calc('readiness', {
+    inputs: ['checklist'], title: '준비 완료 수',
+    description: '체크리스트에서 상태가 완료인 항목 수와 전체 항목 수',
+    fn: (checklist) => {
+      const done = checklist.filter((r) => r.state === '완료').length;
+      return [{done, total: checklist.length, left: checklist.length - done}];
+    },
+  });
+
+  const fmtTime = (s) => {
+    if (!s) return '';
+    const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/);
+    if (!m) return String(s);
+    return m[4] ? `${Number(m[2])}/${Number(m[3])} ${m[4]}:${m[5]}` : `${Number(m[2])}/${Number(m[3])}`;
+  };
+  const pct = (v) => v == null || v === '' ? '' : d3.format('+.2f')(Number(v));
+  const statusClass = (s) => ['accepted', 'committed', '완료', '연결됨', 'final'].includes(s) ? 'ok'
+    : ['rejected', 'late', 'void'].includes(s) ? 'bad' : ['남음', 'held', '키 없음'].includes(s) ? 'warn' : null;
+  const signClass = (v) => v == null || v === '' ? null : Number(v) > 0 ? 'ok' : Number(v) < 0 ? 'bad' : null;
+
+  const one = (id, field, fmt, big) => (el) => {
+    const d = dash.data(id);
+    const r = d.status === 'ok' ? d.data[0] : null;
+    el.textContent = r ? (fmt ? fmt(r[field]) : String(r[field])) : '—';
+  };
+  dash.draw('ready-done', one('readiness', 'done'));
+  dash.draw('ready-total', one('readiness', 'total'));
+  dash.draw('ready-done2', one('readiness', 'done'));
+  dash.draw('ready-total2', one('readiness', 'total'));
+  dash.draw('ready-left', one('readiness', 'left'));
+  dash.draw('next-when', one('schedule', 'when', fmtTime));
+  dash.draw('next-task', one('schedule', 'task'));
+
+  // 팀 타일: 같은 팀의 가장 최근(실전 우선) 제출
+  const teamRow = (team) => {
+    const d = dash.data('teams');
+    if (d.status !== 'ok') return null;
+    const rows = d.data.filter((x) => x.team === team);
+    return rows.find((x) => x.mode === '실전') || rows[0] || null;
+  };
+  const teamCell = (team, field, big) => (el) => {
+    const r = teamRow(team);
+    el.textContent = r ? String(r[field]) : '—';
+    if (big) el.className = 'big' + (r && statusClass(r[field]) ? ' ' + statusClass(r[field]) : '');
+  };
+  dash.draw('claude-status', teamCell('Claude 팀', 'status', true));
+  dash.draw('claude-mode', teamCell('Claude 팀', 'mode'));
+  dash.draw('claude-round', teamCell('Claude 팀', 'round'));
+  dash.draw('shushu-status', teamCell('슈슈 팀 (Codex)', 'status', true));
+  dash.draw('shushu-mode', teamCell('슈슈 팀 (Codex)', 'mode'));
+  dash.draw('shushu-round', teamCell('슈슈 팀 (Codex)', 'round'));
+
+  // 아바타: 팀 색 원 + 흰 선 아이콘 (viewBox 48). 실존 인물을 떠올리게 하지 않는 상징 그림만 쓴다.
+  const AV_BG = {'Claude 팀': ['#d9774f', '#8e3b23'], '슈슈 팀 (Codex)': ['#4f86cf', '#1f3f73']};
+  const AV_KEY = {buffett: 'turtle', lynch: 'pickaxe', dalio: 'globe', wood: 'rocket', burry: 'skeptic', momentum: 'wave', quant: 'calculator',
+    s1: 'shield', s2: 'gem', s3: 'magnifier', s4: 'sprout', s5: 'flip', s6: 'compass', s7: 'sailboat'};
+  const AV_ICON = {
+    turtle: [['path', {d: 'M10 31 Q21 11 32 31 Z', fill: '#fff', 'fill-opacity': .22}], ['path', {d: 'M10 31 Q21 11 32 31 Z'}],
+      ['path', {d: 'M17 25 L21 21 L25 25 L23 30 H19 Z'}], ['path', {d: 'M32 27 Q36 24 38.5 26.5 Q38 30 33 30.5'}], ['circle', {cx: 36.6, cy: 26.6, r: .9, fill: '#fff'}],
+      ['path', {d: 'M14 31 L12.5 36 M28 31 L29.5 36 M10 30 L7 32'}]],
+    pickaxe: [['path', {d: 'M13 39 L31 17'}], ['path', {d: 'M19 11 Q31 7 41 19', 'stroke-width': 4}], ['path', {d: 'M10 13 l2 -4 l2 4 l-2 4 Z', fill: '#fff'}]],
+    globe: [['circle', {cx: 24, cy: 24, r: 14}], ['ellipse', {cx: 24, cy: 24, rx: 6, ry: 14}], ['path', {d: 'M10 24 H38 M13 16 H35 M13 32 H35'}]],
+    rocket: [['path', {d: 'M24 7 C31 13 32 24 28.5 31 H19.5 C16 24 17 13 24 7 Z', fill: '#fff', 'fill-opacity': .25}], ['circle', {cx: 24, cy: 18, r: 3}],
+      ['path', {d: 'M19.5 26 L14 33 L19.5 31 M28.5 26 L34 33 L28.5 31'}], ['path', {d: 'M21 34 Q24 42 27 34'}]],
+    skeptic: [['circle', {cx: 24, cy: 25, r: 14}], ['path', {d: 'M15 19 H21 M27 17 L33 14'}], ['circle', {cx: 18, cy: 23, r: 1.6, fill: '#fff'}], ['circle', {cx: 30, cy: 22, r: 1.6, fill: '#fff'}],
+      ['path', {d: 'M18 32 Q25 30 31 29'}]],
+    wave: [['path', {d: 'M6 28 Q12 20 18 28 T30 28 T42 28'}], ['path', {d: 'M6 36 Q12 28 18 36 T30 36 T42 36'}], ['path', {d: 'M30 20 Q34 12 41 15 Q35 16 36 21'}]],
+    calculator: [['rect', {x: 13, y: 7, width: 22, height: 34, rx: 3}], ['rect', {x: 16.5, y: 10.5, width: 15, height: 7, fill: '#fff', 'fill-opacity': .3}],
+      ...[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => ['circle', {cx: 18 + c * 6, cy: 24.5 + r * 5.8, r: 1.05, fill: '#fff', 'stroke-width': 1.2}]))],
+    shield: [['path', {d: 'M24 8 L36 12 V24 C36 32 30 37 24 40 C18 37 12 32 12 24 V12 Z', fill: '#fff', 'fill-opacity': .2}], ['path', {d: 'M18 24 L22.5 28.5 L30 20'}]],
+    gem: [['path', {d: 'M13 18 L19 10 H29 L35 18 L24 38 Z', fill: '#fff', 'fill-opacity': .2}], ['path', {d: 'M13 18 H35 M19 10 L22 18 L24 38 M29 10 L26 18 L24 38'}]],
+    magnifier: [['circle', {cx: 21, cy: 21, r: 9}], ['path', {d: 'M27.5 27.5 L38 38', 'stroke-width': 4}], ['path', {d: 'M16 19 Q18 15 22 15'}]],
+    sprout: [['path', {d: 'M24 38 V22'}], ['path', {d: 'M24 26 C16 26 12 20 13 14 C20 14 24 18 24 26 Z', fill: '#fff', 'fill-opacity': .25}],
+      ['path', {d: 'M24 22 C30 22 35 17 35 11 C28 11 24 15 24 22 Z', fill: '#fff', 'fill-opacity': .25}], ['path', {d: 'M14 38 H34'}]],
+    flip: [['path', {d: 'M12 21 A12 12 0 0 1 35 17'}], ['path', {d: 'M35 10 V17 H28'}], ['path', {d: 'M36 27 A12 12 0 0 1 13 31'}], ['path', {d: 'M13 38 V31 H20'}]],
+    compass: [['circle', {cx: 24, cy: 24, r: 14}], ['path', {d: 'M24 12 L28 24 H20 Z', fill: '#fff'}], ['path', {d: 'M20 24 H28 L24 36 Z'}], ['circle', {cx: 24, cy: 24, r: 1.5, fill: '#fff'}]],
+    sailboat: [['path', {d: 'M9 32 H39 L34 38 H14 Z', fill: '#fff', 'fill-opacity': .25}], ['path', {d: 'M24 8 V32'}], ['path', {d: 'M26 10 L37 29 H26 Z', fill: '#fff', 'fill-opacity': .25}],
+      ['path', {d: 'M22 13 L13 29 H22 Z'}]],
+  };
+  // 창작 캐릭터 (실존 인물과 무관). 정의는 페이지 위쪽 <defs>의 #av-<이름>
+  const AV_CHAR = {buffett: 'ttukshim', lynch: 'balgul', dalio: 'keun', wood: 'mirae', burry: 'ppittak', momentum: 'pado', quant: 'gyesan',
+    s1: 'dandan', s2: 'alzza', s3: 'dotbogi', s4: 'ssuk', s5: 'banjeon', s6: 'nachim', s7: 'sunpung'};
+  let avSeq = 0;
+  const drawAvatar = (parent, a, size) => {
+    const ch = AV_CHAR[a.agent_id];
+    if (ch && document.getElementById('av-' + ch)) {
+      const svg = d3.select(parent).append('svg').attr('class', 'avatar').attr('width', size).attr('height', size).attr('viewBox', '0 0 120 120')
+        .attr('role', 'img').attr('aria-label', `${a.nickname || a.label} 캐릭터`);
+      svg.append('use').attr('href', '#av-' + ch);
+      return svg;
+    }
+    const key = a.avatar || AV_KEY[a.agent_id] || 'compass';
+    const [c1, c2] = AV_BG[a.team] || ['#8a8273', '#4d473d'];
+    const id = `avg${++avSeq}`;
+    const svg = d3.select(parent).append('svg').attr('class', 'avatar').attr('width', size).attr('height', size).attr('viewBox', '0 0 48 48')
+      .attr('role', 'img').attr('aria-label', `${a.nickname || a.label} 아바타`);
+    const g = svg.append('defs').append('radialGradient').attr('id', id).attr('cx', '35%').attr('cy', '30%').attr('r', '75%');
+    g.append('stop').attr('offset', '0').attr('stop-color', c1); g.append('stop').attr('offset', '1').attr('stop-color', c2);
+    svg.append('circle').attr('cx', 24).attr('cy', 24).attr('r', 23).attr('fill', `url(#${id})`).attr('stroke', '#fff').attr('stroke-opacity', .7).attr('stroke-width', 1.5);
+    const ic = svg.append('g').attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 2.4).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    for (const [tag, attrs] of AV_ICON[key] || []) { const e = ic.append(tag); for (const [k, v] of Object.entries(attrs)) e.attr(k, v); }
+    return svg;
+  };
+
+  // 프로필 열기·닫기
+  const openProfile = (team, name) => {
+    dash.setParams({agent: `${team}|${name}`});
+    document.querySelectorAll('.lg .profile').forEach((el) => { el.classList.add('open'); el.scrollIntoView({block: 'nearest'}); });
+  };
+  document.querySelectorAll('.lg .pclose').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.lg .profile').forEach((el) => el.classList.remove('open'));
+    dash.setParams({agent: null});
+  }));
+  const agentButton = (td, team, name) => {
+    d3.select(td).text('').append('button').attr('type', 'button').attr('class', 'agent-link').text(name)
+      .on('click', () => openProfile(team, name));
+  };
+
+  // 표 공통
+  const table = (id, key, cols, opts = {}) => (tbody) => {
+    const d = dash.data(id);
+    let rows = d.status === 'ok' ? d.data.slice() : [];
+    if (opts.filter) rows = rows.filter(opts.filter);
+    if (opts.sort) rows.sort(opts.sort);
+    d3.select(tbody).selectAll('tr').data(rows).join('tr').attr('data-key', (r) => String(r[key])).each(function (r) {
+      d3.select(this).selectAll('td').data(cols).join('td')
+        .attr('class', (c) => [c.num ? 'num' : null, c.cls ? c.cls(r[c.f]) : null].filter(Boolean).join(' ') || null)
+        .text((c) => c.fmt ? c.fmt(r[c.f]) : (r[c.f] == null ? '' : String(r[c.f])))
+        .each(function (c) { if (c.agent) agentButton(this, r.team, r[c.f]); });
+    });
+  };
+  const st = (v) => statusClass(v);
+
+  dash.draw('teams-body', table('teams', 'key', [
+    {f: 'mode'}, {f: 'team'}, {f: 'round'}, {f: 'status', cls: st}, {f: 'pushed_at', fmt: fmtTime},
+    {f: 'imported', num: true}, {f: 'visible_picks', num: true},
+  ]));
+  dash.draw('check-body', table('checklist', 'item', [
+    {f: 'state', cls: st}, {f: 'area'}, {f: 'item'}, {f: 'detail'}, {f: 'who'},
+  ], {sort: (a, b) => (a.state === '완료') - (b.state === '완료')}));
+  dash.draw('sched-body', table('schedule', 'when', [{f: 'when', fmt: fmtTime}, {f: 'task'}, {f: 'codex'}]));
+  dash.draw('rcpt-body', table('receipts', 'key', [
+    {f: 'mode'}, {f: 'team'}, {f: 'round'}, {f: 'status', cls: st}, {f: 'pushed_at', fmt: fmtTime}, {f: 'commit'}, {f: 'imported', num: true},
+  ], {sort: (a, b) => String(b.pushed_at).localeCompare(String(a.pushed_at))}));
+  dash.draw('prov-body', table('providers', 'provider', [{f: 'provider'}, {f: 'market'}, {f: 'state', cls: st}, {f: 'note'}]));
+  dash.draw('notice-list', (ul) => {
+    const d = dash.data('notices');
+    d3.select(ul).selectAll('li').data(d.status === 'ok' ? d.data : []).join('li').text((r) => r.file);
+  });
+
+  // 주간 순위
+  dash.draw('week-select', (sel) => {
+    const d = dash.data('standings');
+    const weeks = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort().reverse() : [];
+    sel.replaceChildren(...weeks.map((w) => new Option(w, w)));
+    sel.hidden = weeks.length === 0;
+    const cur = dash.params().week;
+    sel.value = weeks.includes(cur) ? cur : (weeks[0] || '');
+    sel.onchange = () => dash.setParams({week: sel.value || null});
+  });
+  dash.draw('stand-body', (tbody) => {
+    const d = dash.data('standings');
+    const weeks = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort().reverse() : [];
+    const wk = weeks.includes(dash.params().week) ? dash.params().week : weeks[0];
+    table('standings', 'key', [
+      {f: 'league_rank', num: true}, {f: 'team'}, {f: 'agent', agent: true}, {f: 'avg', num: true, fmt: pct, cls: signClass},
+      {f: 'median', num: true, fmt: pct}, {f: 'avg_excess', num: true, fmt: pct, cls: signClass},
+      {f: 'scored', num: true}, {f: 'picks', num: true}, {f: 'expected', num: true},
+      {f: 'missed', num: true, cls: (v) => v ? 'warn' : null}, {f: 'held', num: true, cls: (v) => v ? 'muted' : null},
+      {f: 'out', cls: (v) => v ? 'bad' : null},
+    ], {filter: (r) => r.week === wk, sort: (a, b) => a.league_rank - b.league_rank})(tbody);
+  });
+  dash.draw('tw-body', (tbody) => {
+    const d = dash.data('standings');
+    const weeks = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort().reverse() : [];
+    const wk = weeks.includes(dash.params().week) ? dash.params().week : weeks[0];
+    table('team_weeks', 'key', [
+      {f: 'team'}, {f: 'avg', num: true, fmt: pct, cls: signClass}, {f: 'scored', num: true}, {f: 'picks', num: true},
+      {f: 'expected', num: true}, {f: 'held', num: true}, {f: 'hold', cls: () => 'muted'},
+    ], {filter: (r) => r.week === wk, sort: (a, b) => (b.avg ?? -1e9) - (a.avg ?? -1e9)})(tbody);
+  });
+
+  // 추천·점수 필터
+  const pf = {mode: '', q: ''};
+  document.querySelectorAll('.lg .f-mode').forEach((s) => s.addEventListener('change', () => { pf.mode = s.value; dash.draw('pick-body'); }));
+  document.querySelectorAll('.lg .f-q').forEach((i) => i.addEventListener('input', () => { pf.q = i.value.trim().toLowerCase(); dash.draw('pick-body'); }));
+  dash.draw('pick-body', table('picks', 'pick_id', [
+    {f: 'mode'}, {f: 'round_date'}, {f: 'team'}, {f: 'agent', agent: true}, {f: 'market'}, {f: 'ticker'}, {f: 'name'},
+    {f: 'status', cls: st}, {f: 'score', num: true, fmt: pct, cls: signClass}, {f: 'score_excess', num: true, fmt: pct, cls: signClass},
+    {f: 'reason'}, {f: 'pick_id', cls: () => 'muted'},
+  ], {
+    filter: (r) => (!pf.mode || r.mode === pf.mode) &&
+      (!pf.q || [r.team, r.agent, r.ticker, r.name].join(' ').toLowerCase().includes(pf.q)),
+    sort: (a, b) => String(b.round_date).localeCompare(String(a.round_date)) || a.team.localeCompare(b.team) || String(a.agent).localeCompare(String(b.agent)),
+  }));
+
+  // 팀 대결: 에이전트별 라운드 결과
+  dash.calc('matchup', {
+    inputs: ['picks'], title: '에이전트별 라운드 결과',
+    description: '라운드·팀·에이전트마다 한국·미국 종목과 점수, 확정 점수 합계',
+    fn: (picks) => {
+      const m = new Map();
+      for (const p of picks) {
+        const key = [p.mode, p.round_date, p.team, p.agent].join('|');
+        if (!m.has(key)) m.set(key, {key, mode: p.mode, round_date: p.round_date, team: p.team, agent: p.agent,
+          kr_pick: '', kr_score: null, kr_status: '', us_pick: '', us_score: null, us_status: '', total: null, final_n: 0, picks_n: 0});
+        const r = m.get(key);
+        const k = p.market === 'KR' ? 'kr' : 'us';
+        r[k + '_pick'] = p.name ? `${p.name} (${p.ticker})` : p.ticker;
+        r[k + '_score'] = p.score == null ? null : Number(p.score);
+        r[k + '_status'] = p.status;
+        r.picks_n += 1;
+        if (p.status === 'final' && p.score != null) { r.final_n += 1; r.total = Math.round(((r.total || 0) + Number(p.score)) * 100) / 100; }
+      }
+      return [...m.values()];
+    },
+  });
+  dash.calc('matchup_team', {
+    inputs: ['matchup'], title: '팀 라운드 합계',
+    description: '라운드·팀별 확정 점수 합계와 확정 종목 수',
+    fn: (matchup) => {
+      const m = new Map();
+      for (const r of matchup) {
+        const key = [r.mode, r.round_date, r.team].join('|');
+        if (!m.has(key)) m.set(key, {key, mode: r.mode, round_date: r.round_date, team: r.team, total: 0, final_n: 0, picks_n: 0});
+        const t = m.get(key);
+        t.total = Math.round((t.total + (r.total || 0)) * 100) / 100; t.final_n += r.final_n; t.picks_n += r.picks_n;
+      }
+      return [...m.values()];
+    },
+  });
+  dash.calc('agent_total', {
+    inputs: ['matchup'], title: '에이전트 누적',
+    description: '구분·팀·에이전트별 공개 라운드 수, 확정 종목 수, 확정 점수 합계와 종목 평균',
+    fn: (matchup) => {
+      const m = new Map();
+      for (const r of matchup) {
+        const key = [r.mode, r.team, r.agent].join('|');
+        if (!m.has(key)) m.set(key, {key, mode: r.mode, team: r.team, agent: r.agent, rounds: 0, final_n: 0, sum: 0, avg: null});
+        const a = m.get(key);
+        a.rounds += 1; a.final_n += r.final_n; a.sum = Math.round((a.sum + (r.total || 0)) * 100) / 100;
+      }
+      for (const a of m.values()) a.avg = a.final_n ? Math.round(a.sum / a.final_n * 100) / 100 : null;
+      return [...m.values()];
+    },
+  });
+
+  const roundsOf = () => {
+    const d = dash.data('picks');
+    if (d.status !== 'ok') return [];
+    const seen = [...new Set(d.data.map((p) => `${p.mode}|${p.round_date}`))];
+    return seen.sort((a, b) => (a.startsWith('실전') ? 0 : 1) - (b.startsWith('실전') ? 0 : 1) || b.localeCompare(a));
+  };
+  const curRound = () => { const rs = roundsOf(); const v = dash.params().round; return rs.includes(v) ? v : (rs[0] || ''); };
+  dash.draw('round-select', (sel) => {
+    const rs = roundsOf();
+    sel.replaceChildren(...rs.map((v) => { const [mo, dd] = v.split('|'); return new Option(`${mo} ${fmtTime(dd)} 라운드`, v); }));
+    sel.hidden = rs.length === 0;
+    sel.value = curRound();
+    sel.onchange = () => dash.setParams({round: sel.value || null});
+  });
+  dash.draw('mode-label', (el) => { const r = curRound(); el.textContent = r ? r.split('|')[0] : '—'; });
+
+  const scoreCell = (k) => ({f: k + '_score', num: true,
+    fmt: (v, r) => v == null ? (r[k + '_status'] || '') : pct(v),
+    cls: (v, r) => v == null ? 'muted' : (r[k + '_status'] === 'final' ? signClass(v) : 'warn')});
+  const muBody = (team) => (tbody) => {
+    const d = dash.data('matchup');
+    const [mo, dd] = curRound().split('|');
+    const rows = d.status === 'ok' ? d.data.filter((r) => r.team === team && r.mode === mo && r.round_date === dd)
+      .sort((a, b) => (b.total ?? -1e9) - (a.total ?? -1e9) || a.agent.localeCompare(b.agent)) : [];
+    const cols = [{f: 'agent'}, {f: 'kr_pick'}, scoreCell('kr'), {f: 'us_pick'}, scoreCell('us'),
+      {f: 'total', num: true, fmt: (v) => pct(v), cls: (v) => signClass(v)}];
+    d3.select(tbody).selectAll('tr').data(rows).join('tr').attr('data-key', (r) => r.key).each(function (r) {
+      d3.select(this).selectAll('td').data(cols).join('td')
+        .attr('class', (c) => [c.num ? 'num' : null, c.cls ? c.cls(r[c.f], r) : null].filter(Boolean).join(' ') || null)
+        .text((c) => c.fmt ? c.fmt(r[c.f], r) : (r[c.f] == null ? '' : String(r[c.f])))
+        .each(function (c) { if (c.f === 'agent') agentButton(this, team, r.agent); });
+    });
+    document.querySelectorAll(`.lg [data-none="${team}"]`).forEach((p) => { p.hidden = !(d.status === 'ok' && rows.length === 0 && roundsOf().length > 0); });
+  };
+  dash.draw('mu-claude', muBody('Claude 팀'));
+  dash.draw('mu-shushu', muBody('슈슈 팀 (Codex)'));
+  const mtCell = (team, field, fmt) => (el) => {
+    const d = dash.data('matchup_team');
+    const [mo, dd] = curRound().split('|');
+    const r = d.status === 'ok' ? d.data.find((x) => x.team === team && x.mode === mo && x.round_date === dd) : null;
+    el.textContent = r ? (fmt ? fmt(r[field]) : String(r[field])) : '—';
+    if (field === 'total') el.className = r ? (signClass(r.total) || '') : '';
+  };
+  dash.draw('mt-claude', mtCell('Claude 팀', 'total', pct));
+  dash.draw('mn-claude', mtCell('Claude 팀', 'final_n'));
+  dash.draw('mc-claude', mtCell('Claude 팀', 'picks_n'));
+  dash.draw('mt-shushu', mtCell('슈슈 팀 (Codex)', 'total', pct));
+  dash.draw('mn-shushu', mtCell('슈슈 팀 (Codex)', 'final_n'));
+  dash.draw('mc-shushu', mtCell('슈슈 팀 (Codex)', 'picks_n'));
+  dash.draw('at-body', (tbody) => {
+    const mo = curRound().split('|')[0];
+    table('agent_total', 'key', [
+      {f: 'team'}, {f: 'agent', agent: true}, {f: 'rounds', num: true}, {f: 'final_n', num: true},
+      {f: 'sum', num: true, fmt: pct, cls: signClass}, {f: 'avg', num: true, fmt: pct, cls: signClass},
+    ], {filter: (r) => r.mode === mo, sort: (a, b) => b.sum - a.sum || a.team.localeCompare(b.team)})(tbody);
+  });
+
+  // 선수 명단 칩
+  const rosterChips = (team) => (el) => {
+    const d = dash.data('agents');
+    const rows = d.status === 'ok' ? d.data.filter((a) => a.team === team) : [];
+    d3.select(el).selectAll('button').data(rows, (a) => a.key).join('button')
+      .attr('type', 'button').attr('class', (a) => 'chip' + (a.status.startsWith('대기') ? ' bench' : ''))
+      .attr('title', (a) => a.name)
+      .each(function (a) { const b = d3.select(this).html(''); drawAvatar(this, a, 22); b.append('span').text(a.nickname || a.label); })
+      .on('click', (ev, a) => openProfile(a.team, a.name));
+  };
+  dash.draw('roster-claude', rosterChips('Claude 팀'));
+  dash.draw('roster-shushu', rosterChips('슈슈 팀 (Codex)'));
+
+  const curAgent = () => {
+    const d = dash.data('agents');
+    const k = dash.params().agent;
+    return d.status === 'ok' && k ? d.data.find((a) => a.key === k) || null : null;
+  };
+  dash.draw('profile-head', (el) => {
+    const a = curAgent();
+    el.replaceChildren();
+    if (!a) return;
+    const row = d3.select(el).append('div').attr('class', 'phead');
+    drawAvatar(row.node(), a, 64);
+    const h = row.append('div');
+    h.append('div').attr('class', 'pname').text(a.nickname || a.label);
+    h.append('div').text(`${a.label} · ${a.team}`);
+    h.append('div').attr('class', 'note').text(`${a.status} · 지침 v${a.version}${a.joined_week ? ' · 합류 ' + a.joined_week : ''}${a.eliminated_week ? ' · 탈락 ' + a.eliminated_week : ''}`);
+  });
+  dash.draw('profile-body', (el) => {
+    const a = curAgent();
+    el.replaceChildren();
+    if (!a) return;
+    const b = d3.select(el);
+    if (a.tagline) b.append('p').text(a.tagline);
+    const tot = dash.data('agent_total');
+    const mine = tot.status === 'ok' ? tot.data.filter((r) => r.team === a.team && r.agent === a.name) : [];
+    const stats = b.append('div').attr('class', 'pstats');
+    const stat = (lbl, v, cls) => { const c = stats.append('div'); c.append('div').attr('class', 'note').text(lbl); c.append('div').attr('class', 'v' + (cls ? ' ' + cls : '')).text(v); };
+    for (const mo of ['실전', '연습']) {
+      const r = mine.find((x) => x.mode === mo);
+      stat(`${mo} 라운드`, r ? String(r.rounds) : '0');
+      stat(`${mo} 종목당 평균(%)`, r && r.final_n ? pct(r.avg) : '—', r && r.final_n ? signClass(r.avg) : null);
+      stat(`${mo} 확정 종목`, r ? String(r.final_n) : '0');
+    }
+    const pk = dash.data('picks');
+    const picks = pk.status === 'ok' ? pk.data.filter((p) => p.team === a.team && p.agent === a.name)
+      .sort((x, y) => String(y.round_date).localeCompare(String(x.round_date)) || x.market.localeCompare(y.market)).slice(0, 8) : [];
+    if (!picks.length) { b.append('p').attr('class', 'note').text('아직 공개된 종목이 없습니다.'); return; }
+    b.append('p').attr('class', 'note').text('최근 종목');
+    const t = b.append('div').attr('class', 'wrap').append('table');
+    t.append('thead').append('tr').selectAll('th').data(['구분', '라운드', '시장', '종목', '상태', '점수(%)']).join('th').text((x) => x);
+    t.append('tbody').selectAll('tr').data(picks).join('tr').each(function (p) {
+      const tr = d3.select(this);
+      tr.append('td').text(p.mode); tr.append('td').text(fmtTime(p.round_date)); tr.append('td').text(p.market);
+      tr.append('td').text(p.name ? `${p.name} (${p.ticker})` : p.ticker);
+      tr.append('td').attr('class', statusClass(p.status)).text(p.status);
+      tr.append('td').attr('class', 'num ' + (p.status === 'final' ? (signClass(p.score) || '') : 'warn')).text(p.score == null ? '' : pct(p.score));
+    });
+  });
+
+  // ───── 카드판 (바카라 테이블) ─────
+  const SUIT = {'Claude 팀': 's', '슈슈 팀 (Codex)': 'h'};
+  const PIP = {s: '♠', h: '♥'};
+  const BAR = {'Claude 팀': '#c0392b', '슈슈 팀 (Codex)': '#2463b5'};
+  dash.draw('title-claude', (el) => { el.textContent = '♠ CLAUDE 팀'; });
+  dash.draw('title-shushu', (el) => { el.textContent = '♥ 슈슈 팀 (Codex)'; });
+  const latestWeek = () => {
+    const d = dash.data('standings');
+    const ws = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort() : [];
+    return ws[ws.length - 1] || null;
+  };
+  dash.draw('scoreboard', (el) => {
+    const d = dash.data('team_weeks');
+    const wk = latestWeek();
+    const rows = d.status === 'ok' && wk ? d.data.filter((r) => r.week === wk) : [];
+    const A = rows.find((x) => x.team === 'Claude 팀'), B = rows.find((x) => x.team === '슈슈 팀 (Codex)');
+    const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? 'Claude 팀' : '슈슈 팀 (Codex)') : null;
+    el.replaceChildren();
+    const sb = d3.select(el);
+    const seat = (team, r, label) => {
+      const c = sb.append('div').attr('class', 'seat');
+      c.append('div').attr('class', 'sname').text(label);
+      c.append('div').attr('class', 'sv ' + (r && r.avg != null ? (r.avg > 0 ? 'up' : r.avg < 0 ? 'down' : '') : '')).text(r && r.avg != null ? pct(r.avg) + '%' : '실전 전');
+      c.append('div').attr('class', 'smeta').text(r ? `확정 ${r.scored} / 기대 ${r.expected}` : '이번 주 종목당 평균');
+      if (lead === team) c.append('span').attr('class', 'win').text('이번 주 우세');
+    };
+    seat('Claude 팀', A, '♠ CLAUDE 팀');
+    sb.append('div').attr('class', 'vs').html('').text(wk ? `${wk}\nVS` : 'VS');
+    seat('슈슈 팀 (Codex)', B, '♥ 슈슈 팀');
+  });
+  // 반원(D자) 바카라 테이블: 위쪽 딜러 자리, 곡선을 따라 10명이 앉는다
+  dash.draw('baccarat', (el) => {
+    const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks');
+    const wk = latestWeek();
+    const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
+    const n = week.length;
+    const tws = tw.status === 'ok' && wk ? tw.data.filter((r) => r.week === wk) : [];
+    const A = tws.find((x) => x.team === 'Claude 팀'), B = tws.find((x) => x.team === '슈슈 팀 (Codex)');
+    const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? 'Claude 팀' : '슈슈 팀 (Codex)') : null;
+    const rowOf = (a) => week.find((r) => r.team === a.team && r.agent_id === a.agent_id) || null;
+    const active = ag.status === 'ok' ? ag.data.filter((a) => !a.status.startsWith('대기') && a.status !== '탈락') : [];
+    const side = (team) => active.filter((a) => a.team === team).sort((x, y) => (rowOf(x)?.league_rank ?? 99) - (rowOf(y)?.league_rank ?? 99));
+    const seats = [...side('Claude 팀'), ...side('슈슈 팀 (Codex)').reverse()];
+    el.replaceChildren();
+    const wrap = el.parentElement;
+    if (wrap) requestAnimationFrame(() => { if (wrap.scrollWidth > wrap.clientWidth && !wrap.dataset.centered) { wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2; wrap.dataset.centered = '1'; } });
+    const W = 1000, H = 690, cx = 500, cy = 170;
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', '리그 바카라 테이블');
+    const defs = svg.append('defs');
+    const fg = defs.append('radialGradient').attr('id', 'bt-felt').attr('cx', '50%').attr('cy', '30%').attr('r', '75%');
+    fg.append('stop').attr('offset', 0).attr('stop-color', '#1a7a4f'); fg.append('stop').attr('offset', 1).attr('stop-color', '#0a4a2f');
+    const rg = defs.append('linearGradient').attr('id', 'bt-rail').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
+    rg.append('stop').attr('offset', 0).attr('stop-color', '#7a2e22'); rg.append('stop').attr('offset', 1).attr('stop-color', '#3e140e');
+    const dshape = (pad) => `M${40 + pad} ${40 + pad} H${960 - pad} V${cy} A${460 - pad} ${380 - pad} 0 0 1 ${40 + pad} ${cy} Z`;
+    svg.append('path').attr('d', dshape(0)).attr('fill', 'url(#bt-rail)').attr('stroke', '#1f0a06').attr('stroke-width', 3);
+    svg.append('path').attr('d', dshape(26)).attr('fill', 'url(#bt-felt)').attr('stroke', '#d4b25c').attr('stroke-width', 3);
+    for (const [rx, ry] of [[300, 228], [355, 272], [410, 322]]) svg.append('path').attr('d', `M${cx - rx} ${cy} A${rx} ${ry} 0 0 0 ${cx + rx} ${cy}`)
+      .attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-opacity', .45).attr('stroke-width', 1.6);
+    // 카드 버림통(왼쪽)·카드 슈(오른쪽)
+    const tray = svg.append('g').attr('transform', 'translate(110,80) rotate(-18)');
+    tray.append('rect').attr('width', 64).attr('height', 44).attr('rx', 6).attr('fill', '#e9eef5').attr('stroke', '#8a93a0').attr('stroke-width', 2);
+    tray.append('rect').attr('x', 10).attr('y', 8).attr('width', 44).attr('height', 28).attr('rx', 3).attr('fill', '#2463b5');
+    tray.append('text').attr('x', 32).attr('y', 28).attr('text-anchor', 'middle').attr('fill', '#fff').attr('font-size', 16).text('★');
+    const shoe = svg.append('g').attr('transform', 'translate(830,66) rotate(12)');
+    shoe.append('path').attr('d', 'M0 10 L60 0 L72 50 L12 60 Z').attr('fill', '#b8c2cc').attr('stroke', '#5f6b77').attr('stroke-width', 2);
+    shoe.append('path').attr('d', 'M44 14 L66 10 L74 46 L52 50 Z').attr('fill', '#fff').attr('stroke', '#2463b5').attr('stroke-width', 2);
+    shoe.append('text').attr('x', 60).attr('y', 36).attr('text-anchor', 'middle').attr('fill', '#2463b5').attr('font-size', 14).text('★');
+    // 딜러 결과판
+    const ban = svg.append('g');
+    ban.append('rect').attr('x', 290).attr('y', 70).attr('width', 420).attr('height', 40).attr('rx', 20).attr('fill', '#f4ecd6').attr('stroke', '#d4b25c').attr('stroke-width', 2);
+    ban.append('text').attr('x', 500).attr('y', 97).attr('text-anchor', 'middle').attr('font-size', 20).attr('fill', '#2b1b0c')
+      .attr('font-family', 'Georgia, serif').text(!wk ? '실전 전 — 11/9 첫 라운드' : lead ? `이번 주 ${lead === 'Claude 팀' ? 'CLAUDE 팀' : '슈슈 팀'} 우세` : '이번 주 동률');
+    // PLAYER / BANKER 자리 → 두 팀 이번 주 평균
+    const box = (x, label, r, color) => {
+      const g = svg.append('g');
+      g.append('rect').attr('x', x).attr('y', 126).attr('width', 190).attr('height', 58).attr('rx', 29).attr('fill', 'rgba(0,0,0,.18)').attr('stroke', color).attr('stroke-width', 3);
+      g.append('text').attr('x', x + 95).attr('y', 149).attr('text-anchor', 'middle').attr('font-size', 14).attr('fill', color).attr('letter-spacing', 2).text(label);
+      g.append('text').attr('x', x + 95).attr('y', 175).attr('text-anchor', 'middle').attr('font-size', 22).attr('font-family', 'Georgia, serif')
+        .attr('fill', r && r.avg != null ? (r.avg > 0 ? '#9be3b5' : r.avg < 0 ? '#ffb3a8' : '#f4ecd6') : '#f4ecd6')
+        .text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
+    };
+    box(290, '♠ CLAUDE', A, '#f2c230'); box(520, '♥ 슈슈', B, '#ff8a7a');
+    // 최근 출목 12개
+    const beads = roadData().slice(-12);
+    beads.forEach((b, i) => {
+      const x = 500 - (beads.length - 1) * 11 + i * 22;
+      svg.append('circle').attr('cx', x).attr('cy', 210).attr('r', 8.5).attr('fill', {c: '#c0392b', s: '#2463b5', t: '#2e8b57'}[b.w]).attr('stroke', '#f4ecd6').attr('stroke-width', 1.5);
+    });
+    if (!beads.length) svg.append('text').attr('x', 500).attr('y', 215).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', 'rgba(244,236,214,.7)').text('출목: 실전이 채점되면 쌓입니다');
+    // 10개 자리
+    const m = seats.length;
+    seats.forEach((a, i) => {
+      const t = Math.PI * (0.07 + 0.86 * (m > 1 ? i / (m - 1) : 0.5));
+      const ux = -Math.cos(t), uy = Math.sin(t);
+      const sx = cx + 352 * ux, sy = cy + 292 * uy;        // 베팅 칸 (두 금색 곡선 사이)
+      const px = cx + 452 * ux, py = cy + 402 * uy;        // 캐릭터(테이블 밖)
+      const r = rowOf(a);
+      const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
+      const tc = a.team === 'Claude 팀' ? '#f2c230' : '#ff8a7a';
+      const g = svg.append('g').attr('class', 'seat').on('click', () => openProfile(a.team, a.name));
+      g.append('title').text(`${a.name}${r ? ` · ${r.league_rank}위 · 이번 주 ${r.avg != null ? pct(r.avg) + '%' : '—'}` : ''}`);
+      g.append('ellipse').attr('class', 'spot').attr('cx', sx).attr('cy', sy).attr('rx', 46).attr('ry', 26)
+        .attr('fill', 'rgba(0,0,0,.16)').attr('stroke', isRisk ? '#ff6a5c' : isLead ? '#ffe08a' : tc).attr('stroke-width', isLead || isRisk ? 3.5 : 2.2);
+      g.append('text').attr('x', sx).attr('y', sy - 3).attr('text-anchor', 'middle').attr('font-size', 15).attr('fill', '#f4ecd6').text(a.nickname || a.label);
+      g.append('text').attr('x', sx).attr('y', sy + 15).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-family', 'Georgia, serif')
+        .attr('fill', r && r.avg != null ? (r.avg > 0 ? '#9be3b5' : r.avg < 0 ? '#ffb3a8' : '#f4ecd6') : 'rgba(244,236,214,.6)')
+        .text(r && r.avg != null ? `${pct(r.avg)}%` : '실전 전');
+      // 순위 칩
+      const chip = g.append('g').attr('transform', `translate(${sx - 58 * ux}, ${sy - 46 * uy})`);
+      chip.append('circle').attr('r', 12).attr('fill', a.team === 'Claude 팀' ? '#c0392b' : '#2463b5').attr('stroke', '#fff').attr('stroke-width', 2.5).attr('stroke-dasharray', '4 3');
+      chip.append('text').attr('y', 4.5).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).attr('fill', '#fff').text(r ? r.league_rank : '?');
+      // 캐릭터
+      if (isLead || isRisk) g.append('circle').attr('cx', px).attr('cy', py).attr('r', 44).attr('fill', 'none').attr('stroke', isLead ? '#ffd65a' : '#ff6a5c').attr('stroke-width', 5).attr('opacity', .9);
+      const ch = AV_CHAR[a.agent_id];
+      const av = g.append('svg').attr('x', px - 38).attr('y', py - 38).attr('width', 76).attr('height', 76).attr('viewBox', '0 0 120 120');
+      if (ch) av.append('use').attr('href', '#av-' + ch);
+      if (isLead || isRisk) {
+        const tag = g.append('g').attr('transform', `translate(${px},${py + 50})`);
+        tag.append('rect').attr('x', -26).attr('y', -11).attr('width', 52).attr('height', 20).attr('rx', 10).attr('fill', isLead ? '#d4b25c' : '#e0574a');
+        tag.append('text').attr('y', 4).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', isLead ? '#2b1b0c' : '#fff').text(isLead ? '선두' : '위기');
+      }
+    });
+  });
+
+  const roadData = () => {
+    const d = dash.data('team_daily');
+    const rows = d.status === 'ok' ? d.data.filter((r) => r.mode === '실전') : [];
+    const days = [...new Set(rows.map((r) => r.date))].sort();
+    return days.map((day) => {
+      const a = rows.find((r) => r.date === day && r.team === 'Claude 팀'), b = rows.find((r) => r.date === day && r.team === '슈슈 팀 (Codex)');
+      const w = a && b && a.avg != null && b.avg != null ? (a.avg > b.avg ? 'c' : a.avg < b.avg ? 's' : 't') : 't';
+      return {day, w, a: a?.avg, b: b?.avg};
+    });
+  };
+  dash.draw('road', (el) => {
+    const beads = roadData();
+    d3.select(el).selectAll('div.bead').data(beads, (x) => x.day).join('div')
+      .attr('class', (x) => 'bead ' + x.w)
+      .attr('title', (x) => `${fmtTime(x.day)} · Claude ${x.a == null ? '–' : pct(x.a) + '%'} / 슈슈 ${x.b == null ? '–' : pct(x.b) + '%'}`)
+      .text((x) => ({c: 'C', s: 'S', t: '=' })[x.w]);
+  });
+  dash.draw('road-note', (el) => {
+    const beads = roadData();
+    const n = (w) => beads.filter((x) => x.w === w).length;
+    el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · Claude 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9부터).';
+  });
+  const handFor = (team) => (el) => {
+    const ag = dash.data('agents'), stn = dash.data('standings'), tot = dash.data('agent_total'), pk = dash.data('picks');
+    const wk = latestWeek();
+    const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
+    const n = week.length;
+    const amax = Math.max(0.5, ...week.map((r) => r.avg).filter((v) => v != null).map((v) => Math.abs(v)));
+    const members = ag.status === 'ok' ? ag.data.filter((a) => a.team === team && !a.status.startsWith('대기')) : [];
+    const rowsOf = (a) => week.find((r) => r.team === team && r.agent_id === a.agent_id) || null;
+    members.sort((x, y) => (rowsOf(x)?.league_rank ?? 99) - (rowsOf(y)?.league_rank ?? 99));
+    const suit = SUIT[team] || 's';
+    d3.select(el).selectAll('button.gcard').data(members, (a) => a.key).join('button')
+      .attr('type', 'button')
+      .attr('class', (a) => {
+        const r = rowsOf(a);
+        return `gcard suit-${suit}` + (a.status === '탈락' ? ' out' : '') + (r && r.league_rank === 1 && n > 1 ? ' lead' : '') + (r && r.league_rank === n && n > 1 ? ' danger' : '');
+      })
+      .on('click', (ev, a) => openProfile(a.team, a.name))
+      .each(function (a) {
+        const r = rowsOf(a);
+        const card = d3.select(this).html('');
+        const rk = r ? String(r.league_rank) : '?';
+        for (const pos of ['tl', 'br']) { const c = card.append('div').attr('class', 'corner ' + pos); c.append('span').text(rk); c.append('small').text(PIP[suit]); }
+        const b = card.append('div').attr('class', 'gbody');
+        const flag = a.status === '탈락' ? '탈락' : r && r.out ? '퇴출' : r && r.league_rank === 1 && n > 1 ? '선두' : r && r.league_rank === n && n > 1 ? '탈락 위기' : '';
+        b.append('div').attr('class', 'gtop').append('span').attr('class', 'flag').text(flag);
+        const nm = b.append('div').attr('class', 'gname'); drawAvatar(nm.node(), a, 40); nm.append('span').text(a.nickname || a.label); nm.append('span').attr('class', 'pip').text(PIP[suit]);
+        b.append('div').attr('class', 'gstyle').text(`${a.label} · v${a.version}`);
+        b.append('div').attr('class', 'gtag').text(a.tagline || '');
+        const st = b.append('div').attr('class', 'gstat');
+        st.append('span').attr('class', 'lbl').text('이번 주 평균');
+        st.append('span').attr('class', 'big ' + (r && r.avg != null ? (r.avg > 0 ? 'up' : r.avg < 0 ? 'down' : '') : 'none')).text(r && r.avg != null ? pct(r.avg) + '%' : '실전 전');
+        const bar = b.append('div').attr('class', 'bar');
+        if (r && r.avg != null) bar.append('i').style('width', `${Math.max(4, Math.abs(r.avg) / amax * 100)}%`).style('background', r.avg >= 0 ? BAR[team] : '#b3261e');
+        const t = tot.status === 'ok' ? tot.data.find((x) => x.team === team && x.agent === a.name && x.mode === '실전') : null;
+        b.append('div').attr('class', 'gmeta').text(r ? `확정 ${r.scored}/${r.expected} · 미제출 ${r.missed} · 보류 ${r.held}` : (t && t.final_n ? `시즌 확정 ${t.final_n}건 · 평균 ${pct(t.avg)}%` : '시즌 기록 없음'));
+        const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === team && p.agent === a.name) : [];
+        const last = mine.map((p) => p.round_date).sort().pop();
+        const lp = b.append('div').attr('class', 'gpicks');
+        if (!last) { lp.text('공개된 종목 없음'); return; }
+        const mode = mine.find((q) => q.round_date === last).mode;
+        lp.append('div').text(`${mode} ${fmtTime(last)}`);
+        mine.filter((p) => p.round_date === last && p.mode === mode).sort((x, y) => x.market.localeCompare(y.market)).forEach((p) => {
+          lp.append('div').text(`${p.market} ${p.name || p.ticker}${p.score != null ? ' ' + pct(p.score) + '%' : ''}`);
+        });
+      });
+  };
+  dash.draw('hand-claude', handFor('Claude 팀'));
+  dash.draw('hand-shushu', handFor('슈슈 팀 (Codex)'));
+  dash.draw('hand-bench', (el) => {
+    const ag = dash.data('agents');
+    const rows = ag.status === 'ok' ? ag.data.filter((a) => a.status.startsWith('대기')) : [];
+    d3.select(el).selectAll('button.gcard').data(rows, (a) => a.key).join('button')
+      .attr('type', 'button').attr('class', 'gcard back')
+      .on('click', (ev, a) => openProfile(a.team, a.name))
+      .each(function (a) {
+        const b = d3.select(this).html('').append('div').attr('class', 'gbody');
+        b.append('div').attr('class', 'gstyle').text(`${PIP[SUIT[a.team]] || ''} ${a.team} · ${a.status}`);
+        const nm = b.append('div').attr('class', 'gname'); drawAvatar(nm.node(), a, 32); nm.append('span').text(a.nickname || a.label);
+        b.append('div').attr('class', 'gstyle').text(a.label);
+        if (a.tagline) b.append('div').attr('class', 'gtag').text(a.tagline);
+      });
+  });
+
+  // 팀 누적 점수 선 그래프
+  dash.draw('race-chart', (el) => {
+    const d = dash.data('team_daily');
+    const rows = d.status === 'ok' ? d.data.filter((r) => r.mode === '실전') : [];
+    el.replaceChildren();
+    if (!rows.length) { el.style.minHeight = '0px'; return; }
+    el.style.minHeight = '';
+    const W = Math.max(el.clientWidth, 280), H = 220;
+    const teams = [...new Set(rows.map((r) => r.team))].sort();
+    const series = teams.map((t) => ({team: t, pts: rows.filter((r) => r.team === t)
+      .map((r) => ({date: new Date(r.date + 'T00:00:00Z'), v: Number(r.cum_avg ?? r.cumulative), raw: r})).sort((a, b) => a.date - b.date)}));
+    const all = series.flatMap((s) => s.pts);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const yExt = d3.extent([0, ...all.map((p) => p.v)]);
+    const y0 = d3.scaleLinear(yExt, [H - 24, 8]).nice();
+    const yAxis = svg.append('g').call(d3.axisLeft(y0).ticks(4).tickFormat(d3.format('+.2f'))).attr('font-size', null).attr('font-family', null);
+    let left = 0; yAxis.selectAll('text').each(function () { left = Math.max(left, this.getComputedTextLength()); });
+    const ends = series.map((s) => `${s.team} ${pct(s.pts[s.pts.length - 1]?.v)}`);
+    const tmp = svg.append('text').attr('font-size', 12);
+    let right = 0; ends.forEach((t) => { tmp.text(t); right = Math.max(right, tmp.node().getComputedTextLength()); }); tmp.remove();
+    const m = {l: left + 14, r: right + 12};
+    const x = d3.scaleUtc(d3.extent(all, (p) => p.date), [m.l, W - m.r]);
+    if (x.domain()[0].getTime() === x.domain()[1].getTime()) x.domain([d3.utcDay.offset(x.domain()[0], -1), d3.utcDay.offset(x.domain()[1], 1)]);
+    yAxis.attr('transform', `translate(${m.l - 6},0)`).call((g) => g.select('.domain').remove()).call((g) => g.selectAll('line').remove());
+    yAxis.selectAll('text').attr('fill', 'var(--color-fg-muted)');
+    svg.append('g').selectAll('line').data(y0.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r)
+      .attr('y1', (v) => y0(v)).attr('y2', (v) => y0(v)).attr('stroke', (v) => v === 0 ? 'var(--cds-chart-reference)' : 'var(--cds-chart-grid)');
+    const xa = svg.append('g').attr('transform', `translate(0,${H - 20})`)
+      .call(d3.axisBottom(x).ticks(Math.min(6, Math.floor((W - m.l - m.r) / 70))).tickFormat(d3.utcFormat('%-m/%-d')).tickSizeOuter(0))
+      .attr('font-size', null).attr('font-family', null);
+    xa.select('.domain').attr('stroke', 'var(--cds-chart-axis)'); xa.selectAll('line').remove(); xa.selectAll('text').attr('fill', 'var(--color-fg-muted)');
+    const line = d3.line().x((p) => x(p.date)).y((p) => y0(p.v));
+    series.forEach((s, i) => {
+      svg.append('path').datum(s.pts).attr('fill', 'none').attr('stroke', dash.colors[i]).attr('stroke-width', 2)
+        .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', line);
+      const last = s.pts[s.pts.length - 1];
+      svg.append('text').attr('x', x(last.date) + 6).attr('y', y0(last.v) + 4 + i * (series.length > 1 && Math.abs(y0(series[0].pts.at(-1).v) - y0(series[series.length - 1].pts.at(-1).v)) < 14 ? 14 : 0))
+        .attr('font-size', 12).attr('fill', dash.colors[i]).text(ends[i]);
+    });
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    const dot = svg.append('g');
+    svg.on('pointermove', (ev) => {
+      const [mx] = d3.pointer(ev);
+      const t = x.invert(mx);
+      const near = all.reduce((a, b) => Math.abs(b.date - t) < Math.abs(a.date - t) ? b : a);
+      const day = near.date.getTime();
+      const hits = series.map((s, i) => ({s, i, p: s.pts.find((p) => p.date.getTime() === day)})).filter((h) => h.p);
+      dot.selectAll('circle').data(hits).join('circle').attr('r', 4).attr('cx', (h) => x(h.p.date)).attr('cy', (h) => y0(h.p.v)).attr('fill', (h) => dash.colors[h.i]);
+      tip.style('display', null).replaceChildren();
+      tip.append('div').attr('class', 'd').text(d3.utcFormat('%-m/%-d')(near.date));
+      hits.forEach((h) => tip.append('div').text(`${h.s.team} 누적 평균 ${pct(h.p.v)} (그날 평균 ${pct(h.p.raw.avg)}, ${h.p.raw.n}종목)`));
+      const tw = tip.node().offsetWidth;
+      tip.style('left', `${Math.min(Math.max(x(near.date) / W * el.clientWidth + 10, 0), el.clientWidth - tw)}px`).style('top', '8px');
+    }).on('pointerleave', () => { tip.style('display', 'none'); dot.selectAll('circle').remove(); });
+  });
+</script>
