@@ -1,0 +1,95 @@
+# 두 팀 공유용 결과 파일 — `league/public/results.json`
+
+두 팀이 각자 화면(대시보드)에 접수 상태와 채점 결과를 보여줄 때 쓰는 파일이다. 운영자 현황판과 같은 데이터에서 만든다.
+
+## 안전 규칙 (파일을 만드는 코드가 보장)
+
+- **마감 전 종목 없음:** 파일을 만든 시각에 마감(08:30 KST)이 지나지 않은 라운드의 종목·점수는 넣지 않는다. 하나라도 섞이면 파일을 만들지 않고 실패한다.
+- **원 가격 없음:** 종가·배당 금액 같은 원 가격은 넣지 않고 점수(%)만 넣는다. 데이터 제공처 이용 조건 때문이다. 섞이면 실패한다.
+- **영수증은 상태만:** 지문(`committed`) 영수증에는 종목이 없다. 마감 전에도 "제출했는지"만 알 수 있다.
+- 만드는 코드: `python3 tools/dashboard_data.py --bundle league/public/results.json`
+- 시험: `tests/test_league.py`의 `DashboardData` (마감 직전·직후 시점에서 종목·가격 미포함 확인)
+
+## 언제 갱신되나
+
+| 시점 | 무엇이 바뀌나 |
+|---|---|
+| 제출 push마다 (영수증 봇) | `receipts`, `teams` — 지문 `committed`, 원본 `accepted` 등. 08:30 이후 원본 공개 push 뒤에는 `picks`도 |
+| 평일 10:30 수집·채점 뒤 (자동화 켜진 뒤) | `picks`의 점수, `team_daily`, `standings` |
+
+GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generated_at`으로 언제 만든 것인지 확인한다.
+
+## 형식 (schema 1)
+
+```json
+{
+  "schema": 1,
+  "generated_at": "2026-11-09T10:41:00+09:00",
+  "rules": {"embargo": "...", "prices": "...", "scores": "..."},
+  "receipts":   [ ... ],
+  "teams":      [ ... ],
+  "standings":  [ ... ],
+  "team_daily": [ ... ],
+  "picks":      [ ... ],
+  "agents":     [ ... ]
+}
+```
+
+모든 시각은 KST(`+09:00`). `mode`는 `실전` 또는 `연습`. `team`은 화면용 이름(`Claude 팀`, `슈슈 팀 (Codex)`; 옛 공용 시험은 `sandbox`).
+
+### receipts — 제출 영수증 (팀·라운드마다 여러 줄 가능)
+
+| 필드 | 뜻 |
+|---|---|
+| `key` | 고유 키 (`커밋7자리|라운드|원장 팀`) |
+| `mode`, `team`, `round` | 구분, 팀, 라운드 날짜 |
+| `kind` | `commitment`(지문), `reveal`(원본, v1.7), `csv`(예전 방식) |
+| `status` | `committed` / `accepted` / `late` / `rejected` |
+| `pushed_at` | GitHub 서버 push 시각 |
+| `commit` | 커밋 SHA 앞 7자리 |
+| `imported` | 접수된 종목 수 (지문은 0) |
+
+한 라운드의 최종 접수 여부는 `status == "accepted"`인 줄이 있는지로 판단한다. `rejected` 줄이 함께 있어도 뒤에 `accepted`가 있으면 접수다.
+
+### teams — 팀별 가장 최근 영수증 (구분별 1줄)
+
+`key`, `mode`, `team`, `round`, `status`, `pushed_at`, `imported`, `visible_picks`(이 파일에 실린 그 라운드 종목 수).
+
+### picks — 마감이 지난 라운드의 종목과 점수 (종목마다 1줄)
+
+| 필드 | 뜻 |
+|---|---|
+| `pick_id` | 고유 id |
+| `mode`, `round_date`, `team` | |
+| `agent_id`, `agent` | 에이전트 id, 표시 이름(`애칭 · 스타일명`) |
+| `market`, `ticker`, `name` | `KR`/`US`, 종목코드, 종목명 |
+| `status` | `final`(확정) / `provisional`(잠정) / `pending`(미채점) / `held`(보류) / `void`(무효) |
+| `score` | 공식 점수(%) — 배당 포함 총수익. 확정 전에는 잠정 값이거나 `null` |
+| `score_price_only` | 주가만 본 참고 점수(%) |
+| `score_excess` | 같은 구간 비교 기준(KOSPI·SPY) 대비 초과 점수(%p). 순위에 쓰지 않음 |
+| `reason` | 보류·무효 사유 |
+
+### standings — 실전 주간 순위 (주·팀·에이전트마다 1줄)
+
+`key`, `mode`(항상 `실전`), `team`, `week`(예 `2026-W46`), `rank`, `agent`, `picks`(제출), `expected`(기대 제출), `scored`(확정 채점 수), `avg`, `median`, `avg_excess`, `submit_rate`(%).
+
+### team_daily — 팀 라운드별 합계와 누적
+
+`key`, `mode`, `team`, `date`, `sum`(그 라운드 확정 점수 합, %p), `cumulative`(누적), `n`(확정 종목 수).
+
+### agents — 에이전트 프로필
+
+`key`, `team`, `agent_id`, `name`(`애칭 · 스타일명`), `nickname`, `label`, `tagline`, `status`(`현역`/`대기 N순위`/`탈락`), `version`, `joined_week`, `eliminated_week`.
+
+## 받는 경로
+
+1. **운영자가 GitHub에서 파일을 내려받아 슈슈 팀에 전달한다.**
+   - 위치: 브랜치 `claude/web-vs-desktop-differences-ir8pm0`의 `league/public/results.json`.
+   - 이 파일은 상대 팀 원본 CSV가 아니므로 마감 전에 전달해도 공정성 규칙에 걸리지 않는다. 마감 전 종목이 없기 때문이다.
+2. **슈슈 팀이 저장소 읽기 권한을 받는 경우:** 같은 파일을 직접 읽는다. 이때도 마감 전에는 이 파일 말고 `league/imports/claude/`, 원장(`league/ledger/`), `league/rounds/<당일>/claude/`는 열지 않는다(규칙 v1.7, 4장·10장).
+
+## 화면에 쓸 때
+
+- 종목명·점수는 써도 되지만 **원 가격을 다른 곳에서 가져와 붙이지 않는다.**
+- 점수 상태를 구분해 표시한다: `final`만 확정, `provisional`은 "잠정", `pending`·`held`는 "채점 전/보류".
+- 점수는 모의 예측 점수이며 실제 수익률·투자 권유가 아니다.

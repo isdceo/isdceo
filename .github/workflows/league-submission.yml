@@ -38,6 +38,8 @@ jobs:
             --run-created-at "${{ steps.run.outputs.created_at }}" | tee receipt.txt
           echo "pushed_at(raw)=$(jq -r '.repository.pushed_at' "$GITHUB_EVENT_PATH") run_created_at=${{ steps.run.outputs.created_at }}" | tee -a receipt.txt
           { echo '### 제출 영수증'; echo '```'; cat receipt.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Refresh shared results bundle
+        run: python3 tools/dashboard_data.py --bundle league/public/results.json   # 마감 전 종목·원 가격 제외, 섞이면 실패
       - name: Verify ledgers
         run: |
           python3 tools/league.py verify
@@ -46,7 +48,7 @@ jobs:
         run: |
           git config user.name "league-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for p in league/ledger league/sandbox; do [ -e "$p" ] && git add "$p"; done
+          for p in league/ledger league/sandbox league/public; do [ -e "$p" ] && git add "$p"; done
           if git diff --cached --quiet; then
             # 처리한 제출이 있는데 기록할 변경이 없으면 영수증 유실 → 실패로 알린다
             if grep -qE ' (accepted|committed|late|rejected) ' receipt.txt; then echo "::error::영수증이 생성됐지만 커밋할 변경이 없음"; exit 1; fi

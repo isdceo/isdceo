@@ -75,7 +75,10 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
           python3 tools/league.py collect-due "$(TZ=Asia/Seoul date +%F)" --dir "${{ steps.t.outputs.target }}" | tee summary.txt
-          if [ "${{ steps.t.outputs.target }}" = "league" ]; then python3 tools/league.py export --out data/league.js; fi
+          if [ "${{ steps.t.outputs.target }}" = "league" ]; then
+            python3 tools/league.py export --out data/league.js
+            python3 tools/dashboard_data.py --bundle league/public/results.json   # 두 팀 공유용 (마감 전 종목·원 가격 제외)
+          fi
       - name: Weekly close
         if: steps.t.outputs.on == 'true' && steps.t.outputs.task == 'weekly'
         run: python3 tools/league.py weekly-close --dir "${{ steps.t.outputs.target }}" | tee summary.txt
@@ -87,7 +90,7 @@ jobs:
         run: |
           git config user.name "league-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for p in league/ledger league/rounds league/sandbox data/league.js; do [ -e "$p" ] && git add "$p"; done
+          for p in league/ledger league/rounds league/sandbox league/public data/league.js; do [ -e "$p" ] && git add "$p"; done
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -q -m "league: ${{ steps.t.outputs.task }} $(TZ=Asia/Seoul date +'%F %H:%M') KST" -m "$(head -c 3000 summary.txt 2>/dev/null)"
           for i in 1 2 3; do

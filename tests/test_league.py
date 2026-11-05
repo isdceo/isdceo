@@ -565,6 +565,17 @@ class DashboardData(unittest.TestCase):
                 self.assertGreaterEqual(t, L.lock_deadline(date.fromisoformat(p["round_date"]), cfg), p["pick_id"])
             self.assertNotIn("ticker", json.dumps(out["teams"] + out["receipts"] + out["checklist"]))
 
+    def test_bundle_has_no_early_picks_or_prices(self):
+        import dashboard_data as D
+        for now in ("2026-11-05T08:29:00+09:00", "2026-11-06T08:29:00+09:00", "2026-11-07T09:00:00+09:00"):
+            t = datetime.fromisoformat(now)
+            b = D.bundle(t)
+            cfg = L.load_config(L.ROOT / "league")
+            for p in b["picks"]:
+                self.assertGreaterEqual(t, L.lock_deadline(date.fromisoformat(p["round_date"]), cfg))
+            self.assertNotRegex(json.dumps(b), r'"(base_close|eval_close|close|amount)"\s*:')
+            self.assertEqual(set(D.BUNDLE_KEYS) - set(b), set())
+
 
 class CommitReveal(Receipts):
     """마감 전 지문(.sha256)만 push, 원본 CSV는 08:30~12:00에 공개."""

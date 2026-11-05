@@ -7,7 +7,7 @@
 - 종목·점수는 export()와 같은 규칙을 쓴다: 라운드 마감(08:30 KST) 전 추천은 넣지 않고, 원시 가격은 빼고 점수(%)만 남긴다.
 - 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents (각각 {"rows": [...]} JSON)
 """
-import argparse, json, sys
+import argparse, json, re, sys
 from datetime import datetime
 from pathlib import Path
 
@@ -81,6 +81,7 @@ def build(now: datetime | None = None) -> dict:
         for s in data["submissions"]:
             out["receipts"].append({"key": s["commit"][:7] + "|" + s["round_date"] + "|" + s["team"],
                                     "mode": mode, "team": label(s["team"]), "round": s["round_date"],
+                                    "kind": s.get("kind") or "csv",
                                     "status": s["status"], "pushed_at": s["pushed_at"], "commit": s["commit"][:7],
                                     "imported": s.get("imported", 0)})
 
@@ -127,15 +128,50 @@ def build(now: datetime | None = None) -> dict:
     return out
 
 
+BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "picks", "agents")
+BUNDLE_SCHEMA = 1
+
+
+def bundle(now: datetime | None = None) -> dict:
+    """두 팀 공유용 결과 묶음 (league/public/results.json).
+    마감(08:30 KST) 전 라운드 종목·점수와 원 가격은 들어가지 않는다. 섞이면 만들지 않고 실패한다."""
+    now = now or datetime.now(L.KST)
+    data = build(now)
+    out = {"schema": BUNDLE_SCHEMA, "generated_at": now.isoformat(timespec="seconds"),
+           "rules": {"embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
+                     "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
+                     "scores": "status가 final인 점수만 확정. provisional은 잠정, pending·held는 미채점"}}
+    out.update({k: data[k] for k in BUNDLE_KEYS})
+    cfg = L.load_config(L.ROOT / "league")
+    early = [p["pick_id"] for p in out["picks"]
+             if now < L.lock_deadline(datetime.fromisoformat(p["round_date"]).date(), cfg)]
+    if early:
+        raise RuntimeError(f"마감 전 종목이 결과 묶음에 섞임: {early}")
+    text = json.dumps(out, ensure_ascii=False)
+    if re.search(r'"(base_close|eval_close|close|amount)"\s*:', text):
+        raise RuntimeError("원 가격 필드가 결과 묶음에 섞임")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--out", help="현황판용 파일 폴더 (dataset마다 하나)")
+    ap.add_argument("--bundle", help="두 팀 공유용 결과 묶음 파일 경로 (예: league/public/results.json)")
     a = ap.parse_args()
-    out = Path(a.out)
-    out.mkdir(parents=True, exist_ok=True)
-    for name, rows in build().items():
-        (out / f"{name}.json").write_text(json.dumps({"rows": rows}, ensure_ascii=False, indent=1))
-        print(f"{name}: {len(rows)}행")
+    if not (a.out or a.bundle):
+        ap.error("--out 또는 --bundle 이 필요하다")
+    if a.out:
+        out = Path(a.out)
+        out.mkdir(parents=True, exist_ok=True)
+        for name, rows in build().items():
+            (out / f"{name}.json").write_text(json.dumps({"rows": rows}, ensure_ascii=False, indent=1))
+            print(f"{name}: {len(rows)}행")
+    if a.bundle:
+        p = Path(a.bundle)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        b = bundle()
+        p.write_text(json.dumps(b, ensure_ascii=False, indent=1) + "\n")
+        print(f"결과 묶음: {p} ({b['generated_at']}, " + ", ".join(f"{k} {len(b[k])}" for k in BUNDLE_KEYS) + ")")
 
 
 if __name__ == "__main__":
