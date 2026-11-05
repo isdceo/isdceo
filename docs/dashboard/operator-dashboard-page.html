@@ -1115,9 +1115,9 @@
         svg.append('circle').attr('transform', flatM(X, Y)).attr('r', 9).attr('fill', '#2a1d06');
       }
       // 명패: 이름표 · 캐릭터 · 이번 주 점수, 팀 문양
-      const pr = 672 + 34 * Math.pow(Math.cos(tm), 2), PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY));
+      const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2);   // 끝자리는 작게
       later.push(Object.assign(() => {
-        const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s).toFixed(1)}) scale(${s.toFixed(3)})`).on('click', () => openProfile(a.team, a.name));
+        const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s - 50 * c2).toFixed(1)}) scale(${s.toFixed(3)})`).on('click', () => openProfile(a.team, a.name));
         f.append('title').text(a.name);
         const team = a.team === 'Claude 팀' ? 'c' : 's';
         f.append('rect').attr('x', -44).attr('y', -46).attr('width', 88).attr('height', 92).attr('rx', 4).attr('fill', `url(#bt-${team})`)
@@ -1135,7 +1135,7 @@
         em.append('rect').attr('x', -12).attr('y', -12).attr('width', 24).attr('height', 24).attr('transform', 'rotate(45)').attr('fill', 'url(#bt-gold)').attr('stroke', '#5a4210').attr('stroke-width', 1.5);
         em.append('text').attr('y', 6).attr('text-anchor', 'middle').attr('font-size', 17).attr('fill', team === 'c' ? '#1f1a14' : '#c0392b').text(team === 'c' ? '♠' : '♥');
         achOf(a).filter((x) => x.got).slice(0, 4).forEach((x, k) => {
-          const bg = f.append('g').attr('transform', `translate(44 ${-30 + k * 22})`);
+          const bg = f.append('g').attr('transform', `translate(${Math.cos(tm) > 0.35 ? -44 : 44} ${(Math.cos(tm) > 0.35 ? -8 : -30) + k * 22})`);
           bg.append('title').text(`업적: ${x.name} — ${x.desc}`);
           bg.append('circle').attr('r', 10.5).attr('fill', 'url(#bt-gold)').attr('stroke', '#5a4210').attr('stroke-width', 1.5);
           bg.append('text').attr('y', 3.5).attr('text-anchor', 'middle').attr('font-size', x.g.length > 2 ? 7.5 : 9.5).attr('font-weight', 800).attr('fill', '#2b1b0c').text(x.g);
