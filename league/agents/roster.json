@@ -1,89 +1,96 @@
 {
- "claude": [
-  {
-   "id": "buffett",
-   "label": "가치형",
-   "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
-   "status": "active",
-   "joined_week": null,
-   "eliminated_week": null,
-   "version": 1
-  },
-  {
-   "id": "lynch",
-   "label": "성장형(GARP)",
-   "style_ref": "피터 린치의 공개된 투자 원칙 참고",
-   "status": "active",
-   "joined_week": null,
-   "eliminated_week": null,
-   "version": 1
-  },
-  {
-   "id": "dalio",
-   "label": "거시형",
-   "style_ref": "레이 달리오의 공개된 투자 원칙 참고",
-   "status": "active",
-   "joined_week": null,
-   "eliminated_week": null,
-   "version": 1
-  },
-  {
-   "id": "wood",
-   "label": "혁신형",
-   "style_ref": "캐시 우드의 공개된 투자 원칙 참고",
-   "status": "active",
-   "joined_week": null,
-   "eliminated_week": null,
-   "version": 1
-  },
-  {
-   "id": "burry",
-   "label": "역발상형",
-   "style_ref": "마이클 버리의 공개된 투자 원칙 참고",
-   "status": "active",
-   "joined_week": null,
-   "eliminated_week": null,
-   "version": 1
-  }
- ],
- "bench": [
-  {
-   "id": "momentum",
-   "label": "모멘텀형",
-   "style_ref": "추세 추종·상대강도",
-   "version": 1,
-   "approved": true,
-   "guideline": ".claude/agents/momentum.md",
-   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)"
-  },
-  {
-   "id": "quant",
-   "label": "퀀트 팩터형",
-   "style_ref": "가치·퀄리티·모멘텀 복합 팩터",
-   "version": 1,
-   "approved": true,
-   "guideline": ".claude/agents/quant.md",
-   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)"
-  },
-  {
-   "id": "dividend",
-   "label": "배당형",
-   "style_ref": "배당 성장·주주환원"
-  },
-  {
-   "id": "smallgrowth",
-   "label": "소형 성장형",
-   "style_ref": "중소형 고성장"
-  },
-  {
-   "id": "event",
-   "label": "이벤트 드리븐형",
-   "style_ref": "실적 발표·M&A·지수 편입 이벤트"
-  },
-  {
-   "id": "kvalueup",
-   "label": "한국 밸류업형",
-   "style_ref": "저PBR·지배구조 개선·주주환원 확대"
-  }
- ]
+  "claude": [
+    {
+      "id": "buffett",
+      "label": "가치형",
+      "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
+      "status": "active",
+      "joined_week": null,
+      "eliminated_week": null,
+      "version": 1,
+      "nickname": "뚝심이"
+    },
+    {
+      "id": "lynch",
+      "label": "성장형(GARP)",
+      "style_ref": "피터 린치의 공개된 투자 원칙 참고",
+      "status": "active",
+      "joined_week": null,
+      "eliminated_week": null,
+      "version": 1,
+      "nickname": "발굴왕"
+    },
+    {
+      "id": "dalio",
+      "label": "거시형",
+      "style_ref": "레이 달리오의 공개된 투자 원칙 참고",
+      "status": "active",
+      "joined_week": null,
+      "eliminated_week": null,
+      "version": 1,
+      "nickname": "큰그림"
+    },
+    {
+      "id": "wood",
+      "label": "혁신형",
+      "style_ref": "캐시 우드의 공개된 투자 원칙 참고",
+      "status": "active",
+      "joined_week": null,
+      "eliminated_week": null,
+      "version": 1,
+      "nickname": "미래광"
+    },
+    {
+      "id": "burry",
+      "label": "역발상형",
+      "style_ref": "마이클 버리의 공개된 투자 원칙 참고",
+      "status": "active",
+      "joined_week": null,
+      "eliminated_week": null,
+      "version": 1,
+      "nickname": "삐딱이"
+    }
+  ],
+  "bench": [
+    {
+      "id": "momentum",
+      "label": "모멘텀형",
+      "style_ref": "추세 추종·상대강도",
+      "version": 1,
+      "approved": true,
+      "guideline": ".claude/agents/momentum.md",
+      "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
+      "nickname": "파도타기"
+    },
+    {
+      "id": "quant",
+      "label": "퀀트 팩터형",
+      "style_ref": "가치·퀄리티·모멘텀 복합 팩터",
+      "version": 1,
+      "approved": true,
+      "guideline": ".claude/agents/quant.md",
+      "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
+      "nickname": "계산기"
+    },
+    {
+      "id": "dividend",
+      "label": "배당형",
+      "style_ref": "배당 성장·주주환원"
+    },
+    {
+      "id": "smallgrowth",
+      "label": "소형 성장형",
+      "style_ref": "중소형 고성장"
+    },
+    {
+      "id": "event",
+      "label": "이벤트 드리븐형",
+      "style_ref": "실적 발표·M&A·지수 편입 이벤트"
+    },
+    {
+      "id": "kvalueup",
+      "label": "한국 밸류업형",
+      "style_ref": "저PBR·지배구조 개선·주주환원 확대"
+    }
+  ]
 }

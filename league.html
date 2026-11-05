@@ -190,6 +190,7 @@ function init() {
 /* ───── 공통 조회 ───── */
 const scoreOf = id => (L._scoreIdx ||= Object.fromEntries(L.scores.map(s => [s.pick_id, s])))[id];
 const teamLabel = t => L.config.teams[t]?.label || t;
+const agentName = a => a?.nickname ? `${a.nickname} · ${a.label}` : (a?.label ?? '');
 function agentInfo(team, id) {
   const r = L.roster[team] || [], b = L.roster[team === 'claude' ? 'bench' : 'bench_' + team] || [];
   return r.find(a => a.id === id) || b.find(a => a.id === id) || { id, label: id };
@@ -225,7 +226,7 @@ function renderLeague() {
     </div>
     ${W ? `
     <div class="callout ${elim ? '' : 'info'}">
-      ${elim ? `<b>이번 주 탈락: ${esc(elim.label)}</b> → ${repl ? `승인된 대기 후보 <b>${esc(repl.label)}</b>가 다음 월요일 07:05부터 참가` : '승인된 대기 후보 없음 — 자리 비움'}`
+      ${elim ? `<b>이번 주 탈락: ${esc(agentName(elim))}</b> → ${repl ? `승인된 대기 후보 <b>${esc(agentName(repl))}</b>가 다음 월요일 07:05부터 참가` : '승인된 대기 후보 없음 — 자리 비움'}`
              : dec.hold_reasons?.length ? `<b>교체 보류</b>: ${dec.hold_reasons.map(esc).join(' · ')}` : '집계 전'}
       ${(dec.notes || []).map(n => `<div class="sub">${esc(n)}</div>`).join('')}
     </div>
@@ -237,7 +238,7 @@ function renderLeague() {
         <tbody>${W.ranking.map(r => { const a = agentInfo(state.team, r.agent_id); return `
           <tr class="${r.agent_id === dec.eliminate ? 'out' : ''}">
             <td>${r.rank}</td>
-            <td class="l agent"><b>${esc(a.label)}</b>${r.agent_id === dec.eliminate ? ' <span class="badge b-bad">탈락</span>' : ''}
+            <td class="l agent"><b>${esc(agentName(a))}</b>${r.agent_id === dec.eliminate ? ' <span class="badge b-bad">탈락</span>' : ''}
               <span class="sub"><span class="hide-sm">${esc(a.style_ref || '')} · </span>v${r.version}</span></td>
             <td class="${cls(r.avg)}"><b>${pt(r.avg)}</b>${zbar(r.avg, maxAbs)}</td>
             <td class="${cls(r.avg_excess)}">${pt(r.avg_excess)}</td>
@@ -302,7 +303,7 @@ function renderPicks() {
         </dl>` : ''}
       </div>`;
     }).join('');
-    return `<div class="pcard"><div class="head"><b>${esc(a.label)}</b><span class="sub">${esc(a.style_ref || '')}</span></div>${rows}</div>`;
+    return `<div class="pcard"><div class="head"><b>${esc(agentName(a))}</b><span class="sub">${esc(a.style_ref || '')}</span></div>${rows}</div>`;
   }).join('');
 }
 
@@ -414,10 +415,10 @@ function renderRecords() {
     return `<div class="card team ${t}"><h2>${esc(teamLabel(t))}</h2>
       <h3>명단 (현역 → 탈락)</h3><ul class="plain">${[...mem].sort((x, y) => (x.status === 'eliminated') - (y.status === 'eliminated')).map(a => {
         const first = mem.map(m => m.joined_week).filter(Boolean).sort()[0];
-        return `<li><b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')} · v${a.version ?? 1}</span>
+        return `<li><b>${esc(agentName(a))}</b> <span class="sub">${esc(a.style_ref || '')} · v${a.version ?? 1}</span>
         ${a.status === 'eliminated' ? `<span class="badge b-bad">${esc(a.eliminated_week)} 탈락</span>` : ''}
         ${a.joined_week && first && a.joined_week > first ? `<span class="badge b-ok">${esc(a.joined_week)} 합류</span>` : ''}</li>`; }).join('')}</ul>
-      <h3>대기 후보 (투입 순서)</h3><ul class="plain">${bench.map((a, i) => `<li>${i + 1}. <b>${esc(a.label)}</b> <span class="sub">${esc(a.style_ref || '')}</span>
+      <h3>대기 후보 (투입 순서)</h3><ul class="plain">${bench.map((a, i) => `<li>${i + 1}. <b>${esc(agentName(a))}</b> <span class="sub">${esc(a.style_ref || '')}</span>
         ${appr.has(t + ':' + a.id) ? '<span class="badge b-ok">승인</span>' : '<span class="badge">미승인</span>'}</li>`).join('') || '<li class="sub">없음</li>'}</ul></div>`;
   };
   $('#view').innerHTML = `
@@ -429,7 +430,7 @@ function renderRecords() {
           <td class="l">${esc(s.pushed_at || '')}</td><td class="l hide-sm num">${esc(s.commit?.slice(0, 7))} · ${esc(s.csv_sha256?.slice(0, 12))}</td><td>${s.imported}</td></tr>`).join('')}
       </tbody></table></div>` : '<p class="sub">아직 제출 영수증이 없습니다.</p>'}</div>
     <div class="card"><h2>운영 장애로 인한 미제출 <span class="sub">— 두 팀 동일하게 미제출로 집계, 소급 제출 없음</span></h2>
-      ${(L.outages || []).length ? `<ul class="plain">${L.outages.map(o => `<li>${esc(o.round_date)} · ${esc(teamLabel(o.team))}${o.agent_id ? ' · ' + esc(agentInfo(o.team, o.agent_id).label) : ' 전체'} — ${esc(o.reason)} <span class="sub">${o.kind === 'operator' ? '운영 측' : '팀 측'}</span></li>`).join('')}</ul>` : '<p class="sub">없음</p>'}</div>
+      ${(L.outages || []).length ? `<ul class="plain">${L.outages.map(o => `<li>${esc(o.round_date)} · ${esc(teamLabel(o.team))}${o.agent_id ? ' · ' + esc(agentName(agentInfo(o.team, o.agent_id))) : ' 전체'} — ${esc(o.reason)} <span class="sub">${o.kind === 'operator' ? '운영 측' : '팀 측'}</span></li>`).join('')}</ul>` : '<p class="sub">없음</p>'}</div>
     <div class="card"><h2>정정 기록</h2>
       ${L.corrections.length ? `<ul class="plain">${L.corrections.map(c => `<li>${esc(c.pick_id)}: ${pt(c.before)} → ${pt(c.after)} <span class="sub">${esc(c.reason)} · ${esc(c.at)}</span></li>`).join('')}</ul>` : '<p class="sub">정정된 점수가 없습니다.</p>'}</div>
     <div class="card"><h2>승인 기록</h2>

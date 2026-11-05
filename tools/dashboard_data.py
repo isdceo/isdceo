@@ -44,7 +44,8 @@ def build(now: datetime | None = None) -> dict:
     for key, members in L.load_roster(L.ROOT / "league").items():
         team = "claude" if key == "bench" else key.replace("bench_", "")
         for m in members:
-            names[(team, m["id"])] = m.get("label") or m["id"]
+            lbl = m.get("label") or m["id"]
+            names[(team, m["id"])] = f'{m["nickname"]} · {lbl}' if m.get("nickname") else lbl
 
     state = {"done": "완료", "todo": "남음", "manual": "확인 필요"}
     for r in L.readiness(L.ROOT / "league"):
@@ -69,7 +70,7 @@ def build(now: datetime | None = None) -> dict:
             s = scores.get(p["pick_id"], {})
             out["picks"].append({"pick_id": p["pick_id"], "mode": mode, "round_date": p["round_date"],
                                  "team": label(p["team"]), "agent_id": p["agent_id"],
-                                 "agent": p.get("agent_label") or names.get((team_of(p["team"]), p["agent_id"]), p["agent_id"]),
+                                 "agent": names.get((team_of(p["team"]), p["agent_id"])) or p.get("agent_label") or p["agent_id"],
                                  "market": p["market"], "ticker": p["ticker"], "name": p.get("name") or "",
                                  "status": s.get("status") or "pending", "score": s.get("score"),
                                  "score_price_only": s.get("score_price_only"), "score_excess": s.get("score_excess"),
@@ -84,7 +85,8 @@ def build(now: datetime | None = None) -> dict:
             for wk, w in weeks.items():
                 for r in w["ranking"]:
                     out["standings"].append({"key": f"{mode}|{team}|{wk}|{r['agent_id']}", "mode": mode,
-                                             "team": label(team), "week": wk, "rank": r["rank"], "agent": r["label"],
+                                             "team": label(team), "week": wk, "rank": r["rank"],
+                                             "agent": names.get((team, r["agent_id"]), r["label"]),
                                              "picks": r["picks"], "expected": r["expected"], "scored": r["scored"],
                                              "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
                                              "submit_rate": r["submit_rate"]})
