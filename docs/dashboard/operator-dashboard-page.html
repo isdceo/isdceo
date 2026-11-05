@@ -630,6 +630,7 @@
     const go = () => {
       let t = o.el && o.el.isConnected && visible(o.el) ? o.el : null;
       if (!t && o.key) t = [...document.querySelectorAll('[data-fkey]')].find((e) => e.dataset.fkey === o.key && visible(e)) || null;
+      if (!t) t = document.querySelector('.lg .tab[aria-selected="true"]') || document.querySelector('.hudbar .mini');
       if (t && t.focus) t.focus({preventScroll: true});
     };
     requestAnimationFrame(() => requestAnimationFrame(go));
@@ -653,6 +654,7 @@
     return true;
   };
   window.closeProfile = closeProfile;
+  if (!document.querySelector('.app')) document.querySelectorAll('.lg .profile').forEach((el) => el.removeAttribute('aria-modal'));
   document.querySelectorAll('.lg .pclose').forEach((b) => b.addEventListener('click', closeProfile));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.defaultPrevented && closeProfile()) e.preventDefault(); });   // 맨 위 한 겹(프로필)만 닫는다
   const agentButton = (td, team, name) => {
@@ -1388,7 +1390,9 @@
       let cardTop = Infinity, cardBot = -Infinity, cardX = 0;
       [['KR', -1], ['US', 1]].forEach(([mk, k], j) => {
         const sp = Math.cos(tm) ** 2 > 0.5 ? 25 : 31, X = -470 * Math.cos(tm) + k * sp * tg[0], Y = 470 * Math.sin(tm) + k * sp * tg[1];
-        const s = S(Y) * (Math.cos(tm) ** 2 > 0.5 ? 0.86 : 1), w = 46 * s, h = 62 * s, [x, y] = P(X, Y), p = pp[mk], delay = 0.6 + i * 0.05 + j * 0.05;
+        const edge = Math.cos(tm) ** 2 > 0.5, s = S(Y) * (edge ? 0.86 : 1), w = 46 * s, h = 62 * s, p = pp[mk], delay = 0.6 + i * 0.05 + j * 0.05;
+        let [x, y] = P(X, Y);
+        if (edge) { const [x0, y0] = P(-470 * Math.cos(tm), 470 * Math.sin(tm)); x = x0 + k * (w / 2 + 1.5); y = y0; }   // 끝 칸은 화면 가로로 나란히(겹침 방지)
         g.append('ellipse').attr('cx', x).attr('cy', y + 2).attr('rx', w * 0.55).attr('ry', 5 * s).attr('fill', '#000').attr('opacity', .3);
         stockCard(g, x - w / 2, y - h + 4 * s, w, h, p, {rot: (Math.PI / 2 - tm) * 180 / Math.PI * -0.25, delay: delay - 0.3});
         cardTop = Math.min(cardTop, y - h); cardBot = Math.max(cardBot, y + 4 * s); cardX += x / 2;
