@@ -4,31 +4,36 @@
       "id": "s1",
       "label": "안전마진형",
       "style_ref": "벤저민 그레이엄의 공개된 투자 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "단단이"
     },
     {
       "id": "s2",
       "label": "사업품질형",
       "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "알짜"
     },
     {
       "id": "s3",
       "label": "성장검증형",
       "style_ref": "피터 린치의 공개된 투자 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "돋보기"
     },
     {
       "id": "s4",
       "label": "성장지속형",
       "style_ref": "필립 피셔의 공개된 투자 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "쑥쑥이"
     },
     {
       "id": "s5",
       "label": "위험역발상형",
       "style_ref": "하워드 막스의 공개된 투자 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "반전이"
     }
   ],
   "bench": [
@@ -36,13 +41,15 @@
       "id": "s6",
       "label": "거시사이클형",
       "style_ref": "레이 달리오의 공개된 거시·경제 사이클 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "나침반"
     },
     {
       "id": "s7",
       "label": "추세모멘텀형",
       "style_ref": "윌리엄 오닐의 공개된 가격·거래량 및 실적 모멘텀 원칙 참고",
-      "version": 1
+      "version": 1,
+      "nickname": "순풍"
     }
   ]
 }
