@@ -13,7 +13,7 @@
 """
 from __future__ import annotations
 
-import argparse, csv, hashlib, json, statistics, sys
+import argparse, csv, hashlib, json, math, statistics, sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -300,7 +300,13 @@ def load_roster(d: Path) -> dict:
 def _avg(v):
     return round(statistics.mean(v), 2) if v else None
 
-def weekly(d: Path, week: str, team: str = "claude") -> dict:
+def _min_needed(expected: int, w: dict, fixed_key: str) -> int:
+    """최소 확정 채점 수. min_scored_ratio가 있으면 기대 제출 수의 비율(올림), 없으면 고정값."""
+    if w.get("min_scored_ratio") is not None:
+        return max(1, math.ceil(expected * w["min_scored_ratio"])) if expected else 0
+    return w[fixed_key]
+
+def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -> dict:
     cfg = load_config(d)
     w = cfg["weekly"]
     roster = load_roster(d)
@@ -348,15 +354,33 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
     rows.sort(key=key, reverse=True)
     for i, r in enumerate(rows, 1):
         r["rank"] = i
+    if _rows_only:
+        return {"week": week, "team": team, "ranking": rows}
+    if w.get("mode") == "combined_bottom1":
+        lg = weekly_league(d, week)
+        dec = lg["decision"]
+        mine = dec.get("eliminate_team") == team
+        decision = {"eliminate": dec["eliminate"] if mine else None,
+                    "replacement": dec["replacement"] if mine else None,
+                    "hold_reasons": dec["hold_reasons"], "notes": dec.get("notes", []),
+                    "mode": "combined_bottom1", "league_bottom": dec.get("bottom")}
+        closed = next((x for x in read_ledger(d, "weekly_decisions") if x["team"] == team and x["week"] == week), None)
+        if closed:
+            decision.update(eliminate=closed["eliminate"], replacement=closed["replacement"],
+                            hold_reasons=closed.get("hold_reasons", []), notes=closed.get("notes", []),
+                            closed_at=closed.get("closed_at"))
+        return {"week": week, "team": team, "ranking": rows, "decision": decision}
     decision = {"eliminate": None, "hold_reasons": []}
     total = sum(r["scored"] for r in rows)
     if rows:
         bottom = rows[-1]
         tied = [r for r in rows if key(r) == key(bottom)]
-        if total < w["min_total_scored_in_week"]:
-            decision["hold_reasons"].append(f"주간 채점 완료 {total}건 < {w['min_total_scored_in_week']}건 (데이터 부족 주간)")
-        if bottom["scored"] < w["min_scored_for_elimination"]:
-            decision["hold_reasons"].append(f"최하위 {bottom['label']} 채점 {bottom['scored']}건 < {w['min_scored_for_elimination']}건")
+        need_t = _min_needed(sum(r["expected"] for r in rows), w, "min_total_scored_in_week")
+        need_a = _min_needed(bottom["expected"], w, "min_scored_for_elimination")
+        if total < need_t:
+            decision["hold_reasons"].append(f"주간 채점 완료 {total}건 < {need_t}건 (데이터 부족 주간)")
+        if bottom["scored"] < need_a:
+            decision["hold_reasons"].append(f"최하위 {bottom['label']} 채점 {bottom['scored']}건 < {need_a}건")
         if w["protect_first_week"] and bottom["new_this_week"]:
             decision["hold_reasons"].append(f"최하위 {bottom['label']}는 이번 주 합류 (첫 주 보호)")
         if len(tied) > 1:
@@ -378,6 +402,64 @@ def weekly(d: Path, week: str, team: str = "claude") -> dict:
                     "closed_at": closed.get("closed_at")}
     return {"week": week, "team": team, "ranking": rows, "decision": decision}
 
+def _approved_bench(d: Path, roster: dict, team: str) -> list[dict]:
+    approved = {(x["team"], x["agent_id"]) for x in read_ledger(d, "approvals")
+                if x.get("type") == "bench" and x.get("decision") == "approved"}
+    return [b for b in roster.get("bench" if team == "claude" else f"bench_{team}", []) if (team, b["id"]) in approved]
+
+def weekly_league(d: Path, week: str) -> dict:
+    """두 팀 현역 전원을 한 줄로 세운 주간 순위와 '통합 꼴등 1명' 퇴출 결정 (weekly.mode = combined_bottom1).
+    보류: 팀마다 확정 채점이 그 팀 기대 제출의 min_scored_ratio 미만, 꼴등의 확정 채점이 자기 기대 제출의
+    min_scored_ratio 미만, 꼴등 동점. 채점 안 된 추천은 0점이 아니라 제외한다."""
+    cfg = load_config(d)
+    w = cfg["weekly"]
+    nz = lambda v: -1e9 if v is None else v
+    key = lambda r: (nz(r["avg"]), nz(r["median"]), nz(r["min"]))
+    rows, teams = [], {}
+    for team in cfg["teams"]:
+        t = weekly(d, week, team, _rows_only=True)["ranking"]
+        if not t:
+            continue
+        sc = sum(r["scored"] for r in t)
+        teams[team] = {"scored": sc, "expected": sum(r["expected"] for r in t),
+                       "picks": sum(r["picks"] for r in t), "held_or_pending": sum(r["held_or_pending"] for r in t),
+                       "avg": round(sum(r["avg"] * r["scored"] for r in t if r["avg"] is not None) / sc, 2) if sc else None}
+        rows += [{**r, "team": team, "team_rank": r["rank"]} for r in t]
+    rows.sort(key=key, reverse=True)
+    for i, r in enumerate(rows, 1):
+        r["league_rank"] = i
+    decision = {"eliminate": None, "eliminate_team": None, "replacement": None, "hold_reasons": [], "notes": [],
+                "bottom": None, "thresholds": {}}
+    if rows:
+        for team, s_ in teams.items():
+            need = _min_needed(s_["expected"], w, "min_total_scored_in_week")
+            decision["thresholds"][team] = need
+            if s_["scored"] < need:
+                decision["hold_reasons"].append(f"{cfg['teams'][team]['label']} 주간 확정 채점 {s_['scored']}건 < {need}건 (기대 {s_['expected']}건 기준, 데이터 부족)")
+        bottom = rows[-1]
+        decision["bottom"] = {"team": bottom["team"], "agent_id": bottom["agent_id"], "label": bottom["label"]}
+        need_a = _min_needed(bottom["expected"], w, "min_scored_for_elimination")
+        if bottom["scored"] < need_a:
+            decision["hold_reasons"].append(f"꼴등 {bottom['label']} 채점 {bottom['scored']}건 < {need_a}건")
+        if w.get("protect_first_week") and bottom["new_this_week"]:
+            decision["hold_reasons"].append(f"꼴등 {bottom['label']}는 이번 주 합류 (첫 주 보호)")
+        if sum(1 for r in rows if key(r) == key(bottom)) > 1:
+            decision["hold_reasons"].append("꼴등 동점 (평균·중앙값·최저점 모두 같음)")
+        if not decision["hold_reasons"]:
+            decision.update(eliminate=bottom["agent_id"], eliminate_team=bottom["team"])
+            bench = _approved_bench(d, load_roster(d), bottom["team"])
+            if bench:
+                decision["replacement"] = bench[0]["id"]
+            else:
+                decision["notes"].append("승인된 대기 후보 없음 — 탈락 후 자리 비움 (빈자리는 미제출로 세지 않음)")
+    closed = [x for x in read_ledger(d, "weekly_decisions") if x["week"] == week]
+    if closed:
+        hit = next((x for x in closed if x.get("eliminate")), None)
+        decision.update(eliminate=hit["eliminate"] if hit else None, eliminate_team=hit["team"] if hit else None,
+                        replacement=hit["replacement"] if hit else None,
+                        hold_reasons=closed[0].get("hold_reasons", []), closed_at=closed[0].get("closed_at"))
+    return {"week": week, "mode": "combined_bottom1", "ranking": rows, "teams": teams, "decision": decision}
+
 def next_week(week: str) -> str:
     y, w = map(int, week.split("-W"))
     return iso_week(date.fromisocalendar(y, w, 1) + timedelta(days=7))
@@ -388,6 +470,26 @@ def weekly_close(d: Path, week: str, now: str | None = None) -> list[dict]:
     cfg = load_config(d)
     done = {(x["team"], x["week"]) for x in read_ledger(d, "weekly_decisions")}
     out = []
+    if cfg["weekly"].get("mode") == "combined_bottom1":
+        if any(wk == week for _, wk in done):
+            return out
+        lg = weekly_league(d, week)
+        if not lg["ranking"]:
+            return out
+        dec = lg["decision"]
+        at = now or datetime.now(KST).isoformat(timespec="seconds")
+        for team in lg["teams"]:
+            mine = dec["eliminate_team"] == team
+            rec = {"team": team, "week": week, "effective_week": next_week(week), "mode": "combined_bottom1",
+                   "eliminate": dec["eliminate"] if mine else None, "replacement": dec["replacement"] if mine else None,
+                   "hold_reasons": dec["hold_reasons"], "notes": dec["notes"] if mine else [],
+                   "league_bottom": dec["bottom"],
+                   "ranking": [{k: r[k] for k in ("league_rank", "team_rank", "agent_id", "avg", "avg_excess", "scored",
+                                                   "expected", "picks", "held_or_pending", "submit_rate", "void")}
+                               for r in lg["ranking"] if r["team"] == team],
+                   "closed_at": at}
+            out.append(append(d, "weekly_decisions", rec))
+        return out
     for team in cfg["teams"]:
         if (team, week) in done:
             continue
@@ -496,10 +598,12 @@ def team_summary(d: Path) -> dict:
     res = {}
     for team, t in out.items():
         days = sorted(t["daily"])
-        cum, series = 0.0, []
+        cum, series, seen = 0.0, [], []
         for dd in days:
             daysum = round(sum(t["daily"][dd]), 2); cum = round(cum + daysum, 2)
-            series.append({"date": dd, "sum": daysum, "cumulative": cum, "n": len(t["daily"][dd])})
+            seen += t["daily"][dd]
+            series.append({"date": dd, "sum": daysum, "cumulative": cum, "n": len(t["daily"][dd]),
+                           "avg": _avg(t["daily"][dd]), "cum_avg": _avg(seen), "cum_n": len(seen)})
         res[team] = {"cumulative": cum, "avg": _avg(t["all"]), "scored": len(t["all"]), "series": series,
                      "avg_excess": _avg(t["excess"]["KR"] + t["excess"]["US"]),
                      "markets": {m: {"avg": _avg(v), "scored": len(v), "sum": round(sum(v), 2),

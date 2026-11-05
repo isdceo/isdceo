@@ -679,3 +679,72 @@ class CommitReveal(Receipts):
         rs = self._push_files({f"{rd}.sha256": f"{sha}  {rd}.csv\n", f"{rd}.csv": body}, "2026-11-10T08:10:00+09:00")
         self.assertEqual([r["status"] for r in rs], ["committed", "accepted"])
         self.assertTrue(rs[1].get("early_reveal"))
+
+
+class LeagueBottom(unittest.TestCase):
+    """규칙 v1.8: 두 팀 10명 통합 순위의 꼴등 1명만 퇴출."""
+    CLAUDE = ["buffett", "lynch", "dalio", "wood", "burry"]
+    SHUSHU = ["s1", "s2", "s3", "s4", "s5"]
+
+    def _league(self):
+        d = new_league()
+        imp = d / "imports" / "shushu"; imp.mkdir(parents=True)
+        (imp / "roster.json").write_text(json.dumps({
+            "members": [{"id": s, "label": f"{s}형", "version": 1} for s in self.SHUSHU],
+            "bench": [{"id": "s6", "label": "s6형", "version": 1}]}, ensure_ascii=False))
+        L.append(d, "approvals", {"type": "bench", "team": "shushu", "agent_id": "s6", "decision": "approved"})
+        return d
+
+    def _scores(self, d, team, results):
+        days = ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13"]
+        slots = [(rd, m) for rd in days for m in ("KR", "US")]
+        cfg = L.load_config(d)
+        for agent, scores in results.items():
+            for (rd, m), sc in zip(slots, scores):
+                t = "005930" if m == "KR" else "AAPL"
+                rec = L.make_pick(team, agent, 1, rd, m, t, t, f"{rd}T08:00:00+09:00", "", [], [{"url": "x", "as_of": rd}], cfg)
+                L.append(d, "picks", rec)
+                if sc is not None:
+                    L.append(d, "scores", {"pick_id": rec["pick_id"], "status": "final", "score": sc})
+
+    def test_bottom_from_other_team_eliminated(self):
+        d = self._league()
+        self._scores(d, "claude", {a: [1.0 + i] * 10 for i, a in enumerate(self.CLAUDE)})
+        self._scores(d, "shushu", {s: [0.5 + i] * 10 for i, s in enumerate(self.SHUSHU)})
+        lg = L.weekly_league(d, "2026-W46")
+        self.assertEqual(len(lg["ranking"]), 10)
+        self.assertEqual((lg["decision"]["eliminate_team"], lg["decision"]["eliminate"]), ("shushu", "s1"))
+        self.assertEqual(lg["decision"]["replacement"], "s6")
+        self.assertIsNone(L.weekly(d, "2026-W46", "claude")["decision"]["eliminate"])
+        self.assertEqual(L.weekly(d, "2026-W46", "shushu")["decision"]["eliminate"], "s1")
+
+    def test_team_below_ratio_holds(self):
+        d = self._league()
+        self._scores(d, "claude", {a: [1.0] * 10 for a in self.CLAUDE})
+        self._scores(d, "shushu", {s: [2.0 + i] * 5 + [None] * 5 for i, s in enumerate(self.SHUSHU)})   # 25/50 < 30
+        lg = L.weekly_league(d, "2026-W46")
+        self.assertIsNone(lg["decision"]["eliminate"])
+        self.assertTrue(any("25건 < 30건" in r for r in lg["decision"]["hold_reasons"]))
+
+    def test_unscored_not_counted_as_zero(self):
+        d = self._league()
+        self._scores(d, "claude", {a: [1.0] * 10 for a in self.CLAUDE[:4]} | {"burry": [0.9] * 7 + [None] * 3})
+        self._scores(d, "shushu", {s: [2.0] * 10 for s in self.SHUSHU})
+        r = next(x for x in L.weekly_league(d, "2026-W46")["ranking"] if x["agent_id"] == "burry")
+        self.assertEqual((r["scored"], r["avg"], r["held_or_pending"]), (7, 0.9, 3))
+
+    def test_close_applies_to_roster(self):
+        d = self._league()
+        self._scores(d, "claude", {a: [1.0 + i] * 10 for i, a in enumerate(self.CLAUDE)})
+        self._scores(d, "shushu", {s: [0.5 + i] * 10 for i, s in enumerate(self.SHUSHU)})
+        recs = L.weekly_close(d, "2026-W46", now="2026-11-16T06:30:00+09:00")
+        self.assertEqual(sorted((r["team"], r["eliminate"]) for r in recs), [("claude", None), ("shushu", "s1")])
+        self.assertEqual(L.weekly_close(d, "2026-W46"), [])
+        ro = L.load_roster(d)
+        self.assertEqual(next(a for a in ro["shushu"] if a["id"] == "s1")["status"], "eliminated")
+        self.assertEqual(next(a for a in ro["shushu"] if a["id"] == "s6")["joined_week"], "2026-W47")
+        self.assertTrue(all(a["status"] == "active" for a in ro["claude"]))
+
+    def test_ratio_threshold_for_holiday_week(self):
+        w = {"min_scored_ratio": 0.6}
+        self.assertEqual((L._min_needed(10, w, "x"), L._min_needed(9, w, "x"), L._min_needed(45, w, "x")), (6, 6, 27))

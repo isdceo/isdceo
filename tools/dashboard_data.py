@@ -5,7 +5,7 @@
 
 - 실전(league)과 연습(league/sandbox) 원장을 모두 읽는다.
 - 종목·점수는 export()와 같은 규칙을 쓴다: 라운드 마감(08:30 KST) 전 추천은 넣지 않고, 원시 가격은 빼고 점수(%)만 남긴다.
-- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents (각각 {"rows": [...]} JSON)
+- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents, team_weeks (각각 {"rows": [...]} JSON)
 """
 import argparse, json, re, sys
 from datetime import datetime
@@ -38,7 +38,7 @@ def _load(d: Path, now: datetime) -> dict:
 
 def build(now: datetime | None = None) -> dict:
     now = now or datetime.now(L.KST)
-    out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks", "agents")}
+    out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks", "agents", "team_weeks")}
 
     names = {}                                            # (팀, id) → 스타일명 (예: claude, buffett → 가치형)
     for key, members in L.load_roster(L.ROOT / "league").items():
@@ -100,17 +100,28 @@ def build(now: datetime | None = None) -> dict:
         for team, t in data["teams"].items():
             for x in t["series"]:
                 out["team_daily"].append({"key": f"{mode}|{team}|{x['date']}", "mode": mode, "team": label(team),
-                                          "date": x["date"], "sum": x["sum"], "cumulative": x["cumulative"], "n": x["n"]})
+                                          "date": x["date"], "sum": x["sum"], "cumulative": x["cumulative"], "n": x["n"],
+                                          "avg": x.get("avg"), "cum_avg": x.get("cum_avg"), "cum_n": x.get("cum_n")})
 
-        for team, weeks in (data["weekly"].items() if mode == "실전" else ()):   # 주간 순위는 실전만
-            for wk, w in weeks.items():
-                for r in w["ranking"]:
-                    out["standings"].append({"key": f"{mode}|{team}|{wk}|{r['agent_id']}", "mode": mode,
-                                             "team": label(team), "week": wk, "rank": r["rank"],
-                                             "agent": names.get((team, r["agent_id"]), r["label"]),
-                                             "picks": r["picks"], "expected": r["expected"], "scored": r["scored"],
+        if mode == "실전":                       # 주간 순위: 두 팀 10명 통합 (규칙 v1.8)
+            weeks = sorted({L.iso_week(datetime.fromisoformat(p["round_date"]).date()) for p in data["picks"]})
+            for wk in weeks:
+                lg = L.weekly_league(d, wk)
+                dec = lg["decision"]
+                for r in lg["ranking"]:
+                    out["standings"].append({"key": f"{mode}|{wk}|{r['team']}|{r['agent_id']}", "mode": mode, "week": wk,
+                                             "league_rank": r["league_rank"], "rank": r["team_rank"],
+                                             "team": label(r["team"]), "agent_id": r["agent_id"],
+                                             "agent": names.get((r["team"], r["agent_id"]), r["label"]),
                                              "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
-                                             "submit_rate": r["submit_rate"]})
+                                             "scored": r["scored"], "picks": r["picks"], "expected": r["expected"],
+                                             "missed": r["missed"], "held": r["held_or_pending"], "submit_rate": r["submit_rate"],
+                                             "out": "퇴출" if (dec["eliminate_team"] == r["team"] and dec["eliminate"] == r["agent_id"]) else ""})
+                for team, t in lg["teams"].items():
+                    out["team_weeks"].append({"key": f"{mode}|{wk}|{team}", "mode": mode, "week": wk, "team": label(team),
+                                              "avg": t["avg"], "scored": t["scored"], "picks": t["picks"],
+                                              "expected": t["expected"], "held": t["held_or_pending"],
+                                              "hold": " / ".join(dec["hold_reasons"])})
 
     # 팀 요약: 모드·팀별 마지막 영수증
     last = {}
@@ -128,7 +139,7 @@ def build(now: datetime | None = None) -> dict:
     return out
 
 
-BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "picks", "agents")
+BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "picks", "agents")
 BUNDLE_SCHEMA = 1
 
 

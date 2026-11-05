@@ -19,7 +19,10 @@
     "min_total_scored_in_week": 30,
     "protect_first_week": false,
     "halt_void_after_sessions": 5,
-    "missing_price_wait_sessions": 3
+    "missing_price_wait_sessions": 3,
+    "mode": "combined_bottom1",
+    "min_scored_ratio": 0.6,
+    "mode_note": "두 팀 현역 전원(10명) 통합 순위의 꼴등 1명만 퇴출 (2026-11-05 운영자 결정, 규칙 v1.8). 보류: 팀마다 확정 채점 < 그 팀 기대 제출의 60%, 꼴등 확정 채점 < 자기 기대 제출의 60%, 꼴등 동점. 채점 안 된 추천은 0점이 아니라 제외. 고정값(min_scored_for_elimination·min_total_scored_in_week)은 min_scored_ratio가 없을 때만 쓴다"
   },
   "calendar_overrides": {
     "KR": {

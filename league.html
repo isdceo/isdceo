@@ -447,8 +447,8 @@ function renderRules() {
     <li><b>공식 점수</b>: ${esc(c.scoring.formula)}. ${esc(c.scoring.dividend_attribution)}</li>
     <li><b>참고 점수</b>: 주가 변동 점수, 시장 대비 초과 점수(KR: KOSPI, US: SPY). 순위에 쓰지 않음.</li>
     <li><b>보류</b>: 가격·배당·분할 정보를 확인할 수 없으면 0점이 아니라 보류. 거래정지 ${w.halt_void_after_sessions}세션 초과 시 무효.</li>
-    <li><b>주간 교체</b>: 확정 평균 최하위 1명 탈락 → 승인된 대기 후보가 다음 월요일 07:05부터 참가.
-      보류 조건: 최하위 확정 ${w.min_scored_for_elimination}건 미만, 팀 확정 ${w.min_total_scored_in_week}건 미만, 완전 동점.</li>
+    <li><b>주간 교체</b>: ${w.mode === 'combined_bottom1' ? '두 팀 10명 통합 순위의 꼴등 1명만 탈락' : '팀별 확정 평균 최하위 1명 탈락'} → 그 팀의 승인된 대기 후보가 다음 월요일 07:05부터 참가.
+      보류 조건: ${w.min_scored_ratio != null ? `팀마다 확정이 기대 제출의 ${Math.round(w.min_scored_ratio * 100)}% 미만, 꼴등 확정이 자기 기대의 ${Math.round(w.min_scored_ratio * 100)}% 미만` : `최하위 확정 ${w.min_scored_for_elimination}건 미만, 팀 확정 ${w.min_total_scored_in_week}건 미만`}, 완전 동점. 채점 안 된 추천은 0점이 아니라 제외.</li>
     <li><b>같은 종목</b>: 팀 안에서 여러 에이전트가 같은 종목을 골라도 됩니다(쏠림도 팀 판단의 일부).</li>
     <li><b>운영 장애</b>: 사용 한도·서비스 장애 등으로 제출하지 못하면 두 팀 모두 미제출로 집계하고 사유를 기록합니다. 소급 제출은 없습니다.</li>
     <li><b>개선</b>: 주간 복기 → 운영자 승인 후 다음 라운드부터 새 지침 버전 적용. 과거 점수는 바꾸지 않음.</li>
