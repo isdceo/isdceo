@@ -162,7 +162,7 @@
   .lg .ach .badge { flex: none; width: 30px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: var(--color-border-line); color: var(--color-fg-muted); }
   .lg .ach.got { border-style: solid; color: var(--color-fg); }
   .lg .ach.got .badge { background: linear-gradient(#fff1b8, #d4a83c 55%, #8a6414); color: #2b1b0c; box-shadow: 0 0 0 2px #5a4210; }
-  @media (max-width: 640px) {
+  @media (max-width: 640px), (orientation: landscape) and (max-height: 500px) {
     .lg .felt { padding: 10px; gap: 12px; border-radius: 16px; }
     .lg .felt .ttitle { font-size: 14px; letter-spacing: .12em; }
     .lg .felt .tsub { font-size: 11px; }
@@ -1267,8 +1267,10 @@
     pat.append('path').attr('d', 'M17 3 L31 17 L17 31 L3 17 Z M17 11 L23 17 L17 23 L11 17 Z').attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-opacity', .13).attr('stroke-width', 1.2);
 
     // 벽 · 바닥
-    svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'url(#bt-wall)');
-    svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'url(#bt-damask)');
+    if (!el.closest('.app')) {   // 게임 화면은 페이지 배경이 벽을 대신한다
+      svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'url(#bt-wall)');
+      svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'url(#bt-damask)');
+    }
     // 테이블: 가죽 팔걸이 → 나무 테두리 → 펠트
     svg.append('path').attr('d', dShape(668, -262)).attr('fill', '#000').attr('opacity', .45).attr('transform', 'translate(0 14)');
     svg.append('path').attr('d', dShape(660, -258)).attr('fill', 'url(#bt-pad)').attr('stroke', '#000').attr('stroke-width', 2);
@@ -1370,7 +1372,7 @@
         svg.append('circle').attr('transform', flatM(X, Y)).attr('r', 9).attr('fill', '#2a1d06');
       }
       // 명패: 이름표 · 캐릭터 · 이번 주 점수, 팀 문양
-      const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2);   // 끝자리는 작게
+      const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2) * (el.closest('.app') && window.innerHeight < 500 ? 1.12 : 1);   // 끝자리는 작게
       later.push(Object.assign(() => {
         const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s - 50 * c2).toFixed(1)}) scale(${s.toFixed(3)})`).on('click', () => openProfile(a.team, a.name));
         f.append('title').text(a.name);

@@ -27,7 +27,7 @@ TOKENS = """:root{--color-fg:#1f1e1d;--color-fg-muted:#6b6862;--color-bg:#faf9f5
 --room:#070f1f;--hud:#0b1426;--hud-line:#2a3f66;--btn-top:#2d4f82;--btn-bot:#16294a;--btn-line:#4f74ad;--gold:#f4d27a;--ink:#e8f0ff;--ink-soft:#b9c7dd;color-scheme:dark}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(--ink);font-family:var(--font-anthropic-sans);font-size:14px;overscroll-behavior:none}
 /* 한 화면 게임: 위 HUD · 가운데 테이블(고정) · 아래 버튼. 메뉴는 아래에서 올라오는 창 */
-.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;box-sizing:border-box;
+.app{background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34'%3E%3Cpath d='M17 3 L31 17 L17 31 L3 17 Z M17 11 L23 17 L17 23 L11 17 Z' fill='none' stroke='%23d4b25c' stroke-opacity='.13' stroke-width='1.2'/%3E%3C/svg%3E\"),radial-gradient(ellipse at 50% 35%,#16305a 0%,#0b1a36 55%,var(--room) 100%);height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .app .hudbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;background:linear-gradient(var(--hud),rgba(11,20,38,.6));border-bottom:1px solid var(--hud-line)}
 .app .hudbar h1{margin:0;font-family:var(--font-anthropic-serif);font-weight:400;font-size:19px;color:var(--gold);letter-spacing:.04em;white-space:nowrap}
@@ -66,6 +66,34 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(
 .app .lg .profile.open{position:fixed;left:0;right:0;bottom:0;top:auto;max-height:80%;overflow-y:auto;margin:0 auto;max-width:760px;border-radius:18px 18px 0 0;z-index:60;
   box-shadow:0 -10px 30px rgba(0,0,0,.45);padding-top:22px;background:var(--color-panel);color:var(--color-fg);padding-left:16px;padding-right:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){.sheet,.scrim{transition:none}}
+/* 휴대폰 가로: 테이블 크게, 메뉴 버튼은 오른쪽 세로 줄, 창은 오른쪽에서 */
+@media (orientation:landscape) and (max-height:500px){
+  .app{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr)}
+  .app .hudbar{grid-column:1;grid-row:1;padding:4px 10px;border-bottom:0;background:transparent}
+  .app .hudbar h1{font-size:15px}
+  .app .mini{grid-template-columns:auto auto auto;column-gap:6px;padding:3px 10px}
+  .app .mini small{grid-column:auto;font-size:10px}
+  .app .mini b{font-size:15px}
+  .app .stage{grid-column:1;grid-row:2}
+  .app .stage .note{font-size:9px;padding:0 8px 2px}
+  .app .dock{grid-column:2;grid-row:1/3;grid-template-columns:1fr;grid-auto-rows:1fr;width:78px;gap:8px;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px)) 8px;border-top:0;border-left:1px solid var(--hud-line);background:linear-gradient(90deg,rgba(11,20,38,.6),var(--hud))}
+  .app .dock button{font-size:12.5px;padding:4px 2px}
+  .sheet{left:auto;right:0;top:0;bottom:0;max-height:none;width:min(64vw,540px);margin:0;border:1px solid var(--btn-line);border-right:0;border-radius:16px 0 0 16px;transform:translateX(105%)}
+  .sheet header{padding:10px 14px 6px}
+  .sheet .body{padding:10px calc(14px + env(safe-area-inset-right,0px)) 14px 14px}
+  .app .lg .profile.open{left:auto;right:0;top:0;bottom:0;max-height:none;width:min(64vw,540px);margin:0;border-radius:16px 0 0 16px;padding-top:12px;padding-right:calc(16px + env(safe-area-inset-right,0px))}
+  .app .lg .profile.open::before{display:none}
+}
+/* 휴대폰 세로: 가로로 돌리라는 안내 (세로로 보기를 고르면 세로 화면) */
+.turn{display:none;position:fixed;inset:0;z-index:90;background:var(--room);color:var(--ink);flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+.turn b{font-size:18px;color:var(--gold)}
+.turn p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.6;max-width:22em}
+.turn button{font:inherit;color:var(--ink-soft);background:none;border:1px solid var(--btn-line);border-radius:10px;padding:8px 16px;cursor:pointer}
+.turn svg{width:96px;height:96px}
+@media (orientation:portrait) and (max-width:640px){html:not(.portrait-ok) .turn{display:flex}}
+@media (prefers-reduced-motion:no-preference){.turn .ph{transform-origin:48px 48px;animation:turn-ph 2.4s ease-in-out infinite}}
+@keyframes turn-ph{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
 """
 
 RUNTIME = """<script>
@@ -148,6 +176,12 @@ def page_html(generated_at: str) -> str:
     <button type="button" data-open="phase" aria-expanded="false">진행</button><button type="button" data-open="road" aria-expanded="false">기록판</button><button type="button" data-open="picks" aria-expanded="false">종목</button><button type="button" data-open="rules" aria-expanded="false">규칙</button>
   </nav>
 </div>
+<div class="turn" role="dialog" aria-labelledby="turn-t">
+  <svg viewBox="0 0 96 96" aria-hidden="true"><g class="ph"><rect x="30" y="14" width="36" height="68" rx="7" fill="#16294a" stroke="#f4d27a" stroke-width="3"/><rect x="35" y="22" width="26" height="50" rx="2" fill="#226fae"/><circle cx="48" cy="77" r="2" fill="#f4d27a"/></g></svg>
+  <b id="turn-t">휴대폰을 가로로 돌려 주세요</b>
+  <p>게임 테이블은 가로 화면에 맞춰져 있습니다. 화면 자동 회전이 꺼져 있으면 먼저 켜 주세요.</p>
+  <button type="button" data-portrait>세로 화면으로 볼게요</button>
+</div>
 <div class="scrim" data-close></div>
 {sheet("phase", "라운드 진행", phase)}
 {sheet("road", "기록판", road)}
@@ -174,6 +208,12 @@ def page_html(generated_at: str) -> str:
   }}));
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeAll));
   document.addEventListener('keydown', (e) => {{ if (e.key === 'Escape') closeAll(); }});
+  const pk = 'isdceo-portrait-ok';
+  try {{ if (localStorage.getItem(pk) === '1') document.documentElement.classList.add('portrait-ok'); }} catch (e) {{}}
+  document.querySelector('[data-portrait]').addEventListener('click', () => {{
+    document.documentElement.classList.add('portrait-ok');
+    try {{ localStorage.setItem(pk, '1'); }} catch (e) {{}}
+  }});
 }})();</script>
 </body></html>
 """
