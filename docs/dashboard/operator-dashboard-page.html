@@ -623,28 +623,40 @@
   };
 
   // 프로필 열기·닫기
-  let profileOpener = null;
+  let profileOpener = null;                       // {key, el}: 다시 그려도 찾을 수 있게 키를 함께 저장
+  const visible = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && !e.closest('[hidden]'); };
+  const refocus = (o) => {
+    if (!o) return;
+    const go = () => {
+      let t = o.el && o.el.isConnected && visible(o.el) ? o.el : null;
+      if (!t && o.key) t = [...document.querySelectorAll('[data-fkey]')].find((e) => e.dataset.fkey === o.key && visible(e)) || null;
+      if (t && t.focus) t.focus({preventScroll: true});
+    };
+    requestAnimationFrame(() => requestAnimationFrame(go));
+  };
   const openProfile = (team, name) => {
-    profileOpener = document.activeElement;
+    const ae = document.activeElement, src = ae && ae.closest ? ae.closest('[data-fkey]') : null;
+    profileOpener = {el: src || ae, key: src ? src.dataset.fkey : null};
     dash.setParams({agent: `${team}|${name}`});
     document.querySelectorAll('.lg .profile').forEach((el) => {
       el.classList.add('open'); el.scrollIntoView({block: 'nearest'});
-      const c = el.querySelector('.pclose'); if (c) c.focus({preventScroll: true});
+      const c = el.querySelector('.pclose'); if (c) requestAnimationFrame(() => c.focus({preventScroll: true}));
     });
   };
   const closeProfile = () => {
     const was = document.querySelector('.lg .profile.open');
     document.querySelectorAll('.lg .profile').forEach((el) => el.classList.remove('open'));
-    if (!was) return;
+    if (!was) return false;
+    const o = profileOpener; profileOpener = null;
     dash.setParams({agent: null});
-    if (profileOpener && profileOpener.isConnected && profileOpener.focus) profileOpener.focus({preventScroll: true});
-    profileOpener = null;
+    refocus(o);
+    return true;
   };
   window.closeProfile = closeProfile;
   document.querySelectorAll('.lg .pclose').forEach((b) => b.addEventListener('click', closeProfile));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeProfile(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.defaultPrevented && closeProfile()) e.preventDefault(); });   // 맨 위 한 겹(프로필)만 닫는다
   const agentButton = (td, team, name) => {
-    d3.select(td).text('').append('button').attr('type', 'button').attr('class', 'agent-link').text(name)
+    d3.select(td).text('').append('button').attr('type', 'button').attr('class', 'agent-link').attr('data-fkey', `agent|${team}|${name}`).text(name)
       .on('click', () => openProfile(team, name));
   };
 
@@ -839,7 +851,7 @@
     const d = dash.data('agents');
     const rows = d.status === 'ok' ? d.data.filter((a) => a.team === team) : [];
     d3.select(el).selectAll('button').data(rows, (a) => a.key).join('button')
-      .attr('type', 'button').attr('class', (a) => 'chip' + (a.status.startsWith('대기') ? ' bench' : ''))
+      .attr('type', 'button').attr('class', (a) => 'chip' + (a.status.startsWith('대기') ? ' bench' : '')).attr('data-fkey', (a) => `chip|${a.team}|${a.name}`)
       .attr('title', (a) => a.name)
       .each(function (a) { const b = d3.select(this).html(''); drawAvatar(this, a, 22); b.append('span').text(a.nickname || a.label); })
       .on('click', (ev, a) => openProfile(a.team, a.name));
@@ -1127,7 +1139,7 @@
       const seatAt = (a, i, left) => {
         const x = left ? 36 : 364, y = 156 + i * 92, r = rowOf(a), pp = picksOf(a);
         const {isLead, isRisk} = flagOf(r);
-        const g = svg.append('g').attr('class', 'seat').attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`)
+        const g = svg.append('g').attr('class', 'seat').attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`).attr('data-fkey', `seat|${a.team}|${a.name}`)
           .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
         // 펠트 위 미니 카드 2장 (한국·미국)
         const cx0 = left ? 96 : 254;
@@ -1219,7 +1231,7 @@
         const r = rowOf(a), pp = picksOf(a);
         const {isLead, isRisk} = flagOf(r);
         const t = grid.append('button').attr('type', 'button')
-          .attr('class', `mseat ${a.team === 'Claude 팀' ? 'c' : 's'}${isLead ? ' lead' : ''}${isRisk ? ' risk' : ''}`)
+          .attr('class', `mseat ${a.team === 'Claude 팀' ? 'c' : 's'}${isLead ? ' lead' : ''}${isRisk ? ' risk' : ''}`).attr('data-fkey', `seat|${a.team}|${a.name}`)
           .style('animation-delay', `${.15 + i * .04}s`).on('click', () => openProfile(a.team, a.name));
         const hd = t.append('div').attr('class', 'mhead');
         drawAvatar(hd.node(), a, 40);
@@ -1375,14 +1387,14 @@
       const tg = [Math.sin(tm), Math.cos(tm)];
       let cardTop = Infinity, cardBot = -Infinity, cardX = 0;
       [['KR', -1], ['US', 1]].forEach(([mk, k], j) => {
-        const X = -470 * Math.cos(tm) + k * 31 * tg[0], Y = 470 * Math.sin(tm) + k * 31 * tg[1];
+        const sp = Math.cos(tm) ** 2 > 0.5 ? 25 : 31, X = -470 * Math.cos(tm) + k * sp * tg[0], Y = 470 * Math.sin(tm) + k * sp * tg[1];
         const s = S(Y) * (Math.cos(tm) ** 2 > 0.5 ? 0.86 : 1), w = 46 * s, h = 62 * s, [x, y] = P(X, Y), p = pp[mk], delay = 0.6 + i * 0.05 + j * 0.05;
         g.append('ellipse').attr('cx', x).attr('cy', y + 2).attr('rx', w * 0.55).attr('ry', 5 * s).attr('fill', '#000').attr('opacity', .3);
         stockCard(g, x - w / 2, y - h + 4 * s, w, h, p, {rot: (Math.PI / 2 - tm) * 180 / Math.PI * -0.25, delay: delay - 0.3});
         cardTop = Math.min(cardTop, y - h); cardBot = Math.max(cardBot, y + 4 * s); cardX += x / 2;
         if (p && p.score != null) { const [qx, qy] = P(-516 * Math.cos(tm) + k * 34 * tg[0], 516 * Math.sin(tm) + k * 34 * tg[1]); chipStack(g, qx, qy, p.score, delay, S(516 * Math.sin(tm))); }
       });
-      if (isLead || isRisk) later.push([cardX, cardBot + 30, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']);   // 카드 아래, 꼬리는 위로
+      if (isLead || isRisk) { const [bx, by] = P(-548 * Math.cos(tm), 548 * Math.sin(tm)); later.push([bx, Math.max(by, cardBot) + 30, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']); }   // 그 칸 바깥 가장자리, 꼬리는 위로
       // 컵홀더 (자리 사이)
       if (i < m - 1) {
         const X = -632 * Math.cos(tb), Y = 632 * Math.sin(tb);
@@ -1393,7 +1405,7 @@
       const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2) * (el.closest('.app') && window.innerHeight < 500 && c2 < 0.3 ? 1.12 : 1);   // 끝자리는 작게, 휴대폰 가로에서는 가운데 자리만 키움
       later.push(Object.assign(() => {
         const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s - 50 * c2).toFixed(1)}) scale(${s.toFixed(3)})`)
-          .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`)
+          .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`).attr('data-fkey', `seat|${a.team}|${a.name}`)
           .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
         f.append('title').text(a.name);
         const team = a.team === 'Claude 팀' ? 'c' : 's';
@@ -1586,7 +1598,7 @@
     if (!rows.length) { d3.select(el).append('p').attr('class', 'fine').style('text-align', 'left').text('아직 공개된 종목이 없습니다(마감 전이거나 제출 전).'); return; }
     d3.select(el).selectAll('button.gcard').data(rows, (p) => p.pick_id).join('button')
       .attr('type', 'button')
-      .attr('class', (p) => `gcard stockc suit-${(MK[p.market] || MK.US).cls}` + (p.pick_id === best ? ' lead' : '') + (p.pick_id === worst ? ' danger' : ''))
+      .attr('class', (p) => `gcard stockc suit-${(MK[p.market] || MK.US).cls}` + (p.pick_id === best ? ' lead' : '') + (p.pick_id === worst ? ' danger' : '')).attr('data-fkey', (p) => `pick|${p.pick_id}`)
       .on('click', (ev, p) => { const a = agentOf(p); if (a) openProfile(a.team, a.name); })
       .each(function (p) {
         const mk = MK[p.market] || MK.US, a = agentOf(p);
@@ -1615,7 +1627,7 @@
     const ag = dash.data('agents');
     const rows = ag.status === 'ok' ? ag.data.filter((a) => a.status.startsWith('대기')) : [];
     d3.select(el).selectAll('button.benchseat').data(rows, (a) => a.key).join('button')
-      .attr('type', 'button').attr('class', 'benchseat')
+      .attr('type', 'button').attr('class', 'benchseat').attr('data-fkey', (a) => `bench|${a.team}|${a.name}`)
       .on('click', (ev, a) => openProfile(a.team, a.name))
       .each(function (a) {
         const b = d3.select(this).html('');

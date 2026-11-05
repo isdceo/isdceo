@@ -196,7 +196,9 @@ def page_html(generated_at: str) -> str:
   const profile = document.querySelector('.lg .profile');
   let opener = null;
   const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-  const openDialog = () => document.querySelector('.sheet.open') || document.querySelector('.lg .profile.open');
+  const turn = document.querySelector('.turn');
+  const turnShown = () => !!turn && getComputedStyle(turn).display !== 'none';
+  const openDialog = () => (turnShown() && turn) || document.querySelector('.lg .profile.open') || document.querySelector('.sheet.open');   // 맨 위 한 겹부터
   const closeSheets = (restore) => {{
     const was = document.querySelector('.sheet.open');
     document.querySelectorAll('.sheet.open').forEach((s) => s.classList.remove('open'));
@@ -204,9 +206,9 @@ def page_html(generated_at: str) -> str:
     if (was && restore && opener && opener.isConnected) opener.focus({{preventScroll: true}});
     if (was) opener = null;
   }};
-  const closeAll = () => {{
+  const closeTop = () => {{                                           // 맨 위 한 겹만 닫는다: 프로필 → 메뉴 창
+    if (window.closeProfile && window.closeProfile()) return;
     closeSheets(true);
-    if (window.closeProfile) window.closeProfile();
     scrim.classList.remove('on');
   }};
   document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {{
@@ -220,9 +222,11 @@ def page_html(generated_at: str) -> str:
     s.querySelector('.body').scrollTop = 0;
     s.querySelector('.x').focus({{preventScroll: true}});
   }}));
-  document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeAll));
+  document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => {{
+    if (b.classList.contains('scrim')) closeTop(); else {{ closeSheets(true); if (!document.querySelector('.lg .profile.open')) scrim.classList.remove('on'); }}
+  }}));
   document.addEventListener('keydown', (e) => {{
-    if (e.key === 'Escape') {{ closeAll(); return; }}
+    if (e.key === 'Escape') {{ if (!e.defaultPrevented) {{ e.preventDefault(); closeTop(); }} return; }}
     if (e.key !== 'Tab') return;
     const d = openDialog(); if (!d) return;                       // 창이 열려 있으면 Tab은 창 안에서만 돈다
     const f = [...d.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null || x === document.activeElement);
@@ -238,15 +242,17 @@ def page_html(generated_at: str) -> str:
     else if (!document.querySelector('.sheet.open')) scrim.classList.remove('on');
   }}).observe(profile, {{attributes: true, attributeFilter: ['class']}});
   // 세로 화면 안내
-  const pk = 'isdceo-portrait-ok', turn = document.querySelector('.turn');
+  const pk = 'isdceo-portrait-ok';
   try {{ if (localStorage.getItem(pk) === '1') document.documentElement.classList.add('portrait-ok'); }} catch (e) {{}}
-  const turnShown = () => turn && getComputedStyle(turn).display !== 'none';
   const syncTurn = () => {{ if (turnShown()) turn.querySelector('button').focus({{preventScroll: true}}); }};
   syncTurn();
   window.matchMedia('(orientation: portrait)').addEventListener('change', syncTurn);
   document.querySelector('[data-portrait]').addEventListener('click', () => {{
     document.documentElement.classList.add('portrait-ok');
     try {{ localStorage.setItem(pk, '1'); }} catch (e) {{}}
+    const d = document.querySelector('.lg .profile.open') || document.querySelector('.sheet.open');
+    const t = d ? d.querySelector('.pclose, .x') : document.querySelector('.hudbar .mini');
+    if (t) t.focus({{preventScroll: true}});
   }});
 }})();</script>
 </body></html>
