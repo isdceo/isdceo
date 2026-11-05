@@ -1054,6 +1054,108 @@
     const wrap = el.parentElement;
     if (wrap) requestAnimationFrame(() => { if (wrap.scrollWidth > wrap.clientWidth && !wrap.dataset.centered) { wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2; wrap.dataset.centered = '1'; } });
 
+    // ── 게임 화면(.app) 휴대폰: 세로 테이블, 왼쪽 Claude 팀 5명 · 오른쪽 슈슈 팀 5명, 스크롤 없음 ──
+    if (PHONE.matches && el.closest('.app')) {
+      el.classList.add('portrait'); el.classList.remove('phone');
+      const W = 400, H = 660;
+      const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet')
+        .attr('role', 'img').attr('aria-label', '리그 바카라 테이블').attr('class', first ? 'anim' : null);
+      const defs = svg.append('defs');
+      const grad = (id, type, stops, attrs = {}) => { const g = defs.append(type).attr('id', id); for (const [k, v] of Object.entries(attrs)) g.attr(k, v); stops.forEach(([o, c]) => g.append('stop').attr('offset', o).attr('stop-color', c)); };
+      grad('pt-felt', 'radialGradient', [[0, '#3b97d6'], [.6, '#226fae'], [1, '#124777']], {cx: '50%', cy: '45%', r: '70%'});
+      grad('pt-wood', 'linearGradient', [[0, '#c98a4a'], [.5, '#8a4f22'], [1, '#4e2a10']], {x1: 0, y1: 0, x2: 1, y2: 1});
+      grad('pt-pad', 'linearGradient', [[0, '#3a3f4a'], [1, '#0b0d12']], {x1: 0, y1: 0, x2: 1, y2: 0});
+      grad('pt-gold', 'linearGradient', [[0, '#fff1b8'], [.5, '#d4a83c'], [1, '#8a6414']], {x1: 0, y1: 0, x2: 0, y2: 1});
+      grad('pt-c', 'linearGradient', [[0, '#e7926a'], [1, '#8e3b23']], {x1: 0, y1: 0, x2: 0, y2: 1});
+      grad('pt-s', 'linearGradient', [[0, '#7aa8e8'], [1, '#1f3f73']], {x1: 0, y1: 0, x2: 0, y2: 1});
+      const pat = defs.append('pattern').attr('id', 'pt-damask').attr('width', 30).attr('height', 30).attr('patternUnits', 'userSpaceOnUse');
+      pat.append('path').attr('d', 'M15 3 L27 15 L15 27 L3 15 Z').attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-opacity', .12);
+      svg.append('rect').attr('width', W).attr('height', H).attr('fill', '#0a1730');
+      svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'url(#pt-damask)');
+      const stad = (p, fill, stroke) => svg.append('rect').attr('x', 66 + p).attr('y', 30 + p).attr('width', 268 - 2 * p).attr('height', 604 - 2 * p).attr('rx', 120 - p).attr('fill', fill).attr('stroke', stroke).attr('stroke-width', 2);
+      svg.append('rect').attr('x', 70).attr('y', 40).attr('width', 268).attr('height', 604).attr('rx', 120).attr('fill', '#000').attr('opacity', .45);
+      stad(0, 'url(#pt-pad)', '#000');
+      stad(12, 'url(#pt-wood)', '#2a1606');
+      stad(24, 'url(#pt-felt)', '#0b2c4d');
+      svg.append('rect').attr('x', 102).attr('y', 66).attr('width', 196).attr('height', 532).attr('rx', 86).attr('fill', 'none').attr('stroke', '#f4d27a').attr('stroke-opacity', .45).attr('stroke-dasharray', '6 5');
+      // 딜러 칩 트레이·카드 슈
+      svg.append('rect').attr('x', 148).attr('y', 58).attr('width', 104).attr('height', 18).attr('rx', 3).attr('fill', '#0e1219').attr('stroke', 'url(#pt-gold)').attr('stroke-width', 1.5);
+      ['#f4ecd6', '#e07a7a', '#e0574a', '#2fa58f', '#6b4fb5', '#5cb85c', '#f2a33a', '#3b8fd6'].forEach((c, k) =>
+        svg.append('rect').attr('x', 152 + k * 12.2).attr('y', 61).attr('width', 10).attr('height', 12).attr('rx', 4).attr('fill', c).attr('stroke', '#fff').attr('stroke-opacity', .5));
+      svg.append('path').attr('d', 'M262 78 H290 L286 60 L266 56 Z').attr('fill', '#5c1414').attr('stroke', '#2a0606').attr('stroke-width', 1.4);
+      // 가운데 두 팀 칸: 위 CLAUDE, 아래 슈슈
+      const b2 = (team) => teamRound(team).rows.filter((p) => p.score != null).sort((x, y) => y.score - x.score).slice(0, 2);
+      const box = (team, y0, label, color, r, cards, k0) => {
+        svg.append('rect').attr('x', 146).attr('y', y0).attr('width', 108).attr('height', 150).attr('rx', 8).attr('fill', 'rgba(8,30,60,.25)').attr('stroke', '#f4d27a').attr('stroke-opacity', .75).attr('stroke-width', 1.3);
+        svg.append('text').attr('x', 200).attr('y', y0 + 17).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-family', 'Georgia, serif').attr('letter-spacing', 2).attr('fill', color).text(label);
+        [0, 1].forEach((k) => stockCard(svg, 152 + k * 50, y0 + 26, 46, 64, cards[k], {agent: cards[k] && agentOf(cards[k]), delay: k0 + k * .12, dx: 0}));
+        const win = lead === team;
+        svg.append('rect').attr('x', 160).attr('y', y0 + 100).attr('width', 80).attr('height', 24).attr('rx', 6).attr('fill', r && r.avg != null ? (win ? '#2e9e48' : '#2463b5') : '#3b4a63').attr('stroke', '#fff').attr('stroke-opacity', .8).attr('stroke-width', 1.4);
+        svg.append('text').attr('x', 200).attr('y', y0 + 117).attr('text-anchor', 'middle').attr('font-size', 13.5).attr('font-weight', 700).attr('fill', '#fff').text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
+        svg.append('text').attr('x', 200).attr('y', y0 + 140).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('fill', '#d9e3f2').text(wk ? '이번 주 종목당 평균' : '실전 전');
+      };
+      box('Claude 팀', 120, 'CLAUDE ♠', '#ffd65a', A, wk ? b2('Claude 팀') : [], .1);
+      box('슈슈 팀 (Codex)', 390, '♥ 슈슈', '#ffb0a6', B, wk ? b2('슈슈 팀 (Codex)') : [], .3);
+      // 가운데 배너: 자리 카드 사이(폭 96)에 두 줄로
+      const [l1, l2] = !wk ? ['실전 전', '11/9 첫 라운드'] : lead ? [lead === 'Claude 팀' ? 'CLAUDE' : '슈슈', '팀 우세'] : ['이번 주', '동률'];
+      const up = lead === 'Claude 팀';
+      const bn = svg.append('g').attr('transform', 'translate(200 330)');
+      bn.append('path').attr('d', wk && lead ? (up ? 'M-48 -20 H-7 L0 -28 L7 -20 H48 V20 H-48 Z' : 'M-48 -20 H48 V20 H7 L0 28 L-7 20 H-48 Z') : 'M-48 -20 H48 V20 H-48 Z')
+        .attr('fill', wk && lead ? '#2e9e48' : '#2b4a78').attr('stroke', '#fff').attr('stroke-opacity', .85).attr('stroke-width', 1.5);
+      bn.append('text').attr('y', -3).attr('text-anchor', 'middle').attr('font-size', 12.5).attr('font-weight', 800).attr('fill', '#fff').text(l1);
+      bn.append('text').attr('y', 13).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 700).attr('fill', '#fff').text(l2);
+      svg.append('text').attr('x', 200).attr('y', 584).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('fill', '#f4ecd6').attr('opacity', .8).text(wk ? `실전 ${wk} · 10명 통합 순위` : '두 팀 10명 통합 순위 · 주간 꼴등 1명 탈락');
+      // 자리: 왼쪽 Claude 팀, 오른쪽 슈슈 팀 (순위순, 위에서 아래로)
+      const seatAt = (a, i, left) => {
+        const x = left ? 36 : 364, y = 156 + i * 92, r = rowOf(a), pp = picksOf(a);
+        const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
+        const g = svg.append('g').attr('class', 'seat').attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`)
+          .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
+        // 펠트 위 미니 카드 2장 (한국·미국)
+        const cx0 = left ? 96 : 254;
+        ['KR', 'US'].forEach((mk, k) => {
+          const p = pp[mk], X = cx0 + k * 26, Y = y - 22;
+          const c = g.append('g').attr('class', 'dealt').style('animation-delay', `${.5 + i * .06 + k * .04}s`);
+          if (!p) {
+            c.append('rect').attr('x', X).attr('y', Y).attr('width', 24).attr('height', 34).attr('rx', 3).attr('fill', '#7a1e1e').attr('stroke', '#f4ecd6').attr('stroke-width', 1.4);
+            return;
+          }
+          c.append('rect').attr('x', X).attr('y', Y).attr('width', 24).attr('height', 34).attr('rx', 3).attr('fill', '#fff').attr('stroke', '#c9c2b2');
+          c.append('text').attr('x', X + 3).attr('y', Y + 8).attr('font-size', 6.5).attr('font-weight', 800).attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(mk);
+          const lg = logoOf(p);
+          if (lg) c.append('image').attr('href', lg).attr('x', X + 5).attr('y', Y + 11).attr('width', 14).attr('height', 14);
+          else {
+            c.append('rect').attr('x', X + 5).attr('y', Y + 11).attr('width', 14).attr('height', 14).attr('rx', 3).attr('fill', monoColor(p.ticker));
+            c.append('text').attr('x', X + 12).attr('y', Y + 21.5).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#fff').attr('font-family', 'Georgia, serif').text((p.name || p.ticker).slice(0, 1));
+          }
+          c.append('text').attr('x', X + 12).attr('y', Y + 44).attr('text-anchor', 'middle').attr('font-size', 8.5).attr('font-weight', 700)
+            .attr('fill', p.score == null ? '#d9e3f2' : p.status !== 'final' ? '#ffd27a' : p.score >= 0 ? '#9ff0b8' : '#ffb3a8')
+            .text(p.score == null ? '—' : `${pct(p.score)}`);
+        });
+        if (isLead || isRisk) {
+          const fx = cx0 + 25, fy = y - 30;
+          g.append('rect').attr('x', fx - 18).attr('y', fy - 13).attr('width', 36).attr('height', 14).attr('rx', 4).attr('fill', isLead ? '#2e9e48' : '#d0453a').attr('stroke', '#fff').attr('stroke-width', 1);
+          g.append('text').attr('x', fx).attr('y', fy - 3).attr('text-anchor', 'middle').attr('font-size', 9).attr('font-weight', 800).attr('fill', '#fff').text(isLead ? '선두' : '꼴등');
+        }
+        // 캐릭터·이름표
+        g.append('circle').attr('cx', x).attr('cy', y - 6).attr('r', 29).attr('fill', `url(#pt-${a.team === 'Claude 팀' ? 'c' : 's'})`)
+          .attr('stroke', isLead ? '#7dff9c' : isRisk ? '#ff6a5c' : '#e0c27a').attr('stroke-width', isLead || isRisk ? 4 : 2.5);
+        const ch = AV_CHAR[a.agent_id];
+        const av = g.append('svg').attr('x', x - 27).attr('y', y - 33).attr('width', 54).attr('height', 54).attr('viewBox', '0 0 120 120');
+        if (ch) av.append('use').attr('href', '#av-' + ch);
+        g.append('circle').attr('cx', left ? x + 22 : x - 22).attr('cy', y - 30).attr('r', 10).attr('fill', 'url(#pt-gold)').attr('stroke', '#5a4210').attr('stroke-width', 1.2);
+        g.append('text').attr('x', left ? x + 22 : x - 22).attr('y', y - 26.5).attr('text-anchor', 'middle').attr('font-size', r && r.league_rank >= 10 ? 8.5 : 10).attr('font-weight', 800).attr('fill', '#2b1b0c').text(r ? r.league_rank : '–');
+        g.append('rect').attr('x', x - 34).attr('y', y + 24).attr('width', 68).attr('height', 30).attr('rx', 5).attr('fill', '#0b0d12').attr('stroke', '#3a4152');
+        g.append('text').attr('x', x).attr('y', y + 36.5).attr('text-anchor', 'middle').attr('font-size', 10.5).attr('font-weight', 700).attr('fill', '#f4ecd6').text(a.nickname || a.label);
+        g.append('text').attr('x', x).attr('y', y + 49).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 700).attr('font-variant-numeric', 'tabular-nums')
+          .attr('fill', r && r.avg != null ? (r.avg > 0 ? '#8fe8a8' : r.avg < 0 ? '#ff9c90' : '#f4ecd6') : '#b9c7dd')
+          .text(r && r.avg != null ? `${pct(r.avg)}%` : '채점 전');
+      };
+      byRank('Claude 팀').slice(0, 5).forEach((a, i) => seatAt(a, i, true));
+      byRank('슈슈 팀 (Codex)').slice(0, 5).forEach((a, i) => seatAt(a, i, false));
+      return;
+    }
+    el.classList.remove('portrait');
     // ── 휴대폰(폭 640px 이하): 가운데 대결 테이블 + 아래 10명 명패(왼쪽 Claude 팀, 오른쪽 슈슈 팀) ──
     if (PHONE.matches) {
       el.classList.add('phone');
@@ -1396,6 +1498,21 @@
     paint();
     clearInterval(el._timer);
     el._timer = setInterval(() => { if (!el.isConnected) { clearInterval(el._timer); return; } if (!el.closest('[hidden]')) paint(); }, 30000);
+  });
+
+  dash.draw('phase-mini', (el) => {
+    const STEP = ['지문 제출', '원본 공개 중', '장 마감 대기', '채점 완료'];
+    const paint = () => {
+      const s = roundState();
+      el.replaceChildren();
+      const d = d3.select(el);
+      d.append('small').text(`${s.next >= SEASON ? '실전' : '연습'} ${md(s.next)} 마감까지`);
+      d.append('b').text(left(atK(s.next, 8, 30) - s.now));
+      d.append('i').text(`${md(s.last)} ${STEP[s.step]}`);
+    };
+    paint();
+    clearInterval(el._timer);
+    el._timer = setInterval(() => { if (!el.isConnected) { clearInterval(el._timer); return; } paint(); }, 30000);
   });
 
   // ───── 연승 흐름판 (빅로드) ─────
