@@ -1,5 +1,5 @@
 """AI 투자 리그 규칙 테스트.  실행: python3 -m unittest discover -s tests -v"""
-import json, shutil, sys, tempfile, unittest
+import json, re, shutil, sys, tempfile, unittest
 from datetime import date, datetime
 from pathlib import Path
 
@@ -554,6 +554,24 @@ class Embargo(unittest.TestCase):
 
 class DashboardData(unittest.TestCase):
     """운영자 현황판 데이터도 마감 전 라운드 종목을 싣지 않는다."""
+
+    def test_play_page_public_only(self):
+        """지인 공개용 게임 화면: 마감 전 종목·원 가격·회사 로고·운영 탭이 없다."""
+        import build_play as B, tempfile
+        cfg = L.load_config(L.ROOT / "league")
+        for now in ("2026-11-05T08:29:00+09:00", "2026-11-05T09:00:00+09:00"):
+            t = datetime.fromisoformat(now)
+            with tempfile.TemporaryDirectory() as tmp:
+                html, js = B.build(Path(tmp), t)
+                data = json.loads(js.read_text().split("window.TABLE = ", 1)[1].rstrip().rstrip(";"))
+                for p in data["picks"]:
+                    self.assertGreaterEqual(t, L.lock_deadline(date.fromisoformat(p["round_date"]), cfg), p["pick_id"])
+                self.assertNotIn("logos", data)
+                self.assertIsNone(re.search(r'"(base_close|eval_close|close|amount)"\s*:', js.read_text()))
+                page = html.read_text()
+                self.assertNotIn('data-page="ops"', page)
+                self.assertNotIn("data:image/png", page)
+                self.assertIn("한국거래소 통계정보", page)
 
     def test_calendar_holidays(self):
         """진행 표시용 달력: 한쪽 휴장은 남은 시장만, 둘 다 쉬면 라운드 없음, 채점은 다음 날 10:30."""

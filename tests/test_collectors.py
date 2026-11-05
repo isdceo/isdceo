@@ -237,7 +237,7 @@ class PublicAndSnapshot(unittest.TestCase):
     def test_build_site_contains_only_public_data(self):
         out = Path(tempfile.mkdtemp()) / "site"
         files = L.build_site(self.d, out)
-        self.assertIn("data/league.js", files)
+        self.assertEqual(files, ["data/table.js", "index.html"])      # 지인에게는 게임 화면만
         for f in out.rglob("*.js"):
             self.assertNotRegex(f.read_text(), r'"(base_close|eval_close|close)"\s*:')
 

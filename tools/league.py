@@ -1048,25 +1048,27 @@ def export(d: Path, out: Path, public: bool = False, now: datetime | None = None
                    + json.dumps(data, ensure_ascii=False) + ";\n")
 
 def build_site(d: Path, out: Path) -> list[str]:
-    """지인 배포용 정적 폴더. 원시 가격이 들어간 파일은 넣지 않는다."""
+    """지인 배포용 정적 폴더. 게임 화면(테이블)만 올린다: index.html + data/table.js.
+    (2026-11-05 운영자 결정: 지인에게는 게임 스타일 화면만 보인다. 표 화면 league.html·시장 대시보드는 올리지 않는다.)
+    원시 가격·마감 전 종목·회사 로고가 들어가면 실패한다."""
     import shutil
+    import build_play
     if out.exists():
         shutil.rmtree(out)
-    (out / "data").mkdir(parents=True)
-    for f in ("league.html", "index.html"):
-        shutil.copy(ROOT / f, out / f)
-    if (ROOT / "data" / "holdings.js").exists():          # SEC 13F 공시 (미국 정부 공개 자료)
-        shutil.copy(ROOT / "data" / "holdings.js", out / "data" / "holdings.js")
-    export(d, out / "data" / "league.js", public=True)
-    leaked = [f for f in out.rglob("*.js") if re.search(r'"(base_close|eval_close|close)"\s*:', f.read_text())]
+    out.mkdir(parents=True)
+    html, js = build_play.build(out)
+    html.rename(out / "index.html")
+    leaked = [f for f in out.rglob("*.js") if re.search(r'"(base_close|eval_close|close|amount)"\s*:', f.read_text())]
     if leaked:
         raise RuntimeError(f"원시 가격 필드가 배포 파일에 남음: {leaked}")
     cfg = load_config(d)
-    built = json.loads((out / "data" / "league.js").read_text().split("window.LEAGUE = ", 1)[1].rstrip().rstrip(";"))
-    gen = datetime.fromisoformat(built["generated"])
-    early = [p.get("pick_id") for p in built["picks"] if not built.get("sample") and gen < lock_deadline(date.fromisoformat(p["round_date"]), cfg)]
+    built = json.loads(js.read_text().split("window.TABLE = ", 1)[1].rstrip().rstrip(";"))
+    gen = datetime.fromisoformat(built["generated_at"])
+    early = [p.get("pick_id") for p in built["picks"] if gen < lock_deadline(date.fromisoformat(p["round_date"]), cfg)]
     if early:
         raise RuntimeError(f"마감 전 추천이 배포 파일에 남음: {early}")
+    if "data:image/png" in (out / "index.html").read_text() or "logos" in built:
+        raise RuntimeError("회사 로고가 배포 파일에 남음")
     return sorted(str(p.relative_to(out)) for p in out.rglob("*") if p.is_file())
 
 # ───────────────────────── 공통 자료 (07:00 snapshot) ─────────────────────────
