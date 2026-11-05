@@ -118,6 +118,8 @@
   .lg .gcard .corner b { display: block; font-size: 11px; letter-spacing: .5px; }
   .lg .gcard .picker { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6b6355; }
   .lg .gcard .gname.stock { font-size: 21px; display: block; }
+  .lg .gcard .logo { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: #fff; box-shadow: 0 0 0 1px #e6e0d2; display: block; margin-bottom: 4px; }
+  .lg .gcard .mono { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--font-anthropic-serif); font-size: 20px; color: #fff; margin-bottom: 4px; }
   .lg .gcard.stockc { min-height: 0; }
   .lg .gcard.stockc .gbody { gap: 4px; padding-bottom: 22px; }
   .lg .benchrow { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); }
@@ -528,7 +530,7 @@
     <div class="felt">
       <div class="ttitle">AI INVESTMENT LEAGUE · TABLE</div>
       <div class="tsub">숫자는 두 팀 10명의 통합 순위입니다. 주간 마감에서 꼴등 1명이 탈락합니다.</div>
-      <div class="tablewrap"><div class="tablebox" data-draw="baccarat" data-source="agents standings team_weeks team_daily"></div></div>
+      <div class="tablewrap"><div class="tablebox" data-draw="baccarat" data-source="agents standings team_weeks team_daily picks logos"></div></div>
       <div class="swipe">← 테이블을 옆으로 밀어서 보세요 →</div>
       <div class="road">
         <div class="rhead"><b>출목표 — 라운드별 이긴 팀 (그날 확정 종목의 종목당 평균)</b><span class="legend"><i style="background:#c0392b"></i>Claude 팀<i style="background:#2463b5"></i>슈슈 팀<i style="background:#2e8b57"></i>무승부</span></div>
@@ -536,9 +538,9 @@
         <p class="rhead" data-draw="road-note" data-source="team_daily"></p>
       </div>
       <div class="rail"><h3 data-draw="title-claude">♠ CLAUDE 팀</h3>
-        <div class="hand" data-draw="hand-claude" data-source="agents standings agent_total picks"></div></div>
+        <div class="hand" data-draw="hand-claude" data-source="agents picks logos"></div></div>
       <div class="rail"><h3 data-draw="title-shushu">♥ 슈슈 팀 (Codex)</h3>
-        <div class="hand" data-draw="hand-shushu" data-source="agents standings agent_total picks"></div></div>
+        <div class="hand" data-draw="hand-shushu" data-source="agents picks logos"></div></div>
       <div class="rail"><h3>대기석 — 승인된 대기 후보</h3>
         <div class="benchrow" data-draw="hand-bench" data-source="agents"></div></div>
       <div class="fine">카지노 테이블은 화면 연출입니다. 돈이나 베팅은 없고, 점수는 모의 예측 점수입니다.</div>
@@ -649,7 +651,7 @@
     </section>
   </section>
 
-  <p class="note" id="sources-note">데이터 출처: 한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Tiingo · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다. 운영자 본인 확인용 화면이며, 모의 예측 점수로 투자 권유가 아닙니다.</p>
+  <p class="note" id="sources-note">데이터 출처: 한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Tiingo · 한국 공시 — 금융감독원 OpenDART · 회사 로고 — 각 회사 상표(이미지: 토스증권 종목 아이콘, Financial Modeling Prep). 원 가격은 표시하지 않고 계산된 점수만 표시합니다. 운영자 본인 확인용 화면이며, 모의 예측 점수로 투자 권유가 아닙니다.</p>
 </div>
 
 <script>
@@ -1058,6 +1060,8 @@
     const last = pool.map((p) => p.round_date).sort().pop();
     return {rows: last ? pool.filter((p) => p.round_date === last) : [], last, mode: last ? pool.find((p) => p.round_date === last).mode : null};
   };
+  const logoOf = (p) => { const d = dash.data('logos'); const r = d.status === 'ok' ? d.data.find((x) => x.market === p.market && x.ticker === p.ticker) : null; return r && r.logo ? r.logo : null; };
+  const monoColor = (t) => { let h = 0; for (const ch of String(t)) h = (h * 31 + ch.charCodeAt(0)) % 360; return `hsl(${h} 45% 42%)`; };
   const agentOf = (p) => { const ag = dash.data('agents'); return ag.status === 'ok' ? ag.data.find((a) => a.team === p.team && a.agent_id === p.agent_id) : null; };
   const titleFor = (team, label) => (el) => {
     const tr = teamRound(team);
@@ -1123,9 +1127,18 @@
     c.append('text').attr('x', x + 4 * f).attr('y', y + 11 * f).attr('font-size', 9 * f).attr('font-weight', 700).attr('fill', red ? '#c0392b' : '#1f1a14').text(p.market);
     c.append('text').attr('x', x + 4 * f).attr('y', y + 22 * f).attr('font-size', 10 * f).attr('fill', red ? '#c0392b' : '#1f1a14').text(mk.suit);
     const nm = p.name || p.ticker;
+    const lg = logoOf(p), ls = Math.min(w * 0.46, h * 0.36), lx = x + (w - ls) / 2, ly = y + h * 0.2;
+    if (lg) {
+      c.append('rect').attr('x', lx - 1).attr('y', ly - 1).attr('width', ls + 2).attr('height', ls + 2).attr('rx', ls * 0.22).attr('fill', '#fff').attr('stroke', '#e6e0d2');
+      c.append('image').attr('href', lg).attr('x', lx).attr('y', ly).attr('width', ls).attr('height', ls).attr('preserveAspectRatio', 'xMidYMid meet');
+    } else {
+      c.append('rect').attr('x', lx).attr('y', ly).attr('width', ls).attr('height', ls).attr('rx', ls * 0.22).attr('fill', monoColor(p.ticker));
+      c.append('text').attr('x', lx + ls / 2).attr('y', ly + ls * 0.68).attr('text-anchor', 'middle').attr('font-size', ls * 0.55).attr('fill', '#fff').attr('font-family', 'Georgia, serif').text(nm.slice(0, 1));
+    }
     const sp = nm.indexOf(' ');
     const lines = nm.length <= 6 ? [nm] : sp > 0 ? [short(nm.slice(0, sp), 8), short(nm.slice(sp + 1), 8)] : [nm.slice(0, 5), short(nm.slice(5), 5)];
-    lines.forEach((ln, k) => c.append('text').attr('x', x + w / 2).attr('y', y + h * 0.44 + k * 11 * f).attr('text-anchor', 'middle').attr('font-size', 10.5 * f).attr('fill', '#1f1a14').text(ln));
+    const ny0 = ly + ls + 9.5 * f;
+    (lines.length > 1 && h < 70 ? [short(nm, 7)] : lines).forEach((ln, k) => c.append('text').attr('x', x + w / 2).attr('y', ny0 + k * 10 * f).attr('text-anchor', 'middle').attr('font-size', (h < 70 ? 8.6 : 9.6) * f).attr('fill', '#1f1a14').text(ln));
     if (opts.agent) {
       const ch = AV_CHAR[opts.agent.agent_id];
       const av = c.append('svg').attr('x', x + w - 20 * f).attr('y', y + 3 * f).attr('width', 17 * f).attr('height', 17 * f).attr('viewBox', '0 0 120 120');
@@ -1268,6 +1281,9 @@
         for (const pos of ['tl', 'br']) { const c = card.append('div').attr('class', 'corner ' + pos); c.append('b').text(p.market); c.append('small').text(mk.suit); }
         const b = card.append('div').attr('class', 'gbody');
         b.append('div').attr('class', 'gtop').append('span').attr('class', 'flag').text(p.pick_id === best ? '최고' : p.pick_id === worst ? '최저' : '');
+        const lg = logoOf(p);
+        if (lg) b.append('img').attr('class', 'logo').attr('src', lg).attr('alt', `${p.name || p.ticker} 로고`);
+        else b.append('div').attr('class', 'mono').style('background', monoColor(p.ticker)).text((p.name || p.ticker).slice(0, 1));
         b.append('div').attr('class', 'gname stock').text(p.name || p.ticker);
         b.append('div').attr('class', 'gstyle').text(`${p.ticker} · ${mk.label} ${p.mode} ${fmtTime(p.round_date)}`);
         const st = b.append('div').attr('class', 'gstat');

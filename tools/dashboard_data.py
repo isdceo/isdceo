@@ -5,7 +5,7 @@
 
 - 실전(league)과 연습(league/sandbox) 원장을 모두 읽는다.
 - 종목·점수는 export()와 같은 규칙을 쓴다: 라운드 마감(08:30 KST) 전 추천은 넣지 않고, 원시 가격은 빼고 점수(%)만 남긴다.
-- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents, team_weeks (각각 {"rows": [...]} JSON)
+- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents, team_weeks, logos(--out 에서만, 공개 종목의 회사 로고) (각각 {"rows": [...]} JSON)
 """
 import argparse, json, re, sys
 from datetime import datetime
@@ -36,7 +36,7 @@ def _load(d: Path, now: datetime) -> dict:
         tmp.unlink(missing_ok=True)
 
 
-def build(now: datetime | None = None) -> dict:
+def build(now: datetime | None = None, logos: bool = False) -> dict:
     now = now or datetime.now(L.KST)
     out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks", "agents", "team_weeks")}
 
@@ -136,6 +136,10 @@ def build(now: datetime | None = None) -> dict:
         out["teams"].append({"key": f"{mode}|{team}", "mode": mode, "team": team, "round": r["round"],
                              "status": r["status"], "pushed_at": r["pushed_at"], "imported": r["imported"],
                              "visible_picks": picks_n.get((mode, team, r["round"]), 0)})
+    if logos:   # 공개된(마감이 지난) 종목만. 운영자 전용 현황판용, 공유 결과 묶음에는 넣지 않는다
+        import logos as LG
+        seen = sorted({(p["market"], p["ticker"]) for p in out["picks"]})
+        out["logos"] = [{"key": f"{m}|{t}", "market": m, "ticker": t, "logo": LG.fetch_logo(m, t) or ""} for m, t in seen]
     out["notices"] = [{"file": f.name} for f in sorted((L.ROOT / "docs" / "codex-notices").glob("*.md"), reverse=True)]
     return out
 
@@ -169,13 +173,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", help="현황판용 파일 폴더 (dataset마다 하나)")
     ap.add_argument("--bundle", help="두 팀 공유용 결과 묶음 파일 경로 (예: league/public/results.json)")
+    ap.add_argument("--no-logos", action="store_true", help="--out 에서 회사 로고(logos.json)를 받지 않는다")
     a = ap.parse_args()
     if not (a.out or a.bundle):
         ap.error("--out 또는 --bundle 이 필요하다")
     if a.out:
         out = Path(a.out)
         out.mkdir(parents=True, exist_ok=True)
-        for name, rows in build().items():
+        for name, rows in build(logos=not a.no_logos).items():
             (out / f"{name}.json").write_text(json.dumps({"rows": rows}, ensure_ascii=False, indent=1))
             print(f"{name}: {len(rows)}행")
     if a.bundle:

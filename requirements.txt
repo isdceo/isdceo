@@ -1,1 +1,2 @@
 exchange_calendars>=4.5
+Pillow>=10.0

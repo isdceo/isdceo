@@ -307,3 +307,15 @@
 - **지인 공개(`deploy_enabled`)를 켜기 전에** Tiingo(필수)와 KRX(권장) 문의 회신을 받는다.
 - 슈슈 팀 대시보드도 운영자 본인 확인용으로만 쓴다. 다른 사람에게 보여 주려면 위와 같은 확인이 필요하다.
 
+
+## 9. 회사 로고 (2026-11-05, 운영자 전용 현황판)
+
+| 시장 | 주소 | 비고 |
+|---|---|---|
+| 한국 | `https://static.toss.im/png-icons/securities/icn-sec-fill-<6자리>.png` | 토스증권 종목 아이콘 |
+| 미국 | `https://financialmodelingprep.com/image-stock/<티커>.png` | FMP 종목 이미지 (BRK.B → BRK-B) |
+
+- 시험: 두 주소 모두 인증 없이 받아졌다. Clearbit·logo.dev·Google 파비콘은 쓰지 않는다(종료·키 필요·품질).
+- 이용 조건을 따로 밝힌 문서는 찾지 못했다. 로고는 각 회사의 상표이므로 운영자 본인 확인 화면에서 종목 표시 목적으로만 쓰고, 화면에 출처를 적는다.
+- 지인 공개(deploy_enabled) 전에 다시 확인한다. 공유용 결과 묶음(`league/public/results.json`)에는 로고를 넣지 않는다.
+- 코드: `tools/logos.py` (64px로 줄여 data: URL, 밝은 로고는 어두운 바탕에 얹음, 실패하면 첫 글자 배지).
