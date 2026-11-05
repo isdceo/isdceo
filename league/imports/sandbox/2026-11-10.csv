@@ -1,0 +1,3 @@
+round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources
+2026-11-10,s1,1,KR,005930,삼성전자,2026-11-05T11:17:19+09:00,[시험 제출] 지문 방식 영수증 검증용,시험 데이터,https://example.com|확인 못함
+2026-11-10,s1,1,US,NVDA,NVIDIA,2026-11-05T11:17:19+09:00,[시험 제출] 지문 방식 영수증 검증용,시험 데이터,https://example.com|확인 못함
