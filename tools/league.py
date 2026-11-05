@@ -937,7 +937,7 @@ def export(d: Path, out: Path, public: bool = False, now: datetime | None = None
     if public:
         # 지인 공유판: 원시 가격·배당 금액·내부 원장 경로 제외. 점수(%)·순위·종목명·근거만 남긴다.
         data["scores"] = [_strip_prices(x) for x in data["scores"]]
-        data["submissions"] = [{k: v for k, v in x.items() if k in ("team", "round_date", "status", "pushed_at", "imported",
+        data["submissions"] = [{k: v for k, v in x.items() if k in ("team", "round_date", "kind", "status", "pushed_at", "imported",
                                                                       "commit", "csv_sha256", "errors")} for x in data["submissions"]]
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("// 자동 생성: python3 tools/league.py export\nwindow.LEAGUE = "
