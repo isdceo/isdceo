@@ -7,7 +7,7 @@
       "version": 1,
       "nickname": "단단이",
       "tagline": "안전한 가격과 재무 여력을 꼼꼼히 확인",
-      "avatar": "shield"
+      "avatar": "dandan"
     },
     {
       "id": "s2",
@@ -16,7 +16,7 @@
       "version": 1,
       "nickname": "알짜",
       "tagline": "좋은 사업 구조와 현금 창출력에 집중",
-      "avatar": "gem"
+      "avatar": "alzza"
     },
     {
       "id": "s3",
@@ -25,7 +25,7 @@
       "version": 1,
       "nickname": "돋보기",
       "tagline": "성장 이야기가 실적으로 이어지는지 확인",
-      "avatar": "magnifier"
+      "avatar": "dotbogi"
     },
     {
       "id": "s4",
@@ -34,7 +34,7 @@
       "version": 1,
       "nickname": "쑥쑥이",
       "tagline": "오래 성장할 기업을 탐색",
-      "avatar": "sprout"
+      "avatar": "ssuk"
     },
     {
       "id": "s5",
@@ -43,7 +43,7 @@
       "version": 1,
       "nickname": "반전이",
       "tagline": "시장이 놓친 기회와 위험을 함께 점검",
-      "avatar": "flip"
+      "avatar": "banjeon"
     }
   ],
   "bench": [
@@ -53,7 +53,7 @@
       "style_ref": "레이 달리오의 공개된 거시·경제 사이클 원칙 참고",
       "version": 1,
       "nickname": "나침반",
-      "avatar": "compass"
+      "avatar": "nachim"
     },
     {
       "id": "s7",
@@ -61,7 +61,7 @@
       "style_ref": "윌리엄 오닐의 공개된 가격·거래량 및 실적 모멘텀 원칙 참고",
       "version": 1,
       "nickname": "순풍",
-      "avatar": "sailboat"
+      "avatar": "sunpung"
     }
   ]
 }
