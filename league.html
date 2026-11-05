@@ -321,8 +321,8 @@ function renderTeams() {
       <h2 style="margin-bottom:2px">${esc(teamLabel(t))}</h2>
       <div class="sub">${esc(L.config.teams[t]?.source || '')}</div>
       <div class="kv">
-        <div><span class="sub">누적 합산점</span><b class="${cls(x.cumulative)}">${pt(x.cumulative)}</b></div>
-        <div><span class="sub">평균 점수</span><b class="${cls(x.avg)}">${pt(x.avg)}</b></div>
+        <div><span class="sub">종목당 평균 (팀 비교 기준)</span><b class="${cls(x.avg)}">${pt(x.avg)}</b></div>
+        <div><span class="sub">누적 합산점 (참고)</span><b class="${cls(x.cumulative)}">${pt(x.cumulative)}</b></div>
         <div><span class="sub">초과 평균</span><b class="${cls(x.avg_excess)}">${pt(x.avg_excess)}</b></div>
         <div><span class="sub">확정 건수 · 제출률</span><b>${x.scored ?? 0}</b><span class="sub">${pct(subRate(t))}</span></div>
       </div>
@@ -330,14 +330,14 @@ function renderTeams() {
   const n = TEAMS.reduce((a, t) => a + (T[t]?.scored || 0), 0);
   $('#view').innerHTML = `
     <div class="callout">
-      <b>합산점은 각 추천 점수를 더한 "점"입니다.</b> 실제 포트폴리오의 누적 수익률이 아닙니다.
+      <b>팀 비교는 확정 종목의 종목당 평균으로 합니다(규칙 v1.8).</b> 인원이 달라도 공정하게 비교하려고 합계 대신 평균을 씁니다. 합산점은 참고용 "점"이며 실제 포트폴리오의 누적 수익률이 아닙니다.
       확정 ${n}건 · ${new Set(L.picks.map(p => p.round_date)).size}거래일 기록으로는 장기 투자 실력을 판단할 수 없습니다.
     </div>
     <div class="kpis">${TEAMS.map(tile).join('')}</div>
     <div class="card">
-      <div class="row" style="margin-bottom:8px"><h2 style="margin:0">누적 합산점 추이</h2><span class="spacer"></span>
+      <div class="row" style="margin-bottom:8px"><h2 style="margin:0">누적 종목당 평균 추이</h2><span class="spacer"></span>
         <div class="legend">${TEAMS.map(t => `<span><i style="background:var(--team-${t})"></i>${esc(teamLabel(t))}</span>`).join('')}</div></div>
-      <div class="chartbox"><svg id="cum" role="img" aria-label="팀별 누적 합산점 추이"></svg><div class="tip" id="tip"></div></div>
+      <div class="chartbox"><svg id="cum" role="img" aria-label="팀별 누적 종목당 평균 추이"></svg><div class="tip" id="tip"></div></div>
     </div>
     <div class="card">
       <h2>시장별 성적</h2>
@@ -349,11 +349,11 @@ function renderTeams() {
       </table></div>
     </div>
     <div class="card">
-      <h2>일별 합산점</h2>
+      <h2>일별 종목당 평균</h2>
       <div class="scroll"><table>
-        <thead><tr><th class="l">날짜</th>${TEAMS.map(t => `<th>${esc(teamLabel(t))}</th><th class="hide-sm">건수</th>`).join('')}</tr></thead>
+        <thead><tr><th class="l">날짜</th>${TEAMS.map(t => `<th>${esc(teamLabel(t))}</th><th class="hide-sm">건수</th><th class="hide-sm">합산점</th>`).join('')}</tr></thead>
         <tbody>${dates().map(d => `<tr><td class="l">${d}</td>${TEAMS.map(t => { const s = (T[t]?.series || []).find(x => x.date === d); return `
-          <td class="${cls(s?.sum)}">${s ? pt(s.sum) : '–'}</td><td class="hide-sm">${s?.n ?? 0}</td>`; }).join('')}</tr>`).join('')}</tbody>
+          <td class="${cls(s?.avg)}">${s && s.avg != null ? pt(s.avg) : '–'}</td><td class="hide-sm">${s?.n ?? 0}</td><td class="hide-sm ${cls(s?.sum)}">${s ? pt(s.sum) : '–'}</td>`; }).join('')}</tr>`).join('')}</tbody>
       </table></div>
     </div>`;
   drawCum();
@@ -363,7 +363,7 @@ const dates = () => [...new Set(TEAMS.flatMap(t => (L.teams[t]?.series || []).ma
 function drawCum() {
   const svg = $('#cum'); if (!svg) return;
   const D = dates(), W = svg.clientWidth || 600, H = 260, m = { l: 44, r: W < 500 ? 56 : 92, t: 12, b: 26 };
-  const val = (t, d) => { let c = null; for (const s of L.teams[t]?.series || []) { if (s.date <= d) c = s.cumulative; } return c; };
+  const val = (t, d) => { let c = null; for (const s of L.teams[t]?.series || []) { if (s.date <= d) c = s.cum_avg ?? s.cumulative; } return c; };
   const all = TEAMS.flatMap(t => D.map(d => val(t, d))).filter(v => v != null).concat([0]);
   let lo = Math.min(...all), hi = Math.max(...all);
   const raw = (hi - lo) / 4 || 1, mag = 10 ** Math.floor(Math.log10(raw));
@@ -399,7 +399,7 @@ function drawCum() {
     let bi = 0, bd = 1e9; D.forEach((_, i) => { const dd = Math.abs(x(i) - px); if (dd < bd) { bd = dd; bi = i; } });
     const d = D[bi]; const hl = $('#hl'); hl.style.display = ''; hl.setAttribute('x1', x(bi)); hl.setAttribute('x2', x(bi));
     tip.innerHTML = `<b>${d}</b>` + TEAMS.map(t => { const s = (L.teams[t]?.series || []).find(z => z.date === d);
-      return `<br><span style="color:var(--team-${t})">■</span> ${esc(teamLabel(t))}: 누적 <b class="${cls(val(t, d))}">${pt(val(t, d))}</b> · 당일 ${s ? pt(s.sum) + ` (${s.n}건)` : '–'}`; }).join('');
+      return `<br><span style="color:var(--team-${t})">■</span> ${esc(teamLabel(t))}: 누적 평균 <b class="${cls(val(t, d))}">${pt(val(t, d), '%')}</b> · 당일 평균 ${s && s.avg != null ? pt(s.avg, '%') + ` (${s.n}건)` : '–'}`; }).join('');
     tip.style.display = 'block';
     const tw = tip.offsetWidth; tip.style.left = Math.min(Math.max(x(bi) - tw / 2, 0), r.width - tw) + 'px'; tip.style.top = '4px';
   };
