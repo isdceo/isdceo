@@ -45,7 +45,7 @@
   .lg .profile .pstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--cds-gap-sm); margin: var(--cds-gap-md) 0; }
   .lg .profile .pstats .v { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
   .lg .board { display: grid; gap: var(--cds-gap-lg); }
-  .lg .felt { --felt: #0d5c3a; --felt-dark: #083d27; --gold: #d4b25c; --cream: #f4ecd6; position: relative; border-radius: 28px; padding: var(--cds-pad-lg); background: radial-gradient(ellipse at 50% 35%, #157048 0%, var(--felt) 45%, var(--felt-dark) 100%); border: 3px solid #5a3a1a; box-shadow: 0 0 0 6px #2b1b0c, inset 0 0 0 2px var(--gold), inset 0 0 60px rgba(0,0,0,.45); color: var(--cream); display: grid; gap: var(--cds-gap-lg); }
+  .lg .felt { --felt: #0d5c3a; --felt-dark: #083d27; --gold: #d4b25c; --cream: #f4ecd6; position: relative; border-radius: 28px; padding: var(--cds-pad-lg); background: radial-gradient(ellipse at 50% 20%, #3a2a22 0%, #1c1410 55%, #0e0a08 100%); border: 3px solid #5a3a1a; box-shadow: 0 0 0 6px #2b1b0c, inset 0 0 0 2px var(--gold), inset 0 0 60px rgba(0,0,0,.45); color: var(--cream); display: grid; gap: var(--cds-gap-lg); }
   .lg .felt .ttitle { text-align: center; font-family: var(--font-anthropic-serif); letter-spacing: .2em; color: var(--gold); font-size: var(--cds-font-size-heading); }
   .lg .felt .tsub { text-align: center; font-size: var(--cds-font-size-caption); color: rgba(244,236,214,.75); margin-top: -8px; }
   .lg .felt .seats { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--cds-gap-md); align-items: stretch; }
@@ -107,6 +107,13 @@
   .lg .felt .tablebox .seat:hover .spot { stroke-width: 3.5; }
   .lg .felt .swipe { display: none; text-align: center; font-size: 11px; color: rgba(244,236,214,.7); }
   @media (max-width: 760px) { .lg .felt .swipe { display: block; } }
+  @keyframes bt-deal { from { transform: translate(var(--dx, 0px), var(--dy, -160px)) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes bt-drop { from { transform: translateY(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .lg .tablebox .anim .dealt { animation: bt-deal .55s var(--cds-ease-out, ease-out) both; }
+    .lg .tablebox .anim .chips { animation: bt-drop .45s var(--cds-ease-out, ease-out) both; }
+  }
+  .lg .tablebox .dealt, .lg .tablebox .chips { transform-box: fill-box; transform-origin: center; }
   .lg .felt .fine { text-align: center; font-size: 11px; color: rgba(244,236,214,.65); }
   .lg .avatar { display: inline-block; flex: none; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,.25); vertical-align: middle; }
   .lg .gcard .gname { display: flex; align-items: center; gap: 8px; }
@@ -1058,9 +1065,46 @@
     sb.append('div').attr('class', 'vs').html('').text(wk ? `${wk}\nVS` : 'VS');
     seat('슈슈 팀 (Codex)', B, '♥ 슈슈 팀');
   });
-  // 반원(D자) 바카라 테이블: 위쪽 딜러 자리, 곡선을 따라 10명이 앉는다
+  // 바카라 테이블 (빨간 펠트, 곡선 베팅 띠 10칸, 딜러 자리, 칩 더미)
+  const ellPt = (cx, cy, rx, ry, t) => [cx - rx * Math.cos(t), cy + ry * Math.sin(t)];
+  const sector = (cx, cy, r1, r2, t1, t2) => {
+    const pts = [], N = 14;
+    for (let k = 0; k <= N; k++) pts.push(ellPt(cx, cy, r2[0], r2[1], t1 + (t2 - t1) * k / N));
+    for (let k = N; k >= 0; k--) pts.push(ellPt(cx, cy, r1[0], r1[1], t1 + (t2 - t1) * k / N));
+    return 'M' + pts.map((p) => p.map((v) => v.toFixed(1)).join(' ')).join(' L') + ' Z';
+  };
+  const short = (t, n) => (t && t.length > n ? t.slice(0, n - 1) + '…' : t || '');
+  const chipStack = (g, x, y, score, delay) => {
+    if (score == null) return;
+    const n = Math.max(1, Math.min(6, Math.round(Math.abs(score) / 0.4) + 1));
+    const col = score > 0 ? ['#1f8a4c', '#e8f5ec'] : score < 0 ? ['#b3261e', '#fde8e6'] : ['#c49a2c', '#fff6dc'];
+    const st = g.append('g').attr('class', 'chips').style('animation-delay', `${delay}s`);
+    for (let k = 0; k < n; k++) {
+      const yy = y - k * 4.2;
+      st.append('ellipse').attr('cx', x).attr('cy', yy + 2.5).attr('rx', 11).attr('ry', 4.5).attr('fill', '#000').attr('opacity', k ? 0 : .25);
+      st.append('ellipse').attr('cx', x).attr('cy', yy).attr('rx', 11).attr('ry', 4.5).attr('fill', col[0]).attr('stroke', col[1]).attr('stroke-width', 1.4).attr('stroke-dasharray', '3 2.5');
+    }
+  };
+  const playingCard = (g, x, y, a, r, suit, delay, dx) => {
+    const c = g.append('g').attr('class', 'dealt').style('animation-delay', `${delay}s`).style('--dx', `${dx}px`);
+    c.append('rect').attr('x', x).attr('y', y).attr('width', 58).attr('height', 82).attr('rx', 6).attr('fill', a ? '#fff' : '#7a1e1e')
+      .attr('stroke', a ? '#c9c2b2' : '#f4ecd6').attr('stroke-width', a ? 1.2 : 3);
+    if (!a) {
+      c.append('rect').attr('x', x + 6).attr('y', y + 6).attr('width', 46).attr('height', 70).attr('rx', 3).attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-width', 1.2).attr('stroke-dasharray', '4 3');
+      return;
+    }
+    const red = suit === '♥';
+    c.append('text').attr('x', x + 6).attr('y', y + 16).attr('font-size', 14).attr('font-family', 'Georgia, serif').attr('fill', red ? '#c0392b' : '#1f1a14').text(r ? r.league_rank : '?');
+    c.append('text').attr('x', x + 6).attr('y', y + 29).attr('font-size', 12).attr('fill', red ? '#c0392b' : '#1f1a14').text(suit);
+    const ch = AV_CHAR[a.agent_id];
+    const av = c.append('svg').attr('x', x + 13).attr('y', y + 18).attr('width', 32).attr('height', 32).attr('viewBox', '0 0 120 120');
+    if (ch) av.append('use').attr('href', '#av-' + ch);
+    c.append('text').attr('x', x + 29).attr('y', y + 64).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', '#1f1a14').text(short(a.nickname, 5));
+    c.append('text').attr('x', x + 29).attr('y', y + 76).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-family', 'Georgia, serif')
+      .attr('fill', r && r.avg != null ? (r.avg >= 0 ? '#1f7a45' : '#b3261e') : '#8a8273').text(r && r.avg != null ? `${pct(r.avg)}%` : '');
+  };
   dash.draw('baccarat', (el) => {
-    const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks');
+    const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');
     const wk = latestWeek();
     const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
     const n = week.length;
@@ -1069,86 +1113,89 @@
     const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? 'Claude 팀' : '슈슈 팀 (Codex)') : null;
     const rowOf = (a) => week.find((r) => r.team === a.team && r.agent_id === a.agent_id) || null;
     const active = ag.status === 'ok' ? ag.data.filter((a) => !a.status.startsWith('대기') && a.status !== '탈락') : [];
-    const side = (team) => active.filter((a) => a.team === team).sort((x, y) => (rowOf(x)?.league_rank ?? 99) - (rowOf(y)?.league_rank ?? 99));
-    const seats = [...side('Claude 팀'), ...side('슈슈 팀 (Codex)').reverse()];
+    const byRank = (team) => active.filter((a) => a.team === team).sort((x, y) => (rowOf(x)?.league_rank ?? 99) - (rowOf(y)?.league_rank ?? 99));
+    const seats = [...byRank('Claude 팀'), ...byRank('슈슈 팀 (Codex)').reverse()];
+    const picksOf = (a) => {
+      const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === a.team && p.agent === a.name) : [];
+      const live = mine.filter((p) => p.mode === '실전');
+      const pool = live.length ? live : mine;
+      const last = pool.map((p) => p.round_date).sort().pop();
+      return {KR: pool.find((p) => p.round_date === last && p.market === 'KR'), US: pool.find((p) => p.round_date === last && p.market === 'US'), last};
+    };
+    const first = !el.dataset.dealt;
+    el.dataset.dealt = '1';
     el.replaceChildren();
     const wrap = el.parentElement;
     if (wrap) requestAnimationFrame(() => { if (wrap.scrollWidth > wrap.clientWidth && !wrap.dataset.centered) { wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2; wrap.dataset.centered = '1'; } });
-    const W = 1000, H = 690, cx = 500, cy = 170;
-    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', '리그 바카라 테이블');
+    const W = 1000, H = 620, cx = 500, cy = 92;
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', '리그 바카라 테이블').attr('class', first ? 'anim' : null);
     const defs = svg.append('defs');
-    const fg = defs.append('radialGradient').attr('id', 'bt-felt').attr('cx', '50%').attr('cy', '30%').attr('r', '75%');
-    fg.append('stop').attr('offset', 0).attr('stop-color', '#1a7a4f'); fg.append('stop').attr('offset', 1).attr('stop-color', '#0a4a2f');
+    const fg = defs.append('radialGradient').attr('id', 'bt-felt').attr('cx', '50%').attr('cy', '20%').attr('r', '85%');
+    fg.append('stop').attr('offset', 0).attr('stop-color', '#a52424'); fg.append('stop').attr('offset', .6).attr('stop-color', '#7d1515'); fg.append('stop').attr('offset', 1).attr('stop-color', '#4e0a0a');
     const rg = defs.append('linearGradient').attr('id', 'bt-rail').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
-    rg.append('stop').attr('offset', 0).attr('stop-color', '#7a2e22'); rg.append('stop').attr('offset', 1).attr('stop-color', '#3e140e');
-    const dshape = (pad) => `M${40 + pad} ${40 + pad} H${960 - pad} V${cy} A${460 - pad} ${380 - pad} 0 0 1 ${40 + pad} ${cy} Z`;
-    svg.append('path').attr('d', dshape(0)).attr('fill', 'url(#bt-rail)').attr('stroke', '#1f0a06').attr('stroke-width', 3);
-    svg.append('path').attr('d', dshape(26)).attr('fill', 'url(#bt-felt)').attr('stroke', '#d4b25c').attr('stroke-width', 3);
-    for (const [rx, ry] of [[300, 228], [355, 272], [410, 322]]) svg.append('path').attr('d', `M${cx - rx} ${cy} A${rx} ${ry} 0 0 0 ${cx + rx} ${cy}`)
-      .attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-opacity', .45).attr('stroke-width', 1.6);
-    // 카드 버림통(왼쪽)·카드 슈(오른쪽)
-    const tray = svg.append('g').attr('transform', 'translate(110,80) rotate(-18)');
-    tray.append('rect').attr('width', 64).attr('height', 44).attr('rx', 6).attr('fill', '#e9eef5').attr('stroke', '#8a93a0').attr('stroke-width', 2);
-    tray.append('rect').attr('x', 10).attr('y', 8).attr('width', 44).attr('height', 28).attr('rx', 3).attr('fill', '#2463b5');
-    tray.append('text').attr('x', 32).attr('y', 28).attr('text-anchor', 'middle').attr('fill', '#fff').attr('font-size', 16).text('★');
-    const shoe = svg.append('g').attr('transform', 'translate(830,66) rotate(12)');
-    shoe.append('path').attr('d', 'M0 10 L60 0 L72 50 L12 60 Z').attr('fill', '#b8c2cc').attr('stroke', '#5f6b77').attr('stroke-width', 2);
-    shoe.append('path').attr('d', 'M44 14 L66 10 L74 46 L52 50 Z').attr('fill', '#fff').attr('stroke', '#2463b5').attr('stroke-width', 2);
-    shoe.append('text').attr('x', 60).attr('y', 36).attr('text-anchor', 'middle').attr('fill', '#2463b5').attr('font-size', 14).text('★');
-    // 딜러 결과판
-    const ban = svg.append('g');
-    ban.append('rect').attr('x', 290).attr('y', 70).attr('width', 420).attr('height', 40).attr('rx', 20).attr('fill', '#f4ecd6').attr('stroke', '#d4b25c').attr('stroke-width', 2);
-    ban.append('text').attr('x', 500).attr('y', 97).attr('text-anchor', 'middle').attr('font-size', 20).attr('fill', '#2b1b0c')
-      .attr('font-family', 'Georgia, serif').text(!wk ? '실전 전 — 11/9 첫 라운드' : lead ? `이번 주 ${lead === 'Claude 팀' ? 'CLAUDE 팀' : '슈슈 팀'} 우세` : '이번 주 동률');
-    // PLAYER / BANKER 자리 → 두 팀 이번 주 평균
-    const box = (x, label, r, color) => {
-      const g = svg.append('g');
-      g.append('rect').attr('x', x).attr('y', 126).attr('width', 190).attr('height', 58).attr('rx', 29).attr('fill', 'rgba(0,0,0,.18)').attr('stroke', color).attr('stroke-width', 3);
-      g.append('text').attr('x', x + 95).attr('y', 149).attr('text-anchor', 'middle').attr('font-size', 14).attr('fill', color).attr('letter-spacing', 2).text(label);
-      g.append('text').attr('x', x + 95).attr('y', 175).attr('text-anchor', 'middle').attr('font-size', 22).attr('font-family', 'Georgia, serif')
-        .attr('fill', r && r.avg != null ? (r.avg > 0 ? '#9be3b5' : r.avg < 0 ? '#ffb3a8' : '#f4ecd6') : '#f4ecd6')
-        .text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
+    rg.append('stop').attr('offset', 0).attr('stop-color', '#3a2418'); rg.append('stop').attr('offset', 1).attr('stop-color', '#150c07');
+    const dshape = (pad) => `M${30 + pad} ${30 + pad} H${970 - pad} V${cy} A${470 - pad} ${404 - pad} 0 0 1 ${30 + pad} ${cy} Z`;
+    svg.append('path').attr('d', dshape(0)).attr('fill', 'url(#bt-rail)').attr('stroke', '#000').attr('stroke-width', 3);
+    svg.append('path').attr('d', dshape(20)).attr('fill', 'url(#bt-felt)').attr('stroke', '#5a0d0d').attr('stroke-width', 2);
+    // 딜러 칩 트레이
+    const tray = svg.append('g');
+    tray.append('rect').attr('x', 360).attr('y', 52).attr('width', 280).attr('height', 46).attr('rx', 6).attr('fill', '#1b1410').attr('stroke', '#d4b25c').attr('stroke-width', 2);
+    const tcol = ['#f4ecd6', '#e07a7a', '#e0574a', '#2fa58f', '#6b4fb5', '#1f2a33', '#5cb85c', '#f2a33a', '#e0574a', '#f2c230'];
+    tcol.forEach((c, k) => { tray.append('rect').attr('x', 368 + k * 27).attr('y', 58).attr('width', 22).attr('height', 34).attr('rx', 10).attr('fill', c).attr('stroke', '#fff').attr('stroke-opacity', .5).attr('stroke-dasharray', '3 2'); });
+    // 결과판
+    svg.append('text').attr('x', 500).attr('y', 128).attr('text-anchor', 'middle').attr('font-size', 19).attr('font-family', 'Georgia, serif').attr('fill', '#f4ecd6').attr('letter-spacing', 1)
+      .text(!wk ? '실전 전 — 11/9 첫 라운드' : lead ? `이번 주 ${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세` : '이번 주 동률');
+    // PLAYER / BANKER 자리 → 두 팀
+    const side = (x, label, r, color, anchor) => {
+      svg.append('text').attr('x', x).attr('y', 160).attr('text-anchor', anchor).attr('font-size', 24).attr('font-family', 'Georgia, serif').attr('letter-spacing', 2).attr('fill', color).text(label);
+      svg.append('text').attr('x', x).attr('y', 184).attr('text-anchor', anchor).attr('font-size', 15).attr('fill', '#f4ecd6').text(r && r.avg != null ? `이번 주 ${pct(r.avg)}%` : '이번 주 —');
     };
-    box(290, '♠ CLAUDE', A, '#f2c230'); box(520, '♥ 슈슈', B, '#ff8a7a');
-    // 최근 출목 12개
-    const beads = roadData().slice(-12);
-    beads.forEach((b, i) => {
-      const x = 500 - (beads.length - 1) * 11 + i * 22;
-      svg.append('circle').attr('cx', x).attr('cy', 210).attr('r', 8.5).attr('fill', {c: '#c0392b', s: '#2463b5', t: '#2e8b57'}[b.w]).attr('stroke', '#f4ecd6').attr('stroke-width', 1.5);
-    });
-    if (!beads.length) svg.append('text').attr('x', 500).attr('y', 215).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', 'rgba(244,236,214,.7)').text('출목: 실전이 채점되면 쌓입니다');
-    // 10개 자리
-    const m = seats.length;
+    side(470, '♠ CLAUDE', A, '#f2c230', 'end');
+    svg.append('text').attr('x', 500).attr('y', 162).attr('text-anchor', 'middle').attr('font-size', 26).attr('fill', '#d4b25c').text('/');
+    side(530, '슈슈 ♥', B, '#ff8a7a', 'start');
+    // 각 팀 상위 2명을 앞면 카드로 (실전 전이면 뒷면)
+    const top2 = (team) => byRank(team).filter((a) => rowOf(a)).slice(0, 2);
+    const ca = top2('Claude 팀'), cb = top2('슈슈 팀 (Codex)');
+    [0, 1].forEach((k) => playingCard(svg, 352 + k * 62, 192, ca[k], ca[k] ? rowOf(ca[k]) : null, '♠', 0.1 + k * 0.12, 120));
+    [0, 1].forEach((k) => playingCard(svg, 530 + k * 62, 192, cb[k], cb[k] ? rowOf(cb[k]) : null, '♥', 0.34 + k * 0.12, -120));
+    // 곡선 베팅 띠: 안쪽(순위) · 가운데(미국) · 바깥(한국)
+    const R = {rank: [[282, 236], [312, 262]], us: [[312, 262], [360, 306]], kr: [[360, 306], [410, 354]]};
+    const m = seats.length, t0 = 0.13 * Math.PI, span = 0.74 * Math.PI;
+    for (const [r1, r2] of Object.values(R)) svg.append('path').attr('d', sector(cx, cy, r1, r2, t0, t0 + span)).attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-width', 2);
+    svg.append('path').attr('d', sector(cx, cy, R.rank[0], R.rank[1], t0, t0 + span)).attr('fill', '#1b1410').attr('fill-opacity', .55).attr('stroke', 'none');
     seats.forEach((a, i) => {
-      const t = Math.PI * (0.07 + 0.86 * (m > 1 ? i / (m - 1) : 0.5));
-      const ux = -Math.cos(t), uy = Math.sin(t);
-      const sx = cx + 352 * ux, sy = cy + 292 * uy;        // 베팅 칸 (두 금색 곡선 사이)
-      const px = cx + 452 * ux, py = cy + 402 * uy;        // 캐릭터(테이블 밖)
-      const r = rowOf(a);
+      const ta = t0 + span * i / m, tb = t0 + span * (i + 1) / m, tm = (ta + tb) / 2;
+      const r = rowOf(a), pp = picksOf(a);
       const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
-      const tc = a.team === 'Claude 팀' ? '#f2c230' : '#ff8a7a';
       const g = svg.append('g').attr('class', 'seat').on('click', () => openProfile(a.team, a.name));
       g.append('title').text(`${a.name}${r ? ` · ${r.league_rank}위 · 이번 주 ${r.avg != null ? pct(r.avg) + '%' : '—'}` : ''}`);
-      g.append('ellipse').attr('class', 'spot').attr('cx', sx).attr('cy', sy).attr('rx', 46).attr('ry', 26)
-        .attr('fill', 'rgba(0,0,0,.16)').attr('stroke', isRisk ? '#ff6a5c' : isLead ? '#ffe08a' : tc).attr('stroke-width', isLead || isRisk ? 3.5 : 2.2);
-      g.append('text').attr('x', sx).attr('y', sy - 3).attr('text-anchor', 'middle').attr('font-size', 15).attr('fill', '#f4ecd6').text(a.nickname || a.label);
-      g.append('text').attr('x', sx).attr('y', sy + 15).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-family', 'Georgia, serif')
-        .attr('fill', r && r.avg != null ? (r.avg > 0 ? '#9be3b5' : r.avg < 0 ? '#ffb3a8' : '#f4ecd6') : 'rgba(244,236,214,.6)')
-        .text(r && r.avg != null ? `${pct(r.avg)}%` : '실전 전');
-      // 순위 칩
-      const chip = g.append('g').attr('transform', `translate(${sx - 58 * ux}, ${sy - 46 * uy})`);
-      chip.append('circle').attr('r', 12).attr('fill', a.team === 'Claude 팀' ? '#c0392b' : '#2463b5').attr('stroke', '#fff').attr('stroke-width', 2.5).attr('stroke-dasharray', '4 3');
-      chip.append('text').attr('y', 4.5).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).attr('fill', '#fff').text(r ? r.league_rank : '?');
-      // 캐릭터
-      if (isLead || isRisk) g.append('circle').attr('cx', px).attr('cy', py).attr('r', 44).attr('fill', 'none').attr('stroke', isLead ? '#ffd65a' : '#ff6a5c').attr('stroke-width', 5).attr('opacity', .9);
+      for (const key of ['rank', 'us', 'kr']) g.append('path').attr('d', sector(cx, cy, R[key][0], R[key][1], ta, tb)).attr('fill', 'transparent').attr('stroke', '#d4b25c').attr('stroke-width', 1.4);
+      if (isLead || isRisk) g.append('path').attr('d', sector(cx, cy, R.rank[0], R.kr[1], ta, tb)).attr('fill', 'none').attr('stroke', isLead ? '#ffd65a' : '#ff6a5c').attr('stroke-width', 3.5);
+      const [rx, ry] = ellPt(cx, cy, 297, 249, tm);
+      g.append('text').attr('x', rx).attr('y', ry + 4).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 700)
+        .attr('fill', isRisk ? '#ffb3a8' : isLead ? '#ffe08a' : '#f4ecd6').text(r ? `${r.league_rank}위` : '—');
+      const box = (key, mk, p, delay) => {
+        const [bx, by] = ellPt(cx, cy, (R[key][0][0] + R[key][1][0]) / 2, (R[key][0][1] + R[key][1][1]) / 2, tm);
+        g.append('text').attr('x', bx).attr('y', by - 6).attr('text-anchor', 'middle').attr('font-size', 10).attr('letter-spacing', 1).attr('fill', mk === 'KR' ? '#f2c230' : '#ff8a7a').text(mk);
+        g.append('text').attr('x', bx).attr('y', by + 7).attr('text-anchor', 'middle').attr('font-size', 11.5).attr('fill', '#f4ecd6').text(p ? short(p.name || p.ticker, 6) : '—');
+        if (p && p.score != null) {
+          g.append('text').attr('x', bx).attr('y', by + 20).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-family', 'Georgia, serif')
+            .attr('fill', p.score > 0 ? '#9be3b5' : p.score < 0 ? '#ffb3a8' : '#f4ecd6').text(`${pct(p.score)}%`);
+          chipStack(g, bx + (Math.cos(tm) > 0 ? -38 : 38), by - 2, p.score, delay);
+        }
+      };
+      box('kr', 'KR', pp.KR, 0.6 + i * 0.05);
+      box('us', 'US', pp.US, 0.65 + i * 0.05);
+      // 자리 번호
+      const [nx, ny] = ellPt(cx, cy, 424, 370, tm);
+      g.append('text').attr('x', nx).attr('y', ny + 5).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-family', 'Georgia, serif').attr('fill', '#f4ecd6').attr('opacity', .85).text(i + 1);
+      // 캐릭터 (테이블 밖)
+      const [px, py] = ellPt(cx, cy, 476, 430, tm);
+      if (isLead || isRisk) g.append('circle').attr('cx', px).attr('cy', py).attr('r', 39).attr('fill', 'none').attr('stroke', isLead ? '#ffd65a' : '#ff6a5c').attr('stroke-width', 5);
       const ch = AV_CHAR[a.agent_id];
-      const av = g.append('svg').attr('x', px - 38).attr('y', py - 38).attr('width', 76).attr('height', 76).attr('viewBox', '0 0 120 120');
+      const av = g.append('svg').attr('x', px - 33).attr('y', py - 33).attr('width', 66).attr('height', 66).attr('viewBox', '0 0 120 120');
       if (ch) av.append('use').attr('href', '#av-' + ch);
-      if (isLead || isRisk) {
-        const tag = g.append('g').attr('transform', `translate(${px},${py + 50})`);
-        tag.append('rect').attr('x', -26).attr('y', -11).attr('width', 52).attr('height', 20).attr('rx', 10).attr('fill', isLead ? '#d4b25c' : '#e0574a');
-        tag.append('text').attr('y', 4).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', isLead ? '#2b1b0c' : '#fff').text(isLead ? '선두' : '위기');
-      }
+      g.append('text').attr('x', px).attr('y', py + 48).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', '#f4ecd6').text(a.nickname || a.label);
     });
   });
 
