@@ -555,6 +555,17 @@ class Embargo(unittest.TestCase):
 class DashboardData(unittest.TestCase):
     """운영자 현황판 데이터도 마감 전 라운드 종목을 싣지 않는다."""
 
+    def test_calendar_holidays(self):
+        """진행 표시용 달력: 한쪽 휴장은 남은 시장만, 둘 다 쉬면 라운드 없음, 채점은 다음 날 10:30."""
+        import dashboard_data as D
+        rows = {r["date"]: r for r in D.calendar(datetime.fromisoformat("2026-12-10T12:00:00+09:00"), back=20, ahead=30)}
+        self.assertEqual(rows["2026-11-26"]["markets"], "한국만 (미국 휴장)")
+        self.assertEqual(rows["2026-12-31"]["markets"], "미국만 (한국 휴장)")
+        self.assertNotIn("2026-12-25", rows)
+        self.assertNotIn("2026-12-12", rows)                      # 토요일
+        self.assertEqual(rows["2026-12-11"]["deadline"], "2026-12-11T08:30+09:00")
+        self.assertEqual(rows["2026-12-11"]["score_at"], "2026-12-12T10:30+09:00")   # 금요일 라운드 → 토요일 채점
+
     def test_no_picks_before_deadline(self):
         import dashboard_data as D
         for now in ("2026-11-05T08:29:00+09:00", "2026-11-05T09:00:00+09:00", "2026-11-06T09:00:00+09:00"):

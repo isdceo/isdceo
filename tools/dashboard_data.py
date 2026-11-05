@@ -5,10 +5,10 @@
 
 - 실전(league)과 연습(league/sandbox) 원장을 모두 읽는다.
 - 종목·점수는 export()와 같은 규칙을 쓴다: 라운드 마감(08:30 KST) 전 추천은 넣지 않고, 원시 가격은 빼고 점수(%)만 남긴다.
-- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents, team_weeks, logos(--out 에서만, 공개 종목의 회사 로고) (각각 {"rows": [...]} JSON)
+- 만드는 파일: checklist, receipts, teams, standings, team_daily, picks, notices, agents, team_weeks, calendar(라운드 날짜·휴장), logos(--out 에서만, 공개 종목의 회사 로고) (각각 {"rows": [...]} JSON)
 """
 import argparse, json, re, sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -140,8 +140,28 @@ def build(now: datetime | None = None, logos: bool = False) -> dict:
         import logos as LG
         seen = sorted({(p["market"], p["ticker"]) for p in out["picks"]})
         out["logos"] = [{"key": f"{m}|{t}", "market": m, "ticker": t, "logo": LG.fetch_logo(m, t) or ""} for m, t in seen]
+    out["calendar"] = calendar(now)
     out["notices"] = [{"file": f.name} for f in sorted((L.ROOT / "docs" / "codex-notices").glob("*.md"), reverse=True)]
     return out
+
+
+def calendar(now: datetime, back: int = 14, ahead: int = 45) -> list[dict]:
+    """라운드가 열리는 날(한국·미국 중 하나라도 거래일)과 마감·채점 시각. 현황판 진행 표시용.
+    채점은 다음 날 10:30 KST 수집·채점(월~토)에서 한다: 평가 세션이 라운드 당일 종가이기 때문."""
+    cfg = L.load_config(L.ROOT / "league")
+    rows, today = [], now.astimezone(L.KST).date()
+    for i in range(-back, ahead + 1):
+        d = today + timedelta(days=i)
+        kr, us = L.is_session("KR", d, cfg), L.is_session("US", d, cfg)
+        if not (kr or us):
+            continue
+        dl = L.lock_deadline(d, cfg)
+        rows.append({"key": d.isoformat(), "date": d.isoformat(), "kr": kr, "us": us,
+                     "markets": "한국·미국" if kr and us else "한국만 (미국 휴장)" if kr else "미국만 (한국 휴장)",
+                     "deadline": dl.isoformat(timespec="minutes"),
+                     "reveal_until": dl.replace(hour=12, minute=0).isoformat(timespec="minutes"),
+                     "score_at": (dl + timedelta(days=1)).replace(hour=10, minute=30).isoformat(timespec="minutes")})
+    return rows
 
 
 BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "picks", "agents")

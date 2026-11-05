@@ -286,7 +286,7 @@
     <div class="felt">
       <div class="ttitle">AI INVESTMENT LEAGUE · TABLE</div>
       <div class="tsub">숫자는 두 팀 10명의 통합 순위입니다. 주간 마감에서 꼴등 1명이 탈락합니다.</div>
-      <div class="phase" data-draw="phase" data-source="receipts"></div>
+      <div class="phase" data-draw="phase" data-source="receipts calendar"></div>
       <div class="tablewrap"><div class="tablebox" data-draw="baccarat" data-source="agents standings team_weeks team_daily picks logos"></div></div>
       <div class="swipe">← 테이블을 옆으로 밀어서 보세요 →</div>
       <div class="hud"><button type="button" data-goto="match">팀 대결</button><button type="button" data-goto="league">리그 순위</button><button type="button" data-goto="picks">추천·점수</button><button type="button" data-goto="ops">운영</button></div>
@@ -1183,14 +1183,23 @@
   const nextWd = (day) => { let d = shiftDay(day, 1); while ([0, 6].includes(wday(d))) d = shiftDay(d, 1); return d; };
   const prevWd = (day) => { let d = shiftDay(day, -1); while ([0, 6].includes(wday(d))) d = shiftDay(d, -1); return d; };
   const md = (day) => `${+day.slice(5, 7)}/${+day.slice(8, 10)}`;
-  const left = (ms) => { const m = Math.max(0, Math.ceil(ms / 6e4)), h = Math.floor(m / 60); return h ? `${h}시간 ${m % 60}분` : `${m}분`; };
+  const left = (ms) => { const m = Math.max(0, Math.ceil(ms / 6e4)), h = Math.floor(m / 60), d = Math.floor(h / 24); return d ? `${d}일 ${h % 24}시간` : h ? `${h}시간 ${m % 60}분` : `${m}분`; };
+  // 라운드 달력(calendar: 한국·미국 중 하나라도 열리는 날)이 있으면 휴장일까지 반영, 없으면 평일 기준
   const roundState = (now = Date.now()) => {
-    const today = ymdK(now), wk = ![0, 6].includes(wday(today));
-    const next = wk && now < atK(today, 8, 30) ? today : nextWd(today);        // 다음 제출 마감 라운드
-    const last = wk && now >= atK(today, 8, 30) ? today : prevWd(today);        // 마감이 지난 가장 최근 라운드
-    const score = nextWd(last);
-    const step = now < atK(last, 12, 0) ? 1 : 2;                                 // 0 지문 · 1 원본 공개 · 2 장 마감 대기 · 3 채점
-    return {now, today, next, last, score, step};
+    const today = ymdK(now), cal = dash.data('calendar');
+    const days = cal.status === 'ok' ? cal.data.slice().sort((x, y) => x.date.localeCompare(y.date)) : [];
+    const nx = days.find((r) => Date.parse(r.deadline) > now);
+    const ls = days.filter((r) => Date.parse(r.deadline) <= now).pop();
+    if (nx && ls) {
+      return {now, today, next: nx.date, last: ls.date, score: ymdK(Date.parse(ls.score_at)), scoreAt: Date.parse(ls.score_at),
+              step: now < Date.parse(ls.reveal_until) ? 1 : now < Date.parse(ls.score_at) ? 2 : 3,
+              nextMk: nx.markets, lastMk: ls.markets, cal: true};
+    }
+    const wk = ![0, 6].includes(wday(today));
+    const next = wk && now < atK(today, 8, 30) ? today : nextWd(today);
+    const last = wk && now >= atK(today, 8, 30) ? today : prevWd(today);
+    const score = shiftDay(last, 1);
+    return {now, today, next, last, score, scoreAt: atK(score, 10, 30), step: now < atK(last, 12, 0) ? 1 : now < atK(score, 10, 30) ? 2 : 3, cal: false};
   };
   const rcptState = (team, day) => {
     const d = dash.data('receipts');
@@ -1209,26 +1218,26 @@
       const tm = root.append('div').attr('class', 'timer');
       tm.append('div').attr('class', 'l').text(`${live ? '실전' : '연습'} ${md(s.next)} 라운드 제출 마감까지`);
       tm.append('div').attr('class', 't').text(left(atK(s.next, 8, 30) - s.now));
-      tm.append('div').attr('class', 'l').text(`${md(s.next)} 08:30 KST · 지문(.sha256) 먼저`);
+      tm.append('div').attr('class', 'l').text(`${md(s.next)} 08:30 KST · ${s.nextMk && s.nextMk !== '한국·미국' ? s.nextMk : '지문(.sha256) 먼저'}`);
       const st = root.append('div').attr('class', 'steps');
       const steps = [
         ['지문 제출', `~ ${md(s.last)} 08:30`],
         ['원본 공개', '08:30 ~ 12:00'],
         ['장 마감 대기', '미국 장 마감 뒤 수집'],
-        ['채점', `${md(s.score)} 10:30`],
+        ['채점', `${md(s.score)} 10:30${s.step === 3 ? ' 수집·채점 뒤' : ''}`],
       ];
       steps.forEach(([t, sub], k) => {
-        const c = st.append('div').attr('class', 'step' + (k < s.step ? ' done' : k === s.step ? ' now' : ''));
-        c.append('b').text(`${k < s.step ? '✓ ' : ''}${t}`); c.append('span').text(sub);
+        const c = st.append('div').attr('class', 'step' + (k < s.step || (k === 3 && s.step === 3) ? ' done' : k === s.step ? ' now' : ''));
+        c.append('b').text(`${k < s.step || (k === 3 && s.step === 3) ? '✓ ' : ''}${t}`); c.append('span').text(sub);
       });
       const rc = root.append('div').attr('class', 'rc');
-      rc.append('em').text(`${md(s.last)} 라운드`);
+      rc.append('em').text(`${md(s.last)} 라운드${s.lastMk && s.lastMk !== '한국·미국' ? ' · ' + s.lastMk : ''}`);
       for (const team of ['Claude 팀', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.last); rc.append('span').attr('class', c).text(`${team.replace(' (Codex)', '')} ${t}`); }
       if (s.next !== s.last) {
         rc.append('em').text(`${md(s.next)} 라운드`);
         for (const team of ['Claude 팀', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.next); rc.append('span').attr('class', c).text(`${team.replace(' (Codex)', '')} ${t}`); }
       }
-      rc.append('small').text('평일 기준 · 휴장일은 이 표시에 반영되지 않습니다');
+      rc.append('small').text(s.cal ? '한국·미국 거래일 달력 기준 (둘 다 쉬는 날은 라운드 없음)' : '평일 기준 · 휴장일은 반영되지 않았습니다(달력 데이터 없음)');
     };
     paint();
     clearInterval(el._timer);
