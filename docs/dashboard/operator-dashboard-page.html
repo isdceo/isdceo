@@ -137,6 +137,31 @@
   .lg .gcard .gname { display: flex; align-items: center; gap: 8px; }
   .lg .chip { display: inline-flex; align-items: center; gap: 6px; padding-left: 4px; }
   .lg .profile .phead { display: flex; align-items: center; gap: var(--cds-gap-md); }
+  .lg .felt .phase { display: grid; grid-template-columns: auto 1fr; gap: var(--cds-gap-md); align-items: center; background: #0b1426; border: 1px solid #4f74ad; border-radius: 12px; padding: 10px 14px; }
+  .lg .felt .phase .timer { text-align: center; min-width: 11rem; padding-right: var(--cds-gap-md); border-right: 1px solid #2a3f66; }
+  .lg .felt .phase .timer .t { font-family: var(--font-anthropic-serif); font-size: 28px; color: #ffd65a; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .lg .felt .phase .timer .l { font-size: 11.5px; color: #b9c7dd; }
+  .lg .felt .phase .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .lg .felt .phase .step { border-radius: 8px; padding: 6px 10px; background: rgba(255,255,255,.05); border: 1px solid #2a3f66; font-size: 11.5px; color: #b9c7dd; }
+  .lg .felt .phase .step b { display: block; color: #e8f0ff; font-size: 13px; }
+  .lg .felt .phase .step.now { background: linear-gradient(#2e9e48, #1f7a35); border-color: #7dff9c; color: #eaffef; box-shadow: 0 0 14px rgba(125,255,156,.35); }
+  .lg .felt .phase .step.done { opacity: .55; }
+  .lg .felt .phase .rc { grid-column: 1 / -1; display: flex; gap: 6px 8px; flex-wrap: wrap; align-items: center; font-size: 12px; }
+  .lg .felt .phase .rc em { font-style: normal; color: #f4d27a; margin-left: 4px; }
+  .lg .felt .phase .rc span { padding: 1px 10px; border-radius: 999px; background: rgba(255,255,255,.08); color: #b9c7dd; }
+  .lg .felt .phase .rc span.ok { background: #1f7a35; color: #eaffef; } .lg .felt .phase .rc span.mid { background: #2b4a78; color: #e8f0ff; } .lg .felt .phase .rc span.bad { background: #8e2a22; color: #ffe2de; }
+  .lg .felt .phase .rc small { color: rgba(185,199,221,.7); margin-left: auto; }
+  @media (max-width: 560px) { .lg .felt .phase { grid-template-columns: 1fr; } .lg .felt .phase .timer { border-right: 0; border-bottom: 1px solid #2a3f66; padding: 0 0 8px; } .lg .felt .phase .steps { grid-template-columns: repeat(2, 1fr); } }
+  .lg .felt .road .grid.big { grid-auto-flow: row; grid-auto-columns: 22px; grid-template-columns: repeat(auto-fill, 22px); min-height: 142px; margin-top: 2px; }
+  .lg .felt .road .ring { width: 14px; height: 14px; margin: 1px; border-radius: 999px; border: 3px solid #2e8b57; position: relative; }
+  .lg .felt .road .ring.c { border-color: #c0392b; } .lg .felt .road .ring.s { border-color: #2463b5; }
+  .lg .felt .road .ring i { position: absolute; left: -4px; top: 6px; width: 24px; height: 3px; background: #2e8b57; transform: rotate(-45deg); font-size: 9px; font-style: normal; color: #2e8b57; line-height: 0; text-indent: 26px; }
+  .lg .achs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-sm); margin-bottom: var(--cds-gap-md); }
+  .lg .ach { display: flex; gap: 8px; align-items: center; padding: 6px 8px; border: 1px dashed var(--color-border-line); border-radius: var(--cds-radius); color: var(--color-fg-muted); }
+  .lg .ach small { display: block; font-size: var(--cds-font-size-caption); }
+  .lg .ach .badge { flex: none; width: 30px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: var(--color-border-line); color: var(--color-fg-muted); }
+  .lg .ach.got { border-style: solid; color: var(--color-fg); }
+  .lg .ach.got .badge { background: linear-gradient(#fff1b8, #d4a83c 55%, #8a6414); color: #2b1b0c; box-shadow: 0 0 0 2px #5a4210; }
   .lg [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
 
@@ -439,6 +464,7 @@
       <div data-draw="profile-head" data-source="agents"></div>
       <button class="pclose" type="button" aria-label="프로필 닫기">닫기</button>
     </div>
+    <div data-draw="profile-ach" data-source="agents picks standings"></div>
     <div data-draw="profile-body" data-source="agents agent_total picks"></div>
     <p class="note">평균은 확정된 점수만으로 계산합니다(채점 전·보류는 제외). 종목은 마감이 지난 라운드만 보입니다.</p>
   </section>
@@ -537,6 +563,7 @@
     <div class="felt">
       <div class="ttitle">AI INVESTMENT LEAGUE · TABLE</div>
       <div class="tsub">숫자는 두 팀 10명의 통합 순위입니다. 주간 마감에서 꼴등 1명이 탈락합니다.</div>
+      <div class="phase" data-draw="phase" data-source="receipts"></div>
       <div class="tablewrap"><div class="tablebox" data-draw="baccarat" data-source="agents standings team_weeks team_daily picks logos"></div></div>
       <div class="swipe">← 테이블을 옆으로 밀어서 보세요 →</div>
       <div class="hud"><button type="button" data-goto="match">팀 대결</button><button type="button" data-goto="league">리그 순위</button><button type="button" data-goto="picks">추천·점수</button><button type="button" data-goto="ops">운영</button></div>
@@ -544,6 +571,9 @@
         <div class="rhead"><b>출목표 — 라운드별 이긴 팀 (그날 확정 종목의 종목당 평균)</b><span class="legend"><i style="background:#c0392b"></i>Claude 팀<i style="background:#2463b5"></i>슈슈 팀<i style="background:#2e8b57"></i>무승부</span></div>
         <div class="grid" data-draw="road" data-source="team_daily"></div>
         <p class="rhead" data-draw="road-note" data-source="team_daily"></p>
+        <div class="rhead"><b>연승 흐름판 — 같은 팀이 이기면 아래로, 이긴 팀이 바뀌면 옆 줄로 (초록 빗금은 무승부)</b></div>
+        <div class="grid big" data-draw="bigroad" data-source="team_daily"></div>
+        <p class="rhead" data-draw="bigroad-note" data-source="team_daily"></p>
       </div>
       <div class="rail"><h3 data-draw="title-claude">♠ CLAUDE 팀</h3>
         <div class="hand" data-draw="hand-claude" data-source="agents picks logos"></div></div>
@@ -1054,6 +1084,48 @@
     });
   });
 
+  // ───── 업적 배지 (실전 기록 기준) ─────
+  const ACH = [
+    {id: 'streak3', g: '3↑', name: '3연속 플러스', desc: '세 라운드 연속 종목당 평균이 플러스'},
+    {id: 'both', g: '2+', name: '쌍끌이', desc: '한 라운드에서 한국·미국 두 종목 모두 플러스'},
+    {id: 'big5', g: '+5', name: '대박 종목', desc: '확정 점수 +5% 이상 종목'},
+    {id: 'week1', g: '1위', name: '주간 1위', desc: '끝난 주의 10명 통합 순위 1위'},
+    {id: 'perfect', g: '개근', name: '개근 주', desc: '끝난 주에 한 번도 빠짐없이 제출'},
+  ];
+  const achOf = (a) => {
+    const pk = dash.data('picks'), sd = dash.data('standings');
+    const mine = pk.status === 'ok' ? pk.data.filter((p) => p.mode === '실전' && p.team === a.team && p.agent_id === a.agent_id && p.status === 'final' && p.score != null) : [];
+    const rounds = [...d3.group(mine, (p) => p.round_date)].sort((x, y) => x[0].localeCompare(y[0]));
+    let run = 0, streak = false;
+    for (const [, ps] of rounds) { run = d3.mean(ps, (p) => p.score) > 0 ? run + 1 : 0; if (run >= 3) streak = true; }
+    const st = sd.status === 'ok' ? sd.data.filter((r) => r.mode === '실전') : [];
+    const latest = st.map((r) => r.week).sort().pop();
+    const closed = new Set(st.filter((r) => r.week < latest || r.out).map((r) => r.week));
+    const myWeeks = st.filter((r) => closed.has(r.week) && r.team === a.team && r.agent_id === a.agent_id);
+    const got = {
+      streak3: streak,
+      both: rounds.some(([, ps]) => ps.length >= 2 && ps.every((p) => p.score > 0)),
+      big5: mine.some((p) => p.score >= 5),
+      week1: myWeeks.some((r) => r.league_rank === 1),
+      perfect: myWeeks.some((r) => r.submit_rate === 100),
+    };
+    return ACH.map((x) => ({...x, got: !!got[x.id]}));
+  };
+  dash.draw('profile-ach', (el) => {
+    const a = curAgent();
+    el.replaceChildren();
+    if (!a) return;
+    const b = d3.select(el);
+    const list = achOf(a);
+    b.append('p').attr('class', 'note').text(`업적 ${list.filter((x) => x.got).length} / ${list.length} (실전 기록 기준)`);
+    const g = b.append('div').attr('class', 'achs');
+    list.forEach((x) => {
+      const c = g.append('div').attr('class', 'ach' + (x.got ? ' got' : ''));
+      c.append('span').attr('class', 'badge').text(x.g);
+      const t = c.append('div'); t.append('b').text(x.name); t.append('small').text(x.desc);
+    });
+  });
+
   // ───── 카드판 (바카라 테이블) ─────
   const SUIT = {'Claude 팀': 's', '슈슈 팀 (Codex)': 'h'};
   const PIP = {s: '♠', h: '♥'};
@@ -1339,6 +1411,12 @@
         const em = f.append('g').attr('transform', 'translate(-44 -40)');
         em.append('rect').attr('x', -12).attr('y', -12).attr('width', 24).attr('height', 24).attr('transform', 'rotate(45)').attr('fill', 'url(#bt-gold)').attr('stroke', '#5a4210').attr('stroke-width', 1.5);
         em.append('text').attr('y', 6).attr('text-anchor', 'middle').attr('font-size', 17).attr('fill', team === 'c' ? '#1f1a14' : '#c0392b').text(team === 'c' ? '♠' : '♥');
+        achOf(a).filter((x) => x.got).slice(0, 4).forEach((x, k) => {
+          const bg = f.append('g').attr('transform', `translate(44 ${-30 + k * 22})`);
+          bg.append('title').text(`업적: ${x.name} — ${x.desc}`);
+          bg.append('circle').attr('r', 10.5).attr('fill', 'url(#bt-gold)').attr('stroke', '#5a4210').attr('stroke-width', 1.5);
+          bg.append('text').attr('y', 3.5).attr('text-anchor', 'middle').attr('font-size', x.g.length > 2 ? 7.5 : 9.5).attr('font-weight', 800).attr('fill', '#2b1b0c').text(x.g);
+        });
       }, {py}));
     });
     // 명패는 테이블 위에, 앞자리(아래쪽)가 나중에 그려지도록
@@ -1373,6 +1451,98 @@
     const n = (w) => beads.filter((x) => x.w === w).length;
     el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · Claude 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9 라운드부터).';
   });
+  // ───── 라운드 진행 표시 (제출 마감 타이머) ─────
+  const SEASON = '2026-11-09';
+  const ymdK = (ms) => new Date(ms + 9 * 3600e3).toISOString().slice(0, 10);
+  const atK = (day, hh, mm) => Date.parse(`${day}T${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:00+09:00`);
+  const wday = (day) => new Date(day + 'T00:00:00Z').getUTCDay();
+  const shiftDay = (day, n) => new Date(Date.parse(day + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+  const nextWd = (day) => { let d = shiftDay(day, 1); while ([0, 6].includes(wday(d))) d = shiftDay(d, 1); return d; };
+  const prevWd = (day) => { let d = shiftDay(day, -1); while ([0, 6].includes(wday(d))) d = shiftDay(d, -1); return d; };
+  const md = (day) => `${+day.slice(5, 7)}/${+day.slice(8, 10)}`;
+  const left = (ms) => { const m = Math.max(0, Math.ceil(ms / 6e4)), h = Math.floor(m / 60); return h ? `${h}시간 ${m % 60}분` : `${m}분`; };
+  const roundState = (now = Date.now()) => {
+    const today = ymdK(now), wk = ![0, 6].includes(wday(today));
+    const next = wk && now < atK(today, 8, 30) ? today : nextWd(today);        // 다음 제출 마감 라운드
+    const last = wk && now >= atK(today, 8, 30) ? today : prevWd(today);        // 마감이 지난 가장 최근 라운드
+    const score = nextWd(last);
+    const step = now < atK(last, 12, 0) ? 1 : 2;                                 // 0 지문 · 1 원본 공개 · 2 장 마감 대기 · 3 채점
+    return {now, today, next, last, score, step};
+  };
+  const rcptState = (team, day) => {
+    const d = dash.data('receipts');
+    const rows = d.status === 'ok' ? d.data.filter((r) => r.team === team && r.round === day) : [];
+    if (rows.some((r) => r.status === 'accepted')) return ['원본 접수', 'ok'];
+    if (rows.some((r) => r.status === 'committed')) return ['지문 제출됨', 'mid'];
+    if (rows.some((r) => r.status === 'late' || r.status === 'rejected')) return ['반려·지각', 'bad'];
+    return ['아직', ''];
+  };
+  dash.draw('phase', (el) => {
+    const paint = () => {
+      const s = roundState();
+      const live = s.next >= SEASON;
+      el.replaceChildren();
+      const root = d3.select(el);
+      const tm = root.append('div').attr('class', 'timer');
+      tm.append('div').attr('class', 'l').text(`${live ? '실전' : '연습'} ${md(s.next)} 라운드 제출 마감까지`);
+      tm.append('div').attr('class', 't').text(left(atK(s.next, 8, 30) - s.now));
+      tm.append('div').attr('class', 'l').text(`${md(s.next)} 08:30 KST · 지문(.sha256) 먼저`);
+      const st = root.append('div').attr('class', 'steps');
+      const steps = [
+        ['지문 제출', `~ ${md(s.last)} 08:30`],
+        ['원본 공개', '08:30 ~ 12:00'],
+        ['장 마감 대기', '미국 장 마감 뒤 수집'],
+        ['채점', `${md(s.score)} 10:30`],
+      ];
+      steps.forEach(([t, sub], k) => {
+        const c = st.append('div').attr('class', 'step' + (k < s.step ? ' done' : k === s.step ? ' now' : ''));
+        c.append('b').text(`${k < s.step ? '✓ ' : ''}${t}`); c.append('span').text(sub);
+      });
+      const rc = root.append('div').attr('class', 'rc');
+      rc.append('em').text(`${md(s.last)} 라운드`);
+      for (const team of ['Claude 팀', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.last); rc.append('span').attr('class', c).text(`${team.replace(' (Codex)', '')} ${t}`); }
+      if (s.next !== s.last) {
+        rc.append('em').text(`${md(s.next)} 라운드`);
+        for (const team of ['Claude 팀', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.next); rc.append('span').attr('class', c).text(`${team.replace(' (Codex)', '')} ${t}`); }
+      }
+      rc.append('small').text('평일 기준 · 휴장일은 이 표시에 반영되지 않습니다');
+    };
+    paint();
+    clearInterval(el._timer);
+    el._timer = setInterval(() => { if (!el.isConnected) { clearInterval(el._timer); return; } if (!el.closest('[hidden]')) paint(); }, 30000);
+  });
+
+  // ───── 연승 흐름판 (빅로드) ─────
+  const bigRoad = () => {
+    const cells = [];
+    let col = -1, row = 0, prev = null, lastCell = null, run = 0;
+    const best = {c: 0, s: 0};
+    for (const b of roadData()) {
+      if (b.w === 't') { if (lastCell) lastCell.ties += 1; else { col = 0; lastCell = {col, row: 0, w: null, ties: 1, day: b.day}; cells.push(lastCell); } continue; }
+      if (lastCell && lastCell.w === null) { lastCell.w = b.w; lastCell.day = b.day; prev = b.w; run = 1; best[b.w] = Math.max(best[b.w], run); continue; }
+      if (b.w === prev) { run += 1; if (row < 5) row += 1; else col += 1; }
+      else { run = 1; col = cells.length ? Math.max(...cells.filter((c) => c.row === 0).map((c) => c.col)) + 1 : 0; row = 0; }
+      prev = b.w; best[b.w] = Math.max(best[b.w], run);
+      lastCell = {col, row, w: b.w, ties: 0, day: b.day, a: b.a, b: b.b};
+      cells.push(lastCell);
+    }
+    return {cells, cur: prev ? {w: prev, run} : null, best};
+  };
+  dash.draw('bigroad', (el) => {
+    const {cells} = bigRoad();
+    el.replaceChildren();
+    d3.select(el).selectAll('div.ring').data(cells).join('div')
+      .attr('class', (c) => 'ring ' + (c.w || 't'))
+      .style('grid-column', (c) => c.col + 1).style('grid-row', (c) => c.row + 1)
+      .attr('title', (c) => `${fmtTime(c.day)}${c.ties ? ` · 뒤이어 무승부 ${c.ties}번` : ''}`)
+      .each(function (c) { if (c.ties) d3.select(this).append('i').text(c.ties > 1 ? c.ties : ''); });
+  });
+  dash.draw('bigroad-note', (el) => {
+    const {cells, cur, best} = bigRoad();
+    const nm = {c: 'Claude 팀', s: '슈슈 팀'};
+    el.textContent = cells.length ? `지금 ${nm[cur.w]} ${cur.run}연승 · 가장 긴 연승 Claude ${best.c} / 슈슈 ${best.s}` : '실전 라운드가 채점되면 같은 팀이 이길 때마다 아래로, 이긴 팀이 바뀌면 옆 줄로 쌓입니다.';
+  });
+
   const handFor = (team) => (el) => {
     const tr = teamRound(team);
     const rows = tr.rows.slice().sort((x, y) => (y.score ?? -1e9) - (x.score ?? -1e9) || x.agent.localeCompare(y.agent) || x.market.localeCompare(y.market));
