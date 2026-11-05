@@ -6,7 +6,8 @@
       "style_ref": "벤저민 그레이엄의 공개된 투자 원칙 참고",
       "version": 1,
       "nickname": "단단이",
-      "tagline": "안전한 가격과 재무 여력을 꼼꼼히 확인"
+      "tagline": "안전한 가격과 재무 여력을 꼼꼼히 확인",
+      "avatar": "shield"
     },
     {
       "id": "s2",
@@ -14,7 +15,8 @@
       "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
       "version": 1,
       "nickname": "알짜",
-      "tagline": "좋은 사업 구조와 현금 창출력에 집중"
+      "tagline": "좋은 사업 구조와 현금 창출력에 집중",
+      "avatar": "gem"
     },
     {
       "id": "s3",
@@ -22,7 +24,8 @@
       "style_ref": "피터 린치의 공개된 투자 원칙 참고",
       "version": 1,
       "nickname": "돋보기",
-      "tagline": "성장 이야기가 실적으로 이어지는지 확인"
+      "tagline": "성장 이야기가 실적으로 이어지는지 확인",
+      "avatar": "magnifier"
     },
     {
       "id": "s4",
@@ -30,7 +33,8 @@
       "style_ref": "필립 피셔의 공개된 투자 원칙 참고",
       "version": 1,
       "nickname": "쑥쑥이",
-      "tagline": "오래 성장할 기업을 탐색"
+      "tagline": "오래 성장할 기업을 탐색",
+      "avatar": "sprout"
     },
     {
       "id": "s5",
@@ -38,7 +42,8 @@
       "style_ref": "하워드 막스의 공개된 투자 원칙 참고",
       "version": 1,
       "nickname": "반전이",
-      "tagline": "시장이 놓친 기회와 위험을 함께 점검"
+      "tagline": "시장이 놓친 기회와 위험을 함께 점검",
+      "avatar": "flip"
     }
   ],
   "bench": [
@@ -47,14 +52,16 @@
       "label": "거시사이클형",
       "style_ref": "레이 달리오의 공개된 거시·경제 사이클 원칙 참고",
       "version": 1,
-      "nickname": "나침반"
+      "nickname": "나침반",
+      "avatar": "compass"
     },
     {
       "id": "s7",
       "label": "추세모멘텀형",
       "style_ref": "윌리엄 오닐의 공개된 가격·거래량 및 실적 모멘텀 원칙 참고",
       "version": 1,
-      "nickname": "순풍"
+      "nickname": "순풍",
+      "avatar": "sailboat"
     }
   ]
 }
