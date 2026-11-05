@@ -36,6 +36,16 @@ html,body{margin:0;background:#070f1f;color:#f4ecd6;font-family:var(--font-anthr
 .play .rules ul{margin:8px 0 0;padding-left:20px}
 .play footer{margin:16px 4px;font-size:12px;color:#93a3bd;line-height:1.6}
 .play .lg .tablewrap{scrollbar-color:#4f74ad #0b1426}
+.play .dock{display:none}
+@media (max-width:640px){
+  .play{padding:10px 10px calc(76px + env(safe-area-inset-bottom))}
+  .play .top h1{font-size:20px}
+  .play .dock{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;position:fixed;left:0;right:0;bottom:0;z-index:50;
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(rgba(7,15,31,.6),#070f1f 40%);backdrop-filter:blur(6px)}
+  .play .dock button{font:inherit;font-size:13px;font-weight:600;color:#e8f0ff;padding:11px 4px;border-radius:10px;cursor:pointer;
+    background:linear-gradient(#2d4f82,#16294a);border:1px solid #4f74ad;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 3px 0 #050a14}
+  .play .dock button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 0 #050a14}
+}
 """
 
 RUNTIME = """<script>
@@ -103,6 +113,9 @@ def page_html(generated_at: str) -> str:
     <li>매주 두 팀 10명을 한 줄로 세워 꼴등 1명이 탈락하고 대기 후보가 들어옵니다. 채점이 모자라면 탈락을 미룹니다.</li>
     <li>캐릭터는 창작 캐릭터이며, 에이전트는 투자 스타일 이름만 씁니다. 실존 인물의 추천이 아닙니다.</li>
   </ul></details>
+  <nav class="dock" aria-label="바로 가기">
+    <button type="button" data-jump=".lg .tablewrap">테이블</button><button type="button" data-jump=".lg .road">기록판</button><button type="button" data-jump=".lg .rail">종목</button><button type="button" data-jump=".rules">규칙</button>
+  </nav>
   <footer>
     모의 예측 게임입니다. 돈이나 베팅은 없고, 실제 수익률·투자 권유가 아닙니다.<br>
     데이터 출처: 한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Tiingo · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다.
@@ -111,7 +124,12 @@ def page_html(generated_at: str) -> str:
 <script src="data/table.js"></script>
 {RUNTIME}
 {script}
-<script>drawAll();</script>
+<script>drawAll();
+document.querySelectorAll('.dock [data-jump]').forEach((b) => b.addEventListener('click', () => {{
+  const t = document.querySelector(b.dataset.jump); if (!t) return;
+  if (t.tagName === 'DETAILS') t.open = true;
+  t.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+}}));</script>
 </body></html>
 """
 

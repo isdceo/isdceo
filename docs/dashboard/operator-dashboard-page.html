@@ -162,6 +162,81 @@
   .lg .ach .badge { flex: none; width: 30px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: var(--color-border-line); color: var(--color-fg-muted); }
   .lg .ach.got { border-style: solid; color: var(--color-fg); }
   .lg .ach.got .badge { background: linear-gradient(#fff1b8, #d4a83c 55%, #8a6414); color: #2b1b0c; box-shadow: 0 0 0 2px #5a4210; }
+  @media (max-width: 640px) {
+    .lg .felt { padding: 10px; gap: 12px; border-radius: 16px; }
+    .lg .felt .ttitle { font-size: 14px; letter-spacing: .12em; }
+    .lg .felt .tsub { font-size: 11px; }
+    .lg .felt .tablebox { min-width: 0; }
+    .lg .felt .tablewrap { margin: 0; overflow: visible; }
+    .lg .felt .swipe, .lg .felt .hud { display: none; }
+    .lg .felt .phase { padding: 10px; gap: 8px; }
+    .lg .felt .phase .timer .t { font-size: 26px; }
+    .lg .felt .phase .steps { grid-template-columns: 1fr 1fr; gap: 4px; }
+    .lg .felt .phase .step { padding: 5px 8px; font-size: 10.5px; display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+    .lg .felt .phase .step b { font-size: 12px; white-space: nowrap; display: inline; }
+    .lg .felt .phase .step span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .felt .phase .rc { font-size: 11px; }
+    .lg .felt .phase .rc small { margin-left: 0; }
+    .lg .tablebox.phone svg { border-radius: 12px; background: linear-gradient(#142a4d, #070f1f); }
+    .lg .mseats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+    .lg .mseat { font: inherit; text-align: left; cursor: pointer; display: grid; gap: 6px; padding: 8px; border-radius: 12px; color: #e8f0ff;
+      background: linear-gradient(#1d3560, #0f1f3a); border: 1px solid #3a5a8f; border-top: 3px solid #e07a56; box-shadow: 0 4px 10px rgba(0,0,0,.35); min-width: 0; }
+    .lg .mseat.s { border-top-color: #6a9be0; }
+    .lg .mseat.lead { box-shadow: 0 0 0 2px #7dff9c, 0 0 16px rgba(125,255,156,.45); }
+    .lg .mseat.risk { box-shadow: 0 0 0 2px #ff6a5c, 0 0 16px rgba(255,106,92,.45); }
+    .lg .mseat:active { transform: scale(.98); }
+    .lg .mhead { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .lg .felt .tablebox .mseat svg.avatar { width: 40px; height: 40px; flex: none; display: inline-block; }
+    .lg .mhead > div { min-width: 0; }
+    .lg .mhead b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .mhead small { display: block; font-size: 10.5px; color: #b9c7dd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .mrank { margin-left: auto; font-family: var(--font-anthropic-serif); color: #f4d27a; font-size: 15px; flex: none; }
+    .lg .mline { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+    .lg .mavg { font-weight: 700; font-size: 14px; } .lg .mavg.up { color: #8fe8a8; } .lg .mavg.down { color: #ff9c90; } .lg .mavg.none { color: #b9c7dd; font-weight: 400; font-size: 12px; }
+    .lg .mflag { font-size: 10.5px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: #2e9e48; color: #fff; }
+    .lg .mseat.risk .mflag { background: #d0453a; }
+    .lg .mach { margin-left: auto; display: flex; gap: 2px; }
+    .lg .mach i { font-style: normal; font-size: 9px; font-weight: 800; width: 20px; height: 20px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: linear-gradient(#fff1b8, #d4a83c 55%, #8a6414); color: #2b1b0c; }
+    .lg .mcards { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .lg .mc { background: #fff; color: #1f1a14; border-radius: 6px; padding: 4px 5px; display: grid; grid-template-columns: auto 1fr; gap: 2px 4px; align-items: center; min-width: 0; }
+    .lg .mc .mk { font-size: 9px; font-weight: 800; color: #1f1a14; } .lg .mc.d .mk { color: #c0392b; }
+    .lg .mc img, .lg .mc .mm { width: 18px; height: 18px; border-radius: 4px; justify-self: end; object-fit: contain; }
+    .lg .mc .mm { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-family: var(--font-anthropic-serif); }
+    .lg .mc .nm { grid-column: 1 / -1; font-family: var(--font-anthropic-serif); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .mc .sc { grid-column: 1 / -1; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .lg .mc .sc.up { color: #1f7a45; } .lg .mc .sc.down { color: #b3261e; } .lg .mc .sc.warn { color: #a8650b; } .lg .mc .sc.none { color: #8a8273; font-weight: 400; }
+    .lg .mc.back { min-height: 54px; background: repeating-linear-gradient(45deg, #7a1e1e 0 4px, #8f2a2a 4px 8px); border: 2px solid #f4ecd6; }
+    .lg .felt .road { padding: 8px; }
+    .lg .felt .road .grid { grid-template-rows: repeat(6, 16px); grid-auto-columns: 16px; min-height: 104px; background: repeating-linear-gradient(0deg, transparent 0 17px, #d8cfb6 17px 18px), repeating-linear-gradient(90deg, transparent 0 17px, #d8cfb6 17px 18px); }
+    .lg .felt .road .grid.big { grid-template-columns: repeat(auto-fill, 16px); grid-auto-columns: 16px; min-height: 104px; }
+    .lg .felt .road .bead { width: 14px; height: 14px; font-size: 8px; }
+    .lg .felt .road .ring { width: 9px; height: 9px; border-width: 2.5px; }
+    .lg .felt .hand { grid-template-columns: 1fr; gap: 8px; }
+    .lg .gcard.stockc { min-height: 0; border-radius: 10px; }
+    .lg .gcard.stockc .corner.br { display: none; }
+    .lg .gcard.stockc .corner.tl { top: 8px; left: 8px; font-size: 12px; }
+    .lg .gcard.stockc .gbody { display: grid; grid-template-columns: 40px 1fr auto; grid-template-areas: "logo name stat" "logo style stat" "pick pick pick"; column-gap: 10px; row-gap: 2px; padding: 10px 12px 8px 34px; align-items: center; }
+    .lg .gcard.stockc .gtop { position: absolute; top: -9px; right: 12px; min-height: 0; z-index: 1; }
+    .lg .gcard.stockc .logo, .lg .gcard.stockc .mono { grid-area: logo; width: 40px; height: 40px; margin: 0; }
+    .lg .gcard.stockc .gname.stock { grid-area: name; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .gcard.stockc .gstyle { grid-area: style; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .gcard.stockc .gstat { grid-area: stat; flex-direction: column; align-items: flex-end; gap: 0; }
+    .lg .gcard.stockc .gstat .big { font-size: 18px; }
+    .lg .gcard.stockc .gmeta { grid-column: 2 / -1; }
+    .lg .gcard.stockc .picker { grid-area: pick; border-top: 1px dashed #d9d2c3; padding-top: 6px; margin-top: 4px; }
+    .lg .benchrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+    .lg .benchseat > span { min-width: 0; overflow: hidden; }
+    .lg .benchseat small { display: block; }
+    .lg .benchseat { border-radius: 12px; padding: 6px; min-width: 0; text-align: left; }
+    .lg .benchseat small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lg .profile.open { position: fixed; left: 0; right: 0; bottom: 0; top: auto; max-height: 82vh; overflow-y: auto; margin: 0; border-radius: 18px 18px 0 0; z-index: 60;
+      box-shadow: 0 -10px 30px rgba(0,0,0,.45); animation: sheet-up .25s ease-out; padding-top: 22px; }
+    .lg .profile.open::before { content: ''; position: absolute; top: 8px; left: 50%; width: 44px; height: 5px; margin-left: -22px; border-radius: 3px; background: var(--color-border-line); }
+    .lg .profile .pstats { grid-template-columns: repeat(3, 1fr); }
+    .lg .profile .achs { grid-template-columns: 1fr; }
+  }
+  @keyframes sheet-up { from { transform: translateY(40%); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: no-preference) { .lg .tablebox.phone .mseat { animation: bt-drop .4s ease-out both; } }
   .lg [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
 
@@ -952,7 +1027,9 @@
       .text(p.score == null ? (p.status === 'held' ? '보류' : '채점 전') : `${pct(p.score)}%`);
     return c;
   };
-  dash.draw('baccarat', (el) => {
+  const PHONE = window.matchMedia('(max-width: 640px)');
+  PHONE.addEventListener('change', () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (!el.closest('[hidden]')) { el.dataset.dealt = ''; drawBaccarat(el); } }));
+  const drawBaccarat = (el) => {
     const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');
     const wk = latestWeek();
     const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
@@ -977,6 +1054,82 @@
     const wrap = el.parentElement;
     if (wrap) requestAnimationFrame(() => { if (wrap.scrollWidth > wrap.clientWidth && !wrap.dataset.centered) { wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2; wrap.dataset.centered = '1'; } });
 
+    // ── 휴대폰(폭 640px 이하): 가운데 대결 테이블 + 아래 10명 명패(왼쪽 Claude 팀, 오른쪽 슈슈 팀) ──
+    if (PHONE.matches) {
+      el.classList.add('phone');
+      const svg = d3.select(el).append('svg').attr('viewBox', '0 0 400 262').attr('role', 'img').attr('aria-label', '리그 바카라 테이블').attr('class', first ? 'anim' : null);
+      const defs = svg.append('defs');
+      const grad = (id, type, stops, attrs = {}) => { const g = defs.append(type).attr('id', id); for (const [k, v] of Object.entries(attrs)) g.attr(k, v); stops.forEach(([o, c]) => g.append('stop').attr('offset', o).attr('stop-color', c)); };
+      grad('mt-felt', 'radialGradient', [[0, '#3b97d6'], [.6, '#226fae'], [1, '#124777']], {cx: '50%', cy: '25%', r: '80%'});
+      grad('mt-wood', 'linearGradient', [[0, '#c98a4a'], [.5, '#8a4f22'], [1, '#4e2a10']], {x1: 0, y1: 0, x2: 0, y2: 1});
+      grad('mt-pad', 'linearGradient', [[0, '#3a3f4a'], [1, '#0b0d12']], {x1: 0, y1: 0, x2: 0, y2: 1});
+      grad('mt-gold', 'linearGradient', [[0, '#fff1b8'], [.5, '#d4a83c'], [1, '#8a6414']], {x1: 0, y1: 0, x2: 0, y2: 1});
+      const D = (p) => `M${p} ${22 + p * .4} H${400 - p} V${96} A${200 - p} ${160 - p} 0 0 1 ${p} 96 Z`;
+      svg.append('path').attr('d', D(2)).attr('fill', 'url(#mt-pad)').attr('stroke', '#000').attr('stroke-width', 2);
+      svg.append('path').attr('d', D(14)).attr('fill', 'url(#mt-wood)').attr('stroke', '#2a1606').attr('stroke-width', 1.5);
+      svg.append('path').attr('d', D(24)).attr('fill', 'url(#mt-felt)').attr('stroke', '#0b2c4d').attr('stroke-width', 2);
+      svg.append('rect').attr('x', 130).attr('y', 30).attr('width', 140).attr('height', 18).attr('rx', 3).attr('fill', '#0e1219').attr('stroke', 'url(#mt-gold)').attr('stroke-width', 1.6);
+      ['#f4ecd6', '#e07a7a', '#e0574a', '#2fa58f', '#6b4fb5', '#5cb85c', '#f2a33a', '#f2c230', '#3b8fd6', '#f4ecd6'].forEach((c, k) =>
+        svg.append('rect').attr('x', 134 + k * 13.3).attr('y', 33).attr('width', 11).attr('height', 12).attr('rx', 4).attr('fill', c).attr('stroke', '#fff').attr('stroke-opacity', .5));
+      svg.append('path').attr('d', 'M330 48 H364 L360 30 L336 26 Z').attr('fill', '#5c1414').attr('stroke', '#2a0606').attr('stroke-width', 1.5);
+      const b2 = (team) => teamRound(team).rows.filter((p) => p.score != null).sort((x, y) => y.score - x.score).slice(0, 2);
+      const side = (team, x0, label, color, r, cards, k0) => {
+        svg.append('rect').attr('x', x0).attr('y', 74).attr('width', 150).attr('height', 150).attr('rx', 8).attr('fill', 'rgba(8,30,60,.22)').attr('stroke', '#f4d27a').attr('stroke-opacity', .75).attr('stroke-width', 1.4);
+        svg.append('text').attr('x', x0 + 75).attr('y', 95).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-family', 'Georgia, serif').attr('letter-spacing', 2).attr('fill', color).text(label);
+        [0, 1].forEach((k) => stockCard(svg, x0 + 15 + k * 64, 104, 56, 78, cards[k], {agent: cards[k] && agentOf(cards[k]), delay: k0 + k * .12, dx: (x0 < 200 ? 1 : -1) * 80}));
+        const win = lead === team;
+        svg.append('rect').attr('x', x0 + 30).attr('y', 190).attr('width', 90).attr('height', 24).attr('rx', 6).attr('fill', r && r.avg != null ? (win ? '#2e9e48' : '#2463b5') : '#3b4a63').attr('stroke', '#fff').attr('stroke-opacity', .8).attr('stroke-width', 1.5);
+        svg.append('text').attr('x', x0 + 75).attr('y', 207).attr('text-anchor', 'middle').attr('font-size', 14).attr('font-weight', 700).attr('fill', '#fff').text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
+      };
+      side('Claude 팀', 42, 'CLAUDE', '#ffd65a', A, wk ? b2('Claude 팀') : [], .1);
+      side('슈슈 팀 (Codex)', 208, '슈슈', '#ffb0a6', B, wk ? b2('슈슈 팀 (Codex)') : [], .3);
+      const btxt = !wk ? '실전 전 — 11/9 첫 라운드' : lead ? `${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세` : '이번 주 동률';
+      const bx = !wk || !lead ? 200 : lead === 'Claude 팀' ? 117 : 283, bw = Math.max(110, btxt.length * 11 + 20);
+      const bn = svg.append('g').attr('transform', `translate(${bx} 70)`);
+      bn.append('path').attr('d', `M${-bw / 2} -20 H${bw / 2} V0 H6 L0 6 L-6 0 H${-bw / 2} Z`).attr('fill', wk && lead ? '#2e9e48' : '#2b4a78').attr('stroke', '#fff').attr('stroke-opacity', .85).attr('stroke-width', 1.5);
+      bn.append('text').attr('y', -6).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 800).attr('fill', '#fff').text(btxt);
+      svg.append('text').attr('x', 200).attr('y', 248).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', '#f4ecd6').attr('opacity', .85).text(wk ? `실전 ${wk} · 이번 주 종목당 평균` : '두 팀 10명 통합 순위 · 주간 꼴등 1명 탈락');
+
+      const grid = d3.select(el).append('div').attr('class', 'mseats');
+      const col = (team) => byRank(team);
+      const L = col('Claude 팀'), R = col('슈슈 팀 (Codex)'), rows = [];
+      for (let i = 0; i < Math.max(L.length, R.length); i++) rows.push(L[i] || null, R[i] || null);
+      rows.forEach((a, i) => {
+        if (!a) { grid.append('div'); return; }
+        const r = rowOf(a), pp = picksOf(a);
+        const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
+        const t = grid.append('button').attr('type', 'button')
+          .attr('class', `mseat ${a.team === 'Claude 팀' ? 'c' : 's'}${isLead ? ' lead' : ''}${isRisk ? ' risk' : ''}`)
+          .style('animation-delay', `${.15 + i * .04}s`).on('click', () => openProfile(a.team, a.name));
+        const hd = t.append('div').attr('class', 'mhead');
+        drawAvatar(hd.node(), a, 40);
+        const nm = hd.append('div');
+        nm.append('b').text(a.nickname || a.label);
+        nm.append('small').text(`${a.team === 'Claude 팀' ? '♠' : '♥'} ${a.label}`);
+        hd.append('span').attr('class', 'mrank').text(r ? `${r.league_rank}위` : '—');
+        const line = t.append('div').attr('class', 'mline');
+        line.append('span').attr('class', 'mavg ' + (r && r.avg != null ? (r.avg > 0 ? 'up' : r.avg < 0 ? 'down' : '') : 'none'))
+          .text(r && r.avg != null ? `${pct(r.avg)}%` : '채점 전');
+        if (isLead || isRisk) line.append('span').attr('class', 'mflag').text(isLead ? '선두' : '꼴등');
+        const ach = achOf(a).filter((x) => x.got);
+        if (ach.length) { const g = line.append('span').attr('class', 'mach'); ach.slice(0, 3).forEach((x) => g.append('i').attr('title', x.name).text(x.g)); }
+        const cs = t.append('div').attr('class', 'mcards');
+        for (const mk of ['KR', 'US']) {
+          const p = pp[mk];
+          if (!p) { cs.append('div').attr('class', 'mc back'); continue; }
+          const c = cs.append('div').attr('class', 'mc ' + (mk === 'KR' ? 'd' : 'c'));
+          c.append('span').attr('class', 'mk').text(`${mk} ${MK[mk].suit}`);
+          const lg = logoOf(p);
+          if (lg) c.append('img').attr('src', lg).attr('alt', '');
+          else c.append('span').attr('class', 'mm').style('background', monoColor(p.ticker)).text((p.name || p.ticker).slice(0, 1));
+          c.append('span').attr('class', 'nm').text(p.name || p.ticker);
+          c.append('span').attr('class', 'sc ' + (p.score == null ? 'none' : p.status !== 'final' ? 'warn' : p.score >= 0 ? 'up' : 'down'))
+            .text(p.score == null ? (p.status === 'held' ? '보류' : '채점 전') : `${pct(p.score)}%`);
+        }
+      });
+      return;
+    }
+    el.classList.remove('phone');
     // 원근 투영: 테이블 평면 좌표(X 좌우, Y 0=딜러 쪽 → 560=손님 쪽)를 화면 좌표로
     const W = 1200, H = 612, CX = 600, YF = 126, DEPTH = 300, AZ = 0.55, RF = 560, KX = 1.04;
     const sb = 1 / (1 + AZ);
@@ -1149,7 +1302,8 @@
       g.append('path').attr('d', 'M-26 -24 H26 V0 H7 L0 8 L-7 0 H-26 Z').attr('fill', fill).attr('stroke', '#fff').attr('stroke-width', 1.6);
       g.append('text').attr('y', -7).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 800).attr('fill', '#fff').text(text);
     });
-  });
+  };
+  dash.draw('baccarat', drawBaccarat);
 
   document.querySelectorAll('.lg .hud [data-goto]').forEach((b) => b.addEventListener('click', () => { const t = document.querySelector(`.lg .tab[data-tab="${b.dataset.goto}"]`); if (t) { t.click(); t.scrollIntoView({block: 'nearest'}); } }));
   const roadData = () => {
