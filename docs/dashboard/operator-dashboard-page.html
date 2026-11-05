@@ -511,7 +511,7 @@
   <section class="page board" id="cards" data-page="cards" hidden>
     <div class="felt">
       <div class="ttitle">AI INVESTMENT LEAGUE · TABLE</div>
-      <div class="tsub">두 팀 10명이 마주 앉은 테이블. 카드 숫자는 10명 통합 순위이고, 주간 마감에서 꼴등 1장이 테이블을 떠납니다.</div>
+      <div class="tsub">숫자는 두 팀 10명의 통합 순위입니다. 주간 마감에서 꼴등 1명이 탈락합니다.</div>
       <div class="tablewrap"><div class="tablebox" data-draw="baccarat" data-source="agents standings team_weeks team_daily"></div></div>
       <div class="swipe">← 테이블을 옆으로 밀어서 보세요 →</div>
       <div class="road">
@@ -590,20 +590,20 @@
     </section>
     <section class="card" id="team-weeks">
       <h2>주간 팀 대결 (실전)</h2>
-      <p class="note">그 주 확정 종목의 종목당 평균이 높은 팀이 이깁니다. 퇴출과는 관계없습니다.</p>
+      <p class="note">그 주 확정 종목의 종목당 평균이 높은 팀이 이깁니다. 탈락과는 관계없습니다.</p>
       <div class="filters">
         <select data-draw="week-select" aria-label="주" data-source="standings"></select>
       </div>
       <div class="wrap">
         <table data-source="team_weeks" data-row-key="key">
-          <thead><tr><th data-field="team">팀</th><th class="num" data-field="avg">종목당 평균(%)</th><th class="num" data-field="scored">확정</th><th class="num" data-field="picks">제출</th><th class="num" data-field="expected">기대</th><th class="num" data-field="held">채점 전·보류</th><th data-field="hold">퇴출 보류 사유</th></tr></thead>
+          <thead><tr><th data-field="team">팀</th><th class="num" data-field="avg">종목당 평균(%)</th><th class="num" data-field="scored">확정</th><th class="num" data-field="picks">제출</th><th class="num" data-field="expected">기대</th><th class="num" data-field="held">채점 전·보류</th><th data-field="hold">탈락 보류 사유</th></tr></thead>
           <tbody data-draw="tw-body"></tbody>
         </table>
       </div>
     </section>
     <section class="card" id="standings">
       <h2>에이전트 주간 순위 — 두 팀 10명 통합 (실전)</h2>
-      <p class="note">확정 점수 평균 순(동점이면 중앙값, 그다음 최저점). 통합 꼴등 1명만 퇴출되고, 그 팀의 승인된 대기 후보가 다음 월요일 07:05부터 참가합니다. 보류: 팀마다 확정이 그 팀 기대 제출의 60% 미만, 꼴등 확정이 자기 기대의 60% 미만, 꼴등 동점. 채점 전·보류 건은 0점이 아니라 빼고 계산합니다.</p>
+      <p class="note">확정 점수 평균 순(동점이면 중앙값, 그다음 최저점). 통합 꼴등 1명만 탈락하고, 그 팀의 승인된 대기 후보가 다음 월요일 07:05부터 참가합니다. 보류: 팀마다 확정이 그 팀 기대 제출의 60% 미만, 꼴등 확정이 자기 기대의 60% 미만, 꼴등 동점. 채점 전·보류 건은 0점이 아니라 빼고 계산합니다.</p>
       <div class="wrap">
         <table data-source="standings" data-row-key="key">
           <thead><tr><th class="num" data-field="league_rank">통합</th><th data-field="team">팀</th><th data-field="agent">에이전트</th><th class="num" data-field="avg">평균(%)</th><th class="num" data-field="median">중앙값(%)</th><th class="num" data-field="avg_excess">초과(%p)</th><th class="num" data-field="scored">확정</th><th class="num" data-field="picks">제출</th><th class="num" data-field="expected">기대</th><th class="num" data-field="missed">미제출</th><th class="num" data-field="held">채점 전·보류</th><th data-field="out">결과</th></tr></thead>
@@ -1172,7 +1172,7 @@
   dash.draw('road-note', (el) => {
     const beads = roadData();
     const n = (w) => beads.filter((x) => x.w === w).length;
-    el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · Claude 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9부터).';
+    el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · Claude 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9 라운드부터).';
   });
   const handFor = (team) => (el) => {
     const ag = dash.data('agents'), stn = dash.data('standings'), tot = dash.data('agent_total'), pk = dash.data('picks');
@@ -1197,7 +1197,7 @@
         const rk = r ? String(r.league_rank) : '?';
         for (const pos of ['tl', 'br']) { const c = card.append('div').attr('class', 'corner ' + pos); c.append('span').text(rk); c.append('small').text(PIP[suit]); }
         const b = card.append('div').attr('class', 'gbody');
-        const flag = a.status === '탈락' ? '탈락' : r && r.out ? '퇴출' : r && r.league_rank === 1 && n > 1 ? '선두' : r && r.league_rank === n && n > 1 ? '탈락 위기' : '';
+        const flag = a.status === '탈락' ? '탈락' : r && r.out ? '탈락' : r && r.league_rank === 1 && n > 1 ? '선두' : r && r.league_rank === n && n > 1 ? '탈락 위기' : '';
         b.append('div').attr('class', 'gtop').append('span').attr('class', 'flag').text(flag);
         const nm = b.append('div').attr('class', 'gname'); drawAvatar(nm.node(), a, 40); nm.append('span').text(a.nickname || a.label); nm.append('span').attr('class', 'pip').text(PIP[suit]);
         b.append('div').attr('class', 'gstyle').text(`${a.label} · v${a.version}`);
