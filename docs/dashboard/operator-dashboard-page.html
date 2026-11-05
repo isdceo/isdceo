@@ -230,7 +230,8 @@
     .lg .benchseat { border-radius: 12px; padding: 6px; min-width: 0; text-align: left; }
     .lg .benchseat small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .lg .profile.open { position: fixed; left: 0; right: 0; bottom: 0; top: auto; max-height: 82vh; overflow-y: auto; margin: 0; border-radius: 18px 18px 0 0; z-index: 60;
-      box-shadow: 0 -10px 30px rgba(0,0,0,.45); animation: sheet-up .25s ease-out; padding-top: 22px; }
+      box-shadow: 0 -10px 30px rgba(0,0,0,.45); padding-top: 22px; }
+    @media (prefers-reduced-motion: no-preference) { .lg .profile.open { animation: sheet-up .25s ease-out; } }
     .lg .profile.open::before { content: ''; position: absolute; top: 8px; left: 50%; width: 44px; height: 5px; margin-left: -22px; border-radius: 3px; background: var(--color-border-line); }
     .lg .profile .pstats { grid-template-columns: repeat(3, 1fr); }
     .lg .profile .achs { grid-template-columns: 1fr; }
@@ -257,7 +258,7 @@
     <button class="tab" role="tab" data-tab="picks" aria-selected="false">추천·점수</button>
   </nav>
 
-  <section class="card profile" id="profile" aria-live="polite">
+  <section class="card profile" id="profile" role="dialog" aria-modal="true" aria-labelledby="profile-name" tabindex="-1">
     <div class="ph">
       <div data-draw="profile-head" data-source="agents"></div>
       <button class="pclose" type="button" aria-label="프로필 닫기">닫기</button>
@@ -622,14 +623,26 @@
   };
 
   // 프로필 열기·닫기
+  let profileOpener = null;
   const openProfile = (team, name) => {
+    profileOpener = document.activeElement;
     dash.setParams({agent: `${team}|${name}`});
-    document.querySelectorAll('.lg .profile').forEach((el) => { el.classList.add('open'); el.scrollIntoView({block: 'nearest'}); });
+    document.querySelectorAll('.lg .profile').forEach((el) => {
+      el.classList.add('open'); el.scrollIntoView({block: 'nearest'});
+      const c = el.querySelector('.pclose'); if (c) c.focus({preventScroll: true});
+    });
   };
-  document.querySelectorAll('.lg .pclose').forEach((b) => b.addEventListener('click', () => {
+  const closeProfile = () => {
+    const was = document.querySelector('.lg .profile.open');
     document.querySelectorAll('.lg .profile').forEach((el) => el.classList.remove('open'));
+    if (!was) return;
     dash.setParams({agent: null});
-  }));
+    if (profileOpener && profileOpener.isConnected && profileOpener.focus) profileOpener.focus({preventScroll: true});
+    profileOpener = null;
+  };
+  window.closeProfile = closeProfile;
+  document.querySelectorAll('.lg .pclose').forEach((b) => b.addEventListener('click', closeProfile));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeProfile(); });
   const agentButton = (td, team, name) => {
     d3.select(td).text('').append('button').attr('type', 'button').attr('class', 'agent-link').text(name)
       .on('click', () => openProfile(team, name));
@@ -846,7 +859,7 @@
     const row = d3.select(el).append('div').attr('class', 'phead');
     drawAvatar(row.node(), a, 64);
     const h = row.append('div');
-    h.append('div').attr('class', 'pname').text(a.nickname || a.label);
+    h.append('div').attr('class', 'pname').attr('id', 'profile-name').text(a.nickname || a.label);
     h.append('div').text(`${a.label} · ${a.team}`);
     h.append('div').attr('class', 'note').text(`${a.status} · 지침 v${a.version}${a.joined_week ? ' · 합류 ' + a.joined_week : ''}${a.eliminated_week ? ' · 탈락 ' + a.eliminated_week : ''}`);
   });
@@ -898,7 +911,7 @@
     for (const [, ps] of rounds) { run = d3.mean(ps, (p) => p.score) > 0 ? run + 1 : 0; if (run >= 3) streak = true; }
     const st = sd.status === 'ok' ? sd.data.filter((r) => r.mode === '실전') : [];
     const latest = st.map((r) => r.week).sort().pop();
-    const closed = new Set(st.filter((r) => r.week < latest || r.out).map((r) => r.week));
+    const closed = new Set(st.filter((r) => r.week < latest || r.out || r.closed).map((r) => r.week));
     const myWeeks = st.filter((r) => closed.has(r.week) && r.team === a.team && r.agent_id === a.agent_id);
     const got = {
       streak3: streak,
@@ -1037,12 +1050,17 @@
     const tws = tw.status === 'ok' && wk ? tw.data.filter((r) => r.week === wk) : [];
     const A = tws.find((x) => x.team === 'Claude 팀'), B = tws.find((x) => x.team === '슈슈 팀 (Codex)');
     const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? 'Claude 팀' : '슈슈 팀 (Codex)') : null;
+    const tied = !!(A && B && A.avg != null && B.avg != null && A.avg === B.avg);
+    const scoredW = week.filter((r) => r.avg != null);                   // 선두·꼴등은 이번 주 점수가 있는 사람 중에서만
+    const topR = scoredW.length > 1 ? Math.min(...scoredW.map((r) => r.league_rank)) : null;
+    const lowR = scoredW.length > 1 ? Math.max(...scoredW.map((r) => r.league_rank)) : null;
+    const flagOf = (r) => ({isLead: !!r && r.avg != null && r.league_rank === topR, isRisk: !!r && r.avg != null && r.league_rank === lowR && lowR !== topR});
     const rowOf = (a) => week.find((r) => r.team === a.team && r.agent_id === a.agent_id) || null;
     const active = ag.status === 'ok' ? ag.data.filter((a) => !a.status.startsWith('대기') && a.status !== '탈락') : [];
     const byRank = (team) => active.filter((a) => a.team === team).sort((x, y) => (rowOf(x)?.league_rank ?? 99) - (rowOf(y)?.league_rank ?? 99));
     const seats = [...byRank('Claude 팀'), ...byRank('슈슈 팀 (Codex)').reverse()];
     const picksOf = (a) => {
-      const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === a.team && p.agent === a.name) : [];
+      const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === a.team && p.agent_id === a.agent_id) : [];
       const live = mine.filter((p) => p.mode === '실전');
       const pool = live.length ? live : mine;
       const last = pool.map((p) => p.round_date).sort().pop();
@@ -1097,7 +1115,7 @@
       box('Claude 팀', 120, 'CLAUDE ♠', '#ffd65a', A, wk ? b2('Claude 팀') : [], .1);
       box('슈슈 팀 (Codex)', 390, '♥ 슈슈', '#ffb0a6', B, wk ? b2('슈슈 팀 (Codex)') : [], .3);
       // 가운데 배너: 자리 카드 사이(폭 96)에 두 줄로
-      const [l1, l2] = !wk ? ['실전 전', '11/9 첫 라운드'] : lead ? [lead === 'Claude 팀' ? 'CLAUDE' : '슈슈', '팀 우세'] : ['이번 주', '동률'];
+      const [l1, l2] = !wk ? ['실전 전', '11/9 첫 라운드'] : lead ? [lead === 'Claude 팀' ? 'CLAUDE' : '슈슈', '팀 우세'] : tied ? ['이번 주', '동률'] : ['이번 주', '채점 전'];
       const up = lead === 'Claude 팀';
       const bn = svg.append('g').attr('transform', 'translate(200 330)');
       bn.append('path').attr('d', wk && lead ? (up ? 'M-48 -20 H-7 L0 -28 L7 -20 H48 V20 H-48 Z' : 'M-48 -20 H48 V20 H7 L0 28 L-7 20 H-48 Z') : 'M-48 -20 H48 V20 H-48 Z')
@@ -1108,7 +1126,7 @@
       // 자리: 왼쪽 Claude 팀, 오른쪽 슈슈 팀 (순위순, 위에서 아래로)
       const seatAt = (a, i, left) => {
         const x = left ? 36 : 364, y = 156 + i * 92, r = rowOf(a), pp = picksOf(a);
-        const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
+        const {isLead, isRisk} = flagOf(r);
         const g = svg.append('g').attr('class', 'seat').attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`)
           .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
         // 펠트 위 미니 카드 2장 (한국·미국)
@@ -1185,7 +1203,7 @@
       };
       side('Claude 팀', 42, 'CLAUDE', '#ffd65a', A, wk ? b2('Claude 팀') : [], .1);
       side('슈슈 팀 (Codex)', 208, '슈슈', '#ffb0a6', B, wk ? b2('슈슈 팀 (Codex)') : [], .3);
-      const btxt = !wk ? '실전 전 — 11/9 첫 라운드' : lead ? `${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세` : '이번 주 동률';
+      const btxt = !wk ? '실전 전 — 11/9 첫 라운드' : lead ? `${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세` : tied ? '이번 주 동률' : '이번 주 채점 전';
       const bx = !wk || !lead ? 200 : lead === 'Claude 팀' ? 117 : 283, bw = Math.max(110, btxt.length * 11 + 20);
       const bn = svg.append('g').attr('transform', `translate(${bx} 70)`);
       bn.append('path').attr('d', `M${-bw / 2} -20 H${bw / 2} V0 H6 L0 6 L-6 0 H${-bw / 2} Z`).attr('fill', wk && lead ? '#2e9e48' : '#2b4a78').attr('stroke', '#fff').attr('stroke-opacity', .85).attr('stroke-width', 1.5);
@@ -1199,7 +1217,7 @@
       rows.forEach((a, i) => {
         if (!a) { grid.append('div'); return; }
         const r = rowOf(a), pp = picksOf(a);
-        const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
+        const {isLead, isRisk} = flagOf(r);
         const t = grid.append('button').attr('type', 'button')
           .attr('class', `mseat ${a.team === 'Claude 팀' ? 'c' : 's'}${isLead ? ' lead' : ''}${isRisk ? ' risk' : ''}`)
           .style('animation-delay', `${.15 + i * .04}s`).on('click', () => openProfile(a.team, a.name));
@@ -1335,7 +1353,7 @@
     };
     if (!wk) banner(CX, topA[1] - 4, '실전 전 — 11/9 첫 라운드', '#2b4a78');
     else if (lead) { const t = lead === 'Claude 팀' ? topA : topB; banner(t[0], t[1] - 12, `${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세`, '#2e9e48'); }
-    else banner(CX, topA[1] - 4, '이번 주 동률', '#2b4a78');
+    else banner(CX, topA[1] - 4, tied ? '이번 주 동률' : '이번 주 채점 전', '#2b4a78');
 
     // 자리 10개: 펠트 위 순위 칸 · 종목 카드 칸, 팔걸이 컵홀더, 바깥 명패
     const m = seats.length, t0 = 0.12 * Math.PI, span = 0.76 * Math.PI, gap = 0.012;
@@ -1343,8 +1361,8 @@
     seats.forEach((a, i) => {
       const ta = t0 + span * i / m, tb = t0 + span * (i + 1) / m, tm = (ta + tb) / 2;
       const r = rowOf(a), pp = picksOf(a);
-      const isLead = r && r.league_rank === 1 && n > 1, isRisk = r && r.league_rank === n && n > 1;
-      const g = svg.append('g').attr('class', 'seat').on('click', () => openProfile(a.team, a.name));
+      const {isLead, isRisk} = flagOf(r);
+      const g = svg.append('g').attr('class', 'seat').attr('aria-hidden', 'true').on('click', () => openProfile(a.team, a.name));
       g.append('title').text(`${a.name}${r ? ` · ${r.league_rank}위 · 이번 주 ${r.avg != null ? pct(r.avg) + '%' : '—'}` : ''}`);
       g.append('path').attr('d', sec(332, 404, ta + gap, tb - gap)).attr('fill', 'rgba(6,24,48,.38)').attr('stroke', '#e8f3ff').attr('stroke-opacity', .55).attr('stroke-width', 1.4);
       g.append('path').attr('class', 'spot').attr('d', sec(414, 530, ta + gap, tb - gap))
@@ -1355,16 +1373,16 @@
         .attr('fill', isLead ? '#c9ffd6' : isRisk ? '#ffc2b8' : '#f4d27a').text(r ? `${r.league_rank}위` : '—');
       // 종목 카드 2장: 왼쪽 한국, 오른쪽 미국 (자리에 앉은 사람 기준)
       const tg = [Math.sin(tm), Math.cos(tm)];
-      let cardTop = Infinity, cardX = 0;
+      let cardTop = Infinity, cardBot = -Infinity, cardX = 0;
       [['KR', -1], ['US', 1]].forEach(([mk, k], j) => {
         const X = -470 * Math.cos(tm) + k * 31 * tg[0], Y = 470 * Math.sin(tm) + k * 31 * tg[1];
-        const s = S(Y), w = 46 * s, h = 62 * s, [x, y] = P(X, Y), p = pp[mk], delay = 0.6 + i * 0.05 + j * 0.05;
+        const s = S(Y) * (Math.cos(tm) ** 2 > 0.5 ? 0.86 : 1), w = 46 * s, h = 62 * s, [x, y] = P(X, Y), p = pp[mk], delay = 0.6 + i * 0.05 + j * 0.05;
         g.append('ellipse').attr('cx', x).attr('cy', y + 2).attr('rx', w * 0.55).attr('ry', 5 * s).attr('fill', '#000').attr('opacity', .3);
         stockCard(g, x - w / 2, y - h + 4 * s, w, h, p, {rot: (Math.PI / 2 - tm) * 180 / Math.PI * -0.25, delay: delay - 0.3});
-        cardTop = Math.min(cardTop, y - h); cardX += x / 2;
+        cardTop = Math.min(cardTop, y - h); cardBot = Math.max(cardBot, y + 4 * s); cardX += x / 2;
         if (p && p.score != null) { const [qx, qy] = P(-516 * Math.cos(tm) + k * 34 * tg[0], 516 * Math.sin(tm) + k * 34 * tg[1]); chipStack(g, qx, qy, p.score, delay, S(516 * Math.sin(tm))); }
       });
-      if (isLead || isRisk) later.push([cardX, cardTop - 6, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']);
+      if (isLead || isRisk) later.push([cardX, cardBot + 30, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']);   // 카드 아래, 꼬리는 위로
       // 컵홀더 (자리 사이)
       if (i < m - 1) {
         const X = -632 * Math.cos(tb), Y = 632 * Math.sin(tb);
@@ -1372,9 +1390,11 @@
         svg.append('circle').attr('transform', flatM(X, Y)).attr('r', 9).attr('fill', '#2a1d06');
       }
       // 명패: 이름표 · 캐릭터 · 이번 주 점수, 팀 문양
-      const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2) * (el.closest('.app') && window.innerHeight < 500 ? 1.12 : 1);   // 끝자리는 작게
+      const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2) * (el.closest('.app') && window.innerHeight < 500 && c2 < 0.3 ? 1.12 : 1);   // 끝자리는 작게, 휴대폰 가로에서는 가운데 자리만 키움
       later.push(Object.assign(() => {
-        const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s - 50 * c2).toFixed(1)}) scale(${s.toFixed(3)})`).on('click', () => openProfile(a.team, a.name));
+        const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s - 50 * c2).toFixed(1)}) scale(${s.toFixed(3)})`)
+          .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`)
+          .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
         f.append('title').text(a.name);
         const team = a.team === 'Claude 팀' ? 'c' : 's';
         f.append('rect').attr('x', -44).attr('y', -46).attr('width', 88).attr('height', 92).attr('rx', 4).attr('fill', `url(#bt-${team})`)
@@ -1403,7 +1423,7 @@
     later.filter((x) => typeof x === 'function').sort((x, y) => x.py - y.py).forEach((fn) => fn());
     later.filter((x) => Array.isArray(x)).forEach(([x, y, text, fill]) => {
       const g = svg.append('g').attr('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
-      g.append('path').attr('d', 'M-26 -24 H26 V0 H7 L0 8 L-7 0 H-26 Z').attr('fill', fill).attr('stroke', '#fff').attr('stroke-width', 1.6);
+      g.append('path').attr('d', 'M-26 -24 H-7 L0 -32 L7 -24 H26 V0 H-26 Z').attr('fill', fill).attr('stroke', '#fff').attr('stroke-width', 1.6);
       g.append('text').attr('y', -7).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 800).attr('fill', '#fff').text(text);
     });
   };
@@ -1416,9 +1436,9 @@
     const days = [...new Set(rows.map((r) => r.date))].sort();
     return days.map((day) => {
       const a = rows.find((r) => r.date === day && r.team === 'Claude 팀'), b = rows.find((r) => r.date === day && r.team === '슈슈 팀 (Codex)');
-      const w = a && b && a.avg != null && b.avg != null ? (a.avg > b.avg ? 'c' : a.avg < b.avg ? 's' : 't') : 't';
-      return {day, w, a: a?.avg, b: b?.avg};
-    });
+      if (!(a && b && a.avg != null && b.avg != null)) return null;            // 한 팀이라도 채점 전이면 그날은 아직 넣지 않는다
+      return {day, w: a.avg > b.avg ? 'c' : a.avg < b.avg ? 's' : 't', a: a.avg, b: b.avg};
+    }).filter(Boolean);
   };
   dash.draw('road', (el) => {
     const beads = roadData();
@@ -1519,19 +1539,27 @@
 
   // ───── 연승 흐름판 (빅로드) ─────
   const bigRoad = () => {
-    const cells = [];
-    let col = -1, row = 0, prev = null, lastCell = null, run = 0;
+    // 표준 빅로드: 같은 팀이 이기면 아래로, 아래 칸이 막혔거나 6칸이면 오른쪽으로 꺾어 이어 간다.
+    // 이긴 팀이 바뀌면 직전 줄 시작 열의 다음 열 맨 위에서 새 줄을 시작한다. 무승부는 직전 칸에 빗금(첫 승 전 무승부는 첫 칸에).
+    const cells = [], occ = new Set(), at = (c, r) => `${c},${r}`;
+    let start = -1, col = 0, row = 0, prev = null, last = null, run = 0, bent = false, early = 0, ties = 0;
     const best = {c: 0, s: 0};
     for (const b of roadData()) {
-      if (b.w === 't') { if (lastCell) lastCell.ties += 1; else { col = 0; lastCell = {col, row: 0, w: null, ties: 1, day: b.day}; cells.push(lastCell); } continue; }
-      if (lastCell && lastCell.w === null) { lastCell.w = b.w; lastCell.day = b.day; prev = b.w; run = 1; best[b.w] = Math.max(best[b.w], run); continue; }
-      if (b.w === prev) { run += 1; if (row < 5) row += 1; else col += 1; }
-      else { run = 1; col = cells.length ? Math.max(...cells.filter((c) => c.row === 0).map((c) => c.col)) + 1 : 0; row = 0; }
+      if (b.w === 't') { ties += 1; if (last) last.ties += 1; else early += 1; continue; }
+      if (b.w === prev) {
+        run += 1;
+        if (!bent && row < 5 && !occ.has(at(col, row + 1))) row += 1; else { col += 1; bent = true; }
+      } else {
+        run = 1; bent = false; row = 0;
+        start += 1; while (occ.has(at(start, 0))) start += 1;
+        col = start;
+      }
       prev = b.w; best[b.w] = Math.max(best[b.w], run);
-      lastCell = {col, row, w: b.w, ties: 0, day: b.day, a: b.a, b: b.b};
-      cells.push(lastCell);
+      last = {col, row, w: b.w, ties: 0, day: b.day, a: b.a, b: b.b};
+      if (early) { last.ties += early; early = 0; }
+      occ.add(at(col, row)); cells.push(last);
     }
-    return {cells, cur: prev ? {w: prev, run} : null, best};
+    return {cells, cur: prev ? {w: prev, run} : null, best, ties};
   };
   dash.draw('bigroad', (el) => {
     const {cells} = bigRoad();
@@ -1543,9 +1571,10 @@
       .each(function (c) { if (c.ties) d3.select(this).append('i').text(c.ties > 1 ? c.ties : ''); });
   });
   dash.draw('bigroad-note', (el) => {
-    const {cells, cur, best} = bigRoad();
+    const {cells, cur, best, ties} = bigRoad();
     const nm = {c: 'Claude 팀', s: '슈슈 팀'};
-    el.textContent = cells.length ? `지금 ${nm[cur.w]} ${cur.run}연승 · 가장 긴 연승 Claude ${best.c} / 슈슈 ${best.s}` : '실전 라운드가 채점되면 같은 팀이 이길 때마다 아래로, 이긴 팀이 바뀌면 옆 줄로 쌓입니다.';
+    el.textContent = cur ? `지금 ${nm[cur.w]} ${cur.run}연승 · 가장 긴 연승 Claude ${best.c} / 슈슈 ${best.s}${ties ? ` · 무승부 ${ties}` : ''}`
+      : ties ? `아직 이긴 팀이 없습니다 · 무승부 ${ties}` : '실전 라운드가 채점되면 같은 팀이 이길 때마다 아래로, 이긴 팀이 바뀌면 옆 줄로 쌓입니다.';
   });
 
   const handFor = (team) => (el) => {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """지인 공개용 게임 화면(play.html)을 만든다.
 
-  python3 tools/build_play.py <출력 폴더>      # play.html 과 data/table.js
+  python3 tools/build_play.py <출력 폴더>      # play.html 과 data/table.js (지인 배포 build-site 에서는 index.html 로 이름이 바뀜)
 
 - 화면: 운영 현황판 페이지(docs/dashboard/operator-dashboard-page.html)의 "테이블" 탭과 캐릭터 프로필만 가져온다.
   운영 탭·영수증 세부·제공처 상태·회사 로고는 넣지 않는다.
@@ -63,7 +63,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(
 .sheet .rules{line-height:1.65;color:#d9e3f2}
 .sheet .rules ul{margin:0 0 12px;padding-left:20px}
 .sheet .rules p{margin:0 0 8px;font-size:12px;color:var(--ink-soft)}
-.app .lg .profile.open{position:fixed;left:0;right:0;bottom:0;top:auto;max-height:80%;overflow-y:auto;margin:0 auto;max-width:760px;border-radius:18px 18px 0 0;z-index:60;
+.app .lg .profile.open{z-index:60;position:fixed;left:0;right:0;bottom:0;top:auto;max-height:80%;overflow-y:auto;margin:0 auto;max-width:760px;border-radius:18px 18px 0 0;z-index:60;
   box-shadow:0 -10px 30px rgba(0,0,0,.45);padding-top:22px;background:var(--color-panel);color:var(--color-fg);padding-left:16px;padding-right:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){.sheet,.scrim{transition:none}}
 /* 휴대폰 가로: 테이블 크게, 메뉴 버튼은 오른쪽 세로 줄, 창은 오른쪽에서 */
@@ -176,7 +176,7 @@ def page_html(generated_at: str) -> str:
     <button type="button" data-open="phase" aria-expanded="false">진행</button><button type="button" data-open="road" aria-expanded="false">기록판</button><button type="button" data-open="picks" aria-expanded="false">종목</button><button type="button" data-open="rules" aria-expanded="false">규칙</button>
   </nav>
 </div>
-<div class="turn" role="dialog" aria-labelledby="turn-t">
+<div class="turn" role="dialog" aria-modal="true" aria-labelledby="turn-t">
   <svg viewBox="0 0 96 96" aria-hidden="true"><g class="ph"><rect x="30" y="14" width="36" height="68" rx="7" fill="#16294a" stroke="#f4d27a" stroke-width="3"/><rect x="35" y="22" width="26" height="50" rx="2" fill="#226fae"/><circle cx="48" cy="77" r="2" fill="#f4d27a"/></g></svg>
   <b id="turn-t">휴대폰을 가로로 돌려 주세요</b>
   <p>게임 테이블은 가로 화면에 맞춰져 있습니다. 화면 자동 회전이 꺼져 있으면 먼저 켜 주세요.</p>
@@ -193,23 +193,57 @@ def page_html(generated_at: str) -> str:
 <script>drawAll();
 (() => {{
   const scrim = document.querySelector('.scrim');
-  const closeAll = () => {{
+  const profile = document.querySelector('.lg .profile');
+  let opener = null;
+  const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  const openDialog = () => document.querySelector('.sheet.open') || document.querySelector('.lg .profile.open');
+  const closeSheets = (restore) => {{
+    const was = document.querySelector('.sheet.open');
     document.querySelectorAll('.sheet.open').forEach((s) => s.classList.remove('open'));
     document.querySelectorAll('[data-open]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+    if (was && restore && opener && opener.isConnected) opener.focus({{preventScroll: true}});
+    if (was) opener = null;
+  }};
+  const closeAll = () => {{
+    closeSheets(true);
+    if (window.closeProfile) window.closeProfile();
     scrim.classList.remove('on');
   }};
   document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {{
     const s = document.getElementById('s-' + b.dataset.open), was = s.classList.contains('open');
-    closeAll();
-    if (was) return;
+    if (window.closeProfile) window.closeProfile();
+    closeSheets(false);
+    if (was) {{ scrim.classList.remove('on'); b.focus({{preventScroll: true}}); return; }}
+    opener = b;
     s.classList.add('open'); scrim.classList.add('on');
     document.querySelectorAll(`.dock [data-open="${{b.dataset.open}}"]`).forEach((x) => x.setAttribute('aria-expanded', 'true'));
     s.querySelector('.body').scrollTop = 0;
+    s.querySelector('.x').focus({{preventScroll: true}});
   }}));
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeAll));
-  document.addEventListener('keydown', (e) => {{ if (e.key === 'Escape') closeAll(); }});
-  const pk = 'isdceo-portrait-ok';
+  document.addEventListener('keydown', (e) => {{
+    if (e.key === 'Escape') {{ closeAll(); return; }}
+    if (e.key !== 'Tab') return;
+    const d = openDialog(); if (!d) return;                       // 창이 열려 있으면 Tab은 창 안에서만 돈다
+    const f = [...d.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null || x === document.activeElement);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (!d.contains(document.activeElement)) {{ e.preventDefault(); first.focus(); }}
+    else if (e.shiftKey && document.activeElement === first) {{ e.preventDefault(); last.focus(); }}
+    else if (!e.shiftKey && document.activeElement === last) {{ e.preventDefault(); first.focus(); }}
+  }});
+  // 프로필이 열리면 바깥 어둡게(바깥을 누르면 닫힘)
+  if (profile) new MutationObserver(() => {{
+    if (profile.classList.contains('open')) scrim.classList.add('on');
+    else if (!document.querySelector('.sheet.open')) scrim.classList.remove('on');
+  }}).observe(profile, {{attributes: true, attributeFilter: ['class']}});
+  // 세로 화면 안내
+  const pk = 'isdceo-portrait-ok', turn = document.querySelector('.turn');
   try {{ if (localStorage.getItem(pk) === '1') document.documentElement.classList.add('portrait-ok'); }} catch (e) {{}}
+  const turnShown = () => turn && getComputedStyle(turn).display !== 'none';
+  const syncTurn = () => {{ if (turnShown()) turn.querySelector('button').focus({{preventScroll: true}}); }};
+  syncTurn();
+  window.matchMedia('(orientation: portrait)').addEventListener('change', syncTurn);
   document.querySelector('[data-portrait]').addEventListener('click', () => {{
     document.documentElement.classList.add('portrait-ok');
     try {{ localStorage.setItem(pk, '1'); }} catch (e) {{}}
@@ -219,17 +253,18 @@ def page_html(generated_at: str) -> str:
 """
 
 
-def table_data(now: datetime | None = None) -> dict:
+def table_data(now: datetime | None = None, base: Path | None = None) -> dict:
     now = now or datetime.now(L.KST)
-    b = D.bundle(now)                                   # 마감 전 종목·원 가격이 섞이면 여기서 실패
+    b = D.bundle(now, base=base)                                   # 마감 전 종목·원 가격이 섞이면 여기서 실패
     out = {k: b[k] for k in D.BUNDLE_KEYS}
     out["calendar"] = b["calendar"]                    # 결과 묶음에 이미 들어 있음
     out["generated_at"] = b["generated_at"]
     return out
 
 
-def build(out: Path, now: datetime | None = None) -> list[Path]:
-    data = table_data(now)
+def build(out: Path, now: datetime | None = None, base: Path | None = None) -> list[Path]:
+    """base: 실전 원장 폴더(기본 league/). 화면 파일 play.html 과 data/table.js 를 만든다(배포에서는 build_site가 play.html 을 index.html 로 바꾼다)."""
+    data = table_data(now, base)
     (out / "data").mkdir(parents=True, exist_ok=True)
     js = out / "data" / "table.js"
     js.write_text("window.TABLE = " + json.dumps(data, ensure_ascii=False) + ";\n")

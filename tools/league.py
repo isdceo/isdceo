@@ -1047,7 +1047,7 @@ def export(d: Path, out: Path, public: bool = False, now: datetime | None = None
     out.write_text("// 자동 생성: python3 tools/league.py export\nwindow.LEAGUE = "
                    + json.dumps(data, ensure_ascii=False) + ";\n")
 
-def build_site(d: Path, out: Path) -> list[str]:
+def build_site(d: Path, out: Path, now: datetime | None = None) -> list[str]:
     """지인 배포용 정적 폴더. 게임 화면(테이블)만 올린다: index.html + data/table.js.
     (2026-11-05 운영자 결정: 지인에게는 게임 스타일 화면만 보인다. 표 화면 league.html·시장 대시보드는 올리지 않는다.)
     원시 가격·마감 전 종목·회사 로고가 들어가면 실패한다."""
@@ -1056,7 +1056,7 @@ def build_site(d: Path, out: Path) -> list[str]:
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    html, js = build_play.build(out)
+    html, js = build_play.build(out, now=now, base=d)
     html.rename(out / "index.html")
     leaked = [f for f in out.rglob("*.js") if re.search(r'"(base_close|eval_close|close|amount)"\s*:', f.read_text())]
     if leaked:

@@ -14,7 +14,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import league as L  # noqa: E402
 
-MODES = (("실전", L.ROOT / "league"), ("연습", L.ROOT / "league" / "sandbox"))
+LEAGUE = L.ROOT / "league"
+
+
+def modes(base: Path):
+    """(구분, 원장 폴더). 실전은 base, 연습은 base/sandbox."""
+    return (("실전", base), ("연습", base / "sandbox"))
 TEAM_LABEL = {"claude": "Claude 팀", "shushu": "슈슈 팀 (Codex)"}
 
 
@@ -36,21 +41,23 @@ def _load(d: Path, now: datetime) -> dict:
         tmp.unlink(missing_ok=True)
 
 
-def build(now: datetime | None = None, logos: bool = False) -> dict:
+def build(now: datetime | None = None, logos: bool = False, base: Path | None = None) -> dict:
+    """base: 실전 원장 폴더(기본 league/). 연습은 base/sandbox."""
     now = now or datetime.now(L.KST)
+    base = Path(base or LEAGUE)
     out = {k: [] for k in ("checklist", "receipts", "teams", "standings", "team_daily", "picks", "agents", "team_weeks")}
 
     names = {}                                            # (팀, id) → 스타일명 (예: claude, buffett → 가치형)
-    for key, members in L.load_roster(L.ROOT / "league").items():
+    for key, members in L.load_roster(base).items():
         team = "claude" if key == "bench" else key.replace("bench_", "")
         for m in members:
             lbl = m.get("label") or m["id"]
             names[(team, m["id"])] = f'{m["nickname"]} · {lbl}' if m.get("nickname") else lbl
 
     # 에이전트 프로필 (애칭을 누르면 열리는 카드). 승인된 대기 후보만 싣는다.
-    approved = {(x["team"], x["agent_id"]) for x in L.read_ledger(L.ROOT / "league", "approvals")
+    approved = {(x["team"], x["agent_id"]) for x in L.read_ledger(base, "approvals")
                 if x.get("type") == "bench" and x.get("decision") == "approved"}
-    for key, members in L.load_roster(L.ROOT / "league").items():
+    for key, members in L.load_roster(base).items():
         team = "claude" if key == "bench" else key.replace("bench_", "")
         if team not in TEAM_LABEL:
             continue
@@ -68,11 +75,11 @@ def build(now: datetime | None = None, logos: bool = False) -> dict:
                                   "eliminated_week": m.get("eliminated_week") or ""})
 
     state = {"done": "완료", "todo": "남음", "manual": "확인 필요"}
-    for r in L.readiness(L.ROOT / "league"):
+    for r in L.readiness(base):
         out["checklist"].append({"state": state[r["status"]], "area": r["area"], "item": r["item"],
                                  "detail": r["detail"], "who": r["who"]})
 
-    for mode, d in MODES:
+    for mode, d in modes(base):
         if not (d / "ledger").exists():
             continue
         data = _load(d, now)
@@ -116,6 +123,7 @@ def build(now: datetime | None = None, logos: bool = False) -> dict:
                                              "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
                                              "scored": r["scored"], "picks": r["picks"], "expected": r["expected"],
                                              "missed": r["missed"], "held": r["held_or_pending"], "submit_rate": r["submit_rate"],
+                                             "closed": bool(dec.get("closed_at")),
                                              "out": "탈락" if (dec.get("closed_at") and dec["eliminate_team"] == r["team"]
                                                             and dec["eliminate"] == r["agent_id"]) else ""})   # 주간 마감 뒤에만
                 for team, t in lg["teams"].items():
@@ -140,15 +148,15 @@ def build(now: datetime | None = None, logos: bool = False) -> dict:
         import logos as LG
         seen = sorted({(p["market"], p["ticker"]) for p in out["picks"]})
         out["logos"] = [{"key": f"{m}|{t}", "market": m, "ticker": t, "logo": LG.fetch_logo(m, t) or ""} for m, t in seen]
-    out["calendar"] = calendar(now)
+    out["calendar"] = calendar(now, base=base)
     out["notices"] = [{"file": f.name} for f in sorted((L.ROOT / "docs" / "codex-notices").glob("*.md"), reverse=True)]
     return out
 
 
-def calendar(now: datetime, back: int = 14, ahead: int = 45) -> list[dict]:
+def calendar(now: datetime, back: int = 14, ahead: int = 45, base: Path | None = None) -> list[dict]:
     """라운드가 열리는 날(한국·미국 중 하나라도 거래일)과 마감·채점 시각. 현황판 진행 표시용.
     채점은 다음 날 10:30 KST 수집·채점(월~토)에서 한다: 평가 세션이 라운드 당일 종가이기 때문."""
-    cfg = L.load_config(L.ROOT / "league")
+    cfg = L.load_config(Path(base or LEAGUE))
     rows, today = [], now.astimezone(L.KST).date()
     for i in range(-back, ahead + 1):
         d = today + timedelta(days=i)
@@ -168,17 +176,18 @@ BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "pi
 BUNDLE_SCHEMA = 1
 
 
-def bundle(now: datetime | None = None) -> dict:
+def bundle(now: datetime | None = None, base: Path | None = None) -> dict:
     """두 팀 공유용 결과 묶음 (league/public/results.json).
     마감(08:30 KST) 전 라운드 종목·점수와 원 가격은 들어가지 않는다. 섞이면 만들지 않고 실패한다."""
     now = now or datetime.now(L.KST)
-    data = build(now)
+    base = Path(base or LEAGUE)
+    data = build(now, base=base)
     out = {"schema": BUNDLE_SCHEMA, "generated_at": now.isoformat(timespec="seconds"),
            "rules": {"embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
                      "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
                      "scores": "status가 final인 점수만 확정. provisional은 잠정, pending·held는 미채점"}}
     out.update({k: data[k] for k in BUNDLE_KEYS})
-    cfg = L.load_config(L.ROOT / "league")
+    cfg = L.load_config(base)
     early = [p["pick_id"] for p in out["picks"]
              if now < L.lock_deadline(datetime.fromisoformat(p["round_date"]).date(), cfg)]
     if early:

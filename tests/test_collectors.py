@@ -1,6 +1,6 @@
 """수집기·공유판·공통 자료 테스트.  실행: python3 -m unittest discover -s tests -v"""
 import json, re, shutil, sys, tempfile, unittest
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
@@ -236,8 +236,13 @@ class PublicAndSnapshot(unittest.TestCase):
 
     def test_build_site_contains_only_public_data(self):
         out = Path(tempfile.mkdtemp()) / "site"
-        files = L.build_site(self.d, out)
+        files = L.build_site(self.d, out, now=datetime.fromisoformat("2026-11-16T09:00:00+09:00"))   # 예시 원장(가격 포함)으로 실제 빌드
         self.assertEqual(files, ["data/table.js", "index.html"])      # 지인에게는 게임 화면만
+        data = (out / "data" / "table.js").read_text()
+        self.assertIn('"picks"', data)
+        self.assertIn("2026-11-13", data)                              # 임시 원장의 종목이 실제로 실렸다
+        with self.assertRaises(RuntimeError):                          # 마감 전 시각이면 만들지 않는다
+            L.build_site(self.d, Path(tempfile.mkdtemp()) / "early", now=datetime.fromisoformat("2026-11-13T08:00:00+09:00"))
         for f in out.rglob("*.js"):
             self.assertNotRegex(f.read_text(), r'"(base_close|eval_close|close)"\s*:')
 

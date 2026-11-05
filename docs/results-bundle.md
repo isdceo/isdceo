@@ -85,6 +85,7 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 | `held` | 채점 전·보류 수 (0점으로 치지 않음) |
 | `submit_rate` | 제출률(%) |
 | `out` | 그 주 주간 마감에서 탈락했으면 `탈락`, 아니면 빈 문자열 |
+| `closed` | 그 주 주간 마감을 했으면 `true` (탈락이 보류된 주도 포함) |
 
 ### team_weeks — 실전 주간 팀 대결 (주·팀마다 1줄)
 
@@ -96,7 +97,7 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 
 ### agents — 에이전트 프로필
 
-`key`, `team`, `agent_id`, `name`(`애칭 · 스타일명`), `nickname`, `label`, `tagline`, `status`(`현역`/`대기 N순위`/`탈락`), `version`, `joined_week`, `eliminated_week`.
+`key`, `team`, `agent_id`, `name`(`애칭 · 스타일명`), `nickname`, `label`, `tagline`, `avatar`(캐릭터 이름, `league/agents/avatars/`), `status`(`현역`/`대기 N순위`/`탈락`), `version`, `joined_week`, `eliminated_week`.
 
 ### calendar — 라운드 달력 (2026-11-05 추가, 라운드가 열리는 날마다 1줄)
 
