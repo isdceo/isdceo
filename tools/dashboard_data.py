@@ -116,7 +116,8 @@ def build(now: datetime | None = None) -> dict:
                                              "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
                                              "scored": r["scored"], "picks": r["picks"], "expected": r["expected"],
                                              "missed": r["missed"], "held": r["held_or_pending"], "submit_rate": r["submit_rate"],
-                                             "out": "퇴출" if (dec["eliminate_team"] == r["team"] and dec["eliminate"] == r["agent_id"]) else ""})
+                                             "out": "퇴출" if (dec.get("closed_at") and dec["eliminate_team"] == r["team"]
+                                                            and dec["eliminate"] == r["agent_id"]) else ""})   # 주간 마감 뒤에만
                 for team, t in lg["teams"].items():
                     out["team_weeks"].append({"key": f"{mode}|{wk}|{team}", "mode": mode, "week": wk, "team": label(team),
                                               "avg": t["avg"], "scored": t["scored"], "picks": t["picks"],
