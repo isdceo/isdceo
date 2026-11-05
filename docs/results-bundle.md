@@ -15,7 +15,7 @@
 | 시점 | 무엇이 바뀌나 |
 |---|---|
 | 제출 push마다 (영수증 봇) | `receipts`, `teams` — 지문 `committed`, 원본 `accepted` 등. 08:30 이후 원본 공개 push 뒤에는 `picks`도 |
-| 평일 10:30 수집·채점 뒤 (자동화 켜진 뒤) | `picks`의 점수, `team_daily`, `standings` |
+| 평일 10:30 수집·채점 뒤 (자동화 켜진 뒤) | `picks`의 점수, `team_daily`, `team_weeks`, `standings` |
 
 GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generated_at`으로 언제 만든 것인지 확인한다.
 
@@ -30,6 +30,7 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
   "teams":      [ ... ],
   "standings":  [ ... ],
   "team_daily": [ ... ],
+  "team_weeks": [ ... ],
   "picks":      [ ... ],
   "agents":     [ ... ]
 }
@@ -69,13 +70,28 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 | `score_excess` | 같은 구간 비교 기준(KOSPI·SPY) 대비 초과 점수(%p). 순위에 쓰지 않음 |
 | `reason` | 보류·무효 사유 |
 
-### standings — 실전 주간 순위 (주·팀·에이전트마다 1줄)
+### standings — 실전 주간 순위, 두 팀 10명 통합 (규칙 v1.8, 주·에이전트마다 1줄)
 
-`key`, `mode`(항상 `실전`), `team`, `week`(예 `2026-W46`), `rank`, `agent`, `picks`(제출), `expected`(기대 제출), `scored`(확정 채점 수), `avg`, `median`, `avg_excess`, `submit_rate`(%).
+| 필드 | 뜻 |
+|---|---|
+| `key`, `mode`(항상 `실전`), `week` | 예 `2026-W46` |
+| `league_rank` | 10명 통합 순위 (평균 → 중앙값 → 최저점) |
+| `rank` | 팀 안 순위 |
+| `team`, `agent_id`, `agent` | |
+| `avg`, `median`, `avg_excess` | 확정 점수 평균·중앙값(%), 초과 점수 평균(%p) |
+| `scored` | 확정 채점 수 |
+| `picks`, `expected`, `missed` | 제출, 기대 제출, 미제출 |
+| `held` | 채점 전·보류 수 (0점으로 치지 않음) |
+| `submit_rate` | 제출률(%) |
+| `out` | 그 주 퇴출이면 `퇴출`, 아니면 빈 문자열 |
 
-### team_daily — 팀 라운드별 합계와 누적
+### team_weeks — 실전 주간 팀 대결 (주·팀마다 1줄)
 
-`key`, `mode`, `team`, `date`, `sum`(그 라운드 확정 점수 합, %p), `cumulative`(누적), `n`(확정 종목 수).
+`key`, `mode`, `week`, `team`, `avg`(그 주 확정 종목의 종목당 평균, %), `scored`, `picks`, `expected`, `held`, `hold`(그 주 퇴출 보류 사유. 없으면 빈 문자열). 평균이 높은 팀이 그 주 승리이며, 승패는 퇴출과 관계없다.
+
+### team_daily — 팀 라운드별 성적과 누적
+
+`key`, `mode`, `team`, `date`, `n`(그 라운드 확정 종목 수), `avg`(그 라운드 종목당 평균), `cum_avg`(지금까지 확정 종목 전체의 종목당 평균), `cum_n`(누적 확정 수). 참고용으로 `sum`(합계), `cumulative`(누적 합계)도 있지만, 인원이 다를 수 있어 팀 비교에는 평균을 쓴다.
 
 ### agents — 에이전트 프로필
 
