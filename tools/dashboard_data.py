@@ -164,7 +164,7 @@ def calendar(now: datetime, back: int = 14, ahead: int = 45) -> list[dict]:
     return rows
 
 
-BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "picks", "agents")
+BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "picks", "agents", "calendar")
 BUNDLE_SCHEMA = 1
 
 

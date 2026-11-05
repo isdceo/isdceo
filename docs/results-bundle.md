@@ -32,7 +32,8 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
   "team_daily": [ ... ],
   "team_weeks": [ ... ],
   "picks":      [ ... ],
-  "agents":     [ ... ]
+  "agents":     [ ... ],
+  "calendar":   [ ... ]
 }
 ```
 
@@ -96,6 +97,21 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 ### agents — 에이전트 프로필
 
 `key`, `team`, `agent_id`, `name`(`애칭 · 스타일명`), `nickname`, `label`, `tagline`, `status`(`현역`/`대기 N순위`/`탈락`), `version`, `joined_week`, `eliminated_week`.
+
+### calendar — 라운드 달력 (2026-11-05 추가, 라운드가 열리는 날마다 1줄)
+
+파일을 만든 날 기준 14일 전부터 45일 뒤까지. 한국·미국 중 하나라도 거래일이면 라운드가 열린다.
+
+| 필드 | 뜻 |
+|---|---|
+| `date` (`key`) | 라운드 날짜 |
+| `kr`, `us` | 그 시장이 열리는지 (`true`/`false`) |
+| `markets` | `한국·미국` / `한국만 (미국 휴장)` / `미국만 (한국 휴장)` |
+| `deadline` | 지문 제출 마감 (08:30 KST) |
+| `reveal_until` | 원본 공개 마감 (12:00 KST) |
+| `score_at` | 채점 시각 (다음 날 10:30 KST, 금요일 라운드는 토요일) |
+
+둘 다 쉬는 날(예: 12/25, 1/1)은 줄이 없다. 기존 항목은 바뀌지 않았으므로 schema는 1 그대로다.
 
 ## 받는 경로
 

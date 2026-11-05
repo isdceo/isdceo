@@ -223,7 +223,7 @@ def table_data(now: datetime | None = None) -> dict:
     now = now or datetime.now(L.KST)
     b = D.bundle(now)                                   # 마감 전 종목·원 가격이 섞이면 여기서 실패
     out = {k: b[k] for k in D.BUNDLE_KEYS}
-    out["calendar"] = D.calendar(now)
+    out["calendar"] = b["calendar"]                    # 결과 묶음에 이미 들어 있음
     out["generated_at"] = b["generated_at"]
     return out
 
