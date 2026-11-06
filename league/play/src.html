@@ -131,6 +131,33 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0d0716;color:var(--in
 @keyframes scorePop{from{transform:scale(1.7);opacity:0}}
 .big.won .face{animation:flash .7s ease-out}
 @keyframes flash{0%{box-shadow:0 0 0 0 rgba(255,215,120,.9)}100%{box-shadow:0 0 0 18px rgba(255,215,120,0)}}
+/* 공개 손맛: 점수 크기에 따라 흔들림·빛·큰 움직임 연출 */
+.big.shake{animation:cardShake .42s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes cardShake{20%,80%{transform:rotateX(46deg) rotateZ(var(--rz,-4deg)) translateX(-3px)}40%,60%{transform:rotateX(46deg) rotateZ(var(--rz,-4deg)) translateX(4px)}}
+.big.glow-up .face{box-shadow:0 0 0 3px #ffd77a,0 0 26px 8px rgba(255,215,120,.75),0 18px 22px rgba(0,0,0,.55)}
+.big.glow-down .face{box-shadow:0 0 0 3px #ff8a7a,0 0 26px 8px rgba(255,90,80,.6),0 18px 22px rgba(0,0,0,.55)}
+.big .rays{position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:-1;pointer-events:none;border-radius:50%;opacity:0;
+  background:repeating-conic-gradient(rgba(255,226,140,.55) 0 8deg,transparent 8deg 22deg);-webkit-mask-image:radial-gradient(circle,#000 18%,transparent 62%);mask-image:radial-gradient(circle,#000 18%,transparent 62%)}
+.big.huge .rays{opacity:1;animation:rays 6s linear infinite}
+.big.huge.down .rays{background:repeating-conic-gradient(rgba(255,120,110,.45) 0 8deg,transparent 8deg 22deg)}
+@keyframes rays{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.bubble b em{font-style:normal;margin-right:.35em;padding:0 .4em;border-radius:6px;background:#ffd77a;color:#5a2a00}
+.bubble b em.dn{background:#ffc2b8;color:#7a1a10}
+/* 캐릭터 반응 */
+.close .hero.cheer{animation:pop .35s ease-out both,cheer .5s ease-out .35s 3}
+@keyframes cheer{50%{transform:translateY(-6%) scale(1.03)}}
+.close .hero.slump{animation:pop .35s ease-out both,slump 1.2s ease-in-out .35s both}
+@keyframes slump{30%{transform:rotate(-3deg) translateY(2%)}60%{transform:rotate(2deg) translateY(3%)}100%{transform:translateY(3%)}}
+.close .hero.shrug{animation:pop .35s ease-out both,shrug .7s ease-in-out .35s 2}
+@keyframes shrug{50%{transform:translateY(-2%) rotate(1.5deg)}}
+.react{position:absolute;z-index:6;pointer-events:none;font-family:var(--disp);font-size:clamp(22px,4vw,40px);text-shadow:0 2px 0 rgba(0,0,0,.4);animation:reactUp 1.8s ease-out both}
+.react.up{color:#ffe27a}.react.dn{color:#9fd8ff}.react.eq{color:#fff}
+@keyframes reactUp{0%{opacity:0;transform:translateY(10px) scale(.6)}20%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-24px)}}
+/* 누를 때 눌림 */
+.plate:active,.act:active,.x:active,.timer:active{transform:translate(-50%,-50%) perspective(300px) rotateX(22deg) scale(.94)}
+.act:active,.x:active,.timer:active{transform:scale(.94)}
+.fastbtn{font-family:var(--disp);font-size:15px;padding:6px 14px;border-radius:999px;border:2px solid #ffd77a;background:#2a1d3c;color:#fff;cursor:pointer}
+.fastbtn[aria-pressed="true"]{background:linear-gradient(180deg,#fff1b0,#e79a16);color:#3a1a00}
 .big .lg{position:absolute;left:32%;right:32%;top:13%;aspect-ratio:1;border-radius:22%;display:grid;place-items:center;color:#fff;font-family:var(--disp);font-size:clamp(22px,3.6vw,38px);box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}
 .big .nm{position:absolute;left:6%;right:6%;top:45%;text-align:center;font-family:var(--disp);font-size:clamp(13px,2vw,20px);line-height:1.05}
 .big .back{background:
@@ -250,6 +277,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   .room .slot:not(.pk){background:linear-gradient(180deg,#ffb36a,#d0702e 40%,#3a1e14 41%,#1a0e0a);box-shadow:0 0 40px 10px rgba(255,150,70,.4)}
 }
 @media (orientation:portrait) and (max-aspect-ratio:1/2){#fz5{display:block;right:7%;bottom:36%;filter:blur(1.5px)}}
+@media (orientation:portrait){.act:active{transform:translateX(-50%) scale(.94)}}
 @media (orientation:portrait) and (max-width:400px){.plate{--pf:10.5px!important;padding:.08em .35em}.plate::before{display:none}.plate.c{box-shadow:inset 3px 0 0 #ff8a3a,0 3px 0 #6e4a10,0 6px 10px rgba(0,0,0,.55)}.plate.s{box-shadow:inset 3px 0 0 #4ea2ff,0 3px 0 #6e4a10,0 6px 10px rgba(0,0,0,.55)}.plate.c.lead,.plate.s.lead{box-shadow:inset 3px 0 0 var(--tc),0 0 14px 3px #5dff8c}.plate.c.risk,.plate.s.risk{box-shadow:inset 3px 0 0 var(--tc),0 0 14px 3px #ff5c5c}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head>
@@ -389,18 +417,31 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   tick(); setInterval(tick, 30000);
 
   // ── 쪼이기 클로즈업 ──
+  // 연출 빠르게(기기에만 저장)·진동(안드로이드 브라우저만)
+  let fast = false; try { fast = localStorage.getItem('league.fast') === '1'; } catch (e) { /* 저장 안 되면 기본값 */ }
+  const SP = () => (fast ? .4 : 1);
+  const buzz = (pat) => { try { if (!reduce && navigator.vibrate) navigator.vibrate(pat); } catch (e) { /* 지원 안 함 */ } };
   const cardsEl = $('#cards'), bubble = $('#bubble'), act = $('#act');
   let typing = null, cur = null, opener = null, openerNick = null, fromSheet = null;
-  const say = (p, mk) => { const line = `“${p.line || p.name + ', 이번 판은 이걸로 간다!'}”`; bubble.innerHTML = `<b>${mk === 'KR' ? '♦' : '♣'} ${esc(p.name || p.ticker)}</b><span></span>`; bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
-    const sp = bubble.querySelector('span'), ch = [...line]; let k = 0; clearInterval(typing); if (reduce) { sp.textContent = line; return; } typing = setInterval(() => { sp.textContent = ch.slice(0, ++k).join(''); if (k >= ch.length) clearInterval(typing); }, 30); };
+  const say = (p, mk) => { const line = `“${p.line || p.name + ', 이번 판은 이걸로 간다!'}”`; const big = p.status === 'final' && p.score != null && Math.abs(p.score) >= 5; bubble.innerHTML = `<b>${big ? `<em class="${p.score > 0 ? '' : 'dn'}">${p.score > 0 ? '대박!' : '아이고…'}</em>` : ''}${mk === 'KR' ? '♦' : '♣'} ${esc(p.name || p.ticker)}</b><span></span>`; bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
+    bubble._line = line; const sp = bubble.querySelector('span'), ch = [...line]; let k = 0; clearInterval(typing); if (reduce || fast) { sp.textContent = line; return; } typing = setInterval(() => { sp.textContent = ch.slice(0, ++k).join(''); if (k >= ch.length) clearInterval(typing); }, 30); };
   const mono = (t) => { let h = 0; for (const c of String(t)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 55% 42%)`; };
-  const refreshAct = () => { const all = [...cardsEl.querySelectorAll('.big')].every((c) => !c._play || c._t() >= 1); act.textContent = all ? '다음 사람 ▶' : '모두 공개'; };
+  const react = () => {   // 두 장을 다 열면 캐릭터가 확정 점수 평균에 따라 반응
+    const xs = [...cardsEl.querySelectorAll('.big')].map((c) => c._p).filter((p) => p && p.status === 'final' && p.score != null).map((p) => p.score);
+    if (!xs.length || !cur) return;
+    const avg = xs.reduce((a, b) => a + b, 0) / xs.length, kind = avg > .2 ? 'cheer' : avg < -.2 ? 'slump' : 'shrug';
+    const hero = $('#hero'); hero.classList.remove('cheer', 'slump', 'shrug'); void hero.offsetWidth; hero.classList.add(kind);
+    const r = hero.getBoundingClientRect(), box = $('#close').getBoundingClientRect(), tag = document.createElement('span');
+    tag.className = 'react ' + (kind === 'cheer' ? 'up' : kind === 'slump' ? 'dn' : 'eq'); tag.textContent = kind === 'cheer' ? '✦ 좋았어! ✦' : kind === 'slump' ? '…휴' : '흠, 본전';
+    tag.style.left = Math.min(box.width - 200, r.left - box.left + r.width * .6) + 'px'; tag.style.top = Math.max(12, r.top - box.top + r.height * .22) + 'px'; $('#close').appendChild(tag); setTimeout(() => tag.remove(), 1900);
+  };
+  const refreshAct = () => { const cs = [...cardsEl.querySelectorAll('.big')].filter((c) => c._play), all = cs.every((c) => c._t() >= 1); act.textContent = all ? '다음 사람 ▶' : '모두 공개'; if (all && cs.length && !cardsEl._reacted) { cardsEl._reacted = true; setTimeout(react, 350 * SP()); } };
   function open(a, from) {
     if (!game.classList.contains('zoomed')) { opener = document.activeElement; openerNick = a.nickname; fromSheet = from || null; }
     closeSheet(true);
     cur = a; const pp = picksOf(a); const hero = $('#hero'); hero.className = 'hero'; hero.innerHTML = ''; sprite(a, hero);
     $('#name2').innerHTML = `${esc(a.nickname)}<small>${short(a.team)} 팀 · ${esc(a.label)}</small>`;
-    bubble.classList.remove('on'); cardsEl.innerHTML = '';
+    bubble.classList.remove('on'); cardsEl.innerHTML = ''; cardsEl._reacted = false; document.querySelectorAll('#close .react').forEach((x) => x.remove());
     ['KR', 'US'].forEach((mk) => {
       const p = pp[mk]; const slot = document.createElement('div'); slot.className = 'slot2'; const c = document.createElement('div'); c.className = 'big'; const hint = document.createElement('div'); hint.className = 'hint';
       slot.append(c, hint); cardsEl.appendChild(slot);
@@ -409,7 +450,8 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       const col = p.score == null ? '#6b6253' : p.status !== 'final' ? '#a8650b' : p.score >= 0 ? '#1f7a45' : '#b3261e';
       const corner = `${mk}<br>${mk === 'KR' ? '♦' : '♣'}`;
       c.setAttribute('tabindex', '0'); c.setAttribute('role', 'button'); c.setAttribute('aria-label', `${mk} 카드 쪼이기`);
-      c.innerHTML = `<div class="face"><span class="mk tl ${mk === 'KR' ? 'r' : ''}">${corner}</span><span class="sc" style="color:${col}">${sc}</span><span class="lg" style="background:${mono(p.ticker)}">${esc((p.name || p.ticker).slice(0, 1))}</span><span class="nm">${esc(p.name || p.ticker)}</span><span class="mk br ${mk === 'KR' ? 'r' : ''}">${corner}</span></div><div class="back">${mk === 'KR' ? '♦' : '♣'}</div><div class="flap"></div>`;
+      c._p = p;
+      c.innerHTML = `<div class="rays"></div><div class="face"><span class="mk tl ${mk === 'KR' ? 'r' : ''}">${corner}</span><span class="sc" style="color:${col}">${sc}</span><span class="lg" style="background:${mono(p.ticker)}">${esc((p.name || p.ticker).slice(0, 1))}</span><span class="nm">${esc(p.name || p.ticker)}</span><span class="mk br ${mk === 'KR' ? 'r' : ''}">${corner}</span></div><div class="back">${mk === 'KR' ? '♦' : '♣'}</div><div class="flap"></div>`;
       const back = c.querySelector('.back'), flap = c.querySelector('.flap'), scEl = c.querySelector('.sc');
       let t = 0, anim = null, said = false;
       const set = (v) => { t = Math.max(0, Math.min(1, v)); const r = t * 100;
@@ -419,12 +461,22 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
         flap.style.transformOrigin = '50% 100%'; flap.style.transform = `perspective(380px) rotateX(${(-34 * Math.min(1, t * 2)).toFixed(1)}deg) scaleX(${(1 + .025 * Math.min(1, t * 2)).toFixed(3)})`;
         hint.textContent = t >= 1 ? `${mk === 'KR' ? '♦' : '♣'} ${p.name || p.ticker} 공개!` : t > 0 ? '조금 더…' : '밀어서 쪼이기';
         scEl.classList.toggle('on', t >= 1); c.classList.toggle('won', t >= 1);
-        if (t >= 1 && !said) { said = true; say(p, mk); refreshAct(); } };
+        if (t >= 1 && !said) { said = true; reveal(); say(p, mk); refreshAct(); } };
+      const reveal = () => {   // 점수 굴리기(확정만) + 크기에 따른 흔들림·빛·큰 움직임
+        buzz([18, 30, 26]);
+        if (p.status !== 'final' || p.score == null) return;
+        const v = p.score, a = Math.abs(v), dur = (reduce ? 0 : 650) * SP(), t0 = performance.now();
+        const roll = (now) => { const u = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - (1 - u) ** 3; scEl.textContent = pct(v * e) + '%'; if (u < 1) requestAnimationFrame(roll); else { scEl.textContent = sc;
+            if (a >= 1 && !reduce) { c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+            if (a >= 3) c.classList.add(v > 0 ? 'glow-up' : 'glow-down');
+            if (a >= 5) { c.classList.add('huge'); if (v < 0) c.classList.add('down'); buzz([30, 40, 30, 40, 60]); } } };
+        requestAnimationFrame(roll);
+      };
       const ease = (u) => u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
-      const play = (to, ms, hold) => { cancelAnimationFrame(anim); if (reduce) { set(to); return; } const steps = hold != null && t < hold ? [[t, hold, ms * .55], [hold, hold, 300], [hold, to, ms * .45]] : [[t, to, ms]]; let si = 0, t0 = performance.now();
+      const play = (to, ms, hold) => { cancelAnimationFrame(anim); if (reduce) { set(to); return; } ms *= SP(); if (fast) hold = null; const steps = hold != null && t < hold ? [[t, hold, ms * .55], [hold, hold, 300], [hold, to, ms * .45]] : [[t, to, ms]]; if (hold != null && t < hold) setTimeout(() => buzz(10), ms * .55); let si = 0, t0 = performance.now();
         const f = (now) => { const [a0, a1, d] = steps[si], u = Math.min(1, (now - t0) / d); set(a0 + (a1 - a0) * ease(u)); if (u >= 1) { si++; t0 = now; if (si >= steps.length) return; } anim = requestAnimationFrame(f); }; anim = requestAnimationFrame(f); };
-      c._play = play; c._t = () => t; let drag = null;
-      c.onpointerdown = (e) => { cancelAnimationFrame(anim); drag = {y: e.clientY, t, h: c.getBoundingClientRect().height, moved: false}; c.setPointerCapture(e.pointerId); };
+      c._play = play; c._t = () => t; c._skip = () => { if (t < 1) { cancelAnimationFrame(anim); set(1); } }; let drag = null;
+      c.onpointerdown = (e) => { buzz(8); cancelAnimationFrame(anim); drag = {y: e.clientY, t, h: c.getBoundingClientRect().height, moved: false}; c.setPointerCapture(e.pointerId); };
       c.onpointermove = (e) => { if (!drag) return; const dy = drag.y - e.clientY; if (Math.abs(dy) > 4) drag.moved = true; if (drag.moved) set(drag.t + dy / drag.h); };
       c.onpointerup = () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { if (t < 1) play(1, 1400, t < .3 ? .3 : null); else say(p, mk); } else if (t > .55) play(1, 260); };
       c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (t < 1) play(1, 1400, .3); else say(p, mk); } };
@@ -437,6 +489,11 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     if (opener && opener.isConnected) { opener.focus(); return; }
     const again = [...document.querySelectorAll('#lobby .who')].find((b) => b.getAttribute('aria-label') === `${nick} 카드 보기`) || document.querySelector('.dock button'); if (again) again.focus(); };
   $('#x').onclick = shut;
+  $('#close').addEventListener('click', (e) => {   // 빈 곳을 누르면 열리는 중인 카드를 바로 끝까지(건너뛰기)
+    if (e.target.closest('.big,button,.bubble')) return;
+    const going = [...cardsEl.querySelectorAll('.big')].filter((c) => c._t && c._t() > 0 && c._t() < 1);
+    going.forEach((c) => c._skip()); if (typing && !going.length) { clearInterval(typing); typing = null; const sp = bubble.querySelector('span'); if (sp && bubble._line) sp.textContent = bubble._line; }
+  });
   act.onclick = () => { const cs = [...cardsEl.querySelectorAll('.big')].filter((c) => c._play); if (cs.every((c) => c._t() >= 1)) { const k = seats.indexOf(cur); for (let j = 1; j <= seats.length; j++) { const a = seats[(k + j) % seats.length], pp = picksOf(a); if (pp.KR || pp.US) { open(a); return; } } return; } cs.forEach((c, k) => setTimeout(() => c._play(1, 900), k * 260)); };
 
   // 캐릭터 누르기: 투명한 곳은 건너뛰고, 실제 그림이 있는 맨 앞 캐릭터를 연다(아래 단이 위 단보다 앞)
@@ -504,6 +561,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
         <li>캐릭터는 창작 캐릭터이며, 에이전트는 투자 스타일 이름만 씁니다. 실존 인물의 추천이 아닙니다.</li></ul>
         <h3>모의 게임입니다</h3><p>돈이나 베팅은 없고, 실제 수익률·투자 권유가 아닙니다.</p>
         <h3>데이터 출처</h3><p>한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Alpha Vantage · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다.</p>
+        <h3>보기 설정</h3><p><button type="button" class="fastbtn" data-fast aria-pressed="${fast}">연출 빠르게 ${fast ? '켜짐' : '꺼짐'}</button></p><p class="muted">카드 쪼이기·점수·대사 연출을 짧게 합니다. 이 기기에만 저장됩니다. 쪼이기 화면의 빈 곳을 누르면 연출을 바로 건너뜁니다.</p>
         <p class="muted">갱신 ${esc(String(T.generated_at || '').slice(0, 16).replace('T', ' '))} KST</p>`},
   };
   let sheetOpener = null;
@@ -512,6 +570,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     if (!game.classList.contains('sheeted') && !keepOpener) sheetOpener = document.activeElement;
     shut(true);
     $('#sheet-t').textContent = s.t; $('#sheet-ic').style.setProperty('--c', s.c); sheetB.innerHTML = s.html(); sheetB.scrollTop = 0;
+    const fb = sheetB.querySelector('[data-fast]'); if (fb) fb.onclick = () => { fast = !fast; try { localStorage.setItem('league.fast', fast ? '1' : '0'); } catch (e) { /* 저장 안 됨 */ } fb.setAttribute('aria-pressed', String(fast)); fb.textContent = `연출 빠르게 ${fast ? '켜짐' : '꺼짐'}`; };
     sheetB.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => { sheetB.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b))); sheetB.querySelectorAll('[data-pane]').forEach((p) => p.hidden = p.dataset.pane !== b.dataset.tab); });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
     sheetB.querySelectorAll('.row[data-nick]').forEach((r) => { const go = () => { const a = active.find((x) => x.nickname === r.dataset.nick); if (a) open(a, 'picks'); }; r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
