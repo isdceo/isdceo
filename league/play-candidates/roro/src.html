@@ -256,7 +256,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 <script src="data/table.js"></script>
 <script>
 (() => {
-  const T = window.TABLE, AV3D = {ttukshim: 'av/ttukshim.webp', alzza: 'av/alzza.webp'};
+  const T = window.TABLE, AV3D = Object.fromEntries(['ttukshim', 'alzza', 'balgul', 'keun', 'mirae', 'ppittak', 'dandan', 'dotbogi', 'ssuk', 'banjeon'].map((k) => [k, `av/${k}.webp`]));
   const $ = (q) => document.querySelector(q), game = $('#game'), root = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const PORTRAIT = matchMedia('(orientation: portrait)');
