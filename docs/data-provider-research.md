@@ -404,3 +404,10 @@ https://www.alphavantage.co/terms_of_service/ (PDF, 날짜 표기 없음) 전문
 - 이 리그는 돈을 받지 않는 지인용이라 상업 라이선스가 필요한 경우가 아니다. 먼저 무료인 서면 허락 요청(Alpha Vantage, KRX)으로 확인한다.
 
 출처: Alpha Vantage 프리미엄 페이지(위), KRX OPEN API 데이터 수신방법·라이센스 페이지 https://openapi.krx.co.kr/contents/OPP/DATA/OPPDATA003.jsp , https://openapi.krx.co.kr/contents/OPP/DATA/OPPDATA004.jsp , KRX 정보이용 정책서 http://data.krx.co.kr/inc/datasale/Market%20Data%20Usage%20Polices_ko.pdf , 상품 브로셔 http://data.krx.co.kr/inc/datasale/Market%20Data%20Product%20Brochure.pdf , 코스콤 FAQ https://www.koscom.co.kr/portal/main/contents.do?menuNo=200407 , 코스콤 보도해명 https://m.koscom.co.kr/mobile/bbs/B0000006/view.do?nttId=10104&delcode=0&menuNo=400104&pageIndex=29 , Tiingo https://api.tiingo.com/products/fundamental-data-api , https://www.tiingo.com/documentation/appendix/developers , Massive https://massive.com/blog/introducing-poly-feed-us-stocks-data
+
+### 11.1 최소 비용 경로 (2026-11-07)
+
+1. 0원: Alpha Vantage·KRX에 서면 허락 요청 → 허락되면 지인용 웹앱(PWA, Cloudflare Pages 무료)으로 공개.
+2. Alpha Vantage가 거절하면: 미국을 Tiingo 개인 유료 플랜(Power, 월 30달러·연 300달러)으로 바꾼다. 유료 플랜은 원 데이터를 역산할 수 없고 Tiingo 데이터의 대용이 아닌 파생 결과물(점수·순위)을 서면 승인 없이 배포할 수 있다(8장 약관 확인, Tiingo 재량이라 확인 메일 권장).
+3. KRX가 거절하면: 공공데이터포털 주식시세정보도 제4유형(2026-10-28 수정, 제3자 제공 금지)이라 대안이 아니다. 유료 경로는 KRX Data Marketplace 구매(공공데이터포털 안내상 구매 시 "가공을 통한 독창적 저작물" 목적의 상업 활용 허용, 가격은 로그인 후 확인) 또는 코스콤 계약. 둘 다 견적 필요.
+4. 앱스토어가 꼭 필요하면 구글 Play만(등록비 25달러 1회). 아이폰 이용자는 같은 웹앱을 홈 화면에 추가해 쓴다. 애플(연 99달러)은 뒤로 미룬다.
