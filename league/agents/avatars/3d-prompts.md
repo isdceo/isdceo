@@ -28,11 +28,16 @@
 
 **A. 명패·쪼이기 창용 (먼저 이것으로 만드세요)**
 
-배경 없이 인물만 있어야 작은 명패(휴대폰에서 약 50px)에서도 얼굴이 또렷합니다. 참고 그림 중 흰 배경 2장과 같은 구도입니다. 흰 배경에, 앞쪽에 카지노 테이블 가장자리가 걸치고, 팔을 올린 채 칩과 카드 한 장이 놓인 모습입니다.
+배경 없이 인물만 있어야 작은 명패(휴대폰에서 약 50px)에서도 얼굴이 또렷합니다. 참고 그림 중 흰 배경 3장과 같은 구도입니다.
+
+리그와 맞추기 위해 **양손에 카드를 한 장씩** 들게 합니다. 왼손에는 빨간 다이아몬드(♦) 카드, 오른손에는 검은 클럽(♣) 카드입니다. 리그 화면의 한국 ♦ · 미국 ♣ 표시와 같아서, 캐릭터가 그날의 한국·미국 종목 2장을 쥔 모습이 됩니다.
 
 ```
-Stylized 3D animated movie character, soft clay-like shading, big expressive eyes, exaggerated caricature proportions, confident card-player attitude, arms resting crossed on the padded edge of a casino table in the foreground, small stacks of poker chips and one playing card on the table edge, chest-up portrait, character centered with head in the upper half, plain pure white background, isolated, no scenery, soft studio lighting, square 1:1, high detail, original character
+Stylized 3D animated movie character, soft clay-like shading, big expressive eyes, exaggerated caricature proportions with a big head and stocky body, confident card-player attitude, holding one playing card in each hand at chest height: a red diamond suit card in the left hand and a black club suit card in the right hand, chest-up portrait, character centered with head in the upper half, plain pure white background, isolated, no scenery, soft studio lighting, square 1:1, high detail, original character
 ```
+
+자세를 바꾸고 싶으면 `holding one playing card in each hand ...` 부분을 아래로 바꿔도 됩니다.
+- 팔짱 낀 자세(흰 배경 참고 그림): `arms resting crossed on the padded edge of a casino table in the foreground, small stacks of poker chips on the table edge`
 
 옷은 캐릭터별 문구를 따르되, 문구에 옷이 없으면 정장, 나비넥타이, 색 조끼 같은 카지노 손님 차림으로 만듭니다.
 
