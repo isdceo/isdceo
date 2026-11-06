@@ -237,7 +237,7 @@
     .lg .profile .achs { grid-template-columns: 1fr; }
   }
   @keyframes sheet-up { from { transform: translateY(40%); opacity: 0; } to { transform: none; opacity: 1; } }
-  @media (prefers-reduced-motion: no-preference) { .lg .tablebox.phone .mseat { animation: bt-drop .4s ease-out both; } }
+  @media (prefers-reduced-motion: no-preference) { .lg .tablebox.phone.anim .mseat { animation: bt-drop .4s ease-out both; } }
   .lg [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
 
@@ -1055,8 +1055,31 @@
     return c;
   };
   const PHONE = window.matchMedia('(max-width: 640px)');
-  PHONE.addEventListener('change', () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (!el.closest('[hidden]')) { el.dataset.dealt = ''; drawBaccarat(el); } }));
+  PHONE.addEventListener('change', () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (!el.closest('[hidden]')) { el._animT0 = null; drawBaccarat(el); } }));
+  // 딜링 애니메이션: 데이터가 나눠 도착해 여러 번 다시 그려도 끊기거나 처음부터 다시 시작하지 않게,
+  // 처음 보인 시각부터 이어서 진행한다(다시 그릴 때 각 요소의 animation-delay 를 지난 시간만큼 당긴다).
+  const ANIM_MS = 2600;
+  const animState = (el) => {
+    const now = performance.now();
+    const shown = !el.closest('[hidden]') && el.getClientRects().length > 0;
+    if (el._animT0 == null) { if (!shown) return {on: true, e: 0}; el._animT0 = now; }
+    const e = now - el._animT0;
+    return {on: e < ANIM_MS, e: e / 1000};
+  };
+  const shiftDelays = (el, e) => {
+    if (!e) return;
+    el.querySelectorAll('.dealt, .chips, .mseat').forEach((n) => {
+      const d = parseFloat(n.style.animationDelay) || 0;
+      n.style.animationDelay = `${(d - e).toFixed(3)}s`;
+    });
+  };
   const drawBaccarat = (el) => {
+    const an = animState(el);
+    drawBaccaratBody(el, an.on);
+    el.classList.toggle('anim', an.on);
+    if (an.on) shiftDelays(el, an.e);
+  };
+  const drawBaccaratBody = (el, first) => {
     const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');
     const wk = latestWeek();
     const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
@@ -1080,8 +1103,6 @@
       const last = pool.map((p) => p.round_date).sort().pop();
       return {KR: pool.find((p) => p.round_date === last && p.market === 'KR'), US: pool.find((p) => p.round_date === last && p.market === 'US'), last};
     };
-    const first = !el.dataset.dealt;
-    el.dataset.dealt = '1';
     el.replaceChildren();
     const wrap = el.parentElement;
     if (wrap) requestAnimationFrame(() => { if (wrap.scrollWidth > wrap.clientWidth && !wrap.dataset.centered) { wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2; wrap.dataset.centered = '1'; } });
