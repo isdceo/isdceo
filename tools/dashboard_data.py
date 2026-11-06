@@ -45,7 +45,8 @@ PRICE_LIKE = re.compile(r"[$₩]\s*\d|\d[\d,.]*\s*(원|달러|만원|억원|조�
 
 
 def load_lines(d: Path) -> dict:
-    """<원장>/lines/<라운드>.json — 종목별 한 줄 선택 이유(재미있는 말투, 가격 숫자 없이). {pick_id: 문장}
+    """<원장>/lines/*.json — 종목별 한 줄 선택 이유(캐릭터 말투, 가격 숫자 없이). {pick_id: 문장}
+    팀마다 따로 쓴다: <라운드>-<팀>.json (예: lines/2026-11-09-claude.json). 예전 파일 <라운드>.json 도 읽는다.
     마감 뒤 공개된 종목에만 붙는다(picks 가 이미 마감 전 종목을 뺀다). 가격처럼 보이는 문장·80자 초과는 버린다."""
     out = {}
     for f in sorted((d / "lines").glob("*.json")):
@@ -54,6 +55,48 @@ def load_lines(d: Path) -> dict:
             if v and len(v) <= 80 and not PRICE_LIKE.search(v):
                 out[k] = v
     return out
+
+
+def check_lines(path: Path, base: Path | None = None, now: datetime | None = None) -> list[str]:
+    """한 줄 이유 파일 검사. 문제 목록을 돌려준다(빈 목록이면 통과).
+    - 파일 이름 <라운드>-<팀>.json, 내용 {pick_id: 문장}
+    - pick_id 가 원장의 그 라운드·그 팀 종목이어야 한다(다른 팀 종목에 대사를 쓰지 않는다)
+    - 라운드 마감(08:30 KST)이 지난 뒤에만 쓴다
+    - 문장: 비어 있지 않음, 80자 이하, 가격처럼 보이는 표현(₩·$·원·달러·종가·목표주가) 없음"""
+    path = Path(path)
+    base = Path(base or LEAGUE)
+    now = now or datetime.now(L.KST)
+    m = re.fullmatch(r"(\d{4}-\d{2}-\d{2})-([a-z-]+)\.json", path.name)
+    if not m:
+        return [f"파일 이름은 <라운드>-<팀>.json 이어야 함: {path.name}"]
+    rd, team = m.groups()
+    from datetime import date as _date
+    errs = []
+    if now < L.lock_deadline(_date.fromisoformat(rd), L.load_config(base)):
+        errs.append(f"{rd} 라운드 마감(08:30 KST) 전에는 쓰지 않는다")
+    try:
+        lines = json.loads(path.read_text())
+    except Exception as e:
+        return errs + [f"JSON 읽기 실패: {e}"]
+    if not isinstance(lines, dict) or not lines:
+        return errs + ["{pick_id: 문장} 형태의 내용이 없음"]
+    ids = {p["pick_id"] for p in L.read_ledger(base, "picks") if p["round_date"] == rd and p["team"] == team}
+    if not ids:
+        errs.append(f"원장에 {rd} {team} 종목이 없음 (원본 공개 뒤 영수증이 accepted 인지 확인)")
+    for k, v in lines.items():
+        if k not in ids:
+            errs.append(f"{k}: 이 라운드·이 팀의 종목이 아님")
+        v = " ".join(str(v).split())
+        if not v:
+            errs.append(f"{k}: 문장이 비어 있음")
+        elif len(v) > 80:
+            errs.append(f"{k}: 80자 초과({len(v)}자)")
+        elif PRICE_LIKE.search(v):
+            errs.append(f"{k}: 가격처럼 보이는 표현이 있음 — {v}")
+    missing = sorted(ids - set(lines))
+    if ids and missing:
+        errs.append("한 줄 이유가 없는 종목: " + ", ".join(missing))
+    return errs
 
 
 def build(now: datetime | None = None, logos: bool = False, base: Path | None = None) -> dict:
@@ -219,7 +262,15 @@ def main():
     ap.add_argument("--out", help="현황판용 파일 폴더 (dataset마다 하나)")
     ap.add_argument("--bundle", help="두 팀 공유용 결과 묶음 파일 경로 (예: league/public/results.json)")
     ap.add_argument("--no-logos", action="store_true", help="--out 에서 회사 로고(logos.json)를 받지 않는다")
+    ap.add_argument("--check-lines", metavar="FILE", help="한 줄 이유 파일 검사 (예: league/lines/2026-11-09-claude.json)")
+    ap.add_argument("--base", help="--check-lines 의 원장 폴더 (기본 league/, 연습은 league/sandbox)")
     a = ap.parse_args()
+    if a.check_lines:
+        errs = check_lines(Path(a.check_lines), Path(a.base) if a.base else None)
+        for e in errs:
+            print("문제:", e)
+        print("통과" if not errs else f"문제 {len(errs)}건")
+        sys.exit(1 if errs else 0)
     if not (a.out or a.bundle):
         ap.error("--out 또는 --bundle 이 필요하다")
     if a.out:

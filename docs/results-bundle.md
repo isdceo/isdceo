@@ -70,7 +70,7 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 | `score_price_only` | 주가만 본 참고 점수(%) |
 | `score_excess` | 같은 구간 비교 기준(KOSPI·SPY) 대비 초과 점수(%p). 순위에 쓰지 않음 |
 | `reason` | 보류·무효 사유 |
-| `line` | 한 줄 선택 이유(가격 없이 캐릭터 말투로, 반말 가능, 80자 이하). `<원장>/lines/<라운드>.json` 의 `{pick_id: 문장}` 에서 온다. 없으면 빈 문자열 |
+| `line` | 한 줄 선택 이유(가격 없이 캐릭터 말투로, 반말 가능, 80자 이하). `<원장>/lines/<라운드>-<팀>.json` 의 `{pick_id: 문장}` 에서 온다. 검사: `tools/dashboard_data.py --check-lines`. 없으면 빈 문자열 |
 
 ### standings — 실전 주간 순위, 두 팀 10명 통합 (규칙 v1.8, 주·에이전트마다 1줄)
 

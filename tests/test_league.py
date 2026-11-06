@@ -567,6 +567,25 @@ class DashboardData(unittest.TestCase):
         for v in D.load_lines(L.ROOT / "league" / "sandbox").values():
             self.assertIsNone(D.PRICE_LIKE.search(v))
 
+    def test_check_lines(self):
+        """한 줄 이유 검사: 마감 전·다른 팀 종목·가격 표현·빠진 종목을 잡고, 정상 파일은 통과."""
+        import dashboard_data as D, tempfile
+        base = L.ROOT / "league" / "sandbox"
+        ok = D.check_lines(base / "lines" / "2026-11-05-sandbox-claude.json", base, datetime.fromisoformat("2026-11-05T09:00:00+09:00"))
+        self.assertEqual(ok, [])
+        early = D.check_lines(base / "lines" / "2026-11-05-sandbox-claude.json", base, datetime.fromisoformat("2026-11-05T08:00:00+09:00"))
+        self.assertTrue(any("마감" in e for e in early))
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "2026-11-05-sandbox-claude.json"
+            f.write_text(json.dumps({"2026-11-05-sandbox-claude-buffett-KR": "종가 191,900원이면 싸지.",
+                                     "2026-11-06-sandbox-shushu-s1-KR": "남의 종목"}, ensure_ascii=False))
+            errs = D.check_lines(f, base, datetime.fromisoformat("2026-11-05T09:00:00+09:00"))
+            self.assertTrue(any("가격" in e for e in errs))
+            self.assertTrue(any("이 팀의 종목이 아님" in e for e in errs))
+            self.assertTrue(any("한 줄 이유가 없는 종목" in e for e in errs))
+            bad = Path(tmp) / "lines.json"; bad.write_text("{}")
+            self.assertTrue(D.check_lines(bad, base))
+
     def test_play_page_public_only(self):
         """지인 공개용 게임 화면: 마감 전 종목·원 가격·회사 로고·운영 탭이 없다."""
         import build_play as B, tempfile
