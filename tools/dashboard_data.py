@@ -20,7 +20,7 @@ LEAGUE = L.ROOT / "league"
 def modes(base: Path):
     """(구분, 원장 폴더). 실전은 base, 연습은 base/sandbox."""
     return (("실전", base), ("연습", base / "sandbox"))
-TEAM_LABEL = {"claude": "Claude 팀", "shushu": "슈슈 팀 (Codex)"}
+TEAM_LABEL = {"claude": "로로 팀 (Claude)", "shushu": "슈슈 팀 (Codex)"}   # 화면·결과 파일의 팀 이름 (애칭 팀 (모델))
 
 
 def team_of(t: str) -> str:

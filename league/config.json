@@ -6,7 +6,7 @@
   "agents_per_team": 5,
   "teams": {
     "claude": {
-      "label": "Claude 팀",
+      "label": "로로 팀 (Claude)",
       "source": "이 저장소의 투자자 에이전트 5명 (.claude/agents)"
     },
     "shushu": {

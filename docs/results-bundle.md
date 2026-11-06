@@ -37,7 +37,7 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 }
 ```
 
-모든 시각은 KST(`+09:00`). `mode`는 `실전` 또는 `연습`. `team`은 화면용 이름(`Claude 팀`, `슈슈 팀 (Codex)`; 옛 공용 시험은 `sandbox`).
+모든 시각은 KST(`+09:00`). `mode`는 `실전` 또는 `연습`. `team`은 화면용 이름(`로로 팀 (Claude)`, `슈슈 팀 (Codex)`; 옛 공용 시험은 `sandbox`). 2026-11-06부터 Claude 팀의 이름이 `Claude 팀`에서 `로로 팀 (Claude)`로 바뀌었다.
 
 ### receipts — 제출 영수증 (팀·라운드마다 여러 줄 가능)
 

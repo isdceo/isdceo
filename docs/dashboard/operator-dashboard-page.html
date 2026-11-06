@@ -277,9 +277,9 @@
         <div class="sub">남은 항목 <span data-draw="ready-left" data-source="readiness" data-field="left">—</span>개</div>
       </div>
       <div class="card tile">
-        <div class="lbl">Claude 팀 최근 제출</div>
-        <div class="big" data-draw="claude-status" data-source="teams" data-field="status" data-where="team=Claude 팀">—</div>
-        <div class="sub"><span data-draw="claude-mode" data-source="teams" data-field="mode" data-where="team=Claude 팀">—</span> · 라운드 <span data-draw="claude-round" data-source="teams" data-field="round" data-where="team=Claude 팀">—</span></div>
+        <div class="lbl">로로 팀 (Claude) 최근 제출</div>
+        <div class="big" data-draw="claude-status" data-source="teams" data-field="status" data-where="team=로로 팀 (Claude)">—</div>
+        <div class="sub"><span data-draw="claude-mode" data-source="teams" data-field="mode" data-where="team=로로 팀 (Claude)">—</span> · 라운드 <span data-draw="claude-round" data-source="teams" data-field="round" data-where="team=로로 팀 (Claude)">—</span></div>
       </div>
       <div class="card tile">
         <div class="lbl">슈슈 팀 (Codex) 최근 제출</div>
@@ -367,14 +367,14 @@
       <div class="swipe">← 테이블을 옆으로 밀어서 보세요 →</div>
       <div class="hud"><button type="button" data-goto="match">팀 대결</button><button type="button" data-goto="league">리그 순위</button><button type="button" data-goto="picks">추천·점수</button><button type="button" data-goto="ops">운영</button></div>
       <div class="road">
-        <div class="rhead"><b>출목표 — 라운드별 이긴 팀 (그날 확정 종목의 종목당 평균)</b><span class="legend"><i style="background:#c0392b"></i>Claude 팀<i style="background:#2463b5"></i>슈슈 팀<i style="background:#2e8b57"></i>무승부</span></div>
+        <div class="rhead"><b>출목표 — 라운드별 이긴 팀 (그날 확정 종목의 종목당 평균)</b><span class="legend"><i style="background:#c0392b"></i>로로 팀<i style="background:#2463b5"></i>슈슈 팀<i style="background:#2e8b57"></i>무승부</span></div>
         <div class="grid" data-draw="road" data-source="team_daily"></div>
         <p class="rhead" data-draw="road-note" data-source="team_daily"></p>
         <div class="rhead"><b>연승 흐름판 — 같은 팀이 이기면 아래로, 이긴 팀이 바뀌면 옆 줄로 (초록 빗금은 무승부)</b></div>
         <div class="grid big" data-draw="bigroad" data-source="team_daily"></div>
         <p class="rhead" data-draw="bigroad-note" data-source="team_daily"></p>
       </div>
-      <div class="rail"><h3 data-draw="title-claude">♠ CLAUDE 팀</h3>
+      <div class="rail"><h3 data-draw="title-claude">♠ 로로 팀 (Claude)</h3>
         <div class="hand" data-draw="hand-claude" data-source="agents picks logos"></div></div>
       <div class="rail"><h3 data-draw="title-shushu">♥ 슈슈 팀 (Codex)</h3>
         <div class="hand" data-draw="hand-shushu" data-source="agents picks logos"></div></div>
@@ -390,7 +390,7 @@
       <h2>선수 명단</h2>
       <p class="note">애칭을 누르면 프로필이 열립니다. 점선 테두리는 승인된 대기 후보입니다.</p>
       <div class="grid">
-        <div><p class="note">Claude 팀</p><div class="chips" data-draw="roster-claude" data-source="agents"></div></div>
+        <div><p class="note">로로 팀 (Claude)</p><div class="chips" data-draw="roster-claude" data-source="agents"></div></div>
         <div><p class="note">슈슈 팀 (Codex)</p><div class="chips" data-draw="roster-shushu" data-source="agents"></div></div>
       </div>
     </section>
@@ -400,15 +400,15 @@
     <p class="note">같은 라운드의 두 팀을 에이전트별로 나란히 봅니다. 점수 = 다음 거래일 종가 수익률(배당 포함). 주황색은 잠정 점수, 빈칸 옆 글자는 채점 상태(pending 대기 · held 보류)입니다.</p>
     <div class="grid">
       <section class="card" id="mu-claude">
-        <h2>Claude 팀</h2>
-        <p class="note">라운드 합계 <b data-draw="mt-claude" data-source="matchup_team" data-field="total" data-where="team=Claude 팀">—</b>%p · 확정 <span data-draw="mn-claude" data-source="matchup_team" data-field="final_n" data-where="team=Claude 팀">—</span>/<span data-draw="mc-claude" data-source="matchup_team" data-field="picks_n" data-where="team=Claude 팀">—</span>종목</p>
+        <h2>로로 팀 (Claude)</h2>
+        <p class="note">라운드 합계 <b data-draw="mt-claude" data-source="matchup_team" data-field="total" data-where="team=로로 팀 (Claude)">—</b>%p · 확정 <span data-draw="mn-claude" data-source="matchup_team" data-field="final_n" data-where="team=로로 팀 (Claude)">—</span>/<span data-draw="mc-claude" data-source="matchup_team" data-field="picks_n" data-where="team=로로 팀 (Claude)">—</span>종목</p>
         <div class="wrap">
           <table data-source="matchup" data-row-key="key">
             <thead><tr><th data-field="agent">에이전트</th><th data-field="kr_pick">한국 종목</th><th class="num" data-field="kr_score">점수(%)</th><th data-field="us_pick">미국 종목</th><th class="num" data-field="us_score">점수(%)</th><th class="num" data-field="total">합계(%p)</th></tr></thead>
-            <tbody data-draw="mu-claude" data-team="Claude 팀"></tbody>
+            <tbody data-draw="mu-claude" data-team="로로 팀 (Claude)"></tbody>
           </table>
         </div>
-        <p class="empty" data-none="Claude 팀" hidden>이 라운드에는 공개된 종목이 없습니다. 마감 전이거나 제출하지 않았습니다.</p>
+        <p class="empty" data-none="로로 팀 (Claude)" hidden>이 라운드에는 공개된 종목이 없습니다. 마감 전이거나 제출하지 않았습니다.</p>
       </section>
       <section class="card" id="mu-shushu">
         <h2>슈슈 팀 (Codex)</h2>
@@ -432,7 +432,7 @@
         </table>
       </div>
     </section>
-    <p class="empty" data-empty="picks">아직 마감이 지난 라운드가 없습니다. 연습 라운드는 11/5 08:30(Claude 팀), 11/6 08:30(슈슈 팀) 이후 나타납니다.</p>
+    <p class="empty" data-empty="picks">아직 마감이 지난 라운드가 없습니다. 연습 라운드는 11/5 08:30(로로 팀), 11/6 08:30(슈슈 팀) 이후 나타납니다.</p>
   </section>
 
   <!-- 리그 순위 -->
@@ -563,15 +563,15 @@
     el.textContent = r ? String(r[field]) : '—';
     if (big) el.className = 'big' + (r && statusClass(r[field]) ? ' ' + statusClass(r[field]) : '');
   };
-  dash.draw('claude-status', teamCell('Claude 팀', 'status', true));
-  dash.draw('claude-mode', teamCell('Claude 팀', 'mode'));
-  dash.draw('claude-round', teamCell('Claude 팀', 'round'));
+  dash.draw('claude-status', teamCell('로로 팀 (Claude)', 'status', true));
+  dash.draw('claude-mode', teamCell('로로 팀 (Claude)', 'mode'));
+  dash.draw('claude-round', teamCell('로로 팀 (Claude)', 'round'));
   dash.draw('shushu-status', teamCell('슈슈 팀 (Codex)', 'status', true));
   dash.draw('shushu-mode', teamCell('슈슈 팀 (Codex)', 'mode'));
   dash.draw('shushu-round', teamCell('슈슈 팀 (Codex)', 'round'));
 
   // 아바타: 팀 색 원 + 흰 선 아이콘 (viewBox 48). 실존 인물을 떠올리게 하지 않는 상징 그림만 쓴다.
-  const AV_BG = {'Claude 팀': ['#d9774f', '#8e3b23'], '슈슈 팀 (Codex)': ['#4f86cf', '#1f3f73']};
+  const AV_BG = {'로로 팀 (Claude)': ['#d9774f', '#8e3b23'], '슈슈 팀 (Codex)': ['#4f86cf', '#1f3f73']};
   const AV_KEY = {buffett: 'turtle', lynch: 'pickaxe', dalio: 'globe', wood: 'rocket', burry: 'skeptic', momentum: 'wave', quant: 'calculator',
     s1: 'shield', s2: 'gem', s3: 'magnifier', s4: 'sprout', s5: 'flip', s6: 'compass', s7: 'sailboat'};
   const AV_ICON = {
@@ -825,7 +825,7 @@
     });
     document.querySelectorAll(`.lg [data-none="${team}"]`).forEach((p) => { p.hidden = !(d.status === 'ok' && rows.length === 0 && roundsOf().length > 0); });
   };
-  dash.draw('mu-claude', muBody('Claude 팀'));
+  dash.draw('mu-claude', muBody('로로 팀 (Claude)'));
   dash.draw('mu-shushu', muBody('슈슈 팀 (Codex)'));
   const mtCell = (team, field, fmt) => (el) => {
     const d = dash.data('matchup_team');
@@ -834,9 +834,9 @@
     el.textContent = r ? (fmt ? fmt(r[field]) : String(r[field])) : '—';
     if (field === 'total') el.className = r ? (signClass(r.total) || '') : '';
   };
-  dash.draw('mt-claude', mtCell('Claude 팀', 'total', pct));
-  dash.draw('mn-claude', mtCell('Claude 팀', 'final_n'));
-  dash.draw('mc-claude', mtCell('Claude 팀', 'picks_n'));
+  dash.draw('mt-claude', mtCell('로로 팀 (Claude)', 'total', pct));
+  dash.draw('mn-claude', mtCell('로로 팀 (Claude)', 'final_n'));
+  dash.draw('mc-claude', mtCell('로로 팀 (Claude)', 'picks_n'));
   dash.draw('mt-shushu', mtCell('슈슈 팀 (Codex)', 'total', pct));
   dash.draw('mn-shushu', mtCell('슈슈 팀 (Codex)', 'final_n'));
   dash.draw('mc-shushu', mtCell('슈슈 팀 (Codex)', 'picks_n'));
@@ -858,7 +858,7 @@
       .each(function (a) { const b = d3.select(this).html(''); drawAvatar(this, a, 22); b.append('span').text(a.nickname || a.label); })
       .on('click', (ev, a) => openProfile(a.team, a.name));
   };
-  dash.draw('roster-claude', rosterChips('Claude 팀'));
+  dash.draw('roster-claude', rosterChips('로로 팀 (Claude)'));
   dash.draw('roster-shushu', rosterChips('슈슈 팀 (Codex)'));
 
   const curAgent = () => {
@@ -952,9 +952,9 @@
   });
 
   // ───── 카드판 (바카라 테이블) ─────
-  const SUIT = {'Claude 팀': 's', '슈슈 팀 (Codex)': 'h'};
+  const SUIT = {'로로 팀 (Claude)': 's', '슈슈 팀 (Codex)': 'h'};
   const PIP = {s: '♠', h: '♥'};
-  const BAR = {'Claude 팀': '#c0392b', '슈슈 팀 (Codex)': '#2463b5'};
+  const BAR = {'로로 팀 (Claude)': '#c0392b', '슈슈 팀 (Codex)': '#2463b5'};
   const MK = {KR: {suit: '♦', cls: 'd', label: '한국'}, US: {suit: '♣', cls: 'c', label: '미국'}};
   // 팀의 최근 공개 라운드(실전 우선) 종목들
   const teamRound = (team) => {
@@ -972,7 +972,7 @@
     const tr = teamRound(team);
     el.textContent = tr.last ? `${label} — 고른 종목 (${tr.mode} ${fmtTime(tr.last)} 라운드)` : `${label} — 고른 종목`;
   };
-  dash.draw('title-claude', titleFor('Claude 팀', '♠ CLAUDE 팀'));
+  dash.draw('title-claude', titleFor('로로 팀 (Claude)', '♠ 로로 팀 (Claude)'));
   dash.draw('title-shushu', titleFor('슈슈 팀 (Codex)', '♥ 슈슈 팀 (Codex)'));
   const latestWeek = () => {
     const d = dash.data('standings');
@@ -983,8 +983,8 @@
     const d = dash.data('team_weeks');
     const wk = latestWeek();
     const rows = d.status === 'ok' && wk ? d.data.filter((r) => r.week === wk) : [];
-    const A = rows.find((x) => x.team === 'Claude 팀'), B = rows.find((x) => x.team === '슈슈 팀 (Codex)');
-    const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? 'Claude 팀' : '슈슈 팀 (Codex)') : null;
+    const A = rows.find((x) => x.team === '로로 팀 (Claude)'), B = rows.find((x) => x.team === '슈슈 팀 (Codex)');
+    const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? '로로 팀 (Claude)' : '슈슈 팀 (Codex)') : null;
     el.replaceChildren();
     const sb = d3.select(el);
     const seat = (team, r, label) => {
@@ -994,7 +994,7 @@
       c.append('div').attr('class', 'smeta').text(r ? `확정 ${r.scored} / 기대 ${r.expected}` : '이번 주 종목당 평균');
       if (lead === team) c.append('span').attr('class', 'win').text('이번 주 우세');
     };
-    seat('Claude 팀', A, '♠ CLAUDE 팀');
+    seat('로로 팀 (Claude)', A, '♠ 로로 팀 (Claude)');
     sb.append('div').attr('class', 'vs').html('').text(wk ? `${wk}\nVS` : 'VS');
     seat('슈슈 팀 (Codex)', B, '♥ 슈슈 팀');
   });
@@ -1062,8 +1062,8 @@
     const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk) : [];
     const n = week.length;
     const tws = tw.status === 'ok' && wk ? tw.data.filter((r) => r.week === wk) : [];
-    const A = tws.find((x) => x.team === 'Claude 팀'), B = tws.find((x) => x.team === '슈슈 팀 (Codex)');
-    const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? 'Claude 팀' : '슈슈 팀 (Codex)') : null;
+    const A = tws.find((x) => x.team === '로로 팀 (Claude)'), B = tws.find((x) => x.team === '슈슈 팀 (Codex)');
+    const lead = A && B && A.avg != null && B.avg != null && A.avg !== B.avg ? (A.avg > B.avg ? '로로 팀 (Claude)' : '슈슈 팀 (Codex)') : null;
     const tied = !!(A && B && A.avg != null && B.avg != null && A.avg === B.avg);
     const scoredW = week.filter((r) => r.avg != null);                   // 선두·꼴등은 이번 주 점수가 있는 사람 중에서만
     const topR = scoredW.length > 1 ? Math.min(...scoredW.map((r) => r.league_rank)) : null;
@@ -1072,7 +1072,7 @@
     const rowOf = (a) => week.find((r) => r.team === a.team && r.agent_id === a.agent_id) || null;
     const active = ag.status === 'ok' ? ag.data.filter((a) => !a.status.startsWith('대기') && a.status !== '탈락') : [];
     const byRank = (team) => active.filter((a) => a.team === team).sort((x, y) => (rowOf(x)?.league_rank ?? 99) - (rowOf(y)?.league_rank ?? 99));
-    const seats = [...byRank('Claude 팀'), ...byRank('슈슈 팀 (Codex)').reverse()];
+    const seats = [...byRank('로로 팀 (Claude)'), ...byRank('슈슈 팀 (Codex)').reverse()];
     const picksOf = (a) => {
       const mine = pk.status === 'ok' ? pk.data.filter((p) => p.team === a.team && p.agent_id === a.agent_id) : [];
       const live = mine.filter((p) => p.mode === '실전');
@@ -1115,7 +1115,7 @@
       ['#f4ecd6', '#e07a7a', '#e0574a', '#2fa58f', '#6b4fb5', '#5cb85c', '#f2a33a', '#3b8fd6'].forEach((c, k) =>
         svg.append('rect').attr('x', 152 + k * 12.2).attr('y', 61).attr('width', 10).attr('height', 12).attr('rx', 4).attr('fill', c).attr('stroke', '#fff').attr('stroke-opacity', .5));
       svg.append('path').attr('d', 'M262 78 H290 L286 60 L266 56 Z').attr('fill', '#5c1414').attr('stroke', '#2a0606').attr('stroke-width', 1.4);
-      // 가운데 두 팀 칸: 위 CLAUDE, 아래 슈슈
+      // 가운데 두 팀 칸: 위 로로(Claude), 아래 슈슈
       const b2 = (team) => teamRound(team).rows.filter((p) => p.score != null).sort((x, y) => y.score - x.score).slice(0, 2);
       const box = (team, y0, label, color, r, cards, k0) => {
         svg.append('rect').attr('x', 146).attr('y', y0).attr('width', 108).attr('height', 150).attr('rx', 8).attr('fill', 'rgba(8,30,60,.25)').attr('stroke', '#f4d27a').attr('stroke-opacity', .75).attr('stroke-width', 1.3);
@@ -1126,11 +1126,11 @@
         svg.append('text').attr('x', 200).attr('y', y0 + 117).attr('text-anchor', 'middle').attr('font-size', 13.5).attr('font-weight', 700).attr('fill', '#fff').text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
         svg.append('text').attr('x', 200).attr('y', y0 + 140).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('fill', '#d9e3f2').text(wk ? '이번 주 종목당 평균' : '실전 전');
       };
-      box('Claude 팀', 120, 'CLAUDE ♠', '#ffd65a', A, wk ? b2('Claude 팀') : [], .1);
+      box('로로 팀 (Claude)', 120, '로로 ♠', '#ffd65a', A, wk ? b2('로로 팀 (Claude)') : [], .1);
       box('슈슈 팀 (Codex)', 390, '♥ 슈슈', '#ffb0a6', B, wk ? b2('슈슈 팀 (Codex)') : [], .3);
       // 가운데 배너: 자리 카드 사이(폭 96)에 두 줄로
-      const [l1, l2] = !wk ? ['실전 전', '11/9 첫 라운드'] : lead ? [lead === 'Claude 팀' ? 'CLAUDE' : '슈슈', '팀 우세'] : tied ? ['이번 주', '동률'] : ['이번 주', '채점 전'];
-      const up = lead === 'Claude 팀';
+      const [l1, l2] = !wk ? ['실전 전', '11/9 첫 라운드'] : lead ? [lead === '로로 팀 (Claude)' ? '로로' : '슈슈', '팀 우세'] : tied ? ['이번 주', '동률'] : ['이번 주', '채점 전'];
+      const up = lead === '로로 팀 (Claude)';
       const bn = svg.append('g').attr('transform', 'translate(200 330)');
       bn.append('path').attr('d', wk && lead ? (up ? 'M-48 -20 H-7 L0 -28 L7 -20 H48 V20 H-48 Z' : 'M-48 -20 H48 V20 H7 L0 28 L-7 20 H-48 Z') : 'M-48 -20 H48 V20 H-48 Z')
         .attr('fill', wk && lead ? '#2e9e48' : '#2b4a78').attr('stroke', '#fff').attr('stroke-opacity', .85).attr('stroke-width', 1.5);
@@ -1170,7 +1170,7 @@
           g.append('text').attr('x', fx).attr('y', fy - 3).attr('text-anchor', 'middle').attr('font-size', 9).attr('font-weight', 800).attr('fill', '#fff').text(isLead ? '선두' : '꼴등');
         }
         // 캐릭터·이름표
-        g.append('circle').attr('cx', x).attr('cy', y - 6).attr('r', 29).attr('fill', `url(#pt-${a.team === 'Claude 팀' ? 'c' : 's'})`)
+        g.append('circle').attr('cx', x).attr('cy', y - 6).attr('r', 29).attr('fill', `url(#pt-${a.team === '로로 팀 (Claude)' ? 'c' : 's'})`)
           .attr('stroke', isLead ? '#7dff9c' : isRisk ? '#ff6a5c' : '#e0c27a').attr('stroke-width', isLead || isRisk ? 4 : 2.5);
         const ch = AV_CHAR[a.agent_id];
         const av = g.append('svg').attr('x', x - 27).attr('y', y - 33).attr('width', 54).attr('height', 54).attr('viewBox', '0 0 120 120');
@@ -1183,7 +1183,7 @@
           .attr('fill', r && r.avg != null ? (r.avg > 0 ? '#8fe8a8' : r.avg < 0 ? '#ff9c90' : '#f4ecd6') : '#b9c7dd')
           .text(r && r.avg != null ? `${pct(r.avg)}%` : '채점 전');
       };
-      byRank('Claude 팀').slice(0, 5).forEach((a, i) => seatAt(a, i, true));
+      byRank('로로 팀 (Claude)').slice(0, 5).forEach((a, i) => seatAt(a, i, true));
       byRank('슈슈 팀 (Codex)').slice(0, 5).forEach((a, i) => seatAt(a, i, false));
       return;
     }
@@ -1215,10 +1215,10 @@
         svg.append('rect').attr('x', x0 + 30).attr('y', 190).attr('width', 90).attr('height', 24).attr('rx', 6).attr('fill', r && r.avg != null ? (win ? '#2e9e48' : '#2463b5') : '#3b4a63').attr('stroke', '#fff').attr('stroke-opacity', .8).attr('stroke-width', 1.5);
         svg.append('text').attr('x', x0 + 75).attr('y', 207).attr('text-anchor', 'middle').attr('font-size', 14).attr('font-weight', 700).attr('fill', '#fff').text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
       };
-      side('Claude 팀', 42, 'CLAUDE', '#ffd65a', A, wk ? b2('Claude 팀') : [], .1);
+      side('로로 팀 (Claude)', 42, '로로', '#ffd65a', A, wk ? b2('로로 팀 (Claude)') : [], .1);
       side('슈슈 팀 (Codex)', 208, '슈슈', '#ffb0a6', B, wk ? b2('슈슈 팀 (Codex)') : [], .3);
-      const btxt = !wk ? '실전 전 — 11/9 첫 라운드' : lead ? `${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세` : tied ? '이번 주 동률' : '이번 주 채점 전';
-      const bx = !wk || !lead ? 200 : lead === 'Claude 팀' ? 117 : 283, bw = Math.max(110, btxt.length * 11 + 20);
+      const btxt = !wk ? '실전 전 — 11/9 첫 라운드' : lead ? `${lead === '로로 팀 (Claude)' ? '로로' : '슈슈'} 팀 우세` : tied ? '이번 주 동률' : '이번 주 채점 전';
+      const bx = !wk || !lead ? 200 : lead === '로로 팀 (Claude)' ? 117 : 283, bw = Math.max(110, btxt.length * 11 + 20);
       const bn = svg.append('g').attr('transform', `translate(${bx} 70)`);
       bn.append('path').attr('d', `M${-bw / 2} -20 H${bw / 2} V0 H6 L0 6 L-6 0 H${-bw / 2} Z`).attr('fill', wk && lead ? '#2e9e48' : '#2b4a78').attr('stroke', '#fff').attr('stroke-opacity', .85).attr('stroke-width', 1.5);
       bn.append('text').attr('y', -6).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 800).attr('fill', '#fff').text(btxt);
@@ -1226,20 +1226,20 @@
 
       const grid = d3.select(el).append('div').attr('class', 'mseats');
       const col = (team) => byRank(team);
-      const L = col('Claude 팀'), R = col('슈슈 팀 (Codex)'), rows = [];
+      const L = col('로로 팀 (Claude)'), R = col('슈슈 팀 (Codex)'), rows = [];
       for (let i = 0; i < Math.max(L.length, R.length); i++) rows.push(L[i] || null, R[i] || null);
       rows.forEach((a, i) => {
         if (!a) { grid.append('div'); return; }
         const r = rowOf(a), pp = picksOf(a);
         const {isLead, isRisk} = flagOf(r);
         const t = grid.append('button').attr('type', 'button')
-          .attr('class', `mseat ${a.team === 'Claude 팀' ? 'c' : 's'}${isLead ? ' lead' : ''}${isRisk ? ' risk' : ''}`).attr('data-fkey', `seat|${a.team}|${a.name}`)
+          .attr('class', `mseat ${a.team === '로로 팀 (Claude)' ? 'c' : 's'}${isLead ? ' lead' : ''}${isRisk ? ' risk' : ''}`).attr('data-fkey', `seat|${a.team}|${a.name}`)
           .style('animation-delay', `${.15 + i * .04}s`).on('click', () => openProfile(a.team, a.name));
         const hd = t.append('div').attr('class', 'mhead');
         drawAvatar(hd.node(), a, 40);
         const nm = hd.append('div');
         nm.append('b').text(a.nickname || a.label);
-        nm.append('small').text(`${a.team === 'Claude 팀' ? '♠' : '♥'} ${a.label}`);
+        nm.append('small').text(`${a.team === '로로 팀 (Claude)' ? '♠' : '♥'} ${a.label}`);
         hd.append('span').attr('class', 'mrank').text(r ? `${r.league_rank}위` : '—');
         const line = t.append('div').attr('class', 'mline');
         line.append('span').attr('class', 'mavg ' + (r && r.avg != null ? (r.avg > 0 ? 'up' : r.avg < 0 ? 'down' : '') : 'none'))
@@ -1355,8 +1355,8 @@
       badge.append('text').attr('y', 7).attr('text-anchor', 'middle').attr('font-size', 19).attr('font-weight', 700).attr('fill', '#fff').text(r && r.avg != null ? `${pct(r.avg)}%` : '—');
       return P(X0, -60);
     };
-    const ca = wk ? best2('Claude 팀') : [], cb = wk ? best2('슈슈 팀 (Codex)') : [];
-    const topA = centerSide('Claude 팀', -160, 'CLAUDE', '#ffd65a', A, ca, 0.1);
+    const ca = wk ? best2('로로 팀 (Claude)') : [], cb = wk ? best2('슈슈 팀 (Codex)') : [];
+    const topA = centerSide('로로 팀 (Claude)', -160, '로로', '#ffd65a', A, ca, 0.1);
     const topB = centerSide('슈슈 팀 (Codex)', 160, '슈슈', '#ffb0a6', B, cb, 0.34);
     // 승리 배너 (리본 꼬리 달린 초록 깃발)
     const banner = (x, y, text, fill) => {
@@ -1366,7 +1366,7 @@
       g.append('text').attr('y', -11).attr('text-anchor', 'middle').attr('font-size', 17).attr('font-weight', 800).attr('letter-spacing', 1).attr('fill', '#fff').text(text);
     };
     if (!wk) banner(CX, topA[1] - 4, '실전 전 — 11/9 첫 라운드', '#2b4a78');
-    else if (lead) { const t = lead === 'Claude 팀' ? topA : topB; banner(t[0], t[1] - 12, `${lead === 'Claude 팀' ? 'CLAUDE' : '슈슈'} 팀 우세`, '#2e9e48'); }
+    else if (lead) { const t = lead === '로로 팀 (Claude)' ? topA : topB; banner(t[0], t[1] - 12, `${lead === '로로 팀 (Claude)' ? '로로' : '슈슈'} 팀 우세`, '#2e9e48'); }
     else banner(CX, topA[1] - 4, tied ? '이번 주 동률' : '이번 주 채점 전', '#2b4a78');
 
     // 자리 10개: 펠트 위 순위 칸 · 종목 카드 칸, 팔걸이 컵홀더, 바깥 명패
@@ -1398,7 +1398,7 @@
         cardTop = Math.min(cardTop, y - h); cardBot = Math.max(cardBot, y + 4 * s); cardX += x / 2;
         if (p && p.score != null) { const [qx, qy] = P(-516 * Math.cos(tm) + k * 34 * tg[0], 516 * Math.sin(tm) + k * 34 * tg[1]); chipStack(g, qx, qy, p.score, delay, S(516 * Math.sin(tm))); }
       });
-      if (isLead || isRisk) { const [bx, by] = P(-548 * Math.cos(tm), 548 * Math.sin(tm)); later.push([bx, Math.max(by, cardBot) + 30, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']); }   // 그 칸 바깥 가장자리, 꼬리는 위로
+      if (isLead || isRisk) { const [bx, by] = P(-548 * Math.cos(tm), 548 * Math.sin(tm)); later.push([bx, cardBot + 27, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']); }   // 카드 바로 아래(그 칸 쪽), 꼬리는 위로. 앞자리 이름표를 가리지 않게
       // 컵홀더 (자리 사이)
       if (i < m - 1) {
         const X = -632 * Math.cos(tb), Y = 632 * Math.sin(tb);
@@ -1412,7 +1412,7 @@
           .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`).attr('data-fkey', `seat|${a.team}|${a.name}`)
           .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
         f.append('title').text(a.name);
-        const team = a.team === 'Claude 팀' ? 'c' : 's';
+        const team = a.team === '로로 팀 (Claude)' ? 'c' : 's';
         f.append('rect').attr('x', -44).attr('y', -46).attr('width', 88).attr('height', 92).attr('rx', 4).attr('fill', `url(#bt-${team})`)
           .attr('stroke', isLead ? '#7dff9c' : isRisk ? '#ff6a5c' : '#e0c27a').attr('stroke-width', isLead || isRisk ? 5 : 3);
         const ch = AV_CHAR[a.agent_id];
@@ -1451,7 +1451,7 @@
     const rows = d.status === 'ok' ? d.data.filter((r) => r.mode === '실전') : [];
     const days = [...new Set(rows.map((r) => r.date))].sort();
     return days.map((day) => {
-      const a = rows.find((r) => r.date === day && r.team === 'Claude 팀'), b = rows.find((r) => r.date === day && r.team === '슈슈 팀 (Codex)');
+      const a = rows.find((r) => r.date === day && r.team === '로로 팀 (Claude)'), b = rows.find((r) => r.date === day && r.team === '슈슈 팀 (Codex)');
       if (!(a && b && a.avg != null && b.avg != null)) return null;            // 한 팀이라도 채점 전이면 그날은 아직 넣지 않는다
       return {day, w: a.avg > b.avg ? 'c' : a.avg < b.avg ? 's' : 't', a: a.avg, b: b.avg};
     }).filter(Boolean);
@@ -1460,13 +1460,13 @@
     const beads = roadData();
     d3.select(el).selectAll('div.bead').data(beads, (x) => x.day).join('div')
       .attr('class', (x) => 'bead ' + x.w)
-      .attr('title', (x) => `${fmtTime(x.day)} · Claude ${x.a == null ? '–' : pct(x.a) + '%'} / 슈슈 ${x.b == null ? '–' : pct(x.b) + '%'}`)
+      .attr('title', (x) => `${fmtTime(x.day)} · 로로 ${x.a == null ? '–' : pct(x.a) + '%'} / 슈슈 ${x.b == null ? '–' : pct(x.b) + '%'}`)
       .text((x) => ({c: 'C', s: 'S', t: '=' })[x.w]);
   });
   dash.draw('road-note', (el) => {
     const beads = roadData();
     const n = (w) => beads.filter((x) => x.w === w).length;
-    el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · Claude 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9 라운드부터).';
+    el.textContent = beads.length ? `지금까지 ${beads.length}라운드 · 로로 팀 ${n('c')}승 · 슈슈 팀 ${n('s')}승 · 무승부 ${n('t')}` : '실전 라운드가 채점되면 동그라미가 쌓입니다(11/9 라운드부터).';
   });
   // ───── 라운드 진행 표시 (제출 마감 타이머) ─────
   const SEASON = '2026-11-09';
@@ -1526,10 +1526,10 @@
       });
       const rc = root.append('div').attr('class', 'rc');
       rc.append('em').text(`${md(s.last)} 라운드${s.lastMk && s.lastMk !== '한국·미국' ? ' · ' + s.lastMk : ''}`);
-      for (const team of ['Claude 팀', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.last); rc.append('span').attr('class', c).text(`${team.replace(' (Codex)', '')} ${t}`); }
+      for (const team of ['로로 팀 (Claude)', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.last); rc.append('span').attr('class', c).text(`${team.replace(/ \(.*\)$/, '')} ${t}`); }
       if (s.next !== s.last) {
         rc.append('em').text(`${md(s.next)} 라운드`);
-        for (const team of ['Claude 팀', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.next); rc.append('span').attr('class', c).text(`${team.replace(' (Codex)', '')} ${t}`); }
+        for (const team of ['로로 팀 (Claude)', '슈슈 팀 (Codex)']) { const [t, c] = rcptState(team, s.next); rc.append('span').attr('class', c).text(`${team.replace(/ \(.*\)$/, '')} ${t}`); }
       }
       rc.append('small').text(s.cal ? '한국·미국 거래일 달력 기준 (둘 다 쉬는 날은 라운드 없음)' : '평일 기준 · 휴장일은 반영되지 않았습니다(달력 데이터 없음)');
     };
@@ -1588,8 +1588,8 @@
   });
   dash.draw('bigroad-note', (el) => {
     const {cells, cur, best, ties} = bigRoad();
-    const nm = {c: 'Claude 팀', s: '슈슈 팀'};
-    el.textContent = cur ? `지금 ${nm[cur.w]} ${cur.run}연승 · 가장 긴 연승 Claude ${best.c} / 슈슈 ${best.s}${ties ? ` · 무승부 ${ties}` : ''}`
+    const nm = {c: '로로 팀', s: '슈슈 팀'};
+    el.textContent = cur ? `지금 ${nm[cur.w]} ${cur.run}연승 · 가장 긴 연승 로로 ${best.c} / 슈슈 ${best.s}${ties ? ` · 무승부 ${ties}` : ''}`
       : ties ? `아직 이긴 팀이 없습니다 · 무승부 ${ties}` : '실전 라운드가 채점되면 같은 팀이 이길 때마다 아래로, 이긴 팀이 바뀌면 옆 줄로 쌓입니다.';
   });
 
@@ -1625,7 +1625,7 @@
         pk.append('span').text(`고른 사람: ${a ? a.nickname || a.label : p.agent}`);
       });
   };
-  dash.draw('hand-claude', handFor('Claude 팀'));
+  dash.draw('hand-claude', handFor('로로 팀 (Claude)'));
   dash.draw('hand-shushu', handFor('슈슈 팀 (Codex)'));
   dash.draw('hand-bench', (el) => {
     const ag = dash.data('agents');

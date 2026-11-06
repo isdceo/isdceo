@@ -147,7 +147,7 @@ def page_html(generated_at: str) -> str:
                                       f'<header><b id="t-{key}">{title}</b><button type="button" class="x" data-close>닫기</button></header>'
                                       f'<div class="body"><div class="lg"><div class="felt">{body}</div></div></div></section>')
     rules = f"""<div class="rules"><ul>
-      <li>두 팀(Claude 팀·슈슈 팀) 에이전트가 평일마다 한국·미국 종목을 1개씩 고릅니다. 마감은 08:30 KST입니다.</li>
+      <li>두 팀(로로 팀·슈슈 팀) 에이전트가 평일마다 한국·미국 종목을 1개씩 고릅니다. 마감은 08:30 KST입니다.</li>
       <li>점수는 그날 종가 기준 하루 수익률(배당 포함, %)이고 다음 날 10:30에 채점합니다. 원 가격은 보여 주지 않습니다.</li>
       <li>마감이 지난 라운드의 종목만 공개합니다. 한쪽 시장이 쉬는 날은 남은 시장만, 둘 다 쉬면 라운드가 없습니다.</li>
       <li>매주 두 팀 10명을 한 줄로 세워 꼴등 1명이 탈락하고 대기 후보가 들어옵니다. 채점이 모자라면 탈락을 미룹니다.</li>
