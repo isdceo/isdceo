@@ -20,14 +20,24 @@
 
 **배포를 켜기 전에 데이터 제공처 조건을 정리한다.** 미국 종가·배당은 2026-11-06부터 Alpha Vantage로 받는다. 무료 키는 개인·비상업 이용이라, 점수를 지인에게 보여 주는 것이 "개인 범위"에 드는지 확인이 필요하다(`docs/data-provider-research.md` 10장). Tiingo를 그만 쓴 이유는 같은 문서 8장에 있다.
 
-## 0. 운영자 혼자 보기 (2026-11-07, 지금 쓸 수 있는 방식)
+## 0. 운영자 혼자 보기 — 비밀번호 잠금 (2026-11-07 결정, 카드 등록 없음)
 
-데이터 제공처 약관(KRX·Alpha Vantage·OpenDART)은 모두 개인·비상업 이용을 허용하므로, **운영자 본인 이메일 하나만** Access에 등록하면 허락 회신을 기다리지 않고 켤 수 있다. 아래 1~4단계를 그대로 하되 다음만 다르다.
+데이터 제공처 약관(KRX·Alpha Vantage·OpenDART)은 모두 개인·비상업 이용을 허용하므로, 운영자 혼자 보는 화면은 허락 회신을 기다리지 않고 켤 수 있다. Cloudflare Access(2장)는 카드 등록을 요구할 수 있어 쓰지 않고, **Pages Functions 비밀번호 잠금**을 쓴다.
 
-- 2단계 4번 정책: 이름 `operator`, Emails에 **운영자 이메일 하나만** 넣는다. 지인 이메일은 넣지 않는다.
-- 2단계 3번: `*.isdceo-league.pages.dev`(미리보기·배포별 주소)도 **반드시** 추가한다. 배포 작업이 이 두 주소의 잠금을 확인하고, 잠금이 없으면 배포하지 않는다.
-- 4단계 0번(제공처 회신)은 건너뛴다. 지인을 추가하는 순간부터 회신이 필요하다.
-- 화면 캡처나 링크를 남에게 보내지 않는다. 그 순간 "남에게 보여 주기"가 된다.
+- 잠금 코드: `league/site-functions/_middleware.js`. 배포 때 `functions/`로 함께 올라가 모든 요청(그림·데이터 파일 포함)에 아이디·비밀번호 창을 띄운다. 비밀번호가 설정돼 있지 않으면 아무도 못 들어온다. 시험: `node tests/test_site_lock.mjs`
+- 배포 작업은 (1) Pages 프로젝트에 `SITE_PASSWORD`(비밀 유형)가 있는지 확인하고 없으면 배포하지 않으며, (2) 배포 뒤 주소·데이터 파일이 401(로그인 필요)인지 확인하고 아니면 실패로 알린다.
+
+순서
+1. 1단계(Pages 프로젝트 `isdceo-league`, 직접 업로드)를 한다. **Git 연결은 쓰지 않는다**(배포 작업의 안전장치를 거치지 않게 됨).
+2. Pages 프로젝트 → **설정** → **변수 및 비밀**(Variables and Secrets) → 추가
+   - 유형 **비밀**(Secret/암호화), 이름 `SITE_PASSWORD`, 값: 16자 이상 비밀번호. 프로덕션(Production) 환경에 넣는다.
+   - 아이디를 바꾸려면 `SITE_USER`도 넣는다(없으면 `operator`).
+   - 비밀번호는 휴대폰 비밀번호 관리자에 저장한다. 저장소·채팅에 적지 않는다.
+3. 3단계(GitHub Secrets 두 개)를 한다.
+4. `deploy_enabled: true` → Actions **league-deploy** 실행.
+5. 휴대폰에서 주소를 열어 아이디 `operator`와 비밀번호로 들어가지는지, 틀린 비밀번호로 막히는지 확인한다. "홈 화면에 추가"로 앱처럼 쓴다.
+
+지킬 것: 비밀번호·링크·화면 캡처를 남에게 주지 않는다. 지인에게 보여 주려면 제공처 허락 회신이 먼저다(4단계 0번).
 
 ## 1. Cloudflare 계정과 Pages 프로젝트
 
@@ -37,7 +47,9 @@
 4. 첫 업로드는 빈 폴더나 아무 파일로 해도 된다. 이후 배포는 GitHub Actions가 한다.
 5. 주소는 `https://isdceo-league.pages.dev` 형태가 된다.
 
-## 2. 지인만 보이게: Cloudflare Access (Zero Trust)
+## 2. (선택) 지인만 보이게: Cloudflare Access (Zero Trust)
+
+> 2026-11-07부터 기본은 0장의 비밀번호 잠금이다. 아래는 지인 공개 허락을 받은 뒤 이메일 인증으로 바꾸고 싶을 때 쓴다(카드 등록이 필요할 수 있음). Access로 바꿔도 비밀번호 잠금은 그대로 남는다.
 
 **이 단계를 끝내기 전에는 배포를 켜지 않는다.** Access를 걸지 않으면 주소를 아는 누구나 볼 수 있다.
 
@@ -67,7 +79,7 @@
 
 0. **지인을 넣을 때는 먼저 제공처 회신을 받는다.** Alpha Vantage(약관 2.a 서면 합의, 메일 초안 `docs/provider-requests/alphavantage-permission-email.md`)와 KRX(제11조② 제3자 제공 금지, 문의 문안 `docs/provider-inquiries.md` 1번). 운영자 혼자 보기(0장)는 회신 없이 켜도 된다.
 1. `league/config.json`에서 `"deploy_enabled": true`로 바꾸고 커밋한다.
-2. Actions → **league-deploy** → Run workflow로 첫 배포를 한다. 배포 전에 `isdceo-league.pages.dev`와 `*.isdceo-league.pages.dev`가 Access 로그인으로 넘어가는지 확인하고, 아니면 실패로 멈춘다.
+2. Actions → **league-deploy** → Run workflow로 첫 배포를 한다. 배포 전에 `SITE_PASSWORD` 설정을 확인하고, 배포 뒤 주소가 비밀번호를 요구하는지 확인한다. 둘 중 하나라도 아니면 실패로 멈춘다.
 3. 이후에는 매일(월~토) 11:00 KST에 자동 배포된다. 10:30 채점 뒤다.
 
 ## 5. 배포 뒤 점검
