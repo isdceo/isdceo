@@ -361,3 +361,26 @@ Tiingo 무료 플랜이 파생 결과물(점수)을 임시로만 두게 해서(8
 - 실제 키(GitHub Actions)로 2026-11-05 종가를 받았다: KO 95.73, APP 356.10, BKNG 168.72, BRK.B 572.33, SPY 733.00. 오류 없음, 약 2분(호출 간격 13초). 배당락일 당일 배당 기록은 아직 확인하지 못했다.
 - 화면 출처 표시는 "미국 종가·배당 — Alpha Vantage"로 바꿨다.
 - 지인 공개(`deploy_enabled`)는 여전히 꺼 둔다. Alpha Vantage 약관 2.a.i 해석이 필요하다.
+
+
+### 10.1 Alpha Vantage 약관 원문 확인 (2026-11-07)
+
+https://www.alphavantage.co/terms_of_service/ (PDF, 날짜 표기 없음) 전문을 읽었다. 법률 자문은 아니다.
+
+- **허용 범위(2.a):** "for personal, non-commercial use, unless you and Alpha Vantage have agreed otherwise in writing". 아래 넷 중 하나라도 해당하면 '상업 이용'이다.
+  - i. "any purpose that goes beyond investment analysis, research, testing, monitoring, and any other activities that are private and individual in nature"
+  - ii. 회사·단체 명의로 쓰는 경우
+  - iii. "as part of any type of commercial activity that allows individuals or entities other than User to access information directly or indirectly"
+  - iv. 금융 자문·보험·투자은행·증권 등 금융업 종사·소속
+- **없는 조항:** 저장·캐시 제한, 파생 결과물(계산한 점수) 제한, 재배포 금지 문구, 출처 표시 의무가 **없다**. 5.b는 사용자가 만든 데이터·콘텐츠의 권리는 사용자에게 있다고 한다.
+- **문의처:** 상업 이용 premium@alphavantage.co, 공지 support@alphavantage.co. 지원 페이지에는 "verified open-source or educational projects"는 호출 무제한이라는 안내도 있다.
+
+**이 리그에 대한 판단**
+
+| 쓰는 방식 | 판단 |
+|---|---|
+| 운영자 혼자 보는 현황판, 점수 저장 | 2.a 허용 범위(개인·비상업 연구·모니터링) 안 |
+| 두 AI 팀이 공유하는 결과 파일(점수만) | 운영자 개인 프로젝트 안의 일이라 허용 범위로 보는 것이 자연스럽다 |
+| **지인 30명에게 점수 공개** | iii(상업 활동)은 해당하지 않는다(돈·광고 없음). 다만 i의 "private and individual in nature"를 넘는다고 볼 여지가 있어 **약관만으로는 확실하지 않다** |
+
+**결정 제안:** 2.a가 "서면으로 따로 합의하면 예외"를 두고 있으므로, 지인 공개 전에 premium@alphavantage.co에 서면 허락을 요청한다(초안: `docs/provider-requests/alphavantage-permission-email.md`). 답을 받기 전까지 `deploy_enabled`는 끈 채로 둔다. 원 가격은 지금처럼 화면에 내지 않는다.
