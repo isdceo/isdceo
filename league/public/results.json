@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-06T09:54:34+09:00",
+ "generated_at": "2026-11-06T11:06:24+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -97,7 +97,32 @@
   }
  ],
  "standings": [],
- "team_daily": [],
+ "team_daily": [
+  {
+   "key": "연습|sandbox|2026-11-05",
+   "mode": "연습",
+   "team": "sandbox",
+   "date": "2026-11-05",
+   "sum": -3.58,
+   "cumulative": -3.58,
+   "n": 1,
+   "avg": -3.58,
+   "cum_avg": -3.58,
+   "cum_n": 1
+  },
+  {
+   "key": "연습|sandbox-claude|2026-11-05",
+   "mode": "연습",
+   "team": "로로 팀 (Claude)",
+   "date": "2026-11-05",
+   "sum": 24.5,
+   "cumulative": 24.5,
+   "n": 10,
+   "avg": 2.45,
+   "cum_avg": 2.45,
+   "cum_n": 10
+  }
+ ],
  "team_weeks": [],
  "picks": [
   {
@@ -110,10 +135,10 @@
    "market": "KR",
    "ticker": "033780",
    "name": "KT&G",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": 1.15,
+   "score_price_only": 1.15,
+   "score_excess": 6.43,
    "reason": ""
   },
   {
@@ -126,10 +151,10 @@
    "market": "US",
    "ticker": "KO",
    "name": "Coca-Cola",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": -0.07,
+   "score_price_only": -0.07,
+   "score_excess": 4.34,
    "reason": ""
   },
   {
@@ -142,10 +167,10 @@
    "market": "KR",
    "ticker": "033780",
    "name": "KT&G",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": 1.15,
+   "score_price_only": 1.15,
+   "score_excess": 6.43,
    "reason": ""
   },
   {
@@ -158,10 +183,10 @@
    "market": "US",
    "ticker": "BRK.B",
    "name": "Berkshire Hathaway",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": -1.17,
+   "score_price_only": -1.17,
+   "score_excess": 3.24,
    "reason": ""
   },
   {
@@ -174,10 +199,10 @@
    "market": "KR",
    "ticker": "033780",
    "name": "KT&G",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": 1.15,
+   "score_price_only": 1.15,
+   "score_excess": 6.43,
    "reason": ""
   },
   {
@@ -190,10 +215,10 @@
    "market": "US",
    "ticker": "BRK.B",
    "name": "Berkshire Hathaway",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": -1.17,
+   "score_price_only": -1.17,
+   "score_excess": 3.24,
    "reason": ""
   },
   {
@@ -206,10 +231,10 @@
    "market": "KR",
    "ticker": "003230",
    "name": "삼양식품",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": 3.2,
+   "score_price_only": 3.2,
+   "score_excess": 8.48,
    "reason": ""
   },
   {
@@ -222,10 +247,10 @@
    "market": "US",
    "ticker": "BKNG",
    "name": "Booking Holdings",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": -1.32,
+   "score_price_only": -1.32,
+   "score_excess": 3.09,
    "reason": ""
   },
   {
@@ -238,10 +263,10 @@
    "market": "KR",
    "ticker": "000660",
    "name": "SK하이닉스",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": -9.46,
+   "score_price_only": -9.46,
+   "score_excess": -4.18,
    "reason": ""
   },
   {
@@ -254,10 +279,10 @@
    "market": "US",
    "ticker": "APP",
    "name": "AppLovin",
-   "status": "pending",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
+   "status": "final",
+   "score": 31.04,
+   "score_price_only": 31.04,
+   "score_excess": 35.45,
    "reason": ""
   },
   {
