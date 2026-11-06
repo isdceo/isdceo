@@ -1,0 +1,51 @@
+# 한 줄 이유(lines/<날짜>-<팀>.json) push → 검사(--check-lines) → 공유 결과 묶음(results.json) 갱신·커밋
+# 영수증·채점과 무관하다. 검사에 실패한 파일은 묶음 갱신 때도 자동으로 걸러지지만, 실패를 알리기 위해 이 작업을 실패로 끝낸다.
+name: league-lines
+on:
+  push:
+    paths:
+      - 'league/lines/*.json'
+      - 'league/sandbox/lines/*.json'
+permissions:
+  contents: write
+concurrency:
+  group: league-ledger-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  lines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install -q -r requirements.txt
+      - name: Check changed line files
+        run: |
+          fail=0
+          for f in $(git diff --name-only HEAD~1 HEAD -- 'league/lines/*.json' 'league/sandbox/lines/*.json'); do
+            [ -e "$f" ] || continue
+            base=league; case "$f" in league/sandbox/*) base=league/sandbox;; esac
+            echo "== $f"; python3 tools/dashboard_data.py --check-lines "$f" --base "$base" || fail=1
+          done
+          echo "fail=$fail" >> "$GITHUB_ENV"
+      - name: Refresh shared results bundle
+        run: python3 tools/dashboard_data.py --bundle league/public/results.json   # 마감 전 종목·원 가격 제외, 섞이면 실패
+      - name: Commit bundle
+        run: |
+          git config user.name "league-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add league/public
+          if ! git diff --cached --quiet; then
+            git commit -q -m "league: results bundle (한 줄 이유 반영) for ${GITHUB_SHA::7}"
+            ok=0
+            for i in 1 2 3; do
+              git fetch -q origin "$GITHUB_REF_NAME" && git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && ok=1 && break
+              sleep $((i * 5))
+            done
+            [ "$ok" = 1 ] || exit 1
+          fi
+          [ "$fail" = 0 ] || { echo "::error::한 줄 이유 검사 실패 — 위 '문제:' 줄을 확인하세요"; exit 1; }
