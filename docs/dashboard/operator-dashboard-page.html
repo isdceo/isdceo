@@ -496,6 +496,7 @@
   const showTab = (name) => {
     document.querySelectorAll('.lg .tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
     document.querySelectorAll('.lg [data-page]').forEach((s) => { s.hidden = s.dataset.page !== name; });
+    if (window.syncTables) window.syncTables();     // 딜링 도중 탭을 오가도 처음부터 다시 재생되지 않게 이어 붙인다
     dash.setLink(name);
   };
   document.querySelectorAll('.lg .tab').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
@@ -1057,7 +1058,8 @@
   const PHONE = window.matchMedia('(max-width: 640px)');
   PHONE.addEventListener('change', () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (!el.closest('[hidden]')) { el._animReset = true; drawBaccarat(el); } }));
   // 딜링 애니메이션: 데이터가 나눠 도착해 여러 번 다시 그려도 끊기거나 처음부터 다시 시작하지 않게,
-  // 처음 보인 시각부터 이어서 진행한다(다시 그릴 때 각 요소의 animation-delay 를 지난 시간만큼 당긴다).
+  // 브라우저가 처음 시작한 시각(_animT0)을 기억해 두고, 다시 그리거나 숨었다 다시 보일 때 새로 생긴 애니메이션의
+  // startTime 을 그 시각에 맞춰 이어서 진행한다. 2.6초가 지나면 .anim 을 지워 끝 상태로 둔다.
   const ANIM_MS = 2600;
   const startedAt = (el) => {                     // 브라우저가 실제로 애니메이션을 시작한 시각(document.timeline 기준)
     const st = el.getAnimations({subtree: true}).map((x) => x.startTime).filter((x) => x != null);
@@ -1088,18 +1090,21 @@
       el._animTimer = setTimeout(() => finishAnim(el), Math.max(0, ANIM_MS - (document.timeline.currentTime - el._animT0)));
     });
   };
+  const syncAnim = (el) => {                       // 다시 그림·다시 보임: 새로 시작된 애니메이션을 처음 시작 시각에 맞춘다
+    if (el._animDone) return;
+    if (el._animT0 != null) el.getAnimations({subtree: true}).forEach((x) => { try { x.startTime = el._animT0; } catch (e) { /* 지원 안 하면 그냥 둔다 */ } });
+    armAnim(el);
+  };
+  window.syncTables = () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (el.classList.contains('anim') && !el.closest('[hidden]')) syncAnim(el); });
   window.replayTable = () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { el._animReset = true; drawBaccarat(el); });
   const drawBaccarat = (el) => {
     const an = animState(el);
     drawBaccaratBody(el, an.on);
     el.classList.toggle('anim', an.on);
     if (!an.on) { el.querySelectorAll('.anim').forEach((n) => n.classList.remove('anim')); return; }
-    if (el._animT0 != null) {                       // 다시 그림: 새 애니메이션의 시작 시각을 처음 시작 시각에 맞춰 이어서 진행(지연·건너뜀 없음)
-      el.getAnimations({subtree: true}).forEach((x) => { try { x.startTime = el._animT0; } catch (e) { /* 지원 안 하면 그냥 둔다 */ } });
-    }
-    armAnim(el);
+    syncAnim(el);                                   // 다시 그림: 처음 시작 시각에 맞춰 이어서 진행(지연·건너뜀 없음)
     if (!el._io && 'IntersectionObserver' in window) {   // 숨은 탭에서 그렸다가 나중에 보일 때 시작 시각을 잡는다
-      el._io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) armAnim(el); });
+      el._io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) syncAnim(el); });
       el._io.observe(el);
     }
   };
