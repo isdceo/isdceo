@@ -56,7 +56,7 @@ description: AI 투자 리그 게임 화면(league/play/src.html, 로로 팀 2.5
    ```
    python3 league/play/build.py <스크래치 폴더>
    node league/play/playtest.js <스크래치 폴더>          # 확인용 1배, 사용자에게 보여 줄 때는 --scale 2
-   python3 -m pytest -q tests/test_league.py tests/test_collectors.py
+   python3 -m unittest discover -s tests -q
    ```
    - `playtest.js`는 기기 6종(세로·가로·작은 폰·큰 폰·데스크톱·동작 줄이기)에서 다음 흐름을 해 보고 스크린샷을 `<폴더>/playtest/`에 남긴다.
      - 첫 화면 → 캐릭터 열기 → 카드 끝까지 밀어 공개 → Esc 닫기 → 메뉴 창 → 결과 쇼
