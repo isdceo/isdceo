@@ -211,14 +211,14 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   .teamtag{font-size:15px}
   .print .mid{font-size:13px}
   /* 쪼이기: 위 캐릭터, 아래 펠트 위 카드 */
-  .close .hero{left:0;right:0;margin:0 auto;bottom:56%;height:auto;width:min(80vw,40vh)}
-  .close .rail2{bottom:55%;height:5%}
-  .close .felt2{height:56%}
-  .close .name2{left:5%;bottom:auto;top:46.5%;font-size:20px}
-  .bubble{left:4%;right:4%;top:52%;font-size:15px;padding:.5em .8em}
+  .close .hero{left:0;right:0;margin:0 auto;bottom:61%;height:auto;width:min(72vw,36vh)}
+  .close .rail2{bottom:60%;height:4.5%}
+  .close .felt2{height:61%}
+  .close .name2{left:5%;bottom:auto;top:41%;font-size:19px}
+  .bubble{left:4%;right:4%;top:45.5%;font-size:15px;padding:.45em .8em;line-height:1.25}
   .bubble::before{left:22px;top:-16px;bottom:auto;border:9px solid transparent;border-bottom:14px solid #3a1a00;border-top:0}
-  .cards{left:3%;right:3%;bottom:12%;height:32%;gap:6%}
-  .slot2{width:min(40%,170px)}
+  .cards{left:3%;right:3%;bottom:10%;height:38%;gap:6%}
+  .slot2{width:min(40%,170px,calc((44dvh - 100px)*.85))}
   .act{bottom:auto;right:auto;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top))}
   .sheet{width:94vw;max-height:84vh}
   .steps{grid-template-columns:repeat(2,1fr)}
@@ -233,7 +233,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   .tier .print .mid{top:50%;color:rgba(255,244,210,.95);text-shadow:0 1px 3px #000}
   .bubble{margin-top:14px}
   .bubble::before{left:50%;margin-left:-9px}
-  .act{top:auto;right:auto;left:50%;transform:translateX(-50%);bottom:34.5%;padding:.35em .9em}
+  .act{top:auto;right:auto;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));padding:.35em 1.1em}
   .big .sc{font-size:clamp(16px,4.6vw,22px)}
 }
 @media (orientation:portrait) and (max-width:370px){.plate{--pf:10.5px!important;padding:.08em .35em}}
@@ -354,8 +354,8 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     if (PORTRAIT.matches) {
       const sTop = toMiddle(teamS), cBot = toMiddle(teamC);
       seats = [...sTop, ...cBot];
-      L.appendChild(tier({top: '8%', h: '41%', seats: sTop, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '78%', cardTop: 70, cw: '22px', pf: '12px', tags: [['s', '슈슈 팀 ♥', '50%', '2%']], chips: [[14, 40, 22, 4, 3], [86, 44, 22, 5, 1]]}, 0));
-      L.appendChild(tier({top: '43%', h: '50%', seats: cBot, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '80%', cardTop: 70, cw: '22px', pf: '12px', mid: midText(), tags: [['c', '♠ 로로 팀', '50%', '2%']], chips: [[12, 44, 22, 5, 0], [88, 40, 22, 3, 2], [22, 96, 80, 4, 2, true], [80, 98, 90, 4, 1, true]]}, 1));
+      L.appendChild(tier({top: 'max(8%, 84px)', h: '41%', seats: sTop, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '78%', cardTop: 70, cw: '22px', pf: '12px', tags: [['s', '슈슈 팀 ♥', '50%', '2%']], chips: [[14, 40, 22, 4, 3], [86, 44, 22, 5, 1]]}, 0));
+      L.appendChild(tier({top: '38%', h: '55%', seats: cBot, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '86%', cardTop: 70, cw: '22px', pf: '12px', mid: midText(), tags: [['c', '♠ 로로 팀', '50%', '20%']], chips: [[12, 44, 22, 5, 0], [88, 40, 22, 3, 2], [22, 96, 80, 4, 2, true], [80, 98, 90, 4, 1, true]]}, 1));
     } else {
       seats = [...toCenterRight(teamC), ...toCenterLeft(teamS)];
       L.appendChild(tier({top: '0', h: '100%', seats, x0: 5, xw: 80, w0: 19, w1: 5, unit: 'vw', cardTop: 73, mid: midText(), tags: [['c', '♠ 로로 팀', '25%', '21%'], ['s', '슈슈 팀 ♥', '66%', '21%']],
