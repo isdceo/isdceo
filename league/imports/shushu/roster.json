@@ -53,7 +53,8 @@
       "style_ref": "레이 달리오의 공개된 거시·경제 사이클 원칙 참고",
       "version": 1,
       "nickname": "나침반",
-      "avatar": "nachim"
+      "avatar": "nachim",
+      "tagline": "금리와 경기 흐름에서 기회를 찾는다"
     },
     {
       "id": "s7",
@@ -61,7 +62,8 @@
       "style_ref": "윌리엄 오닐의 공개된 가격·거래량 및 실적 모멘텀 원칙 참고",
       "version": 1,
       "nickname": "순풍",
-      "avatar": "sunpung"
+      "avatar": "sunpung",
+      "tagline": "가격과 거래량의 추세를 살핀다"
     }
   ]
 }

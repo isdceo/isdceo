@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-06T11:06:24+09:00",
+ "generated_at": "2026-11-06T11:15:32+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -622,7 +622,7 @@
    "name": "나침반 · 거시사이클형",
    "nickname": "나침반",
    "label": "거시사이클형",
-   "tagline": "",
+   "tagline": "금리와 경기 흐름에서 기회를 찾는다",
    "avatar": "nachim",
    "status": "대기 1순위",
    "version": 1,
@@ -636,7 +636,7 @@
    "name": "순풍 · 추세모멘텀형",
    "nickname": "순풍",
    "label": "추세모멘텀형",
-   "tagline": "",
+   "tagline": "가격과 거래량의 추세를 살핀다",
    "avatar": "sunpung",
    "status": "대기 2순위",
    "version": 1,
