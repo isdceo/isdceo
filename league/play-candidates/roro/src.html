@@ -236,6 +236,20 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   .act{top:auto;right:auto;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));padding:.35em 1.1em}
   .big .sc{font-size:clamp(16px,4.6vw,22px)}
 }
+#fz5{display:none}
+@media (orientation:portrait){
+  /* 세로: 아래쪽 청록 네온을 위쪽과 같은 분홍·주황 계열로 맞춰 한 홀처럼 */
+  .room .wall{background:
+    radial-gradient(60% 40% at 50% 4%,#ffcf8a 0%,#c06a3a 18%,rgba(90,30,80,0) 55%),
+    radial-gradient(45% 30% at 6% 62%,rgba(255,90,180,.45),rgba(0,0,0,0) 70%),
+    radial-gradient(45% 30% at 94% 58%,rgba(255,130,70,.42),rgba(0,0,0,0) 70%),
+    radial-gradient(30% 22% at 25% 28%,rgba(255,80,170,.45),rgba(0,0,0,0) 70%),
+    radial-gradient(30% 22% at 76% 26%,rgba(255,110,60,.45),rgba(0,0,0,0) 70%),
+    radial-gradient(50% 20% at 50% 55%,rgba(170,90,255,.25),rgba(0,0,0,0) 70%),
+    linear-gradient(180deg,#3a1846 0%,#2a1440 40%,#24123a 70%,#160c22 100%)}
+  .room .slot:not(.pk){background:linear-gradient(180deg,#ffb36a,#d0702e 40%,#3a1e14 41%,#1a0e0a);box-shadow:0 0 40px 10px rgba(255,150,70,.4)}
+}
+@media (orientation:portrait) and (max-aspect-ratio:1/2){#fz5{display:block;right:7%;bottom:36%;filter:blur(1.5px)}}
 @media (orientation:portrait) and (max-width:400px){.plate{--pf:10.5px!important;padding:.08em .35em}.plate::before{display:none}.plate.c{box-shadow:inset 3px 0 0 #ff8a3a,0 3px 0 #6e4a10,0 6px 10px rgba(0,0,0,.55)}.plate.s{box-shadow:inset 3px 0 0 #4ea2ff,0 3px 0 #6e4a10,0 6px 10px rgba(0,0,0,.55)}.plate.c.lead,.plate.s.lead{box-shadow:inset 3px 0 0 var(--tc),0 0 14px 3px #5dff8c}.plate.c.risk,.plate.s.risk{box-shadow:inset 3px 0 0 var(--tc),0 0 14px 3px #ff5c5c}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head>
@@ -254,7 +268,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   <div class="fine">모의 예측 게임 · 돈·베팅 없음 · 한국 시세: 한국거래소 통계정보</div>
   <div class="close" id="close" role="dialog" aria-modal="true" aria-label="카드 쪼이기">
     <div class="hero" id="hero"></div>
-    <div class="rail2"></div><div class="felt2"></div><div class="fz" id="fz1" style="left:22%;bottom:-8%"></div><div class="fz" id="fz3" style="left:4%;bottom:6%;filter:blur(1.5px)"></div><div class="fz" id="fz4" style="right:10%;bottom:20%;filter:blur(2px)"></div><div class="fz" id="fz2" style="right:-4%;bottom:-10%"></div>
+    <div class="rail2"></div><div class="felt2"></div><div class="fz" id="fz1" style="left:22%;bottom:-8%"></div><div class="fz" id="fz3" style="left:4%;bottom:6%;filter:blur(1.5px)"></div><div class="fz" id="fz4" style="right:10%;bottom:20%;filter:blur(2px)"></div><div class="fz" id="fz2" style="right:-4%;bottom:-10%"></div><div class="fz" id="fz5"></div>
     <div class="name2" id="name2"></div>
     <div class="bubble" id="bubble" aria-live="polite"></div>
     <div class="cards" id="cards"></div>
@@ -366,7 +380,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   PORTRAIT.addEventListener('change', () => { seed = 7; renderLobby(); });
 
   const fzChip = (el, k, d, h) => { for (let j = 0; j < h; j++) { const c = document.createElement('div'); c.className = 'chip'; c.style.setProperty('--d', d + 'px'); c.style.setProperty('--c', chipSet[k][0]); c.style.setProperty('--e', chipSet[k][1]); c.style.top = (-j * d * .12) + 'px'; c.style.left = d / 2 + 'px'; c.innerHTML = '<i></i>'; el.appendChild(c); } el.style.width = d + 'px'; el.style.height = d * .42 + 'px'; };
-  fzChip($('#fz1'), 0, 120, 5); fzChip($('#fz2'), 3, 110, 4); fzChip($('#fz3'), 1, 56, 6); fzChip($('#fz4'), 2, 50, 4);
+  fzChip($('#fz1'), 0, 120, 5); fzChip($('#fz2'), 3, 110, 4); fzChip($('#fz3'), 1, 56, 6); fzChip($('#fz4'), 2, 50, 4); fzChip($('#fz5'), 3, 46, 5);
 
   // ── 마감 타이머 ──
   const left = (ms) => { const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4); return (d ? d + '일 ' : '') + h + '시간 ' + m + '분'; };
