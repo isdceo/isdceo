@@ -137,10 +137,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0d0716;color:var(--in
 .big.glow-up .face{box-shadow:0 0 0 3px #ffd77a,0 0 26px 8px rgba(255,215,120,.75),0 18px 22px rgba(0,0,0,.55)}
 .big.glow-down .face{box-shadow:0 0 0 3px #ff8a7a,0 0 26px 8px rgba(255,90,80,.6),0 18px 22px rgba(0,0,0,.55)}
 .big .rays{position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:-1;pointer-events:none;border-radius:50%;opacity:0;
-  background:repeating-conic-gradient(rgba(255,226,140,.55) 0 8deg,transparent 8deg 22deg);-webkit-mask-image:radial-gradient(circle,#000 18%,transparent 62%);mask-image:radial-gradient(circle,#000 18%,transparent 62%)}
-.big.huge .rays{opacity:1;animation:rays 6s linear infinite}
-.big.huge.down .rays{background:repeating-conic-gradient(rgba(255,120,110,.45) 0 8deg,transparent 8deg 22deg)}
-@keyframes rays{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  background:radial-gradient(circle,rgba(255,226,140,.55),rgba(255,226,140,0) 58%)}
+.big.huge .rays{opacity:.8;animation:halo .9s ease-out 1 both}
+.big.huge.down .rays{background:radial-gradient(circle,rgba(255,130,120,.5),rgba(255,130,120,0) 58%)}
+@keyframes halo{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}45%{opacity:1}100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}}
 .bubble b em{font-style:normal;margin-right:.35em;padding:0 .4em;border-radius:6px;background:#ffd77a;color:#5a2a00}
 .bubble b em.dn{background:#ffc2b8;color:#7a1a10}
 /* 캐릭터 반응 */
@@ -150,9 +150,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0d0716;color:var(--in
 @keyframes slump{30%{transform:rotate(-3deg) translateY(2%)}60%{transform:rotate(2deg) translateY(3%)}100%{transform:translateY(3%)}}
 .close .hero.shrug{animation:pop .35s ease-out both,shrug .7s ease-in-out .35s 2}
 @keyframes shrug{50%{transform:translateY(-2%) rotate(1.5deg)}}
-.react{position:absolute;z-index:6;pointer-events:none;font-family:var(--disp);font-size:clamp(22px,4vw,40px);text-shadow:0 2px 0 rgba(0,0,0,.4);animation:reactUp 1.8s ease-out both}
+.react{position:absolute;left:50%;top:10%;z-index:6;pointer-events:none;white-space:nowrap;max-width:96%;overflow:hidden;font-family:var(--disp);font-size:clamp(16px,2.6vw,28px);
+  padding:.1em .6em;border-radius:999px;background:rgba(20,10,30,.6);text-shadow:0 2px 0 rgba(0,0,0,.4);animation:reactUp 1.8s ease-out both}
 .react.up{color:#ffe27a}.react.dn{color:#9fd8ff}.react.eq{color:#fff}
-@keyframes reactUp{0%{opacity:0;transform:translateY(10px) scale(.6)}20%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-24px)}}
+@keyframes reactUp{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}20%{opacity:1;transform:translateX(-50%)}80%{opacity:1;transform:translateX(-50%)}100%{opacity:0;transform:translate(-50%,-24px)}}
 /* 누를 때 눌림 */
 .plate:active,.act:active,.x:active,.timer:active{transform:translate(-50%,-50%) perspective(300px) rotateX(22deg) scale(.94)}
 .act:active,.x:active,.timer:active{transform:scale(.94)}
@@ -423,7 +424,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   const buzz = (pat) => { try { if (!reduce && navigator.vibrate) navigator.vibrate(pat); } catch (e) { /* 지원 안 함 */ } };
   const cardsEl = $('#cards'), bubble = $('#bubble'), act = $('#act');
   let typing = null, cur = null, opener = null, openerNick = null, fromSheet = null;
-  const say = (p, mk) => { const line = `“${p.line || p.name + ', 이번 판은 이걸로 간다!'}”`; const big = p.status === 'final' && p.score != null && Math.abs(p.score) >= 5; bubble.innerHTML = `<b>${big ? `<em class="${p.score > 0 ? '' : 'dn'}">${p.score > 0 ? '대박!' : '아이고…'}</em>` : ''}${mk === 'KR' ? '♦' : '♣'} ${esc(p.name || p.ticker)}</b><span></span>`; bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
+  const say = (p, mk) => { const line = `“${p.line || p.name + ', 이번 판은 이걸로 간다!'}”`; const big = p.status === 'final' && p.score != null && Math.abs(p.score) >= 5; bubble.innerHTML = `<b>${big ? `<em class="${p.score > 0 ? '' : 'dn'}">${p.score > 0 ? '크게 올랐어!' : '크게 내렸어…'}</em>` : ''}${mk === 'KR' ? '♦' : '♣'} ${esc(p.name || p.ticker)}</b><span></span>`; bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
     bubble._line = line; const sp = bubble.querySelector('span'), ch = [...line]; let k = 0; clearInterval(typing); if (reduce || fast) { sp.textContent = line; return; } typing = setInterval(() => { sp.textContent = ch.slice(0, ++k).join(''); if (k >= ch.length) clearInterval(typing); }, 30); };
   const mono = (t) => { let h = 0; for (const c of String(t)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 55% 42%)`; };
   const react = () => {   // 두 장을 다 열면 캐릭터가 확정 점수 평균에 따라 반응
@@ -431,9 +432,9 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     if (!xs.length || !cur) return;
     const avg = xs.reduce((a, b) => a + b, 0) / xs.length, kind = avg > .2 ? 'cheer' : avg < -.2 ? 'slump' : 'shrug';
     const hero = $('#hero'); hero.classList.remove('cheer', 'slump', 'shrug'); void hero.offsetWidth; hero.classList.add(kind);
-    const r = hero.getBoundingClientRect(), box = $('#close').getBoundingClientRect(), tag = document.createElement('span');
+    hero.querySelectorAll('.react').forEach((x) => x.remove()); const tag = document.createElement('span');   // 주인공 안(머리 위)에 붙여 말풍선과 겹치지 않고, 화면을 돌려도 따라간다
     tag.className = 'react ' + (kind === 'cheer' ? 'up' : kind === 'slump' ? 'dn' : 'eq'); tag.textContent = kind === 'cheer' ? '✦ 좋았어! ✦' : kind === 'slump' ? '…휴' : '흠, 본전';
-    tag.style.left = Math.min(box.width - 200, r.left - box.left + r.width * .6) + 'px'; tag.style.top = Math.max(12, r.top - box.top + r.height * .22) + 'px'; $('#close').appendChild(tag); setTimeout(() => tag.remove(), 1900);
+    hero.appendChild(tag); setTimeout(() => tag.remove(), 1900);
   };
   const refreshAct = () => { const cs = [...cardsEl.querySelectorAll('.big')].filter((c) => c._play), all = cs.every((c) => c._t() >= 1); act.textContent = all ? '다음 사람 ▶' : '모두 공개'; if (all && cs.length && !cardsEl._reacted) { cardsEl._reacted = true; setTimeout(react, 350 * SP()); } };
   function open(a, from) {
@@ -484,7 +485,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     });
     refreshAct(); game.classList.add('zoomed'); $('#x').focus();
   }
-  const shut = (quiet) => { if (!game.classList.contains('zoomed')) return; const nick = cur ? cur.nickname : openerNick; game.classList.remove('zoomed'); clearInterval(typing); cur = null; if (quiet) return;
+  const shut = (quiet) => { if (!game.classList.contains('zoomed')) return; const nick = cur ? cur.nickname : openerNick; game.classList.remove('zoomed'); clearInterval(typing); cur = null; document.querySelectorAll('#close .react').forEach((x) => x.remove()); $('#hero').classList.remove('cheer', 'slump', 'shrug'); if (quiet) return;
     if (fromSheet) { const k = fromSheet; fromSheet = null; openSheet(k, nick, true); return; }
     if (opener && opener.isConnected) { opener.focus(); return; }
     const again = [...document.querySelectorAll('#lobby .who')].find((b) => b.getAttribute('aria-label') === `${nick} 카드 보기`) || document.querySelector('.dock button'); if (again) again.focus(); };
