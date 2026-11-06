@@ -1076,20 +1076,16 @@
     el.classList.remove('anim');
     el.querySelectorAll('.anim').forEach((n) => n.classList.remove('anim'));
   };
-  const armAnim = (el) => {                        // 실제 시작 시각을 잡고, 끝날 때 정리 예약
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+  const armAnim = (el) => {                        // 브라우저가 애니메이션을 실제로 시작하면(ready) 시작 시각을 잡고, 끝날 때 정리 예약
+    if (el._animDone) return;
+    const an = el.getAnimations({subtree: true});
+    if (!an.length) return;                        // 숨어 있음: 보일 때(IntersectionObserver) 다시
+    Promise.all(an.map((x) => x.ready.catch(() => null))).then(() => {
       if (el._animDone) return;
       if (el._animT0 == null) el._animT0 = startedAt(el);
-      if (el._animT0 == null) return;              // 숨어 있음: 보일 때 다시 잰다
+      if (el._animT0 == null) return;
       clearTimeout(el._animTimer);
       el._animTimer = setTimeout(() => finishAnim(el), Math.max(0, ANIM_MS - (document.timeline.currentTime - el._animT0)));
-    }));
-  };
-  const shiftDelays = (el, e) => {
-    if (!e) return;
-    el.querySelectorAll('.dealt, .chips, .mseat').forEach((n) => {
-      const d = parseFloat(n.style.animationDelay) || 0;
-      n.style.animationDelay = `${(d - e).toFixed(3)}s`;
     });
   };
   window.replayTable = () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { el._animReset = true; drawBaccarat(el); });
@@ -1098,7 +1094,9 @@
     drawBaccaratBody(el, an.on);
     el.classList.toggle('anim', an.on);
     if (!an.on) { el.querySelectorAll('.anim').forEach((n) => n.classList.remove('anim')); return; }
-    shiftDelays(el, an.e);
+    if (el._animT0 != null) {                       // 다시 그림: 새 애니메이션의 시작 시각을 처음 시작 시각에 맞춰 이어서 진행(지연·건너뜀 없음)
+      el.getAnimations({subtree: true}).forEach((x) => { try { x.startTime = el._animT0; } catch (e) { /* 지원 안 하면 그냥 둔다 */ } });
+    }
     armAnim(el);
     if (!el._io && 'IntersectionObserver' in window) {   // 숨은 탭에서 그렸다가 나중에 보일 때 시작 시각을 잡는다
       el._io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) armAnim(el); });
