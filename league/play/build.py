@@ -1,6 +1,6 @@
-"""로로 팀 3D 느낌 게임 화면 시안을 만든다.
+"""채택된 게임 화면(로로 팀 2.5D)을 따로 만들어 볼 때 쓴다. 배포는 tools/league.py build-site 가 같은 파일로 한다.
 
-  python3 league/play-candidates/roro/build.py <출력 폴더>
+  python3 league/play/build.py <출력 폴더>
 
 - src.html 에 2D 캐릭터 정의(운영자 현황판의 SVG defs)를 넣어 index.html 을 만들고,
   3D 캐릭터 그림(av/)과 공유 결과 묶음(data/table.js, 마감 지난 종목·점수만)을 함께 둔다.

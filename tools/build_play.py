@@ -3,8 +3,9 @@
 
   python3 tools/build_play.py <출력 폴더>      # play.html 과 data/table.js (지인 배포 build-site 에서는 index.html 로 이름이 바뀜)
 
-- 화면: 운영 현황판 페이지(docs/dashboard/operator-dashboard-page.html)의 "테이블" 탭과 캐릭터 프로필만 가져온다.
+- 화면: 채택된 게임 화면 league/play/src.html(로로 팀 2.5D, 2026-11-06 운영자 선택)과 3D 캐릭터 그림 league/play/av/.
   운영 탭·영수증 세부·제공처 상태·회사 로고는 넣지 않는다.
+  (page_html()은 예전 2D 화면이다. 비교·되돌리기용으로만 남겨 둔다.)
 - 데이터: 두 팀 공유용 결과 묶음(dashboard_data.bundle)과 라운드 달력만 싣는다.
   bundle()이 마감 전 종목·원 가격이 섞이면 실패하므로 같은 안전장치를 그대로 쓴다.
 - 지인 공개(deploy_enabled)는 데이터 제공처 확인 뒤에 켠다(docs/data-provider-research.md 8장).
@@ -270,14 +271,27 @@ def table_data(now: datetime | None = None, base: Path | None = None) -> dict:
     return out
 
 
+GAME = L.ROOT / "league" / "play"          # 채택된 게임 화면(로로 팀 2.5D, 2026-11-06 운영자 선택)
+
+
+def game_html() -> str:
+    """league/play/src.html 에 2D 캐릭터 정의(대체용)를 넣은 게임 화면."""
+    src = PAGE.read_text()
+    defs = _between(src, '<svg width="0" height="0"', "</defs></svg>", include_end=True)
+    return (GAME / "src.html").read_text().replace("{{DEFS}}", defs)
+
+
 def build(out: Path, now: datetime | None = None, base: Path | None = None) -> list[Path]:
-    """base: 실전 원장 폴더(기본 league/). 화면 파일 play.html 과 data/table.js 를 만든다(배포에서는 build_site가 play.html 을 index.html 로 바꾼다)."""
+    """base: 실전 원장 폴더(기본 league/). 화면 파일 play.html, data/table.js, 3D 캐릭터 그림(av/)을 만든다
+    (배포에서는 build_site가 play.html 을 index.html 로 바꾼다)."""
+    import shutil
     data = table_data(now, base)
     (out / "data").mkdir(parents=True, exist_ok=True)
     js = out / "data" / "table.js"
     js.write_text("window.TABLE = " + json.dumps(data, ensure_ascii=False) + ";\n")
+    shutil.copytree(GAME / "av", out / "av", dirs_exist_ok=True)
     html = out / "play.html"
-    html.write_text(page_html(data["generated_at"]))
+    html.write_text(game_html())
     return [html, js]
 
 
