@@ -140,7 +140,7 @@ button,.who,.plate,.pair,.big,.row{touch-action:manipulation}
 @keyframes cardShake{20%,80%{transform:rotateX(46deg) rotateZ(var(--rz,-4deg)) translateX(-3px)}40%,60%{transform:rotateX(46deg) rotateZ(var(--rz,-4deg)) translateX(4px)}}
 .big.glow-up .face{box-shadow:0 0 0 3px #ffd77a,0 0 26px 8px rgba(255,215,120,.75),0 18px 22px rgba(0,0,0,.55)}
 .big.glow-down .face{box-shadow:0 0 0 3px #ff8a7a,0 0 26px 8px rgba(255,90,80,.6),0 18px 22px rgba(0,0,0,.55)}
-.big .rays{position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:-1;pointer-events:none;border-radius:50%;opacity:0;
+.big .rays{will-change:transform,opacity;position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:-1;pointer-events:none;border-radius:50%;opacity:0;
   background:radial-gradient(circle,rgba(255,226,140,.55),rgba(255,226,140,0) 58%)}
 .big.huge .rays{opacity:.8;animation:halo .9s ease-out 1 both}
 .big.huge.down .rays{background:radial-gradient(circle,rgba(255,130,120,.5),rgba(255,130,120,0) 58%)}
@@ -175,7 +175,8 @@ button,.who,.plate,.pair,.big,.row{touch-action:manipulation}
 .big .peek[data-m="up"]{box-shadow:0 0 14px 6px rgba(61,255,138,.75)}.big .peek[data-m="dn"]{box-shadow:0 0 14px 6px rgba(255,90,74,.75)}
 .big .peek[data-m="up"]{background:linear-gradient(90deg,transparent,#3dff8a,transparent)}
 .big .peek[data-m="dn"]{background:linear-gradient(90deg,transparent,#ff5a4a,transparent)}
-.big .peek[data-m="eq"],.big .peek[data-m="na"]{background:linear-gradient(90deg,transparent,#ffe9a8,transparent)}
+.big .peek[data-m="na"]{background:linear-gradient(90deg,transparent,#c9c4d6,transparent)!important}
+.big .peek[data-m="eq"]{background:linear-gradient(90deg,transparent,#ffe9a8,transparent)}
 .big .flap::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(rgba(0,0,0,.35),transparent)}
 .hint{margin-top:4px;font-size:clamp(10px,1.25vw,12px);max-width:100%;overflow:hidden;text-overflow:ellipsis;color:#fff;background:rgba(10,20,12,.6);padding:.15em .6em;border-radius:999px;white-space:nowrap;text-shadow:0 1px 2px #000;min-height:1.3em}
 .bubble{position:absolute;left:30%;right:12%;top:5%;z-index:4;padding:.6em 1em;border-radius:18px;background:#fffaf0;color:#2a1a10;font-family:var(--disp);font-size:clamp(14px,2.2vw,21px);line-height:1.3;
@@ -385,6 +386,8 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 /* 휴대폰: 손가락 기기에서는 무거운 흐림 효과를 줄이고(배터리·부드러움), 글자를 키운다 */
 @media (pointer:coarse){
   .who{will-change:transform}
+  .big{will-change:transform}
+  .plate{padding-top:.32em;padding-bottom:.34em}
   .who .fig{filter:drop-shadow(0 8px 10px rgba(0,0,0,.55))}
   .chipbtn.snd{width:42px}
   .x{width:46px;height:46px}
@@ -626,7 +629,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
         flap.style.transformOrigin = '50% 100%'; flap.style.transform = `perspective(380px) rotateX(${(-34 * Math.min(1, t * 2)).toFixed(1)}deg) scaleX(${(1 + .025 * Math.min(1, t * 2)).toFixed(3)})`;
         hint.textContent = t >= 1 ? `${mk === 'KR' ? '♦' : '♣'} ${p.name || p.ticker} 공개!` : t > .82 ? '거의 다 왔어!' : t > .5 ? '이름이 보인다…' : t > 0 ? '조금 더…' : '밀어서 쪼이기';
         // 엿보기: 70% 넘게 젖히면 접힌 선에 색이 비친다(초록=상승 기미, 빨강=하락 기미). 점수 숫자는 다 열어야 나온다
-        peek.style.bottom = r + '%'; peek.style.opacity = t > .7 && t < 1 ? Math.min(1, (t - .7) / .2) : 0;
+        peek.style.bottom = r + '%'; peek.style.opacity = !c._auto && t > .7 && t < 1 ? Math.min(1, (t - .7) / .2) : 0;   // 자동 공개(탭·모두 공개)에서는 엿보기 띠를 생략
         const q = Math.floor(t * 4); if (q > lastTick && t < 1) { buzz(5); sfx('tick'); } lastTick = q;
         scEl.classList.toggle('on', t >= 1); c.classList.toggle('won', t >= 1);
         if (t >= 1 && !said) { said = true; reveal(); say(p, mk); refreshAct(); } };
@@ -642,10 +645,10 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
         requestAnimationFrame(roll);
       };
       const ease = (u) => u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
-      const play = (to, ms, hold) => { cancelAnimationFrame(anim); if (reduce) { set(to); return; } ms *= SP(); if (fast) hold = null; const steps = hold != null && t < hold ? [[t, hold, ms * .55], [hold, hold, 300], [hold, to, ms * .45]] : [[t, to, ms]]; if (hold != null && t < hold) setTimeout(() => buzz(10), ms * .55); let si = 0, t0 = performance.now();
+      const play = (to, ms, hold) => { c._auto = true; cancelAnimationFrame(anim); if (reduce) { set(to); return; } ms *= SP(); if (fast) hold = null; const steps = hold != null && t < hold ? [[t, hold, ms * .55], [hold, hold, 300], [hold, to, ms * .45]] : [[t, to, ms]]; if (hold != null && t < hold) setTimeout(() => buzz(10), ms * .55); let si = 0, t0 = performance.now();
         const f = (now) => { const [a0, a1, d] = steps[si], u = Math.min(1, (now - t0) / d); set(a0 + (a1 - a0) * ease(u)); if (u >= 1) { si++; t0 = now; if (si >= steps.length) return; } anim = requestAnimationFrame(f); }; anim = requestAnimationFrame(f); };
       c._play = play; c._t = () => t; c._skip = () => { if (t < 1) { cancelAnimationFrame(anim); set(1); } }; let drag = null;
-      c.onpointerdown = (e) => { buzz(8); sfx('tap'); cancelAnimationFrame(anim); drag = {y: e.clientY, t, h: c.getBoundingClientRect().height, moved: false}; c.setPointerCapture(e.pointerId); };
+      c.onpointerdown = (e) => { c._auto = false; buzz(8); sfx('tap'); cancelAnimationFrame(anim); drag = {y: e.clientY, t, h: c.getBoundingClientRect().height, moved: false}; c.setPointerCapture(e.pointerId); };
       c.onpointermove = (e) => { if (!drag) return; const dy = drag.y - e.clientY; if (Math.abs(dy) > 4) drag.moved = true; if (drag.moved) set(drag.t + dy / drag.h); };
       c.onpointerup = () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { if (t < 1) play(1, 1400, t < .3 ? .3 : null); else say(p, mk); } else if (t > .55) play(1, 260); };
       c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (t < 1) play(1, 1400, .3); else say(p, mk); } };
@@ -831,7 +834,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     game.appendChild(box);
     const below = r.top + r.height / 2 < g.height * .55;
     box.style.left = (r.left - g.left + r.width / 2) + 'px'; box.style.top = (r.top - g.top + r.height / 2 - R / 2) + 'px'; box.style.transform = 'translateX(-50%)';
-    if (!below) { box.style.flexDirection = 'column-reverse'; box.style.top = 'auto'; box.style.bottom = (g.bottom - r.bottom + r.height / 2 - R / 2) + 'px'; }
+    if (!below) { box.style.flexDirection = 'column-reverse'; box.style.top = 'auto'; box.style.bottom = (g.bottom - r.bottom + r.height / 2 - R / 2 + 12) + 'px'; }
     const tipEl = box.querySelector('.tip'), tr = tipEl.getBoundingClientRect(), pad = 10;   // 말풍선이 화면 밖으로 나가지 않게 옆으로 민다
     const shift = tr.left < g.left + pad ? g.left + pad - tr.left : tr.right > g.right - pad ? g.right - pad - tr.right : 0; if (shift) tipEl.style.transform = `translateX(${shift}px)`;
     // 안내는 손동작을 막지 않는다: 아무 곳이나 처음 누르면 안내만 사라지고, 그 누름(캐릭터 열기·카드 밀기)은 그대로 동작한다
