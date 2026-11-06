@@ -1020,8 +1020,8 @@
   };
   // SVG 종목 카드: 모서리에 시장·문양, 가운데 종목명, 아래 점수. p가 없으면 뒷면
   const stockCard = (g, x, y, w, h, p, opts = {}) => {
-    const c = g.append('g').attr('class', 'dealt').style('animation-delay', `${opts.delay || 0}s`).style('--dx', `${opts.dx || 0}px`);
-    if (opts.rot) c.attr('transform', `rotate(${opts.rot} ${x + w / 2} ${y + h / 2})`);
+    const holder = opts.rot ? g.append('g').attr('transform', `rotate(${opts.rot} ${x + w / 2} ${y + h / 2})`) : g;   // 회전은 바깥에
+    const c = holder.append('g').attr('class', 'dealt').style('animation-delay', `${opts.delay || 0}s`).style('--dx', `${opts.dx || 0}px`);
     c.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', h).attr('rx', w * 0.1).attr('fill', p ? '#fff' : '#7a1e1e')
       .attr('stroke', p ? '#c9c2b2' : '#f4ecd6').attr('stroke-width', p ? 1 : 2.2);
     if (!p) {
@@ -1055,16 +1055,35 @@
     return c;
   };
   const PHONE = window.matchMedia('(max-width: 640px)');
-  PHONE.addEventListener('change', () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (!el.closest('[hidden]')) { el._animT0 = null; drawBaccarat(el); } }));
+  PHONE.addEventListener('change', () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (!el.closest('[hidden]')) { el._animReset = true; drawBaccarat(el); } }));
   // 딜링 애니메이션: 데이터가 나눠 도착해 여러 번 다시 그려도 끊기거나 처음부터 다시 시작하지 않게,
   // 처음 보인 시각부터 이어서 진행한다(다시 그릴 때 각 요소의 animation-delay 를 지난 시간만큼 당긴다).
   const ANIM_MS = 2600;
+  const startedAt = (el) => {                     // 브라우저가 실제로 애니메이션을 시작한 시각(document.timeline 기준)
+    const st = el.getAnimations({subtree: true}).map((x) => x.startTime).filter((x) => x != null);
+    return st.length ? Math.min(...st) : null;
+  };
   const animState = (el) => {
-    const now = performance.now();
-    const shown = !el.closest('[hidden]') && el.getClientRects().length > 0;
-    if (el._animT0 == null) { if (!shown) return {on: true, e: 0}; el._animT0 = now; }
-    const e = now - el._animT0;
+    if (el._animReset) { el._animReset = false; el._animT0 = null; el._animDone = false; clearTimeout(el._animTimer); return {on: true, e: 0}; }
+    if (el._animDone) return {on: false, e: 0};
+    if (el._animT0 == null) el._animT0 = startedAt(el);
+    if (el._animT0 == null) return {on: true, e: 0};          // 아직 화면에 안 보여 시작 전
+    const e = document.timeline.currentTime - el._animT0;
     return {on: e < ANIM_MS, e: e / 1000};
+  };
+  const finishAnim = (el) => {                     // 끝나면 .anim 을 지워, 탭을 오가거나 다시 그려도 재생·튐이 없게
+    el._animDone = true;
+    el.classList.remove('anim');
+    el.querySelectorAll('.anim').forEach((n) => n.classList.remove('anim'));
+  };
+  const armAnim = (el) => {                        // 실제 시작 시각을 잡고, 끝날 때 정리 예약
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (el._animDone) return;
+      if (el._animT0 == null) el._animT0 = startedAt(el);
+      if (el._animT0 == null) return;              // 숨어 있음: 보일 때 다시 잰다
+      clearTimeout(el._animTimer);
+      el._animTimer = setTimeout(() => finishAnim(el), Math.max(0, ANIM_MS - (document.timeline.currentTime - el._animT0)));
+    }));
   };
   const shiftDelays = (el, e) => {
     if (!e) return;
@@ -1073,11 +1092,18 @@
       n.style.animationDelay = `${(d - e).toFixed(3)}s`;
     });
   };
+  window.replayTable = () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { el._animReset = true; drawBaccarat(el); });
   const drawBaccarat = (el) => {
     const an = animState(el);
     drawBaccaratBody(el, an.on);
     el.classList.toggle('anim', an.on);
-    if (an.on) shiftDelays(el, an.e);
+    if (!an.on) { el.querySelectorAll('.anim').forEach((n) => n.classList.remove('anim')); return; }
+    shiftDelays(el, an.e);
+    armAnim(el);
+    if (!el._io && 'IntersectionObserver' in window) {   // 숨은 탭에서 그렸다가 나중에 보일 때 시작 시각을 잡는다
+      el._io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) armAnim(el); });
+      el._io.observe(el);
+    }
   };
   const drawBaccaratBody = (el, first) => {
     const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');

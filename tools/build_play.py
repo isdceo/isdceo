@@ -250,6 +250,7 @@ def page_html(generated_at: str) -> str:
   document.querySelector('[data-portrait]').addEventListener('click', () => {{
     document.documentElement.classList.add('portrait-ok');
     try {{ localStorage.setItem(pk, '1'); }} catch (e) {{}}
+    if (window.replayTable) window.replayTable();
     const d = document.querySelector('.lg .profile.open') || document.querySelector('.sheet.open');
     const t = d ? d.querySelector('.pclose, .x') : document.querySelector('.hudbar .mini');
     if (t) t.focus({{preventScroll: true}});
