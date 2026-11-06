@@ -384,3 +384,23 @@ https://www.alphavantage.co/terms_of_service/ (PDF, 날짜 표기 없음) 전문
 | **지인 30명에게 점수 공개** | iii(상업 활동)은 해당하지 않는다(돈·광고 없음). 다만 i의 "private and individual in nature"를 넘는다고 볼 여지가 있어 **약관만으로는 확실하지 않다** |
 
 **결정 제안:** 2.a가 "서면으로 따로 합의하면 예외"를 두고 있으므로, 지인 공개 전에 premium@alphavantage.co에 서면 허락을 요청한다(초안: `docs/provider-requests/alphavantage-permission-email.md`). 답을 받기 전까지 `deploy_enabled`는 끈 채로 둔다. 원 가격은 지금처럼 화면에 내지 않는다.
+
+## 11. 상업적 이용으로 바꿀 때 드는 비용 (2026-11-07 조사)
+
+법률 자문이 아니다. 공개된 요금표만 정리했고, 상업용 재배포(남에게 보여 주기) 요금은 대부분 비공개라 견적을 받아야 한다. 환율은 1달러 약 1,360원으로 계산.
+
+| 자료 | 공개된 요금 | 남에게 보여 주는 권리 | 비고 |
+|---|---|---|---|
+| Alpha Vantage (미국 종가·배당) | 프리미엄 월 49.99~249.99달러(연 499~2,499달러) — https://www.alphavantage.co/premium/ | 프리미엄은 호출 한도만 늘린다. 상업 이용은 약관 2.a대로 서면 합의(premium@alphavantage.co), 금액 비공개 | 제3자 사이트의 "상업용 월 499~2,499달러"는 연간 요금을 잘못 읽은 것으로 보임 |
+| KRX (한국 종가) | 비공개. 코스콤 정보이용계약, 기본료+변동료. "옵션 3 웹사이트 체결가서비스용"은 사용자 수와 관계없이 정액제 | 계약하면 가능(호가 제외, 조회형만, 이용자가 저장·재배포할 도구 제공 금지) | 사업자등록증 필요, 거래소 승인 필요. 계약은 연 단위 자동 연장. 과거 보도의 실시간 체결정보 예: 유가증권 월 150만원, 코스닥 월 75만원(오래된 자료, 종가용 아님) |
+| OpenDART (공시) | 무료 | 약관에 비상업 한정·재배포 금지 조항을 찾지 못함 | 추가 비용 없을 것으로 보임(약관 원문 재확인 필요) |
+| Tiingo (예비) | Commercial 월 50달러(내부 이용만) | 재배포는 별도 계약. 펀더멘털 재배포 월 200/500달러 표기가 있으나 어느 상품인지 불명확 | |
+| Massive(옛 Polygon) Business | 미국 주식 피드 월 1,999달러 표기(블로그, 같은 상품인지 미확인) | "무제한 최종 이용자에게 배포" 라이선스 | 대안 |
+| Twelve Data 상업 플랜 | 비공개(개인 Grow 79달러부터) | 외부 표시는 별도 권리 | 대안 |
+
+정리:
+- 미국만 보면 최소 월 수만~수십만원대(Alpha Vantage 견적에 따라), 재배포가 명시된 대안은 월 270만원 안팎.
+- 한국은 코스콤 계약이 필요해 개인 비영리 리그로는 계약 자체가 어렵고, 금액은 견적을 받아야 한다.
+- 이 리그는 돈을 받지 않는 지인용이라 상업 라이선스가 필요한 경우가 아니다. 먼저 무료인 서면 허락 요청(Alpha Vantage, KRX)으로 확인한다.
+
+출처: Alpha Vantage 프리미엄 페이지(위), KRX OPEN API 데이터 수신방법·라이센스 페이지 https://openapi.krx.co.kr/contents/OPP/DATA/OPPDATA003.jsp , https://openapi.krx.co.kr/contents/OPP/DATA/OPPDATA004.jsp , KRX 정보이용 정책서 http://data.krx.co.kr/inc/datasale/Market%20Data%20Usage%20Polices_ko.pdf , 상품 브로셔 http://data.krx.co.kr/inc/datasale/Market%20Data%20Product%20Brochure.pdf , 코스콤 FAQ https://www.koscom.co.kr/portal/main/contents.do?menuNo=200407 , 코스콤 보도해명 https://m.koscom.co.kr/mobile/bbs/B0000006/view.do?nttId=10104&delcode=0&menuNo=400104&pageIndex=29 , Tiingo https://api.tiingo.com/products/fundamental-data-api , https://www.tiingo.com/documentation/appendix/developers , Massive https://massive.com/blog/introducing-poly-feed-us-stocks-data
