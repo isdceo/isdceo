@@ -210,37 +210,43 @@ function zbar(v, max) {
 }
 
 function renderLeague() {
-  const weeks = Object.keys(L.weekly[state.team] || {}).sort();
-  const W = (L.weekly[state.team] || {})[state.week];
+  // 규칙 v1.8: 두 팀 현역 10명을 한 줄로 세운 통합 순위, 주간 꼴등 1명 탈락. (L.league 가 없으면 예전 팀별 순위)
+  const LGW = L.league || {};
+  const weeks = (Object.keys(LGW).length ? Object.keys(LGW) : Object.keys(L.weekly[state.team] || {})).sort();
+  if (!state.week || !weeks.includes(state.week)) state.week = weeks[weeks.length - 1];
+  const LG = LGW[state.week];
+  const W = LG ? {ranking: LG.ranking, decision: LG.decision} : (L.weekly[state.team] || {})[state.week];
   const days = [...new Set(L.picks.filter(p => p.team === state.team).map(p => p.round_date))]
     .filter(d => W && weekOf(d) === state.week).sort();
   if (!state.day || !days.includes(state.day)) state.day = days[days.length - 1];
   const maxAbs = Math.max(...(W?.ranking || []).map(r => Math.abs(r.avg ?? 0)), 0.01);
   const dec = W?.decision || {};
-  const elim = dec.eliminate ? agentInfo(state.team, dec.eliminate) : null;
-  const repl = dec.replacement ? agentInfo(state.team, dec.replacement) : null;
+  const elimTeam = dec.eliminate_team || state.team;
+  const elim = dec.eliminate ? agentInfo(elimTeam, dec.eliminate) : null;
+  const repl = dec.replacement ? agentInfo(elimTeam, dec.replacement) : null;
+  const isOut = r => r.agent_id === dec.eliminate && (r.team || state.team) === elimTeam;
 
   $('#view').innerHTML = `
     <div class="row" style="margin-bottom:12px">
-      <div class="seg" id="teamSeg">${TEAMS.map(t => `<button data-team="${t}" aria-pressed="${t === state.team}">${esc(teamLabel(t))}</button>`).join('')}</div>
       <select id="weekSel" aria-label="주차">${weeks.map(w => `<option ${w === state.week ? 'selected' : ''}>${w}</option>`).join('')}</select>
     </div>
     ${W ? `
     <div class="callout ${elim ? '' : 'info'}">
-      ${elim ? `<b>이번 주 탈락: ${esc(agentName(elim))}</b> → ${repl ? `승인된 대기 후보 <b>${esc(agentName(repl))}</b>가 다음 월요일 07:05부터 참가` : '승인된 대기 후보 없음 — 자리 비움'}`
-             : dec.hold_reasons?.length ? `<b>교체 보류</b>: ${dec.hold_reasons.map(esc).join(' · ')}` : '집계 전'}
+      ${elim ? `<b>이번 주 탈락: ${esc(agentName(elim))}</b> <span class="sub">(${esc(teamLabel(elimTeam))})</span> → ${repl ? `승인된 대기 후보 <b>${esc(agentName(repl))}</b>가 다음 월요일 07:05부터 참가` : '승인된 대기 후보 없음 — 자리 비움'}`
+             : dec.hold_reasons?.length ? `<b>탈락 보류</b>: ${dec.hold_reasons.map(esc).join(' · ')}` : '집계 전 — 주간 마감(다음 월요일 06:30) 뒤 결정'}
       ${(dec.notes || []).map(n => `<div class="sub">${esc(n)}</div>`).join('')}
     </div>
     <div class="card">
-      <h2>${esc(state.week)} 순위 · ${esc(teamLabel(state.team))} <span class="sub">— 확정 점수 평균 (한국·미국 같은 비중)</span></h2>
+      <h2>${esc(state.week)} ${LG ? '통합 순위 · 두 팀 10명' : '순위 · ' + esc(teamLabel(state.team))} <span class="sub">— 확정 점수 평균 (한국·미국 같은 비중)</span></h2>
       <div class="scroll"><table>
-        <thead><tr><th>#</th><th class="l">에이전트</th><th>평균 점수</th><th>초과</th><th class="hide-sm">KR 평균</th><th class="hide-sm">US 평균</th>
+        <thead><tr><th>#</th>${LG ? '<th class="l">팀</th>' : ''}<th class="l">에이전트</th><th>평균 점수</th><th>초과</th><th class="hide-sm">KR 평균</th><th class="hide-sm">US 평균</th>
           <th>확정/기대</th><th>제출률</th><th class="hide-sm">보류·무효</th><th class="hide-sm">최고/최저</th></tr></thead>
-        <tbody>${W.ranking.map(r => { const a = agentInfo(state.team, r.agent_id); return `
-          <tr class="${r.agent_id === dec.eliminate ? 'out' : ''}">
-            <td>${r.rank}</td>
-            <td class="l agent"><b>${esc(agentName(a))}</b>${r.agent_id === dec.eliminate ? ' <span class="badge b-bad">탈락</span>' : ''}
-              <span class="sub"><span class="hide-sm">${esc(a.style_ref || '')} · </span>v${r.version}</span></td>
+        <tbody>${W.ranking.map(r => { const t = r.team || state.team, a = agentInfo(t, r.agent_id); return `
+          <tr class="${isOut(r) ? 'out' : ''}">
+            <td>${LG ? r.league_rank : r.rank}</td>
+            ${LG ? `<td class="l">${esc(teamLabel(t))}<span class="sub"> · 팀 ${r.team_rank}위</span></td>` : ''}
+            <td class="l agent"><b>${esc(agentName(a))}</b>${isOut(r) ? ' <span class="badge b-bad">탈락</span>' : ''}
+              <span class="sub"><span class="hide-sm">${esc(a.tagline || '')} · </span>v${r.version}</span></td>
             <td class="${cls(r.avg)}"><b>${pt(r.avg)}</b>${zbar(r.avg, maxAbs)}</td>
             <td class="${cls(r.avg_excess)}">${pt(r.avg_excess)}</td>
             <td class="hide-sm ${cls(r.markets.KR.avg)}">${pt(r.markets.KR.avg)}</td>
@@ -252,15 +258,16 @@ function renderLeague() {
           </tr>`; }).join('')}</tbody>
       </table></div>
       <p class="sub" style="margin:8px 0 0">초과 = 공식 점수 − 같은 기간 비교 기준(KR: KOSPI 지수, US: SPY) 수익률. 배당 효과가 섞인 단순 차이이며 순위에 쓰지 않습니다.
-        제출률·보류·무효는 평균에서 빠진 건을 드러내기 위해 함께 표시합니다.</p>
+        제출률·보류·무효는 평균에서 빠진 건을 드러내기 위해 함께 표시합니다. 채점 전·보류 종목은 0점이 아니라 평균에서 뺍니다.</p>
     </div>
     <div class="card">
       <h2>라운드별 추천</h2>
+      <div class="seg" id="teamSeg" style="margin-bottom:8px">${TEAMS.map(t => `<button data-team="${t}" aria-pressed="${t === state.team}">${esc(teamLabel(t))}</button>`).join('')}</div>
       <div class="days" id="days">${days.map(d => `<button data-day="${d}" aria-pressed="${d === state.day}">${d.slice(5).replace('-', '/')} (${'일월화수목금토'[new Date(d + 'T00:00:00').getDay()]})</button>`).join('')}</div>
       <div class="picks" id="picks">${renderPicks()}</div>
     </div>` : '<div class="card">이 팀의 기록이 없습니다.</div>'}`;
 
-  $('#teamSeg').onclick = e => { const b = e.target.closest('[data-team]'); if (b) { state.team = b.dataset.team; store.set('team', state.team); state.open = null; render(); } };
+  if ($('#teamSeg')) $('#teamSeg').onclick = e => { const b = e.target.closest('[data-team]'); if (b) { state.team = b.dataset.team; store.set('team', state.team); state.open = null; render(); } };
   $('#weekSel').onchange = e => { state.week = e.target.value; state.day = null; render(); };
   const dd = $('#days'); if (dd) dd.onclick = e => { const b = e.target.closest('[data-day]'); if (b) { state.day = b.dataset.day; state.open = null; render(); } };
   const pk = $('#picks'); if (pk) pk.onclick = e => {
@@ -304,7 +311,7 @@ function renderPicks() {
         </dl>` : ''}
       </div>`;
     }).join('');
-    return `<div class="pcard"><div class="head"><b>${esc(agentName(a))}</b><span class="sub">${esc(a.style_ref || '')}</span></div>${rows}</div>`;
+    return `<div class="pcard"><div class="head"><b>${esc(agentName(a))}</b><span class="sub">${esc(a.tagline || '')}</span></div>${rows}</div>`;
   }).join('');
 }
 
@@ -416,10 +423,10 @@ function renderRecords() {
     return `<div class="card team ${t}"><h2>${esc(teamLabel(t))}</h2>
       <h3>명단 (현역 → 탈락)</h3><ul class="plain">${[...mem].sort((x, y) => (x.status === 'eliminated') - (y.status === 'eliminated')).map(a => {
         const first = mem.map(m => m.joined_week).filter(Boolean).sort()[0];
-        return `<li><b>${esc(agentName(a))}</b> <span class="sub">${esc(a.style_ref || '')} · v${a.version ?? 1}</span>
+        return `<li><b>${esc(agentName(a))}</b> <span class="sub">${esc(a.tagline || '')} · v${a.version ?? 1}</span>
         ${a.status === 'eliminated' ? `<span class="badge b-bad">${esc(a.eliminated_week)} 탈락</span>` : ''}
         ${a.joined_week && first && a.joined_week > first ? `<span class="badge b-ok">${esc(a.joined_week)} 합류</span>` : ''}</li>`; }).join('')}</ul>
-      <h3>대기 후보 (투입 순서)</h3><ul class="plain">${bench.map((a, i) => `<li>${i + 1}. <b>${esc(agentName(a))}</b> <span class="sub">${esc(a.style_ref || '')}</span>
+      <h3>대기 후보 (투입 순서)</h3><ul class="plain">${bench.map((a, i) => `<li>${i + 1}. <b>${esc(agentName(a))}</b> <span class="sub">${esc(a.tagline || '')}</span>
         ${appr.has(t + ':' + a.id) ? '<span class="badge b-ok">승인</span>' : '<span class="badge">미승인</span>'}</li>`).join('') || '<li class="sub">없음</li>'}</ul></div>`;
   };
   $('#view').innerHTML = `

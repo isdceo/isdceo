@@ -1034,6 +1034,7 @@ def export(d: Path, out: Path, public: bool = False, now: datetime | None = None
             "picks": picks, "embargoed": embargoed,
             "scores": [x for x in latest_scores(d).values() if x.get("pick_id") in shown_ids], "corrections": read_ledger(d, "corrections"),
             "weekly": {team: {wk: weekly(d, wk, team) for wk in weeks} for team in cfg["teams"]},
+            "league": ({wk: weekly_league(d, wk) for wk in weeks} if cfg.get("weekly", {}).get("mode") == "combined_bottom1" else {}),
             "teams": team_summary(d), "submissions": read_ledger(d, "submissions"),
             "approvals": read_ledger(d, "approvals"),
             "outages": read_ledger(d, "outages"),
@@ -1167,10 +1168,10 @@ def make_sample(d: Path, close_week: bool = True):
     for f in ("config.json", "universe.json"):
         (d / f).write_text((ROOT / "league" / f).read_text())
     roster = json.loads((ROOT / "league" / "agents" / "roster.json").read_text())
-    roster["shushu"] = [{"id": f"s{i}", "label": f"Codex {i}", "style_ref": "슈슈 팀 (Codex)", "status": "active",
-                         "joined_week": "2026-W46", "eliminated_week": None, "version": 1} for i in range(1, 6)]
-    roster["bench_shushu"] = [{"id": "s6", "label": "Codex 대기 1", "style_ref": "슈슈 팀 대기 후보"},
-                              {"id": "s7", "label": "Codex 대기 2", "style_ref": "슈슈 팀 대기 후보"}]
+    sh = json.loads((ROOT / "league" / "imports" / "shushu" / "roster.json").read_text())   # 슈슈 팀 실제 명단(애칭·소개 문구)
+    roster["shushu"] = [{**m, "status": "active", "joined_week": "2026-W46", "eliminated_week": None, "version": m.get("version", 1)}
+                        for m in sh["members"]]
+    roster["bench_shushu"] = [dict(m) for m in sh["bench"]]
     (d / "agents" / "roster.json").write_text(json.dumps(roster, ensure_ascii=False, indent=1))
     cfg = load_config(d)
     uni = json.loads((d / "universe.json").read_text())

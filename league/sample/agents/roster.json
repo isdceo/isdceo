@@ -7,7 +7,10 @@
    "status": "active",
    "joined_week": null,
    "eliminated_week": null,
-   "version": 1
+   "version": 1,
+   "nickname": "뚝심이",
+   "tagline": "경제적 해자·ROE·안전마진으로 오래 갈 좋은 기업을 고른다",
+   "avatar": "ttukshim"
   },
   {
    "id": "lynch",
@@ -16,7 +19,10 @@
    "status": "active",
    "joined_week": null,
    "eliminated_week": null,
-   "version": 1
+   "version": 1,
+   "nickname": "발굴왕",
+   "tagline": "이익 성장률과 PEG로 아직 덜 알려진 성장주를 찾는다",
+   "avatar": "balgul"
   },
   {
    "id": "dalio",
@@ -25,7 +31,10 @@
    "status": "active",
    "joined_week": null,
    "eliminated_week": null,
-   "version": 1
+   "version": 1,
+   "nickname": "큰그림",
+   "tagline": "금리·물가·환율·경기 사이클로 큰 흐름을 읽는다",
+   "avatar": "keun"
   },
   {
    "id": "wood",
@@ -34,7 +43,10 @@
    "status": "active",
    "joined_week": null,
    "eliminated_week": null,
-   "version": 1
+   "version": 1,
+   "nickname": "미래광",
+   "tagline": "AI·로봇·에너지 저장 같은 기술 성장 곡선 위의 기업을 찾는다",
+   "avatar": "mirae"
   },
   {
    "id": "burry",
@@ -43,7 +55,10 @@
    "status": "active",
    "joined_week": null,
    "eliminated_week": null,
-   "version": 1
+   "version": 1,
+   "nickname": "삐딱이",
+   "tagline": "버블 징후·회계 품질·숨은 부채를 파고들어 군중의 반대편에 선다",
+   "avatar": "ppittak"
   }
  ],
  "bench": [
@@ -54,7 +69,10 @@
    "version": 1,
    "approved": true,
    "guideline": ".claude/agents/momentum.md",
-   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)"
+   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
+   "nickname": "파도타기",
+   "tagline": "가격·거래량 추세와 지수 대비 상대강도를 따라간다",
+   "avatar": "pado"
   },
   {
    "id": "quant",
@@ -63,7 +81,10 @@
    "version": 1,
    "approved": true,
    "guideline": ".claude/agents/quant.md",
-   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)"
+   "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
+   "nickname": "계산기",
+   "tagline": "가치·퀄리티·모멘텀·저변동성 점수를 합쳐 고른다",
+   "avatar": "gyesan"
   },
   {
    "id": "dividend",
@@ -89,60 +110,81 @@
  "shushu": [
   {
    "id": "s1",
-   "label": "Codex 1",
-   "style_ref": "슈슈 팀 (Codex)",
+   "label": "안전마진형",
+   "style_ref": "벤저민 그레이엄의 공개된 투자 원칙 참고",
+   "version": 1,
+   "nickname": "단단이",
+   "tagline": "안전한 가격과 재무 여력을 꼼꼼히 확인",
+   "avatar": "dandan",
    "status": "active",
    "joined_week": "2026-W46",
-   "eliminated_week": null,
-   "version": 1
+   "eliminated_week": null
   },
   {
    "id": "s2",
-   "label": "Codex 2",
-   "style_ref": "슈슈 팀 (Codex)",
+   "label": "사업품질형",
+   "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
+   "version": 1,
+   "nickname": "알짜",
+   "tagline": "좋은 사업 구조와 현금 창출력에 집중",
+   "avatar": "alzza",
    "status": "active",
    "joined_week": "2026-W46",
-   "eliminated_week": null,
-   "version": 1
+   "eliminated_week": null
   },
   {
    "id": "s3",
-   "label": "Codex 3",
-   "style_ref": "슈슈 팀 (Codex)",
+   "label": "성장검증형",
+   "style_ref": "피터 린치의 공개된 투자 원칙 참고",
+   "version": 1,
+   "nickname": "돋보기",
+   "tagline": "성장 이야기가 실적으로 이어지는지 확인",
+   "avatar": "dotbogi",
    "status": "active",
    "joined_week": "2026-W46",
-   "eliminated_week": null,
-   "version": 1
+   "eliminated_week": null
   },
   {
    "id": "s4",
-   "label": "Codex 4",
-   "style_ref": "슈슈 팀 (Codex)",
+   "label": "성장지속형",
+   "style_ref": "필립 피셔의 공개된 투자 원칙 참고",
+   "version": 1,
+   "nickname": "쑥쑥이",
+   "tagline": "오래 성장할 기업을 탐색",
+   "avatar": "ssuk",
    "status": "active",
    "joined_week": "2026-W46",
-   "eliminated_week": null,
-   "version": 1
+   "eliminated_week": null
   },
   {
    "id": "s5",
-   "label": "Codex 5",
-   "style_ref": "슈슈 팀 (Codex)",
+   "label": "위험역발상형",
+   "style_ref": "하워드 막스의 공개된 투자 원칙 참고",
+   "version": 1,
+   "nickname": "반전이",
+   "tagline": "시장이 놓친 기회와 위험을 함께 점검",
+   "avatar": "banjeon",
    "status": "active",
    "joined_week": "2026-W46",
-   "eliminated_week": null,
-   "version": 1
+   "eliminated_week": null
   }
  ],
  "bench_shushu": [
   {
    "id": "s6",
-   "label": "Codex 대기 1",
-   "style_ref": "슈슈 팀 대기 후보"
+   "label": "거시사이클형",
+   "style_ref": "레이 달리오의 공개된 거시·경제 사이클 원칙 참고",
+   "version": 1,
+   "nickname": "나침반",
+   "avatar": "nachim"
   },
   {
    "id": "s7",
-   "label": "Codex 대기 2",
-   "style_ref": "슈슈 팀 대기 후보"
+   "label": "추세모멘텀형",
+   "style_ref": "윌리엄 오닐의 공개된 가격·거래량 및 실적 모멘텀 원칙 참고",
+   "version": 1,
+   "nickname": "순풍",
+   "avatar": "sunpung"
   }
  ]
 }
