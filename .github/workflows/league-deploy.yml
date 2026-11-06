@@ -28,6 +28,19 @@ jobs:
           if [ "$ON" != "true" ]; then echo "deploy_enabled=false — 배포 안 함"; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           if [ -z "$CF_TOKEN" ] || [ -z "$CF_ACCOUNT" ]; then echo "::warning::Cloudflare Secrets 없음 — 배포 안 함"; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           echo "go=true" >> "$GITHUB_OUTPUT"
+      - name: Check Access lock (refuse to deploy to an open address)
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          # Cloudflare Access 가 걸려 있으면 로그인 페이지(…cloudflareaccess.com)로 넘긴다. 아니면 누구나 볼 수 있으니 배포하지 않는다.
+          PROJECT=$(python3 -c "import json;print(json.load(open('league/config.json')).get('cloudflare_project', 'isdceo-league'))")
+          for HOST in "$PROJECT.pages.dev" "lockcheck.$PROJECT.pages.dev"; do
+            LOC=$(curl -s -o /dev/null -m 20 -w '%{http_code} %{redirect_url}' "https://$HOST/")
+            echo "$HOST → $LOC"
+            case "$LOC" in
+              30[1237]\ *cloudflareaccess.com*) ;;
+              *) echo "::error::$HOST 에 Cloudflare Access 잠금이 없음 — 배포 안 함 (docs/deploy-cloudflare.md 2단계)"; exit 1 ;;
+            esac
+          done
       - if: steps.gate.outputs.go == 'true'
         run: pip install -q -r requirements.txt
       - name: Build public site (no raw prices)

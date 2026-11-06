@@ -20,6 +20,15 @@
 
 **배포를 켜기 전에 데이터 제공처 조건을 정리한다.** 미국 종가·배당은 2026-11-06부터 Alpha Vantage로 받는다. 무료 키는 개인·비상업 이용이라, 점수를 지인에게 보여 주는 것이 "개인 범위"에 드는지 확인이 필요하다(`docs/data-provider-research.md` 10장). Tiingo를 그만 쓴 이유는 같은 문서 8장에 있다.
 
+## 0. 운영자 혼자 보기 (2026-11-07, 지금 쓸 수 있는 방식)
+
+데이터 제공처 약관(KRX·Alpha Vantage·OpenDART)은 모두 개인·비상업 이용을 허용하므로, **운영자 본인 이메일 하나만** Access에 등록하면 허락 회신을 기다리지 않고 켤 수 있다. 아래 1~4단계를 그대로 하되 다음만 다르다.
+
+- 2단계 4번 정책: 이름 `operator`, Emails에 **운영자 이메일 하나만** 넣는다. 지인 이메일은 넣지 않는다.
+- 2단계 3번: `*.isdceo-league.pages.dev`(미리보기·배포별 주소)도 **반드시** 추가한다. 배포 작업이 이 두 주소의 잠금을 확인하고, 잠금이 없으면 배포하지 않는다.
+- 4단계 0번(제공처 회신)은 건너뛴다. 지인을 추가하는 순간부터 회신이 필요하다.
+- 화면 캡처나 링크를 남에게 보내지 않는다. 그 순간 "남에게 보여 주기"가 된다.
+
 ## 1. Cloudflare 계정과 Pages 프로젝트
 
 1. Cloudflare에 가입하고 로그인한다(무료 플랜).
@@ -56,9 +65,9 @@
 
 ## 4. 켜기
 
-0. **먼저 Tiingo 회신을 받는다.** Tiingo 무료 플랜은 "you may not display or share the data with another person or organization"이라 지인 공개는 회신 전에는 켜지 않는다(`docs/data-provider-research.md` 8장). KRX 회신도 받는 것을 권장한다.
+0. **지인을 넣을 때는 먼저 제공처 회신을 받는다.** Alpha Vantage(약관 2.a 서면 합의, 메일 초안 `docs/provider-requests/alphavantage-permission-email.md`)와 KRX(제11조② 제3자 제공 금지, 문의 문안 `docs/provider-inquiries.md` 1번). 운영자 혼자 보기(0장)는 회신 없이 켜도 된다.
 1. `league/config.json`에서 `"deploy_enabled": true`로 바꾸고 커밋한다.
-2. Actions → **league-deploy** → Run workflow로 첫 배포를 한다.
+2. Actions → **league-deploy** → Run workflow로 첫 배포를 한다. 배포 전에 `isdceo-league.pages.dev`와 `*.isdceo-league.pages.dev`가 Access 로그인으로 넘어가는지 확인하고, 아니면 실패로 멈춘다.
 3. 이후에는 매일(월~토) 11:00 KST에 자동 배포된다. 10:30 채점 뒤다.
 
 ## 5. 배포 뒤 점검
