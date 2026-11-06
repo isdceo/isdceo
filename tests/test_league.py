@@ -555,6 +555,18 @@ class Embargo(unittest.TestCase):
 class DashboardData(unittest.TestCase):
     """운영자 현황판 데이터도 마감 전 라운드 종목을 싣지 않는다."""
 
+    def test_pick_lines_drop_prices(self):
+        """한 줄 선택 이유: 가격처럼 보이는 문장·너무 긴 문장은 버리고 나머지는 그대로 싣는다."""
+        import dashboard_data as D, tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "lines").mkdir()
+            (Path(tmp) / "lines" / "2026-11-05.json").write_text(json.dumps({
+                "a": "불닭이 해외 매출 84%! 이익은 47% 늘었어요.", "b": "종가 191,900원이면 싸죠.", "c": "$245에 샀어요",
+                "d": "목표주가까지 간다", "e": "가" * 81}, ensure_ascii=False))
+            self.assertEqual(D.load_lines(Path(tmp)), {"a": "불닭이 해외 매출 84%! 이익은 47% 늘었어요."})
+        for v in D.load_lines(L.ROOT / "league" / "sandbox").values():
+            self.assertIsNone(D.PRICE_LIKE.search(v))
+
     def test_play_page_public_only(self):
         """지인 공개용 게임 화면: 마감 전 종목·원 가격·회사 로고·운영 탭이 없다."""
         import build_play as B, tempfile

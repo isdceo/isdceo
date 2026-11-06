@@ -121,6 +121,16 @@
     .lg .tablebox .anim .chips { animation: bt-drop .45s var(--cds-ease-out, ease-out) both; }
   }
   .lg .tablebox .dealt, .lg .tablebox .chips { transform-box: fill-box; transform-origin: center; }
+  .lg .tablebox .hand { cursor: zoom-in; }
+  .lg .tablebox .hand.none { cursor: default; }
+  .lg .tablebox .hand:not(.none):hover { filter: brightness(1.25) drop-shadow(0 0 6px rgba(244,210,122,.7)); }
+  .lg .tablebox .sq { cursor: grab; touch-action: none; outline: none; }
+  .lg .tablebox .sq:active { cursor: grabbing; }
+  .lg .tablebox .sq:focus-visible > rect:first-child, .lg .tablebox .sqall:focus-visible rect { stroke: #f4d27a; stroke-width: 4; }
+  .lg .tablebox .sqall { cursor: pointer; outline: none; }
+  .lg .tablebox .zoom { cursor: zoom-out; }
+  @keyframes bt-zoom { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: no-preference) { .lg .tablebox .zoombox { transform-box: view-box; transform-origin: 50% 45%; animation: bt-zoom .28s var(--cds-ease-out, ease-out) both; } .lg .tablebox .zoombox.still { animation: none; } }
   .lg .gcard.suit-d .corner, .lg .gcard.suit-d .pip { color: #c0392b; } .lg .gcard.suit-c .corner, .lg .gcard.suit-c .pip { color: #1f1a14; }
   .lg .gcard .corner b { display: block; font-size: 11px; letter-spacing: .5px; }
   .lg .gcard .picker { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #6b6355; }
@@ -1019,6 +1029,17 @@
       st.append('ellipse').attr('cx', x).attr('cy', yy).attr('rx', 11 * s).attr('ry', 4.5 * s).attr('fill', col[0]).attr('stroke', col[1]).attr('stroke-width', 1.4).attr('stroke-dasharray', '3 2.5');
     }
   };
+  // 카드 뒷면: 빨간 바탕, 금색 테두리, 가운데 시장 문양(한국 ♦ · 미국 ♣). p 가 없으면 빈 자리(점선)
+  const cardBack = (g, x, y, w, h, mk, has = true) => {
+    if (!has) return g.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', h).attr('rx', w * 0.1).attr('fill', 'rgba(255,255,255,.06)').attr('stroke', '#e8f3ff').attr('stroke-opacity', .5).attr('stroke-dasharray', '4 3');
+    const c = g.append('g');
+    c.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', h).attr('rx', w * 0.1).attr('fill', '#7a1e1e').attr('stroke', '#f4ecd6').attr('stroke-width', Math.max(1.4, w * 0.04));
+    c.append('rect').attr('x', x + w * 0.11).attr('y', y + w * 0.11).attr('width', w * 0.78).attr('height', h - w * 0.22).attr('rx', w * 0.05).attr('fill', 'none').attr('stroke', '#d4b25c').attr('stroke-width', Math.max(1, w * 0.025)).attr('stroke-dasharray', `${w * 0.06} ${w * 0.045}`);
+    c.append('circle').attr('cx', x + w / 2).attr('cy', y + h / 2).attr('r', w * 0.24).attr('fill', '#5c1414').attr('stroke', '#d4b25c').attr('stroke-width', Math.max(1, w * 0.025));
+    c.append('text').attr('x', x + w / 2).attr('y', y + h / 2 + w * 0.12).attr('text-anchor', 'middle').attr('font-size', w * 0.34).attr('fill', '#f4d27a').text(MK[mk].suit);
+    c.append('text').attr('x', x + w / 2).attr('y', y + h - w * 0.2).attr('text-anchor', 'middle').attr('font-size', Math.max(8, w * 0.2)).attr('font-weight', 700).attr('letter-spacing', 1).attr('fill', '#f4ecd6').text(mk);
+    return c;
+  };
   // SVG 종목 카드: 모서리에 시장·문양, 가운데 종목명, 아래 점수. p가 없으면 뒷면
   const stockCard = (g, x, y, w, h, p, opts = {}) => {
     const holder = opts.rot ? g.append('g').attr('transform', `rotate(${opts.rot} ${x + w / 2} ${y + h / 2})`) : g;   // 회전은 바깥에
@@ -1042,7 +1063,8 @@
       c.append('text').attr('x', lx + ls / 2).attr('y', ly + ls * 0.68).attr('text-anchor', 'middle').attr('font-size', ls * 0.55).attr('fill', '#fff').attr('font-family', 'Georgia, serif').text(nm.slice(0, 1));
     }
     const sp = nm.indexOf(' ');
-    const lines = nm.length <= 6 ? [nm] : sp > 0 ? [short(nm.slice(0, sp), 8), short(nm.slice(sp + 1), 8)] : [nm.slice(0, 5), short(nm.slice(5), 5)];
+    const big = w > 100, lim = big ? 11 : 8;   // 큰 카드(쪼이기)는 두 줄을 넉넉히
+    const lines = nm.length <= (big ? 9 : 6) ? [nm] : sp > 0 ? [short(nm.slice(0, sp), lim), short(nm.slice(sp + 1), lim)] : [nm.slice(0, big ? 7 : 5), short(nm.slice(big ? 7 : 5), big ? 7 : 5)];
     const ny0 = ly + ls + 9.5 * f;
     (lines.length > 1 && h < 70 ? [short(nm, 7)] : lines).forEach((ln, k) => c.append('text').attr('x', x + w / 2).attr('y', ny0 + k * 10 * f).attr('text-anchor', 'middle').attr('font-size', (h < 70 ? 8.6 : 9.6) * f).attr('fill', '#1f1a14').text(ln));
     if (opts.agent) {
@@ -1061,8 +1083,9 @@
   // 브라우저가 처음 시작한 시각(_animT0)을 기억해 두고, 다시 그리거나 숨었다 다시 보일 때 새로 생긴 애니메이션의
   // startTime 을 그 시각에 맞춰 이어서 진행한다. 2.6초가 지나면 .anim 을 지워 끝 상태로 둔다.
   const ANIM_MS = 2600;
+  const dealAnims = (el) => el.getAnimations({subtree: true}).filter((x) => x.animationName !== 'bt-zoom');   // 가운데 펼침은 따로 재생
   const startedAt = (el) => {                     // 브라우저가 실제로 애니메이션을 시작한 시각(document.timeline 기준)
-    const st = el.getAnimations({subtree: true}).map((x) => x.startTime).filter((x) => x != null);
+    const st = dealAnims(el).map((x) => x.startTime).filter((x) => x != null);
     return st.length ? Math.min(...st) : null;
   };
   const animState = (el) => {
@@ -1080,7 +1103,7 @@
   };
   const armAnim = (el) => {                        // 브라우저가 애니메이션을 실제로 시작하면(ready) 시작 시각을 잡고, 끝날 때 정리 예약
     if (el._animDone) return;
-    const an = el.getAnimations({subtree: true});
+    const an = dealAnims(el);
     if (!an.length) return;                        // 숨어 있음: 보일 때(IntersectionObserver) 다시
     Promise.all(an.map((x) => x.ready.catch(() => null))).then(() => {
       if (el._animDone) return;
@@ -1092,7 +1115,7 @@
   };
   const syncAnim = (el) => {                       // 다시 그림·다시 보임: 새로 시작된 애니메이션을 처음 시작 시각에 맞춘다
     if (el._animDone) return;
-    if (el._animT0 != null) el.getAnimations({subtree: true}).forEach((x) => { try { x.startTime = el._animT0; } catch (e) { /* 지원 안 하면 그냥 둔다 */ } });
+    if (el._animT0 != null) dealAnims(el).forEach((x) => { try { x.startTime = el._animT0; } catch (e) { /* 지원 안 하면 그냥 둔다 */ } });
     armAnim(el);
   };
   window.syncTables = () => document.querySelectorAll('.lg [data-draw="baccarat"]').forEach((el) => { if (el.classList.contains('anim') && !el.closest('[hidden]')) syncAnim(el); });
@@ -1107,6 +1130,154 @@
       el._io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) syncAnim(el); });
       el._io.observe(el);
     }
+  };
+  // 쪼이기 창: 누른 자리의 카드 2장을 가운데에 크게 띄운다(가로·세로 테이블 공용)
+  const squeeze = (el, svg, ctx) => {
+    // 누른 자리의 카드 2장을 가운데에 크게 띄우고, 바카라처럼 아래부터 젖혀 '쪼여' 본다.
+    // 카드를 위로 끌면 끈 만큼, 한 번 누르면 천천히 젖혀진다. 바깥을 누르거나 Esc 로 닫음
+    const {W, H, seats, picksOf, rowOf, grad, vert} = ctx;
+    const za = el._zoom && seats.find((a) => `${a.team}|${a.name}` === el._zoom);
+    if (za) {
+      const zp = picksOf(za), zr = rowOf(za), sq = el._sq || (el._sq = {});
+      const close = (ev) => { if (ev) ev.stopPropagation(); el._zoom = null; el._sq = {}; drawBaccarat(el); };
+      const z = svg.append('g').attr('class', 'zoom').on('click', close);
+      z.append('rect').attr('width', W).attr('height', H).attr('fill', '#050b16').attr('opacity', .82);
+      const fresh = el._zoomFocus !== el._zoom;   // 처음 열 때만 튀어나오는 효과(데이터가 와서 다시 그릴 때는 그대로)
+      const box = z.append('g').attr('class', fresh ? 'zoombox' : 'zoombox still');
+      // 배치: 가로 테이블은 왼쪽 캐릭터·오른쪽 카드, 세로 테이블은 위 캐릭터·아래 카드
+      const cw = vert ? 150 : 168, chh = vert ? 205 : 230, gx = vert ? 22 : 44;
+      const zx = vert ? W / 2 - cw - gx / 2 : W / 2 - cw - gx / 2 + 70, zy = vert ? 170 : 108, mid = zx + cw + gx / 2;
+      const pan = vert ? [12, 24, W - 24, H - 48] : [zx - 210, 30, 2 * cw + gx + 240, zy + chh + 192 - 30];
+      box.append('rect').attr('x', pan[0]).attr('y', pan[1]).attr('width', pan[2]).attr('height', pan[3]).attr('rx', 18).attr('fill', '#0b1426').attr('stroke', '#d4b25c').attr('stroke-opacity', .6).attr('stroke-width', 2)
+        .on('click', (ev) => ev.stopPropagation());   // 판 안쪽을 눌러서는 닫히지 않게
+      box.append('text').attr('x', vert ? 250 : mid).attr('y', vert ? 96 : 80).attr('text-anchor', 'middle').attr('font-size', 20).attr('font-weight', 800).attr('fill', '#f4ecd6')
+        .text(`${za.team === '로로 팀 (Claude)' ? '로로 팀' : '슈슈 팀'}${zr ? ` · ${zr.league_rank}위` : ''}${zr && zr.avg != null ? ` · 이번 주 ${pct(zr.avg)}%` : ''}`);
+      // 담당 에이전트: 카드 왼쪽에 명패처럼
+      const ax = vert ? 92 : zx - 120, ay = vert ? 44 : zy + 40, asc = vert ? .52 : 1, team = za.team === '로로 팀 (Claude)' ? 'c' : 's';
+      const av = box.append('g').attr('transform', `translate(${ax} ${ay}) scale(${asc})`);
+      av.append('rect').attr('x', -66).attr('y', -6).attr('width', 132).attr('height', 138).attr('rx', 6).attr('fill', `url(#${vert ? 'pt' : 'bt'}-${team})`).attr('stroke', '#e0c27a').attr('stroke-width', 3);
+      const avs = av.append('svg').attr('x', -60).attr('y', 0).attr('width', 120).attr('height', 120).attr('viewBox', '0 0 120 120');
+      if (AV_CHAR[za.agent_id]) avs.append('use').attr('href', '#av-' + AV_CHAR[za.agent_id]);
+      av.append('rect').attr('x', -70).attr('y', 136).attr('width', 140).attr('height', 28).attr('rx', 6).attr('fill', '#0b0d12').attr('stroke', '#3a4152');
+      av.append('text').attr('y', 156).attr('text-anchor', 'middle').attr('font-size', 17).attr('font-weight', 800).attr('fill', '#f4ecd6').text(za.nickname || za.label);
+      const styleName = String((zp.KR || zp.US || {}).agent || '').split(' · ')[1] || '';
+      if (styleName) av.append('text').attr('y', 184).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', '#b9c7dd').text(styleName);
+      // 말풍선: 카드를 다 젖히면 그 종목을 고른 이유를 한 줄로 타자 치듯 보여 준다
+      const bx0 = vert ? 24 : ax - 70, by0 = zy + chh + 46, bw = vert ? W - 48 : zx + 2 * cw + gx - bx0, bh = vert ? 80 : 58;
+      const tip = vert ? [bx0 + 58, by0 - 14] : [ax, ay + 190];
+      const bub = box.append('g').attr('class', 'bubble').attr('opacity', 0);
+      bub.append('path').attr('d', `M${bx0 + 12} ${by0} H${bx0 + 46} L${tip[0]} ${tip[1]} L${bx0 + 70} ${by0} H${bx0 + bw - 12} Q${bx0 + bw} ${by0} ${bx0 + bw} ${by0 + 12} V${by0 + bh - 12} Q${bx0 + bw} ${by0 + bh} ${bx0 + bw - 12} ${by0 + bh} H${bx0 + 12} Q${bx0} ${by0 + bh} ${bx0} ${by0 + bh - 12} V${by0 + 12} Q${bx0} ${by0} ${bx0 + 12} ${by0} Z`)
+        .attr('fill', '#fffdf4').attr('stroke', '#d4b25c').attr('stroke-width', 2);
+      const bHead = bub.append('text').attr('x', bx0 + 16).attr('y', by0 + 23).attr('font-size', 14).attr('font-weight', 800);
+      const bL1 = bub.append('text').attr('x', bx0 + 16).attr('y', by0 + 45).attr('font-size', 16).attr('fill', '#1f1a14');
+      const bL2 = bub.append('text').attr('x', bx0 + 16).attr('y', by0 + 66).attr('font-size', 15).attr('fill', '#1f1a14');
+      const maxC = vert ? 22 : 36, brk = (chars) => {   // 세로 화면은 두 줄: 가운데 근처 띄어쓰기에서 나눈다
+        if (!vert || chars.length <= maxC) return chars.length;
+        let b = -1; for (let i = 0; i < chars.length; i++) if (chars[i] === ' ' && (b < 0 || Math.abs(i - chars.length / 2) < Math.abs(b - chars.length / 2))) b = i;
+        return b > 0 ? b + 1 : Math.ceil(chars.length / 2);
+      };
+      const show = (chars, n) => { const b = brk(chars); bL1.text(chars.slice(0, Math.min(n, b)).join('')); bL2.text(n > b ? chars.slice(b, n).join('') : ''); };
+      let typing = null;
+      const say = (mk) => {
+        const p = zp[mk]; if (!p) return;
+        const line = p.line || `${p.name || p.ticker}, 이번 라운드 제 선택입니다!`;
+        bub.attr('opacity', 1);
+        bHead.attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(`${MK[mk].suit} ${p.name || p.ticker}`);
+        if (typing) clearInterval(typing);
+        const chars = [...`“${line}”`];
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { show(chars, chars.length); return; }
+        let n = 0; show(chars, 0);
+        typing = setInterval(() => { n += 1; show(chars, n); if (n >= chars.length) { clearInterval(typing); typing = null; } }, 32);
+      };
+      const fit = (t) => { const L = [...t].length; return vert ? 15 : L > 36 ? 16 * 36 / L : 16; };
+      const uid = el._uid || (el._uid = 'q' + Math.random().toString(36).slice(2, 8));
+      const ease = (u) => u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const cards = ['KR', 'US'].map((mk, k) => {
+        const p = zp[mk], x = zx + k * (cw + gx), y = zy;
+        const g = box.append('g').attr('class', 'sq').attr('tabindex', p ? 0 : -1).attr('role', 'button')
+          .attr('aria-label', p ? `${mk} 카드 쪼여 보기` : `${mk} 카드 없음`);
+        g.append('rect').attr('x', x + 3).attr('y', y + 5).attr('width', cw).attr('height', chh).attr('rx', cw * 0.1).attr('fill', '#000').attr('opacity', .45);
+        if (!p) { cardBack(g, x, y, cw, chh, mk, false); return null; }
+        stockCard(g, x, y, cw, chh, p, {});
+        const cid = `${uid}-${mk}`;
+        g.append('clipPath').attr('id', cid).append('rect').attr('x', x - 2).attr('y', y - 2).attr('width', cw + 4).attr('height', chh + 4);
+        const back = g.append('g').attr('clip-path', `url(#${cid})`);
+        cardBack(back, x, y, cw, chh, mk);
+        const flap = g.append('g').attr('pointer-events', 'none');
+        const fShade = flap.append('rect').attr('x', x).attr('width', cw).attr('fill', '#000').attr('opacity', .22);
+        if (svg.select('#bt-flap').empty()) grad('bt-flap', 'linearGradient', [[0, '#fbf6e8'], [.6, '#e9dfc4'], [1, '#d6c9a6']], {x1: 0, y1: 1, x2: 0, y2: 0});
+        const fPaper = flap.append('path').attr('fill', 'url(#bt-flap)').attr('stroke', '#bfb08a');
+        const fLine = flap.append('rect').attr('x', x).attr('width', cw).attr('height', 3).attr('fill', '#000').attr('opacity', .25);
+        const label = box.append('text').attr('x', x + cw / 2).attr('y', y + chh + 30).attr('text-anchor', 'middle').attr('font-size', vert ? 13 : 15).attr('fill', '#e8f0ff');
+        let said = (sq[mk] || 0) >= 1;
+        const set = (t) => {   // t: 0 = 덮임, 1 = 다 젖힘. 접힌 선 아래가 보이고, 젖힌 부분(종이 뒷면)이 접힌 선 위로 겹친다
+          t = Math.max(0, Math.min(1, t)); sq[mk] = t;
+          if (t >= 1 && !said) { said = true; bL1.attr('font-size', fit(`“${p.line || ''}”`)); say(mk); }
+          const r = chh * t, yf = y + chh - r, fa = t < .75 ? 1 : Math.max(0, 1 - (t - .75) / .25);
+          d3.select(`#${cid} rect`).attr('height', Math.max(0, chh - r + 2));
+          const fh = r * 0.92, sp = cw * 0.07 * Math.min(1, t * 2);   // 들린 끝이 보는 사람 쪽으로 와서 조금 넓어 보이게
+          fPaper.attr('d', fh > 0.5 ? `M${x} ${yf} H${x + cw} L${x + cw + sp} ${yf - fh + 8} Q${x + cw + sp} ${yf - fh} ${x + cw + sp - 8} ${yf - fh} H${x - sp + 8} Q${x - sp} ${yf - fh} ${x - sp} ${yf - fh + 8} Z` : '').attr('opacity', fa);
+          fShade.attr('y', yf - 2).attr('height', Math.min(r, 14)).attr('opacity', .22 * fa);
+          fLine.attr('y', yf - 1.5).attr('opacity', r > 1 ? .25 * fa : 0);
+          label.text(t >= 1 ? `${mk} ${MK[mk].suit} ${p.ticker || ''}` : t > 0 ? '조금 더…' : vert ? '끌거나 눌러서 쪼이기' : '위로 끌거나 눌러서 쪼이기');
+        };
+        let anim = null;
+        const play = (to, ms, hold) => {   // 천천히 쪼이기: 조금 젖혀 멈칫한 뒤 끝까지
+          if (anim) cancelAnimationFrame(anim);
+          if (reduce) { set(to); return; }
+          const from = sq[mk] || 0, steps = hold != null && from < hold ? [[from, hold, ms * .55], [hold, hold, 260], [hold, to, ms * .45]] : [[from, to, ms]];
+          let si = 0, t0 = performance.now();
+          const tick = (now) => {
+            const [a0, a1, d] = steps[si], u = Math.min(1, (now - t0) / d);
+            set(a0 + (a1 - a0) * ease(u));
+            if (u >= 1) { si++; t0 = now; if (si >= steps.length) { anim = null; return; } }
+            anim = requestAnimationFrame(tick);
+          };
+          anim = requestAnimationFrame(tick);
+        };
+        let drag = null;
+        g.on('click', (ev) => ev.stopPropagation())
+          .on('pointerdown', (ev) => {
+            ev.stopPropagation(); ev.preventDefault();
+            if (anim) { cancelAnimationFrame(anim); anim = null; }
+            const ctm = svg.node().getScreenCTM();
+            drag = {y: ev.clientY, t: sq[mk] || 0, k: ctm ? ctm.d : 1, moved: false};
+            try { g.node().setPointerCapture(ev.pointerId); } catch (e) { /* 그냥 진행 */ }
+          })
+          .on('pointermove', (ev) => {
+            if (!drag) return;
+            const dy = drag.y - ev.clientY;
+            if (Math.abs(dy) > 4) drag.moved = true;
+            if (drag.moved) set(drag.t + dy / (chh * drag.k));
+          })
+          .on('pointerup pointercancel', (ev) => {
+            if (!drag) return;
+            const d = drag; drag = null;
+            if (!d.moved) { if ((sq[mk] || 0) < 1) play(1, 1300, (sq[mk] || 0) < .3 ? .32 : null); else { bL1.attr('font-size', fit(`“${p.line || ''}”`)); say(mk); } return; }
+            if ((sq[mk] || 0) > .55) play(1, 260);
+          })
+          .on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); play(1, 1300, .32); } });
+        set(sq[mk] || 0);
+        return {play, mk};
+      }).filter(Boolean);
+      const btn = box.append('g').attr('class', 'sqall').attr('tabindex', 0).attr('role', 'button').attr('aria-label', '두 장 모두 공개')
+        .on('click', (ev) => { ev.stopPropagation(); cards.forEach((c, k) => setTimeout(() => c.play(1, 900), k * 250)); })
+        .on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); cards.forEach((c) => c.play(1, 900)); } });
+      const btnY = by0 + bh + 14;
+      btn.append('rect').attr('x', mid - 70).attr('y', btnY).attr('width', 140).attr('height', 34).attr('rx', 17).attr('fill', '#1d3a66').attr('stroke', '#f4d27a').attr('stroke-width', 1.5);
+      btn.append('text').attr('x', mid).attr('y', btnY + 22).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-weight', 700).attr('fill', '#f4ecd6').text('모두 공개');
+      const xb = box.append('g').attr('class', 'sqall').attr('tabindex', 0).attr('role', 'button').attr('aria-label', '닫기').on('click', close)
+        .on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); close(ev); } });
+      const xx = vert ? W - 36 : zx + 2 * cw + gx + 12, xy = vert ? 48 : 56;
+      xb.append('circle').attr('cx', xx).attr('cy', xy).attr('r', 16).attr('fill', '#1d3a66').attr('stroke', '#f4d27a');
+      xb.append('text').attr('x', xx).attr('y', xy + 6).attr('text-anchor', 'middle').attr('font-size', 18).attr('font-weight', 700).attr('fill', '#f4ecd6').text('×');
+      box.append('text').attr('x', mid).attr('y', btnY + 56).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', '#8fa3c4').text('바깥을 누르거나 Esc 로 닫기');
+      const shown = ['KR', 'US'].filter((mk) => (sq[mk] || 0) >= 1);
+      if (shown.length) { const mk = shown[shown.length - 1]; bub.attr('opacity', 1); bHead.attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(`${MK[mk].suit} ${zp[mk].name || zp[mk].ticker}`); const t = `“${zp[mk].line || `${zp[mk].name || zp[mk].ticker}, 이번 라운드 제 선택입니다!`}”`; bL1.attr('font-size', fit(t)); show([...t], [...t].length); }   // 다시 그려도 말풍선 유지
+      if (!el._zoomKey) { el._zoomKey = true; document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && el._zoom) { el._zoom = null; el._sq = {}; drawBaccarat(el); } }); }
+      if (fresh) { el._zoomFocus = el._zoom; const f = box.node().querySelector('.sq[tabindex="0"]'); if (f) setTimeout(() => f.focus({preventScroll: true}), 0); }
+    } else el._zoomFocus = null;
   };
   const drawBaccaratBody = (el, first) => {
     const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');
@@ -1193,26 +1364,17 @@
         const {isLead, isRisk} = flagOf(r);
         const g = svg.append('g').attr('class', 'seat').attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`).attr('data-fkey', `seat|${a.team}|${a.name}`)
           .on('click', () => openProfile(a.team, a.name)).on('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openProfile(a.team, a.name); } });
-        // 펠트 위 미니 카드 2장 (한국·미국)
-        const cx0 = left ? 96 : 254;
+        // 펠트 위 카드 2장(뒷면, 한국·미국). 누르면 쪼이기 창
+        const cx0 = left ? 96 : 254, has = !!(pp.KR || pp.US);
+        const hand = svg.append('g').attr('class', has ? 'hand' : 'hand none');
+        if (has) {
+          hand.append('rect').attr('x', cx0 - 3).attr('y', y - 25).attr('width', 56).attr('height', 40).attr('fill', 'transparent');
+          hand.on('click', (ev) => { ev.stopPropagation(); el._zoom = `${a.team}|${a.name}`; el._sq = {}; drawBaccarat(el); });
+          hand.append('title').text(`${a.nickname || a.label}의 카드 — 눌러서 쪼여 보기`);
+        }
         ['KR', 'US'].forEach((mk, k) => {
-          const p = pp[mk], X = cx0 + k * 26, Y = y - 22;
-          const c = g.append('g').attr('class', 'dealt').style('animation-delay', `${.5 + i * .06 + k * .04}s`);
-          if (!p) {
-            c.append('rect').attr('x', X).attr('y', Y).attr('width', 24).attr('height', 34).attr('rx', 3).attr('fill', '#7a1e1e').attr('stroke', '#f4ecd6').attr('stroke-width', 1.4);
-            return;
-          }
-          c.append('rect').attr('x', X).attr('y', Y).attr('width', 24).attr('height', 34).attr('rx', 3).attr('fill', '#fff').attr('stroke', '#c9c2b2');
-          c.append('text').attr('x', X + 3).attr('y', Y + 8).attr('font-size', 6.5).attr('font-weight', 800).attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(mk);
-          const lg = logoOf(p);
-          if (lg) c.append('image').attr('href', lg).attr('x', X + 5).attr('y', Y + 11).attr('width', 14).attr('height', 14);
-          else {
-            c.append('rect').attr('x', X + 5).attr('y', Y + 11).attr('width', 14).attr('height', 14).attr('rx', 3).attr('fill', monoColor(p.ticker));
-            c.append('text').attr('x', X + 12).attr('y', Y + 21.5).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#fff').attr('font-family', 'Georgia, serif').text((p.name || p.ticker).slice(0, 1));
-          }
-          c.append('text').attr('x', X + 12).attr('y', Y + 44).attr('text-anchor', 'middle').attr('font-size', 8.5).attr('font-weight', 700)
-            .attr('fill', p.score == null ? '#d9e3f2' : p.status !== 'final' ? '#ffd27a' : p.score >= 0 ? '#9ff0b8' : '#ffb3a8')
-            .text(p.score == null ? '—' : `${pct(p.score)}`);
+          const c = hand.append('g').attr('class', 'dealt').style('animation-delay', `${.5 + i * .06 + k * .04}s`);
+          cardBack(c, cx0 + k * 26, y - 22, 24, 34, mk, !!pp[mk]);
         });
         if (isLead || isRisk) {
           const fx = cx0 + 25, fy = y - 30;
@@ -1235,6 +1397,7 @@
       };
       byRank('로로 팀 (Claude)').slice(0, 5).forEach((a, i) => seatAt(a, i, true));
       byRank('슈슈 팀 (Codex)').slice(0, 5).forEach((a, i) => seatAt(a, i, false));
+      squeeze(el, svg, {W, H, seats, picksOf, rowOf, grad, vert: true});
       return;
     }
     el.classList.remove('portrait');
@@ -1421,7 +1584,7 @@
 
     // 자리 10개: 펠트 위 순위 칸 · 종목 카드 칸, 팔걸이 컵홀더, 바깥 명패
     const m = seats.length, t0 = 0.12 * Math.PI, span = 0.76 * Math.PI, gap = 0.012;
-    const later = [];
+    const later = [], hands = [];
     seats.forEach((a, i) => {
       const ta = t0 + span * i / m, tb = t0 + span * (i + 1) / m, tm = (ta + tb) / 2;
       const r = rowOf(a), pp = picksOf(a);
@@ -1435,20 +1598,13 @@
       g.append('text').attr('transform', flatM(-368 * Math.cos(tm), 368 * Math.sin(tm), (Math.PI / 2 - tm) * 0.6)).attr('y', 10).attr('text-anchor', 'middle')
         .attr('font-size', 28).attr('font-family', 'Georgia, serif').attr('font-weight', 700)
         .attr('fill', isLead ? '#c9ffd6' : isRisk ? '#ffc2b8' : '#f4d27a').text(r ? `${r.league_rank}위` : '—');
-      // 종목 카드 2장: 왼쪽 한국, 오른쪽 미국 (자리에 앉은 사람 기준)
+      // 칩: 채점된 종목마다 칸 안에 점수만큼 쌓는다
       const tg = [Math.sin(tm), Math.cos(tm)];
-      let cardTop = Infinity, cardBot = -Infinity, cardX = 0;
       [['KR', -1], ['US', 1]].forEach(([mk, k], j) => {
-        const sp = Math.cos(tm) ** 2 > 0.5 ? 25 : 31, X = -470 * Math.cos(tm) + k * sp * tg[0], Y = 470 * Math.sin(tm) + k * sp * tg[1];
-        const edge = Math.cos(tm) ** 2 > 0.5, s = S(Y) * (edge ? 0.86 : 1), w = 46 * s, h = 62 * s, p = pp[mk], delay = 0.6 + i * 0.05 + j * 0.05;
-        let [x, y] = P(X, Y);
-        if (edge) { const [x0, y0] = P(-470 * Math.cos(tm), 470 * Math.sin(tm)); x = x0 + k * (w / 2 + 1.5); y = y0; }   // 끝 칸은 화면 가로로 나란히(겹침 방지)
-        g.append('ellipse').attr('cx', x).attr('cy', y + 2).attr('rx', w * 0.55).attr('ry', 5 * s).attr('fill', '#000').attr('opacity', .3);
-        stockCard(g, x - w / 2, y - h + 4 * s, w, h, p, {rot: (Math.PI / 2 - tm) * 180 / Math.PI * -0.25, delay: delay - 0.3});
-        cardTop = Math.min(cardTop, y - h); cardBot = Math.max(cardBot, y + 4 * s); cardX += x / 2;
-        if (p && p.score != null) { const [qx, qy] = P(-516 * Math.cos(tm) + k * 34 * tg[0], 516 * Math.sin(tm) + k * 34 * tg[1]); chipStack(g, qx, qy, p.score, delay, S(516 * Math.sin(tm))); }
+        const p = pp[mk];
+        if (p && p.score != null) { const [qx, qy] = P(-490 * Math.cos(tm) + k * 30 * tg[0], 490 * Math.sin(tm) + k * 30 * tg[1]); chipStack(g, qx, qy, p.score, 0.6 + i * 0.05 + j * 0.05, S(490 * Math.sin(tm))); }
       });
-      if (isLead || isRisk) { const [bx, by] = P(-548 * Math.cos(tm), 548 * Math.sin(tm)); later.push([bx, cardBot + 27, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']); }   // 카드 바로 아래(그 칸 쪽), 꼬리는 위로. 앞자리 이름표를 가리지 않게
+      if (isLead || isRisk) { const [bx, by] = P(-430 * Math.cos(tm), 430 * Math.sin(tm)); later.push([bx, by + 14, isLead ? '선두' : '꼴등', isLead ? '#2e9e48' : '#d0453a']); }   // 펠트 칸 안, 꼬리는 위로
       // 컵홀더 (자리 사이)
       if (i < m - 1) {
         const X = -632 * Math.cos(tb), Y = 632 * Math.sin(tb);
@@ -1457,6 +1613,26 @@
       }
       // 명패: 이름표 · 캐릭터 · 이번 주 점수, 팀 문양
       const c2 = Math.pow(Math.cos(tm), 2), pr = 672 + 40 * c2, PX = -pr * Math.cos(tm), PY = pr * Math.sin(tm), [px, py] = P(PX, PY), s = 0.92 * Math.min(1.05, S(PY)) * (1 - 0.3 * c2) * (el.closest('.app') && window.innerHeight < 500 && c2 < 0.3 ? 1.12 : 1);   // 끝자리는 작게, 휴대폰 가로에서는 가운데 자리만 키움
+      {   // 종목 카드 2장(뒷면): 명패 바로 위에 왼쪽 한국·오른쪽 미국. 누르면 가운데에서 쪼여 본다
+        const edge = c2 > 0.5, cw = edge ? 34 : 42, chh = cw * 1.38, gx = 5;
+        const inward = (Math.cos(tm) > 0 ? 1 : -1) * (edge ? 26 : c2 > 0.2 ? 10 : 0);
+        const nameTop = py - 26 * s - 50 * c2 - 70 * s, cx = px + inward;
+        const y0 = nameTop - 6 - chh, has = !!(pp.KR || pp.US);
+        hands.push(() => {
+          const hand = svg.append('g').attr('class', has ? 'hand' : 'hand none');
+          if (has) {
+            hand.append('rect').attr('x', cx - cw - gx / 2 - 3).attr('y', y0 - 3).attr('width', 2 * cw + gx + 6).attr('height', chh + 6).attr('fill', 'transparent');   // 두 장 사이 틈도 눌리게
+            hand.on('click', (ev) => { ev.stopPropagation(); el._zoom = `${a.team}|${a.name}`; el._sq = {}; drawBaccarat(el); });
+          }
+          [['KR', -1], ['US', 1]].forEach(([mk, k], j) => {
+            const x = cx + (k < 0 ? -cw - gx / 2 : gx / 2);
+            const d = hand.append('g').attr('class', 'dealt').style('animation-delay', `${0.3 + i * 0.05 + j * 0.05}s`);
+            d.append('rect').attr('x', x + 1.5).attr('y', y0 + 2.5).attr('width', cw).attr('height', chh).attr('rx', cw * 0.1).attr('fill', '#000').attr('opacity', pp[mk] ? .35 : 0);
+            cardBack(d, x, y0, cw, chh, mk, !!pp[mk]);
+          });
+          if (has) hand.append('title').text(`${a.nickname || a.label}의 카드 — 눌러서 쪼여 보기`);
+        });
+      }
       later.push(Object.assign(() => {
         const f = svg.append('g').attr('class', 'seat').attr('transform', `translate(${px.toFixed(1)} ${(py - 26 * s - 50 * c2).toFixed(1)}) scale(${s.toFixed(3)})`)
           .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${a.nickname || a.label} 프로필`).attr('data-fkey', `seat|${a.team}|${a.name}`)
@@ -1487,11 +1663,13 @@
     });
     // 명패는 테이블 위에, 앞자리(아래쪽)가 나중에 그려지도록
     later.filter((x) => typeof x === 'function').sort((x, y) => x.py - y.py).forEach((fn) => fn());
+    hands.forEach((fn) => fn());
     later.filter((x) => Array.isArray(x)).forEach(([x, y, text, fill]) => {
       const g = svg.append('g').attr('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
       g.append('path').attr('d', 'M-26 -24 H-7 L0 -32 L7 -24 H26 V0 H-26 Z').attr('fill', fill).attr('stroke', '#fff').attr('stroke-width', 1.6);
       g.append('text').attr('y', -7).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 800).attr('fill', '#fff').text(text);
     });
+    squeeze(el, svg, {W, H, seats, picksOf, rowOf, grad, vert: false});
   };
   dash.draw('baccarat', drawBaccarat);
 

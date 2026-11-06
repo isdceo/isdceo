@@ -41,6 +41,21 @@ def _load(d: Path, now: datetime) -> dict:
         tmp.unlink(missing_ok=True)
 
 
+PRICE_LIKE = re.compile(r"[$₩]\s*\d|\d[\d,.]*\s*(원|달러|만원|억원|조원)|종가|목표주가")
+
+
+def load_lines(d: Path) -> dict:
+    """<원장>/lines/<라운드>.json — 종목별 한 줄 선택 이유(재미있는 말투, 가격 숫자 없이). {pick_id: 문장}
+    마감 뒤 공개된 종목에만 붙는다(picks 가 이미 마감 전 종목을 뺀다). 가격처럼 보이는 문장·80자 초과는 버린다."""
+    out = {}
+    for f in sorted((d / "lines").glob("*.json")):
+        for k, v in json.loads(f.read_text()).items():
+            v = " ".join(str(v).split())
+            if v and len(v) <= 80 and not PRICE_LIKE.search(v):
+                out[k] = v
+    return out
+
+
 def build(now: datetime | None = None, logos: bool = False, base: Path | None = None) -> dict:
     """base: 실전 원장 폴더(기본 league/). 연습은 base/sandbox."""
     now = now or datetime.now(L.KST)
@@ -92,6 +107,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                     "status": s["status"], "pushed_at": s["pushed_at"], "commit": s["commit"][:7],
                                     "imported": s.get("imported", 0)})
 
+        lines = load_lines(d)
         for p in data["picks"]:
             if team_of(p["team"]) not in TEAM_LABEL:      # 옛 공용 시험(sandbox) 기록은 제외
                 continue
@@ -102,7 +118,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                  "market": p["market"], "ticker": p["ticker"], "name": p.get("name") or "",
                                  "status": s.get("status") or "pending", "score": s.get("score"),
                                  "score_price_only": s.get("score_price_only"), "score_excess": s.get("score_excess"),
-                                 "reason": s.get("reason") or ""})
+                                 "reason": s.get("reason") or "", "line": lines.get(p["pick_id"], "")})
 
         for team, t in data["teams"].items():
             for x in t["series"]:
