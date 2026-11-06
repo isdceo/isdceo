@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-06T14:12:57+09:00",
+ "generated_at": "2026-11-06T14:14:15+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -140,7 +140,7 @@
    "score_price_only": 1.15,
    "score_excess": 6.43,
    "reason": "",
-   "line": "담배는 불황에도 안 끊어요. 해외에서 해마다 쑥쑥 크는 꾸준함, 딱 제 취향이죠."
+   "line": "담배는 불황에도 안 끊어. 해외에서 해마다 크는 꾸준함, 난 이런 게 좋아."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-buffett-US",
@@ -157,7 +157,7 @@
    "score_price_only": -0.07,
    "score_excess": 4.34,
    "reason": "",
-   "line": "콜라 원액만 팔아도 영업이익률 33%. 이런 가게는 오래오래 들고 갑니다."
+   "line": "콜라 원액만 팔아도 영업이익률 33%야. 이런 가게는 그냥 오래 들고 가는 거지."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-burry-KR",
@@ -174,7 +174,7 @@
    "score_price_only": 1.15,
    "score_excess": 6.43,
    "reason": "",
-   "line": "코스피가 한 달 새 19% 무너질 때 혼자 올랐어요. 다들 도망칠 때 숨을 곳이죠."
+   "line": "코스피가 한 달에 19% 박살 날 때 혼자 올랐어. 다들 도망칠 때 여기 숨으면 돼."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-burry-US",
@@ -191,7 +191,7 @@
    "score_price_only": -1.17,
    "score_excess": 3.24,
    "reason": "",
-   "line": "AI주가 반 토막 날 때도 꿈쩍 안 한 현금 부자. 오늘은 방패를 듭니다."
+   "line": "AI주 반 토막 날 때도 꿈쩍 안 했지. 오늘은 방패나 들고 있을래."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-dalio-KR",
@@ -208,7 +208,7 @@
    "score_price_only": 1.15,
    "score_excess": 6.43,
    "reason": "",
-   "line": "성장은 식고 물가는 오르는 국면. 이럴 땐 시장과 반대로 걷는 종목이 답입니다."
+   "line": "성장은 식고 물가는 끓는 판이야. 이럴 땐 시장 반대로 걷는 놈이 답이지."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-dalio-US",
@@ -225,7 +225,7 @@
    "score_price_only": -1.17,
    "score_excess": 3.24,
    "reason": "",
-   "line": "금리가 높을수록 쌓아 둔 현금이 이자를 벌어요. 고금리 시대의 승자죠."
+   "line": "금리 높을수록 쌓아 둔 현금이 이자를 벌어. 고금리판 최종 보스야."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-lynch-KR",
@@ -242,7 +242,7 @@
    "score_price_only": 3.2,
    "score_excess": 8.48,
    "reason": "",
-   "line": "불닭이 해외 매출 84%! 이익은 47% 늘었는데 몸값은 평소보다 싸요."
+   "line": "불닭 해외 매출이 84%래! 이익은 47% 뛰었는데 몸값은 평소보다 싸. 이걸 왜 안 사?"
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-lynch-US",
@@ -259,7 +259,7 @@
    "score_price_only": -1.32,
    "score_excess": 3.09,
    "reason": "",
-   "line": "여행 숙박은 예상보다 잘 팔리는데 주가는 바닥 근처. 이런 엇박자, 제가 좋아하죠."
+   "line": "여행은 예상보다 잘 팔리는데 주가는 바닥이야. 이런 엇박자, 완전 내 스타일."
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-wood-KR",
@@ -276,7 +276,7 @@
    "score_price_only": -9.46,
    "score_excess": -4.18,
    "reason": "",
-   "line": "AI 시대의 병목은 메모리! 실적은 폭발했는데 주가는 고점의 절반이라니요."
+   "line": "AI 시대 병목은 메모리라니까! 실적은 폭발했는데 주가는 반값? 말도 안 돼!"
   },
   {
    "pick_id": "2026-11-05-sandbox-claude-wood-US",
@@ -293,7 +293,7 @@
    "score_price_only": 31.04,
    "score_excess": 35.45,
    "reason": "",
-   "line": "AI 광고 엔진 AXON, 고점 대비 66% 할인 중. 실적 발표 한 방에 겁니다."
+   "line": "AI 광고 엔진 AXON, 고점 대비 66% 세일 중! 실적 발표 한 방에 다 건다!"
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s1-KR",
@@ -310,7 +310,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "빚보다 많은 현금, 순이익보다 많은 영업현금. 단단한 금고부터 확인했어요."
+   "line": "빚보다 현금이 많고, 번 돈보다 들어온 현금이 많아. 금고부터 두드려 봤지."
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s1-US",
@@ -327,7 +327,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "보험 사업 뒤에 쌓인 현금 더미. 안전마진은 결국 현금에서 나오죠."
+   "line": "보험 뒤에 현금 더미가 산처럼 쌓여 있어. 안전마진은 결국 현금이야."
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s2-KR",
@@ -344,7 +344,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "렌털 계정이 한 분기에 24만 개 늘었어요. 손님이 느는 게 눈에 보이죠."
+   "line": "렌털 계정이 한 분기에 24만 개 늘었어. 손님 느는 게 눈에 딱 보이잖아."
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s2-US",
@@ -361,7 +361,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "카드 긁을 때마다 조금씩 버는 구조, 결제 건수도 10% 늘었어요. 알짜는 이런 거죠."
+   "line": "카드 긁을 때마다 조금씩 떼 가는 장사야. 결제도 10% 늘었고. 이게 알짜지."
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s3-KR",
@@ -378,7 +378,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "매출 39%, 영업이익 47% 증가. 성장은 숫자로 검증 완료!"
+   "line": "매출 39%, 영업이익 47% 증가. 증거 확보 완료, 사건 종결!"
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s3-US",
@@ -395,7 +395,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "Azure 매출 48% 성장. 말뿐인 AI가 아니라 매출로 증명했어요."
+   "line": "Azure 매출 48% 성장. 말로만 AI 하는 게 아니라 매출로 찍혔어. 확인했어."
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s4-KR",
@@ -412,7 +412,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "HBM4 출하 본격화, 엔비디아와 다년 협력. 성장 엔진은 아직 뜨겁습니다."
+   "line": "HBM4 출하 시작, 엔비디아랑 다년 협력! 성장 엔진 아직 뜨끈뜨끈해."
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s4-US",
@@ -429,7 +429,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "클라우드도, 업무용 프로그램도 계속 팔려요. 쑥쑥 크는 건 멈추지 않죠."
+   "line": "클라우드도 업무 프로그램도 계속 팔려. 쑥쑥 크는 건 안 멈춰!"
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s5-KR",
@@ -446,7 +446,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "오늘은 역발상보다 조건부 방패. 늘어난 이익과 자사주 소각 계획이 받쳐 줘요."
+   "line": "오늘은 반전 말고 방패야. 이익 늘고 자사주도 태운대. 재미없어도 단단하잖아?"
   },
   {
    "pick_id": "2026-11-06-sandbox-shushu-s5-US",
@@ -463,7 +463,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "할인은 못 찾았지만 든든한 현금이 버팀목. 오늘은 조심스러운 수비수예요."
+   "line": "싸게 파는 건 못 찾았어. 근데 현금이 든든하잖아. 오늘은 얌전히 수비할게."
   }
  ],
  "agents": [

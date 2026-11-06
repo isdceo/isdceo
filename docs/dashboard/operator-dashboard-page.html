@@ -1147,7 +1147,7 @@
       // 배치: 가로 테이블은 왼쪽 캐릭터·오른쪽 카드, 세로 테이블은 위 캐릭터·아래 카드
       const cw = vert ? 150 : 168, chh = vert ? 205 : 230, gx = vert ? 22 : 44;
       const zx = vert ? W / 2 - cw - gx / 2 : W / 2 - cw - gx / 2 + 70, zy = vert ? 170 : 108, mid = zx + cw + gx / 2;
-      const pan = vert ? [12, 24, W - 24, H - 48] : [zx - 210, 30, 2 * cw + gx + 240, zy + chh + 192 - 30];
+      const pan = vert ? [12, 24, W - 24, H - 48] : [zx - 210, 26, 2 * cw + gx + 240, zy + chh + 210 - 26];
       box.append('rect').attr('x', pan[0]).attr('y', pan[1]).attr('width', pan[2]).attr('height', pan[3]).attr('rx', 18).attr('fill', '#0b1426').attr('stroke', '#d4b25c').attr('stroke-opacity', .6).attr('stroke-width', 2)
         .on('click', (ev) => ev.stopPropagation());   // 판 안쪽을 눌러서는 닫히지 않게
       box.append('text').attr('x', vert ? 250 : mid).attr('y', vert ? 96 : 80).attr('text-anchor', 'middle').attr('font-size', 20).attr('font-weight', 800).attr('fill', '#f4ecd6')
@@ -1163,7 +1163,7 @@
       const styleName = String((zp.KR || zp.US || {}).agent || '').split(' · ')[1] || '';
       if (styleName) av.append('text').attr('y', 184).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', '#b9c7dd').text(styleName);
       // 말풍선: 카드를 다 젖히면 그 종목을 고른 이유를 한 줄로 타자 치듯 보여 준다
-      const bx0 = vert ? 24 : ax - 70, by0 = zy + chh + 46, bw = vert ? W - 48 : zx + 2 * cw + gx - bx0, bh = vert ? 80 : 58;
+      const bx0 = vert ? 24 : ax - 70, by0 = zy + chh + 46, bw = vert ? W - 48 : zx + 2 * cw + gx - bx0, bh = vert ? 80 : 76;
       const tip = vert ? [bx0 + 58, by0 - 14] : [ax, ay + 190];
       const bub = box.append('g').attr('class', 'bubble').attr('opacity', 0);
       bub.append('path').attr('d', `M${bx0 + 12} ${by0} H${bx0 + 46} L${tip[0]} ${tip[1]} L${bx0 + 70} ${by0} H${bx0 + bw - 12} Q${bx0 + bw} ${by0} ${bx0 + bw} ${by0 + 12} V${by0 + bh - 12} Q${bx0 + bw} ${by0 + bh} ${bx0 + bw - 12} ${by0 + bh} H${bx0 + 12} Q${bx0} ${by0 + bh} ${bx0} ${by0 + bh - 12} V${by0 + 12} Q${bx0} ${by0} ${bx0 + 12} ${by0} Z`)
@@ -1171,8 +1171,8 @@
       const bHead = bub.append('text').attr('x', bx0 + 16).attr('y', by0 + 23).attr('font-size', 14).attr('font-weight', 800);
       const bL1 = bub.append('text').attr('x', bx0 + 16).attr('y', by0 + 45).attr('font-size', 16).attr('fill', '#1f1a14');
       const bL2 = bub.append('text').attr('x', bx0 + 16).attr('y', by0 + 66).attr('font-size', 15).attr('fill', '#1f1a14');
-      const maxC = vert ? 22 : 36, brk = (chars) => {   // 세로 화면은 두 줄: 가운데 근처 띄어쓰기에서 나눈다
-        if (!vert || chars.length <= maxC) return chars.length;
+      const maxC = vert ? 22 : 38, brk = (chars) => {   // 길면 두 줄: 가운데 근처 띄어쓰기에서 나눈다
+        if (chars.length <= maxC) return chars.length;
         let b = -1; for (let i = 0; i < chars.length; i++) if (chars[i] === ' ' && (b < 0 || Math.abs(i - chars.length / 2) < Math.abs(b - chars.length / 2))) b = i;
         return b > 0 ? b + 1 : Math.ceil(chars.length / 2);
       };
@@ -1180,7 +1180,7 @@
       let typing = null;
       const say = (mk) => {
         const p = zp[mk]; if (!p) return;
-        const line = p.line || `${p.name || p.ticker}, 이번 라운드 제 선택입니다!`;
+        const line = p.line || `${p.name || p.ticker}, 이번 판은 이걸로 간다!`;
         bub.attr('opacity', 1);
         bHead.attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(`${MK[mk].suit} ${p.name || p.ticker}`);
         if (typing) clearInterval(typing);
@@ -1189,7 +1189,7 @@
         let n = 0; show(chars, 0);
         typing = setInterval(() => { n += 1; show(chars, n); if (n >= chars.length) { clearInterval(typing); typing = null; } }, 32);
       };
-      const fit = (t) => { const L = [...t].length; return vert ? 15 : L > 36 ? 16 * 36 / L : 16; };
+      const fit = (t) => { const L = [...t].length; return vert ? 15 : 16; };
       const uid = el._uid || (el._uid = 'q' + Math.random().toString(36).slice(2, 8));
       const ease = (u) => u < .5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1274,7 +1274,7 @@
       xb.append('text').attr('x', xx).attr('y', xy + 6).attr('text-anchor', 'middle').attr('font-size', 18).attr('font-weight', 700).attr('fill', '#f4ecd6').text('×');
       box.append('text').attr('x', mid).attr('y', btnY + 56).attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', '#8fa3c4').text('바깥을 누르거나 Esc 로 닫기');
       const shown = ['KR', 'US'].filter((mk) => (sq[mk] || 0) >= 1);
-      if (shown.length) { const mk = shown[shown.length - 1]; bub.attr('opacity', 1); bHead.attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(`${MK[mk].suit} ${zp[mk].name || zp[mk].ticker}`); const t = `“${zp[mk].line || `${zp[mk].name || zp[mk].ticker}, 이번 라운드 제 선택입니다!`}”`; bL1.attr('font-size', fit(t)); show([...t], [...t].length); }   // 다시 그려도 말풍선 유지
+      if (shown.length) { const mk = shown[shown.length - 1]; bub.attr('opacity', 1); bHead.attr('fill', mk === 'KR' ? '#c0392b' : '#1f1a14').text(`${MK[mk].suit} ${zp[mk].name || zp[mk].ticker}`); const t = `“${zp[mk].line || `${zp[mk].name || zp[mk].ticker}, 이번 판은 이걸로 간다!`}”`; bL1.attr('font-size', fit(t)); show([...t], [...t].length); }   // 다시 그려도 말풍선 유지
       if (!el._zoomKey) { el._zoomKey = true; document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && el._zoom) { el._zoom = null; el._sq = {}; drawBaccarat(el); } }); }
       if (fresh) { el._zoomFocus = el._zoom; const f = box.node().querySelector('.sq[tabindex="0"]'); if (f) setTimeout(() => f.focus({preventScroll: true}), 0); }
     } else el._zoomFocus = null;
