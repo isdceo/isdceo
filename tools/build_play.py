@@ -20,7 +20,7 @@ import dashboard_data as D  # noqa: E402
 PAGE = L.ROOT / "docs" / "dashboard" / "operator-dashboard-page.html"
 
 TOKENS = """:root{--color-fg:#1f1e1d;--color-fg-muted:#6b6862;--color-bg:#faf9f5;--color-panel:#ffffff;--color-border-line:#e6e3da;--color-ok:#2f7d4f;--color-warn:#a8650b;--color-bad:#b3261e;
---font-anthropic-sans:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;--font-anthropic-serif:Georgia,"Noto Serif KR",serif;
+--font-anthropic-sans:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;--font-anthropic-serif:Georgia,"Noto Serif KR",serif;
 --cds-font-size-caption:12px;--cds-font-size-body:14px;--cds-font-size-heading:17px;--cds-font-size-title:26px;--cds-font-weight-medium:600;
 --cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:12px;--cds-gap-lg:20px;--cds-gap-xl:28px;--cds-pad-xs:4px;--cds-pad-sm:8px;--cds-pad-md:12px;--cds-pad-lg:16px;--cds-radius:6px;
 --cds-shadow-popover:0 4px 16px rgba(0,0,0,.25);--cds-dur-slow:.3s;
@@ -30,10 +30,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(
 .app{background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34'%3E%3Cpath d='M17 3 L31 17 L17 31 L3 17 Z M17 11 L23 17 L17 23 L11 17 Z' fill='none' stroke='%23d4b25c' stroke-opacity='.13' stroke-width='1.2'/%3E%3C/svg%3E\"),radial-gradient(ellipse at 50% 35%,#16305a 0%,#0b1a36 55%,var(--room) 100%);height:100vh;height:100dvh;min-height:320px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .app .hudbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;background:linear-gradient(var(--hud),rgba(11,20,38,.6));border-bottom:1px solid var(--hud-line)}
-.app .hudbar h1{margin:0;font-family:var(--font-anthropic-serif);font-weight:400;font-size:19px;color:var(--gold);letter-spacing:.04em;white-space:nowrap}
+.app .hudbar h1{margin:0;font-family:"Do Hyeon",var(--font-anthropic-sans);font-weight:400;font-size:19px;color:var(--gold);letter-spacing:.04em;white-space:nowrap}
 .app .mini{display:grid;grid-template-columns:auto auto;column-gap:8px;align-items:baseline;text-align:right;background:#050a14;border:1px solid var(--btn-line);border-radius:10px;padding:4px 10px;font-variant-numeric:tabular-nums;cursor:pointer;font:inherit;color:inherit}
 .app .mini small{grid-column:1/-1;font-size:10.5px;color:var(--ink-soft)}
-.app .mini b{font-family:var(--font-anthropic-serif);font-size:19px;color:#ffd65a;font-weight:400}
+.app .mini b{font-family:"Do Hyeon",var(--font-anthropic-sans);font-size:19px;color:#ffd65a;font-weight:400}
 .app .mini i{font-style:normal;font-size:10.5px;color:#9ff0b8}
 .app .stage{min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .app .stage > .lg{display:block;flex:1;min-height:0;gap:0}
@@ -44,7 +44,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(
 .app .stage .lg .felt .tablebox svg{width:100%;height:100%;max-height:100%}
 .app .stage .note{margin:0;padding:2px 12px 4px;text-align:center;font-size:10px;color:rgba(217,227,242,.75)}
 .app .dock{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(11,20,38,.6),var(--hud));border-top:1px solid var(--hud-line)}
-.app .dock button{font:inherit;font-size:13.5px;font-weight:600;color:var(--ink);padding:11px 4px;border-radius:10px;cursor:pointer;
+.app .dock button{font:inherit;font-family:"Do Hyeon",var(--font-anthropic-sans);font-size:15px;font-weight:400;color:var(--ink);padding:11px 4px;border-radius:10px;cursor:pointer;
   background:linear-gradient(var(--btn-top),var(--btn-bot));border:1px solid var(--btn-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 3px 0 #050a14}
 .app .dock button[aria-expanded="true"]{background:linear-gradient(#2e9e48,#1f7a35);border-color:#7dff9c}
 .app .dock button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 0 #050a14}
@@ -56,7 +56,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(
   transform:translateY(105%);visibility:hidden;transition:transform .25s ease-out,visibility 0s .25s}
 .sheet.open{transform:none;visibility:visible;transition:transform .25s ease-out}
 .sheet header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid var(--hud-line)}
-.sheet header b{color:var(--gold);font-size:15px;letter-spacing:.04em}
+.sheet header b{color:var(--gold);font-family:"Do Hyeon",var(--font-anthropic-sans);font-weight:400;font-size:17px;letter-spacing:.04em}
 .sheet .x{font:inherit;color:var(--ink);background:none;border:1px solid var(--btn-line);border-radius:8px;padding:4px 12px;cursor:pointer}
 .sheet .body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px));overscroll-behavior:contain}
 .sheet .body .felt{background:transparent;border:0;box-shadow:none;padding:0;border-radius:0}
@@ -87,7 +87,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--room);color:var(
 }
 /* 휴대폰 세로: 가로로 돌리라는 안내 (세로로 보기를 고르면 세로 화면) */
 .turn{display:none;position:fixed;inset:0;z-index:90;background:var(--room);color:var(--ink);flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
-.turn b{font-size:18px;color:var(--gold)}
+.turn b{font-family:"Do Hyeon",var(--font-anthropic-sans);font-weight:400;font-size:21px;color:var(--gold)}
 .turn p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.6;max-width:22em}
 .turn button{font:inherit;color:var(--ink-soft);background:none;border:1px solid var(--btn-line);border-radius:10px;padding:8px 16px;cursor:pointer}
 .turn svg{width:96px;height:96px}
@@ -162,6 +162,7 @@ def page_html(generated_at: str) -> str:
 <meta name="description" content="두 AI 팀의 모의 종목 예측 리그. 돈이나 베팅은 없습니다.">
 <meta name="theme-color" content="#0b1426">
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;700&display=swap">
 <style>{TOKENS}</style>
 {style}
 </head><body>

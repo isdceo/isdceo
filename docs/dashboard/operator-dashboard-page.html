@@ -1,5 +1,12 @@
 <meta name="dash-one-writer">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;700&display=swap">
 <style>
+  /* 테이블 글꼴: 이름표·점수·배너·말풍선은 도현(간판 글씨), 작은 안내는 Noto Sans KR. 못 받으면 기본 글꼴 */
+  .lg { --game-display: "Do Hyeon", var(--font-anthropic-sans); --game-body: "Noto Sans KR", var(--font-anthropic-sans); }
+  .lg .tablebox svg text { font-family: var(--game-body); }
+  .lg .tablebox svg text[font-weight="700"], .lg .tablebox svg text[font-weight="800"], .lg .tablebox svg text[font-family], .lg .tablebox svg .seat text, .lg .tablebox svg .zoombox text, .lg .tablebox svg .ticket text { font-family: var(--game-display); font-weight: 400; }
+  .lg .tablebox .mcards, .lg .tablebox .mseat { font-family: var(--game-body); }
+  .lg .tablebox .mseat b, .lg .tablebox .mc .nm, .lg .tablebox .mc .sc { font-family: var(--game-display); font-weight: 400; }
   .lg { font-family: var(--font-anthropic-sans); color: var(--color-fg); display: grid; gap: var(--cds-gap-lg); }
   .lg h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
   .lg h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
