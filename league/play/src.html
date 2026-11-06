@@ -278,6 +278,49 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   .room .slot:not(.pk){background:linear-gradient(180deg,#ffb36a,#d0702e 40%,#3a1e14 41%,#1a0e0a);box-shadow:0 0 40px 10px rgba(255,150,70,.4)}
 }
 @media (orientation:portrait) and (max-aspect-ratio:1/2){#fz5{display:block;right:7%;bottom:36%;filter:blur(1.5px)}}
+/* 안 본 카드 표시 */
+.plate.unseen::after{content:"";position:absolute;right:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:#ff4d6a;border:1.5px solid #fff;box-shadow:0 0 6px #ff4d6a}
+/* 결과 보기 버튼 · 결과 쇼 */
+.showbtn{position:absolute;z-index:9;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);font-family:var(--disp);font-size:clamp(13px,1.9vw,17px);color:#3a1a00;padding:.35em 1em;border-radius:999px;border:0;cursor:pointer;white-space:nowrap;
+  background:linear-gradient(180deg,#fff1b0,#ffcf4a 45%,#e79a16);box-shadow:0 3px 0 #9a5a08,0 6px 12px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.7)}
+.showbtn[hidden]{display:none}
+.showbtn.new::after{content:"";position:absolute;right:-3px;top:-3px;width:11px;height:11px;border-radius:50%;background:#ff4d6a;border:1.5px solid #fff;animation:dot 1.4s ease-in-out infinite}
+@keyframes dot{50%{transform:scale(1.35)}}
+.showbtn:active{transform:translateX(-50%) scale(.94)}
+.game.zoomed .showbtn,.game.sheeted .showbtn,.game.showing .showbtn{opacity:0;pointer-events:none}
+.show{position:absolute;inset:0;z-index:28;display:none;flex-direction:column;align-items:center;gap:8px;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
+  background:radial-gradient(80% 70% at 50% 35%,rgba(40,90,55,.97),rgba(10,30,18,.98))}
+.game.showing .show{display:flex;animation:sheetIn .3s ease-out}
+.game.showing .lobby,.game.showing .dock,.game.showing .hud{filter:blur(6px) brightness(.5);pointer-events:none}
+.show h2{margin:4px 0 0;font-family:var(--disp);font-weight:400;font-size:clamp(20px,3vw,28px);color:var(--gold);text-shadow:0 2px 0 #5a2a08}
+.show .sub{font-size:12.5px;color:#d8f0dc;margin:0}
+.show .grid{flex:1;min-height:0;width:min(100%,1100px);display:grid;grid-template-columns:repeat(5,1fr);gap:8px 10px;align-content:center;overflow:auto}
+.show .team{grid-column:1/-1;font-family:var(--disp);font-size:15px;margin-top:2px}
+.show .team.c{color:#ffc58a}.show .team.s{color:#9fd0ff}
+.show .ag{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.show .ag .who3{display:flex;align-items:center;gap:5px;font-family:var(--disp);font-size:14px;max-width:100%}
+.show .ag .who3 i{width:30px;height:30px;flex:none;border-radius:50%;overflow:hidden;background:radial-gradient(circle,#4a3a6a,#1b1230)}
+.show .ag .who3 i img,.show .ag .who3 i svg{width:100%;height:100%;display:block}
+.show .pair2{display:flex;gap:5px}
+.fc{width:clamp(44px,6.4vw,64px);aspect-ratio:5/7;perspective:400px}
+.fc .in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,1.3,.5,1)}
+.fc.on .in{transform:rotateY(180deg)}
+.fc .bk,.fc .fr{position:absolute;inset:0;border-radius:6px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.fc .bk{background:repeating-linear-gradient(45deg,rgba(255,215,120,.35) 0 2px,transparent 2px 6px),repeating-linear-gradient(-45deg,rgba(255,215,120,.35) 0 2px,transparent 2px 6px),#9b1c24;border:2px solid #fff3dc;display:grid;place-items:center;color:#ffd77a;font-size:15px}
+.fc .fr{transform:rotateY(180deg);background:linear-gradient(160deg,#fffdf7,#efe7d6);border:1px solid #d8cfbb;color:#1f1a14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px}
+.fc .fr .m{font-family:var(--disp);font-size:11px;line-height:1}.fc .fr .m.r{color:#c0392b}
+.fc .fr .n{font-size:9.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc .fr .v{font-family:var(--disp);font-size:clamp(12px,1.7vw,15px)}
+.fc.none .bk{background:rgba(255,255,255,.08);border:1.5px dashed rgba(255,255,255,.4);color:transparent}
+.fc.best .fr{box-shadow:0 0 0 2px #ffd77a,0 0 14px 4px rgba(255,215,120,.7)}
+.show .sum{min-height:2.6em;text-align:center;font-family:var(--disp);font-size:clamp(15px,2.2vw,20px);color:#fff;opacity:0;transition:opacity .3s}
+.show .sum.on{opacity:1}
+.show .sum small{display:block;font-family:var(--body);font-size:12px;color:#d8f0dc}
+.show .btns{display:flex;gap:10px}
+.show .btns button{font-family:var(--disp);font-size:16px;padding:.4em 1.2em;border-radius:12px;border:0;cursor:pointer;color:#3a1a00;background:linear-gradient(180deg,#fff1b0,#ffcf4a 45%,#e79a16);box-shadow:0 3px 0 #9a5a08}
+.show .btns button.ghost{background:#2a1d3c;color:#fff;border:2px solid #ffd77a;box-shadow:none}
+@media (orientation:portrait){.showbtn{left:auto;right:max(12px,env(safe-area-inset-right));transform:none}.showbtn:active{transform:scale(.94)}
+  .show .grid{grid-template-columns:repeat(3,1fr)}}
 @media (orientation:portrait){.act:active{transform:translateX(-50%) scale(.94)}}
 @media (orientation:portrait) and (max-width:400px){.plate{--pf:10.5px!important;padding:.08em .35em}.plate::before{display:none}.plate.c{box-shadow:inset 3px 0 0 #ff8a3a,0 3px 0 #6e4a10,0 6px 10px rgba(0,0,0,.55)}.plate.s{box-shadow:inset 3px 0 0 #4ea2ff,0 3px 0 #6e4a10,0 6px 10px rgba(0,0,0,.55)}.plate.c.lead,.plate.s.lead{box-shadow:inset 3px 0 0 var(--tc),0 0 14px 3px #5dff8c}.plate.c.risk,.plate.s.risk{box-shadow:inset 3px 0 0 var(--tc),0 0 14px 3px #ff5c5c}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -287,6 +330,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   <div class="room" aria-hidden="true"><div class="wall"></div></div>
   <div class="lobby" id="lobby"></div>
   <div class="vign"></div>
+  <button type="button" class="showbtn" id="showbtn" hidden></button>
   <div class="hud"><div class="logo">AI 투자 리그</div><button class="timer" id="timer" data-open="progress">다음 마감까지 <b>—</b></button></div>
   <nav class="dock" aria-label="메뉴">
     <button class="btn chipbtn" data-open="progress" style="--c:#c8262f;--e:#6a0f14">진행</button>
@@ -304,6 +348,12 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     <button class="x" id="x" aria-label="닫기">×</button>
     <button class="act" id="act">모두 공개</button>
   </div>
+  <section class="show" id="show" role="dialog" aria-modal="true" aria-labelledby="show-t">
+    <h2 id="show-t"></h2><p class="sub" id="show-sub"></p>
+    <div class="grid" id="show-grid"></div>
+    <div class="sum" id="show-sum" aria-live="polite"></div>
+    <div class="btns"><button type="button" id="show-skip">모두 보기</button><button type="button" class="ghost" id="show-x">닫기</button></div>
+  </section>
   <div class="scrim" id="scrim"></div>
   <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t">
     <header><span class="ic" id="sheet-ic"></span><h2 id="sheet-t"></h2><button type="button" id="sheet-x" aria-label="닫기">×</button></header>
@@ -344,6 +394,11 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   const picksOf = (a) => { const mine = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id); const live = mine.filter((p) => p.mode === '실전'); const pool = live.length ? live : mine; const last = pool.map((p) => p.round_date).sort().pop();
     return {KR: pool.find((p) => p.round_date === last && p.market === 'KR'), US: pool.find((p) => p.round_date === last && p.market === 'US'), last, mode: pool[0] && pool[0].mode}; };
   const pct = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+  // 안 본 카드: 그 캐릭터의 최근 라운드를 이 기기에서 아직 다 열어 보지 않았으면 표시(기기에만 저장)
+  const store = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } };
+  const seenKey = (a) => `${a.team}|${a.agent_id}|${picksOf(a).last || ''}`;
+  const isUnseen = (a) => { const pp = picksOf(a); if (!(pp.KR || pp.US)) return false; return !(store('league.seen') || []).includes(seenKey(a)); };
+  const markSeen = (a) => { const s = store('league.seen') || []; const k = seenKey(a); if (!s.includes(k)) { s.push(k); store('league.seen', s.slice(-200)); } document.querySelectorAll('.plate').forEach((p) => { if (p.dataset.nick === a.nickname) p.classList.remove('unseen'); }); };
   const weekRow = (a) => (T.standings || []).filter((r) => r.team === a.team && r.agent_id === a.agent_id).sort((x, y) => (x.week < y.week ? 1 : -1))[0];
   const scoreOf = (a) => { const r = weekRow(a); if (r && r.avg != null) return {v: r.avg, tag: '이번 주'};
     const pp = picksOf(a), xs = ['KR', 'US'].map((k) => pp[k]).filter((p) => p && p.score != null && p.status === 'final'); if (!xs.length) return null;
@@ -382,6 +437,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       const pl = document.createElement('button'); pl.className = 'plate ' + (a.team === C ? 'c' : 's') + (b.classList.contains('lead') ? ' lead' : b.classList.contains('risk') ? ' risk' : '');
       if (spec.pf) pl.style.setProperty('--pf', spec.pf);
       pl.style.left = x + '%'; pl.style.top = ((-off * off * 2.5) + (PORTRAIT.matches && innerWidth < 401 ? (i % 2 ? 1.4 : -0.6) : 0)) + 'vh'; pl.onclick = () => open(a); pl.setAttribute('aria-label', `${a.nickname} 카드 보기`);
+      pl.dataset.nick = a.nickname; if (isUnseen(a)) pl.classList.add('unseen');
       pl.innerHTML = `${esc(a.nickname)}<small class="${s ? (s.v >= 0 ? 'up' : 'dn') : 'no'}">${s ? `${s.tag} ${pct(s.v)}%` : '채점 전'}</small>`; plates.appendChild(pl);
     });
     const felt = el.querySelector('.felt');
@@ -436,7 +492,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     tag.className = 'react ' + (kind === 'cheer' ? 'up' : kind === 'slump' ? 'dn' : 'eq'); tag.textContent = kind === 'cheer' ? '✦ 좋았어! ✦' : kind === 'slump' ? '…휴' : '흠, 본전';
     hero.appendChild(tag); setTimeout(() => tag.remove(), 1500);
   };
-  const refreshAct = () => { const cs = [...cardsEl.querySelectorAll('.big')].filter((c) => c._play), all = cs.every((c) => c._t() >= 1); act.textContent = all ? '다음 사람 ▶' : '모두 공개'; if (all && cs.length && !cardsEl._reacted) { cardsEl._reacted = true; setTimeout(react, 350 * SP()); } };
+  const refreshAct = () => { const cs = [...cardsEl.querySelectorAll('.big')].filter((c) => c._play), all = cs.every((c) => c._t() >= 1); act.textContent = all ? '다음 사람 ▶' : '모두 공개'; if (all && cs.length && !cardsEl._reacted) { cardsEl._reacted = true; if (cur) markSeen(cur); setTimeout(react, 350 * SP()); } };
   function open(a, from) {
     if (!game.classList.contains('zoomed')) { opener = document.activeElement; openerNick = a.nickname; fromSheet = from || null; }
     closeSheet(true);
@@ -509,7 +565,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     const dx = (u - .5) / .36, dy = (v - .54) / .47; return dx * dx + dy * dy < 1;
   };
   game.addEventListener('click', (e) => {
-    if (game.classList.contains('zoomed') || game.classList.contains('sheeted') || e.target.closest('button,.pair,.dock,.hud,.sheet')) return;
+    if (game.classList.contains('zoomed') || game.classList.contains('sheeted') || game.classList.contains('showing') || e.target.closest('button,.pair,.dock,.hud,.sheet')) return;
     const hit = [...document.querySelectorAll('#lobby .who')].map((el, k) => [el, k]).sort((p, q) => (+q[0].dataset.tier - +p[0].dataset.tier) || (+q[0].style.zIndex - +p[0].style.zIndex) || (q[1] - p[1])).map((v) => v[0]).find((el) => hitAt(el, e.clientX, e.clientY));
     if (hit) hit.click();
   });
@@ -539,7 +595,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       const nC = live.filter((d) => by(d, C).avg > by(d, Sx).avg).length, nS = live.filter((d) => by(d, C).avg < by(d, Sx).avg).length;
       const st = (T.standings || []).slice().sort((x, y) => x.league_rank - y.league_rank);
       const cell = (r) => r && r.avg != null ? `<span class="${r.avg >= 0 ? 'up' : 'dn'}">${pct(r.avg)}%</span> <span class="muted">(${r.n}건)</span>` : '<span class="no">—</span>';
-      return `<h3>실전 승패</h3><div class="beads">${beads || '<span class="muted">실전 라운드가 채점되면 여기에 쌓입니다(11/9 라운드부터).</span>'}</div>
+      return `${SR ? `<p><button type="button" class="fastbtn" data-show>▶ ${md(SR.date)} ${SR.mode} 결과 쇼 보기</button></p>` : ''}<h3>실전 승패</h3><div class="beads">${beads || '<span class="muted">실전 라운드가 채점되면 여기에 쌓입니다(11/9 라운드부터).</span>'}</div>
         ${live.length ? `<p>지금까지 ${live.length}라운드 · 로로 팀 ${nC}승 · 슈슈 팀 ${nS}승 · 무승부 ${live.length - nC - nS}</p>` : ''}
         <h3>이번 주 통합 순위</h3>${st.length ? `<table class="rec"><tr><th>순위</th><th>에이전트</th><th>종목당 평균</th></tr>${st.map((r) => `<tr><td>${r.league_rank}</td><td>${esc(r.nickname || r.agent || r.agent_id)} <span class="muted">${short(r.team)}</span></td><td>${r.avg != null ? pct(r.avg) + '%' : '—'}</td></tr>`).join('')}</table>` : '<p class="muted">첫 주간 순위는 11/9 주부터 나옵니다. 주간 마감에서 10명 중 꼴등 1명이 탈락합니다.</p>'}
         <h3>라운드별 팀 평균</h3><table class="rec"><tr><th>라운드</th><th>로로 팀</th><th>슈슈 팀</th></tr>${days.map((d) => `<tr><td>${md(d)} <span class="muted">${(by(d, C) || by(d, Sx)).mode}</span></td><td>${cell(by(d, C))}</td><td>${cell(by(d, Sx))}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">아직 채점된 라운드가 없습니다.</td></tr>'}</table>
@@ -571,6 +627,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     if (!game.classList.contains('sheeted') && !keepOpener) sheetOpener = document.activeElement;
     shut(true);
     $('#sheet-t').textContent = s.t; $('#sheet-ic').style.setProperty('--c', s.c); sheetB.innerHTML = s.html(); sheetB.scrollTop = 0;
+    const sb = sheetB.querySelector('[data-show]'); if (sb) sb.onclick = () => window.__show();
     const fb = sheetB.querySelector('[data-fast]'); if (fb) fb.onclick = () => { fast = !fast; try { localStorage.setItem('league.fast', fast ? '1' : '0'); } catch (e) { /* 저장 안 됨 */ } fb.setAttribute('aria-pressed', String(fast)); fb.textContent = `연출 빠르게 ${fast ? '켜짐' : '꺼짐'}`; };
     sheetB.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => { sheetB.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b))); sheetB.querySelectorAll('[data-pane]').forEach((p) => p.hidden = p.dataset.pane !== b.dataset.tab); });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
@@ -581,13 +638,71 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); openSheet(b.dataset.open); }));
   $('#sheet-x').onclick = () => closeSheet(); $('#scrim').onclick = () => closeSheet();
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { if (game.classList.contains('sheeted')) closeSheet(); else shut(); return; }
+    if (e.key === 'Escape') { if (game.classList.contains('showing')) closeShow(); else if (game.classList.contains('sheeted')) closeSheet(); else shut(); return; }
     if (e.key === 'Tab') {   // 창이 열려 있으면 그 안에서만 이동
-      const box = game.classList.contains('sheeted') ? sheet : game.classList.contains('zoomed') ? $('#close') : null; if (!box) return;
+      const box = game.classList.contains('showing') ? $('#show') : game.classList.contains('sheeted') ? sheet : game.classList.contains('zoomed') ? $('#close') : null; if (!box) return;
       const f = [...box.querySelectorAll('button,[tabindex="0"]')].filter((x) => !x.closest('[hidden]') && x.offsetParent !== null); if (!f.length) return;
       if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
     }
   });
+  // ── 라운드 결과 쇼: 가장 최근에 채점이 끝난 라운드의 카드를 한 장씩 뒤집는다 ──
+  const showRound = () => {
+    const fin = T.picks.filter((p) => p.status === 'final' && p.score != null);
+    if (!fin.length) return null;
+    const mode = fin.some((p) => p.mode === '실전') ? '실전' : '연습';
+    const date = fin.filter((p) => p.mode === mode).map((p) => p.round_date).sort().pop();
+    return {mode, date, picks: T.picks.filter((p) => p.mode === mode && p.round_date === date)};
+  };
+  const SR = showRound(), showbtn = $('#showbtn'), showEl = $('#show');
+  const showKey = SR ? `${SR.mode}|${SR.date}` : null;
+  const refreshShowBtn = () => { if (!SR) { showbtn.hidden = true; return; } showbtn.hidden = false; showbtn.textContent = `▶ ${md(SR.date)} ${SR.mode} 결과 보기`; showbtn.classList.toggle('new', store('league.showSeen') !== showKey); };
+  refreshShowBtn();
+  let showTimers = [], showOpener = null;
+  const showDone = () => {
+    showTimers.forEach(clearTimeout); showTimers = [];
+    showEl.querySelectorAll('.fc:not(.none)').forEach((c) => { c.classList.add('on'); const v = c.querySelector('.v'); if (v) v.textContent = v.dataset.t; });
+    const teams = [C, Sx].map((tm) => { const xs = SR.picks.filter((p) => p.team === tm && p.status === 'final' && p.score != null); return {tm, n: xs.length, avg: xs.length ? xs.reduce((a, p) => a + p.score, 0) / xs.length : null}; });
+    const best = SR.picks.filter((p) => p.status === 'final' && p.score != null).sort((x, y) => y.score - x.score)[0];
+    showEl.querySelectorAll('.fc.best').forEach((c) => c.classList.remove('best')); if (best) showEl.querySelector(`.fc[data-id="${CSS.escape(best.pick_id)}"]`)?.classList.add('best');
+    const line = teams.map((x) => `${short(x.tm)} 팀 ${x.avg == null ? (SR.picks.some((p) => p.team === x.tm) ? '채점 전' : '기록 없음') : `${pct(x.avg)}% (${x.n}건)`}`).join(' · ');
+    const both = teams.every((x) => x.avg != null), lead = both && teams[0].avg !== teams[1].avg ? (teams[0].avg > teams[1].avg ? teams[0] : teams[1]) : null;
+    const bestA = best && active.concat(bench).find((a) => a.team === best.team && a.agent_id === best.agent_id);
+    $('#show-sum').innerHTML = `${both ? (lead ? `이 라운드는 ${short(lead.tm)} 팀이 앞섰어요` : '이 라운드는 동률이에요') : '팀 평균'} — ${line}<small>${best ? `최고 카드: ${esc(bestA ? bestA.nickname : best.agent)} ${best.market === 'KR' ? '♦' : '♣'} ${esc(best.name || best.ticker)} ${pct(best.score)}%` : ''} · 종목 한 건당 평균, 모의 점수</small>`;
+    $('#show-sum').classList.add('on'); $('#show-skip').hidden = true; store('league.showSeen', showKey); refreshShowBtn(); $('#show-x').focus();
+  };
+  const openShow = () => {
+    if (!SR) return; showOpener = document.activeElement; shut(true); closeSheet(true);
+    $('#show-t').textContent = `${md(SR.date)} ${SR.mode} 라운드 결과`; $('#show-sub').textContent = '확정 점수만 숫자로 보여 줍니다 · 하루 수익률(배당 포함, %)';
+    const grid = $('#show-grid'); grid.innerHTML = '';
+    for (const tm of [C, Sx]) {
+      const ags = (tm === C ? teamC : teamS);
+      if (!SR.picks.some((p) => p.team === tm)) continue;
+      grid.insertAdjacentHTML('beforeend', `<div class="team ${tm === C ? 'c' : 's'}">${tm === C ? '♠ 로로 팀' : '♥ 슈슈 팀'}</div>`);
+      for (const a of ags) {
+        const cell = ['KR', 'US'].map((mk) => { const p = SR.picks.find((x) => x.team === a.team && x.agent_id === a.agent_id && x.market === mk);
+          if (!p) return `<div class="fc none"><div class="in"><div class="bk"></div></div></div>`;
+          const fin = p.status === 'final' && p.score != null, txt = fin ? pct(p.score) + '%' : p.status === 'held' ? '보류' : '채점 전';
+          const col = !fin ? '#6b6253' : p.score >= 0 ? '#1f7a45' : '#b3261e';
+          return `<div class="fc" data-id="${esc(p.pick_id)}" data-s="${fin ? p.score : ''}"><div class="in"><div class="bk">${mk === 'KR' ? '♦' : '♣'}</div><div class="fr"><span class="m ${mk === 'KR' ? 'r' : ''}">${mk} ${mk === 'KR' ? '♦' : '♣'}</span><span class="n">${esc(p.name || p.ticker)}</span><span class="v" data-t="${txt}" style="color:${col}">${fin ? '' : txt}</span></div></div></div>`; }).join('');
+        grid.insertAdjacentHTML('beforeend', `<div class="ag"><span class="who3"><i>${avHTML(a)}</i>${esc(a.nickname)}</span><div class="pair2">${cell}</div></div>`);
+      }
+    }
+    $('#show-sum').classList.remove('on'); $('#show-sum').innerHTML = ''; $('#show-skip').hidden = false;
+    game.classList.add('showing'); $('#show-skip').focus();
+    const cards = [...grid.querySelectorAll('.fc:not(.none)')];
+    if (reduce) { showDone(); return; }
+    const step = (fast ? 160 : 420);
+    cards.forEach((c, k) => showTimers.push(setTimeout(() => {
+      c.classList.add('on'); const v = c.querySelector('.v'), sv = c.dataset.s;
+      if (sv !== '') { const val = +sv, t0 = performance.now(), dur = fast ? 150 : 380; const roll = (now) => { const u = Math.min(1, (now - t0) / dur); v.textContent = pct(val * (1 - (1 - u) ** 3)) + '%'; if (u < 1) requestAnimationFrame(roll); else v.textContent = v.dataset.t; }; requestAnimationFrame(roll); }
+      buzz(6);
+    }, 250 + k * step)));
+    showTimers.push(setTimeout(showDone, 250 + cards.length * step + 450));
+  };
+  const closeShow = () => { if (!game.classList.contains('showing')) return; showTimers.forEach(clearTimeout); showTimers = []; game.classList.remove('showing'); if (store('league.showSeen') !== showKey && $('#show-sum').classList.contains('on')) store('league.showSeen', showKey); refreshShowBtn(); (showOpener && showOpener.isConnected ? showOpener : showbtn).focus(); };
+  showbtn.onclick = (e) => { e.stopPropagation(); openShow(); };
+  $('#show-skip').onclick = showDone; $('#show-x').onclick = closeShow;
+  window.__show = openShow;
   window.__open = (nick) => open(active.find((a) => a.nickname === nick));
   window.__sheet = openSheet;
 })();
