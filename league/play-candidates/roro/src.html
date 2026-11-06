@@ -236,7 +236,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   .act{top:auto;right:auto;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));padding:.35em 1.1em}
   .big .sc{font-size:clamp(16px,4.6vw,22px)}
 }
-@media (orientation:portrait) and (max-width:370px){.plate{--pf:10.5px!important;padding:.08em .35em}}
+@media (orientation:portrait) and (max-width:380px){.plate{--pf:10.5px!important;padding:.08em .35em}.plate::before{left:4px;width:6px;height:6px;margin-top:-3px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head>
 <body>
@@ -338,7 +338,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       pr.innerHTML = ['KR', 'US'].map((mk) => `<span class="mini ${pp[mk] ? '' : 'none'}">${pp[mk] ? (mk === 'KR' ? '♦' : '♣') : ''}</span>`).join(''); pr.onclick = () => open(a); spots.appendChild(pr);
       const pl = document.createElement('button'); pl.className = 'plate ' + (a.team === C ? 'c' : 's') + (b.classList.contains('lead') ? ' lead' : b.classList.contains('risk') ? ' risk' : '');
       if (spec.pf) pl.style.setProperty('--pf', spec.pf);
-      pl.style.left = x + '%'; pl.style.top = ((-off * off * 2.5) + (PORTRAIT.matches && innerWidth < 371 ? (i % 2 ? 1.4 : -0.6) : 0)) + 'vh'; pl.onclick = () => open(a); pl.setAttribute('aria-label', `${a.nickname} 카드 보기`);
+      pl.style.left = x + '%'; pl.style.top = ((-off * off * 2.5) + (PORTRAIT.matches && innerWidth < 381 ? (i % 2 ? 1.4 : -0.6) : 0)) + 'vh'; pl.onclick = () => open(a); pl.setAttribute('aria-label', `${a.nickname} 카드 보기`);
       pl.innerHTML = `${esc(a.nickname)}<small class="${s ? (s.v >= 0 ? 'up' : 'dn') : 'no'}">${s ? `${s.tag} ${pct(s.v)}%` : '채점 전'}</small>`; plates.appendChild(pl);
     });
     const felt = el.querySelector('.felt');
