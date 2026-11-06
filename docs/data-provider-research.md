@@ -337,3 +337,26 @@ https://app.tiingo.com/tos/ 는 이번에도 403(직접 읽기 실패). 아래�
 - 이용 조건을 따로 밝힌 문서는 찾지 못했다. 로고는 각 회사의 상표이므로 운영자 본인 확인 화면에서 종목 표시 목적으로만 쓰고, 화면에 출처를 적는다.
 - 지인 공개(deploy_enabled) 전에 다시 확인한다. 공유용 결과 묶음(`league/public/results.json`)에는 로고를 넣지 않는다.
 - 코드: `tools/logos.py` (64px로 줄여 data: URL, 밝은 로고는 어두운 바탕에 얹음, 실패하면 첫 글자 배지).
+
+## 10. 미국 데이터 무료 대안 — Alpha Vantage로 변경 (2026-11-06)
+
+Tiingo 무료 플랜이 파생 결과물(점수)을 임시로만 두게 해서(8장), 무료로 쓸 수 있는 다른 제공처의 약관을 확인했다. 법률 자문은 아니다.
+
+| 제공처 | 무료 범위 | 약관 요지 | 이 리그에 맞는가 |
+|---|---|---|---|
+| **Alpha Vantage** | 하루 25회. 비수정 일봉(TIME_SERIES_DAILY), 배당(DIVIDENDS: 배당락일·금액), 분할(SPLITS) | 개인·비상업 이용(2.a). 저장·파생 결과물 제한 조항 없음. '상업 이용'은 개인 범위를 넘는 목적, 단체 명의, 상업 활동으로 남에게 정보 제공, 금융업 종사(2.a.i~iv) | **저장: 맞음.** 지인 공개: 2.a.i(개인 범위를 넘는 목적)에 걸릴 수 있어 확인 필요 |
+| EODHD | 하루 20회, 배당·분할 포함, 1년 이력 | "Non-Professional Users are permitted to store, manipulate, and analyze the data for private, non-commercial purposes." 표시·재가공 제공 금지 | 저장은 맞음, 지인 공개 불가. 하루 20회는 빠듯함 |
+| Massive(옛 Polygon) | 무료 플랜 내용 확인 못 함 | 개인 결과물 보관은 허용("own analyses ... that do not contain Information"), 공유 금지 | 무료 범위 불명 |
+| Twelve Data | 확인 못 함 | 파생 데이터(역산 불가) 허용, 외부 표시는 유료 추가 권리 필요 | 지인 공개는 유료 |
+| Marketstack | 월 100회, 배당·분할 포함, 비상업 | 데이터 약관 본문을 찾지 못함. 미국 데이터는 Tiingo에서 받는다고 밝힘 | 불명, 월 100회는 부족 |
+| FMP, Nasdaq Data Link, Stooq | — | 약관 페이지를 읽지 못함(403/404/빈 페이지) | 판단 보류 |
+
+출처: https://www.alphavantage.co/terms_of_service/ , https://eodhd.com/financial-apis/terms-conditions , https://massive.com/legal/market-data-terms-of-service , https://twelvedata.com/terms , https://marketstack.com/pricing
+
+**결정(2026-11-06):** 미국 확정 제공처를 Alpha Vantage로 바꾼다(`league/config.json` `providers.US.final = "alphavantage"`).
+- 호출 수: 종목마다 일봉 1회(100일치라 기준·평가 세션을 함께 받음) + 배당 1회. 미국 10종목 + SPY면 하루 22회로 25회 안이다. 분할(SPLITS)은 전 거래일 대비 종가가 40% 넘게 움직였을 때만 부른다.
+- 배당이나 분할을 확인하지 못하면(한도 초과 등) 그 종목은 기록하지 않는다. '확인됨' 없이 채점하지 않으므로 0점이 아니라 보류로 남고, 다음 수집에서 다시 받는다.
+- 키는 GitHub Actions 비밀값 `ALPHAVANTAGE_API_KEY`에 둔다. 키가 없으면 미국 수집을 건너뛴다(채점 보류).
+- 공개 시험 키(demo, IBM)로 세 응답의 형식을 확인했다. 실제 키로 리그 종목 수신은 아직 확인하지 않았다.
+- 화면 출처 표시는 "미국 종가·배당 — Alpha Vantage"로 바꿨다.
+- 지인 공개(`deploy_enabled`)는 여전히 꺼 둔다. Alpha Vantage 약관 2.a.i 해석이 필요하다.

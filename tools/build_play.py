@@ -154,7 +154,7 @@ def page_html(generated_at: str) -> str:
       <li>캐릭터는 창작 캐릭터이며, 에이전트는 투자 스타일 이름만 씁니다. 실존 인물의 추천이 아닙니다.</li>
     </ul>
     <p>모의 예측 게임입니다. 돈이나 베팅은 없고, 실제 수익률·투자 권유가 아닙니다.</p>
-    <p>데이터 출처: 한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Tiingo · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다.</p>
+    <p>데이터 출처: 한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Alpha Vantage · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다.</p>
     <p>갱신 {when} KST</p></div>"""
     return f"""<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">

@@ -15,11 +15,11 @@ API 키를 받은 뒤 실제 응답으로 필드명·시각을 검증해야 한�
 사용법:
   python3 tools/collectors.py collect --provider tiingo --market US --session 2026-11-10 --tickers AAPL,MSFT --role final
   python3 tools/collectors.py collect --provider mock --fixture tests/fixtures/x.json ...
-  환경변수: KRX_AUTH_KEY, TIINGO_TOKEN, ALPACA_KEY_ID, ALPACA_SECRET_KEY
+  환경변수: KRX_AUTH_KEY, ALPHAVANTAGE_API_KEY, TIINGO_TOKEN, ALPACA_KEY_ID, ALPACA_SECRET_KEY
 """
 from __future__ import annotations
 
-import argparse, json, os, sys, urllib.error, urllib.parse, urllib.request
+import argparse, json, os, sys, time, urllib.error, urllib.parse, urllib.request
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -158,6 +158,71 @@ class Tiingo(Provider):
         return out
 
 
+class AlphaVantage(Provider):
+    """Alpha Vantage 무료 키 — 비수정 일봉(TIME_SERIES_DAILY) + 배당(DIVIDENDS, 배당락일·금액) + 분할(SPLITS).
+    약관(alphavantage.co/terms_of_service): 개인·비상업 이용. 저장·파생 결과물 제한 조항 없음, 상업 활동으로 남에게 정보를 제공하는 것만 상업 이용.
+    무료 한도 하루 25회: 종목마다 일봉 1회(100일치라 기준·평가 세션을 함께 받음) + 배당 1회 → 미국 10종목 + SPY면 22회.
+    분할은 전 거래일 대비 종가가 40% 넘게 움직였을 때만 SPLITS를 부른다(분할이 있으면 원 가격이 크게 바뀌므로).
+    같은 실행 안에서는 응답을 다시 쓰고(세션이 둘이어도 호출 1회), 호출 사이에 AV_PACE_SEC(기본 13초)를 쉰다."""
+    name = "alphavantage"
+    markets = ("US",)
+    supplies_corporate_actions = True
+    BASE = "https://www.alphavantage.co/query"
+    _cache: dict = {}                                   # (function, symbol) → 응답 (실행 동안 공유)
+
+    def __init__(self):
+        super().__init__()
+        self.key = os.environ.get("ALPHAVANTAGE_API_KEY")
+        if not self.key:
+            raise NotConfigured("ALPHAVANTAGE_API_KEY 환경변수 없음")
+        self.pace = float(os.environ.get("AV_PACE_SEC", "13"))
+        self.calls = 0
+
+    def _q(self, function: str, symbol: str):
+        k = (function, symbol)
+        if k in AlphaVantage._cache:
+            return AlphaVantage._cache[k]
+        if self.calls and self.pace:
+            time.sleep(self.pace)
+        self.calls += 1
+        q = urllib.parse.urlencode({"function": function, "symbol": symbol, "apikey": self.key})
+        res = self._try_get(f"AlphaVantage {function} {symbol}", f"{self.BASE}?{q}")
+        if isinstance(res, dict) and not ({"Time Series (Daily)", "data"} & set(res)):
+            note = res.get("Information") or res.get("Note") or res.get("Error Message") or str(res)[:200]
+            self.errors.append({"api": f"AlphaVantage {function} {symbol}", "body": str(note)[:300]})   # 한도 초과·기호 오류 등
+            return None
+        AlphaVantage._cache[k] = res
+        return res
+
+    def fetch(self, market, tickers, session):
+        out, s = [], session.isoformat()
+        for t in tickers:
+            sym = t.replace(".", "-")                    # Alpha Vantage 표기: BRK.B → BRK-B
+            daily = (self._q("TIME_SERIES_DAILY", sym) or {}).get("Time Series (Daily)") or {}
+            if s not in daily:
+                continue
+            close = _num(daily[s].get("4. close"))
+            qt = Quote("US", t, s, close)
+            prev = sorted(d_ for d_ in daily if d_ < s)
+            pc = _num(daily[prev[-1]].get("4. close")) if prev else None
+            divs = self._q("DIVIDENDS", sym)
+            if divs is None:                              # 배당을 확인하지 못하면 이 종목은 기록하지 않는다(확인 없이 '확인됨'을 남기지 않게)
+                continue
+            for r in divs.get("data") or []:
+                if r.get("ex_dividend_date") == s and _num(r.get("amount")):
+                    qt.dividends.append({"ex_date": s, "amount": _num(r["amount"]), "currency": "USD",
+                                         "pay_date": r.get("payment_date")})
+            if close and pc and not (0.6 < close / pc < 1.4):
+                sp = self._q("SPLITS", sym)
+                if sp is None:                            # 분할 여부를 확인하지 못하면 기록하지 않는다
+                    continue
+                for r in sp.get("data") or []:
+                    if r.get("effective_date") == s and _num(r.get("split_factor")):
+                        qt.splits.append({"ex_date": s, "ratio": _num(r["split_factor"])})
+            out.append(qt)
+        return out
+
+
 class Alpaca(Provider):
     """Alpaca Market Data v2 — 일봉(raw, feed=sip). 잠정값·대조용.
     미검증: 무료/paper 계정에서 feed=sip 과거 일봉이 되는지 실제 계정으로 시험할 것."""
@@ -190,7 +255,7 @@ class KIS(Provider):
         raise NotConfigured("KIS는 OAuth 토큰 발급 절차가 필요해 아직 구현하지 않음 (사용권 확인 후 결정)")
 
 
-PROVIDERS = {"mock": MockProvider, "krx_openapi": KRXOpenAPI, "tiingo": Tiingo, "alpaca": Alpaca, "kis": KIS}
+PROVIDERS = {"mock": MockProvider, "krx_openapi": KRXOpenAPI, "tiingo": Tiingo, "alphavantage": AlphaVantage, "alpaca": Alpaca, "kis": KIS}
 
 
 def _num(v):

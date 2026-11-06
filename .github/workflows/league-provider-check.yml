@@ -1,6 +1,6 @@
 # 데이터 제공처 연결 확인 (수동 실행). 임시 폴더에만 기록하고 저장소 원장은 건드리지 않는다.
 # 키는 저장소 Settings → Secrets and variables → Actions 에 넣는다:
-#   KRX_AUTH_KEY, TIINGO_TOKEN, ALPACA_KEY_ID, ALPACA_SECRET_KEY, DART_API_KEY
+#   KRX_AUTH_KEY, ALPHAVANTAGE_API_KEY, TIINGO_TOKEN, ALPACA_KEY_ID, ALPACA_SECRET_KEY, DART_API_KEY
 # dart 를 고르면 입력한 한국 종목별로 최근 120일 공시와, 그 거래일 라운드 채점 구간의 배당·분할 확인 결과를 보여준다.
 # role=final 로 돌리면 제공처가 주는 배당(divCash)·분할(splitFactor) 기록도 함께 보여준다.
 # 실행 로그에는 종가가 찍힌다. 비공개 저장소의 협업자만 볼 수 있다.
@@ -11,7 +11,7 @@ on:
       provider:
         description: 제공처
         type: choice
-        options: [krx_openapi, tiingo, alpaca, dart]
+        options: [krx_openapi, alphavantage, tiingo, alpaca, dart]
       market:
         description: 시장
         type: choice
@@ -42,6 +42,7 @@ jobs:
       - name: Collect into a temporary ledger
         env:
           KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
           TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}

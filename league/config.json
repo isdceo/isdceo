@@ -63,11 +63,11 @@
       "corporate_actions": "opendart"
     },
     "US": {
-      "final": "tiingo",
+      "final": "alphavantage",
       "provisional": "alpaca"
     }
   },
-  "providers_note": "사용권 확인 전 기술 검증 후보. 키가 없으면 수집을 건너뛴다",
+  "providers_note": "사용권 확인 전 기술 검증 후보. 키가 없으면 수집을 건너뛴다. 미국 확정 제공처는 2026-11-06부터 Alpha Vantage 무료 키(개인·비상업, 저장 제한 없음). Tiingo 무료 플랜은 약관(2026-10-06)상 파생 결과물을 임시로만 둘 수 있어 쓰지 않는다(docs/data-provider-research.md 8장)",
   "automation_enabled": false,
   "automation_note": "true 로 바꾸면 league-daily 워크플로가 공통 자료(06:50)·수집·채점(10:30)·주간 마감(월 06:30)을 실행한다",
   "deploy_enabled": false,
@@ -90,6 +90,10 @@
     "opendart": {
       "date": "2026-11-04",
       "note": "공통 자료용 14일 공시 378건(시장 전체 조회 약 3분 13초), 채점용 종목별 배당·분할 확인(3종목 15.5초). KT&G·삼양식품·SK하이닉스 2026-11-05 구간 확인 완료(배당 없음)"
+    },
+    "alphavantage": {
+      "date": "2026-11-06",
+      "note": "공개 시험 키(demo, IBM)로 TIME_SERIES_DAILY(비수정 종가), DIVIDENDS(ex_dividend_date·amount), SPLITS(effective_date·split_factor) 응답 형식 확인. 실제 키로 리그 종목 수신 확인 필요"
     }
   },
   "season_start": "2026-11-09",

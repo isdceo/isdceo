@@ -62,9 +62,63 @@ class Collect(unittest.TestCase):
         self.assertEqual((w["status"], w["score"]), ("final", 1.5))
 
     def test_unconfigured_providers_raise(self):
-        for name in ("krx_openapi", "tiingo", "alpaca", "kis"):
+        for name in ("krx_openapi", "tiingo", "alphavantage", "alpaca", "kis"):
             with self.assertRaises(C.NotConfigured):
                 C.PROVIDERS[name]()
+
+
+class AlphaVantageProvider(unittest.TestCase):
+    """Alpha Vantage 응답 해석 (네트워크 없이 _get을 바꿔 끼움)."""
+    DAILY = {"Time Series (Daily)": {"2026-11-13": {"4. close": "100.00"}, "2026-11-16": {"4. close": "101.50"},
+                                     "2026-11-17": {"4. close": "50.40"}}}
+    DIVS = {"symbol": "X", "data": [{"ex_dividend_date": "2026-11-16", "amount": "0.25", "payment_date": "2026-12-01"},
+                                    {"ex_dividend_date": "2026-08-14", "amount": "0.25"}]}
+    SPLITS = {"symbol": "X", "data": [{"effective_date": "2026-11-17", "split_factor": "2.0000"}]}
+
+    def provider(self, answers):
+        import os
+        os.environ["ALPHAVANTAGE_API_KEY"] = "test-key"
+        os.environ["AV_PACE_SEC"] = "0"
+        C.AlphaVantage._cache.clear()
+        p = C.AlphaVantage()
+        calls = []
+        def fake(url, headers=None):
+            fn = re.search(r"function=([A-Z_]+)", url).group(1)
+            calls.append(fn)
+            return answers[fn]
+        p._get = fake
+        return p, calls
+
+    def tearDown(self):
+        import os
+        os.environ.pop("ALPHAVANTAGE_API_KEY", None); os.environ.pop("AV_PACE_SEC", None)
+        C.AlphaVantage._cache.clear()
+
+    def test_close_and_dividend_on_ex_date(self):
+        p, calls = self.provider({"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": self.DIVS, "SPLITS": self.SPLITS})
+        q = p.fetch("US", ["BRK.B"], date(2026, 11, 16))[0]
+        self.assertEqual((q.ticker, q.session, q.close), ("BRK.B", "2026-11-16", 101.5))
+        self.assertEqual(q.dividends, [{"ex_date": "2026-11-16", "amount": 0.25, "currency": "USD", "pay_date": "2026-12-01"}])
+        self.assertEqual(q.splits, [])
+        self.assertEqual(calls, ["TIME_SERIES_DAILY", "DIVIDENDS"])          # 분할 조회는 하지 않음
+        p.fetch("US", ["BRK.B"], date(2026, 11, 13))                          # 같은 실행의 다른 세션은 다시 부르지 않음
+        self.assertEqual(calls, ["TIME_SERIES_DAILY", "DIVIDENDS"])
+
+    def test_big_move_checks_splits(self):
+        p, calls = self.provider({"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": self.DIVS, "SPLITS": self.SPLITS})
+        q = p.fetch("US", ["X"], date(2026, 11, 17))[0]
+        self.assertEqual(q.splits, [{"ex_date": "2026-11-17", "ratio": 2.0}])
+        self.assertIn("SPLITS", calls)
+
+    def test_rate_limit_note_is_error_and_not_recorded(self):
+        note = {"Information": "Our standard API rate limit is 25 requests per day."}
+        p, _ = self.provider({"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": note, "SPLITS": self.SPLITS})
+        self.assertEqual(p.fetch("US", ["X"], date(2026, 11, 16)), [])        # 배당을 확인 못 하면 기록하지 않음
+        self.assertTrue(any("rate limit" in e.get("body", "") for e in p.errors))
+        d = new_league()
+        r = C.collect(d, p, "US", ["X"], date(2026, 11, 16), "final")
+        self.assertEqual(r["recorded"], [])
+        self.assertFalse([x for x in L.corporate_actions(d) if x.get("ticker") == "X"])
 
 
 class MakeCsv(unittest.TestCase):
