@@ -291,8 +291,10 @@ class PublicAndSnapshot(unittest.TestCase):
     def test_build_site_contains_only_public_data(self):
         out = Path(tempfile.mkdtemp()) / "site"
         files = L.build_site(self.d, out, now=datetime.fromisoformat("2026-11-16T09:00:00+09:00"))   # 예시 원장(가격 포함)으로 실제 빌드
-        self.assertEqual([f for f in files if not f.startswith("av/")], ["data/table.js", "index.html"])      # 지인에게는 게임 화면만
-        self.assertTrue(all(f.endswith(".webp") for f in files if f.startswith("av/")))                     # 그 밖에는 캐릭터 그림뿐
+        self.assertEqual([f for f in files if not f.startswith(("av/", "fonts/"))], ["data/table.js", "index.html"])      # 지인에게는 게임 화면만
+        self.assertTrue(all(f.endswith(".webp") for f in files if f.startswith("av/")))                     # 캐릭터 그림
+        self.assertTrue(all(f.endswith((".woff2", ".css")) for f in files if f.startswith("fonts/")))       # 화면 글꼴(로컬)
+        self.assertEqual([f for f in files if not f.startswith(("av/", "fonts/", "data/")) and f != "index.html"], [])
         data = (out / "data" / "table.js").read_text()
         self.assertIn('"picks"', data)
         self.assertIn("2026-11-13", data)                              # 임시 원장의 종목이 실제로 실렸다

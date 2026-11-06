@@ -290,6 +290,7 @@ def build(out: Path, now: datetime | None = None, base: Path | None = None) -> l
     js = out / "data" / "table.js"
     js.write_text("window.TABLE = " + json.dumps(data, ensure_ascii=False) + ";\n")
     shutil.copytree(GAME / "av", out / "av", dirs_exist_ok=True)
+    shutil.copytree(GAME / "fonts", out / "fonts", dirs_exist_ok=True, ignore=shutil.ignore_patterns("README.md"))
     html = out / "play.html"
     html.write_text(game_html())
     return [html, js]

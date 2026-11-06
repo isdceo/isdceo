@@ -19,6 +19,7 @@ def main(out: str):
     a = page.index('<svg width="0" height="0"'); b = page.index("</defs></svg>", a) + len("</defs></svg>")
     (out / "index.html").write_text((HERE / "src.html").read_text().replace("{{DEFS}}", page[a:b]))
     shutil.copytree(HERE / "av", out / "av", dirs_exist_ok=True)
+    shutil.copytree(HERE / "fonts", out / "fonts", dirs_exist_ok=True, ignore=shutil.ignore_patterns("README.md"))
     js = "window.TABLE = " + json.dumps(D.bundle(), ensure_ascii=False) + ";\n"
     (out / "data/table.js").write_text(js)
     print("시안:", out / "index.html")
