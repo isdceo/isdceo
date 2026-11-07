@@ -587,7 +587,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     live = rd >= (cfg.get("season_start") or "9999")
     subs = [s for s in L.read_ledger(d, "submissions") if s.get("team") == "shushu" and s.get("round_date") == rd]
     st = {s["status"] for s in subs}
-    if mk and live and "07:00" <= hm < "08:15":
+    if mk and live and "07:00" <= hm < "08:15" and cfg.get("shushu_repo", {}).get("wake_round", True):
         add("round", rd, f"@codex 오늘({rd}) 실전 라운드를 진행해 주세요. 열린 시장: {'·'.join(mk)}. {PROC} 절차대로 분석하고, "
             f"**08:20까지 `submit/{rd}.sha256`과 `submit/{rd}.csv`·`submit/{rd}-debate.md`를 함께** push해 주세요. 원본은 이 비공개 저장소에 봉인돼 "
             f"08:30 뒤 자동으로 공개·접수됩니다. 마감 08:30 KST, 판정은 이 저장소의 push 시각입니다.")

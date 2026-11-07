@@ -902,6 +902,11 @@ class ShushuRepoSync(unittest.TestCase):
         self.acts, self.last = [], g(self.work, "rev-parse", "HEAD")
         import shushu_sync as X
         self.X = X
+        self.set_wake_round(True)                              # 깨우기 시험은 라운드 시작 깨우기를 켠 상태로
+
+    def set_wake_round(self, on):
+        cp = self.repo / "league" / "config.json"; c = json.loads(cp.read_text())
+        c.setdefault("shushu_repo", {})["wake_round"] = on; cp.write_text(json.dumps(c, ensure_ascii=False))
 
     def spush(self, files: dict, at: str):
         for name, text in files.items():
@@ -1095,6 +1100,12 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertIn("덮어쓰지 않음", out[-1]["note"])
         self.assertEqual((self.repo / "league/imports/shushu" / f"{rd}.csv").read_text(), body)
 
+    def test_round_wake_off_when_shushu_runs_own_schedule(self):
+        """슈슈 요청(2026-11-07): 자체 예약으로 실행하므로 07:05 시작 댓글은 보내지 않는다(중복 실행 방지)."""
+        self.set_wake_round(False)
+        w = self.X.due_wakes(self.repo, datetime.fromisoformat("2026-11-10T07:05:00+09:00"))
+        self.assertNotIn("round", [x["kind"] for x in w])
+
     def test_wake_not_reposted_when_marker_exists(self):
         """push 충돌로 원장 기록이 사라져 다시 돌아도, 채널에 같은 표식 댓글이 있으면 다시 달지 않는다."""
         posted = []
@@ -1250,6 +1261,7 @@ class SealedSubmission(unittest.TestCase):
     RD = "2026-11-10"
     setUp = ShushuRepoSync.setUp
     spush, sync, csv, _sha_line = ShushuRepoSync.spush, ShushuRepoSync.sync, ShushuRepoSync.csv, ShushuRepoSync._sha_line
+    set_wake_round = ShushuRepoSync.set_wake_round
 
     def _sub(self, path_end, status="accepted"):
         return [x for x in L.read_ledger(self.repo / "league", "submissions") + L.read_ledger(self.repo / "league" / "sandbox", "submissions")

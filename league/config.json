@@ -125,6 +125,8 @@
     "enabled": true,
     "repo": "isdceo/isdceo-shushu",
     "branch": "main",
-    "note": "B안(2026-11-07): 슈슈 팀은 전용 저장소에만 push. 메인의 league-shushu-sync 워크플로가 그 저장소의 GitHub 서버 push 시각(activity)으로 판정하고 허용 경로 파일만 가져온다. 켜려면 repo(owner/name)를 적고 enabled=true, 메인 Secrets에 SHUSHU_REPO_TOKEN(전용 저장소만, Contents 읽기·쓰기). 설정: docs/shushu-repo-setup.md"
+    "note": "B안(2026-11-07): 슈슈 팀은 전용 저장소에만 push. 메인의 league-shushu-sync 워크플로가 그 저장소의 GitHub 서버 push 시각(activity)으로 판정하고 허용 경로 파일만 가져온다. 켜려면 repo(owner/name)를 적고 enabled=true, 메인 Secrets에 SHUSHU_REPO_TOKEN(전용 저장소만, Contents 읽기·쓰기). 설정: docs/shushu-repo-setup.md",
+    "wake_round": false,
+    "wake_round_note": "2026-11-07 슈슈 요청: 슈슈가 자체 예약(07:05 라운드, 07:20·08:20·08:45·11:30 점검)으로 실행하므로 로로 쪽 07:05 @codex 시작 댓글은 보내지 않는다(중복 실행 방지). 지문 없음·공지 알림은 유지."
   }
 }
