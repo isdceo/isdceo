@@ -15,7 +15,7 @@
   - https://query1.finance.yahoo.com/v8/finance/chart/%5ESOX , https://query1.finance.yahoo.com/v8/finance/chart/MU , https://query1.finance.yahoo.com/v8/finance/chart/NVDA , https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC (확보 2026-11-08T04:21:54~55+09:00, 일별 종가로 직접 계산)
 - 한국 11/5: 코스피는 시초가 -1.82%로 출발해 -5.28%로 마감했다. 코스피·코스닥 모두 매도 사이드카가 발동됐고, 외국인은 전날에 이어 대규모 순매도를 이어갔다. SK하이닉스는 시초가 -5.44%로 갭하락한 뒤 -9.46%, 삼성전자는 -7.57%로 마감했다. 기사는 "중간선거 이후 불거진 AI 데이터센터 규제 강화 우려와 외국인의 대규모 매도"를 원인으로 들었다.
   - https://www.topstarnews.net/news/articleView.html?idxno=16269150 (확보 2026-11-08T04:22:46+09:00, 기사 11/5 17:48)
-  - https://query1.finance.yahoo.com/v8/finance/chart/000660.KS , /%5EKS11 , /005930.KS (확보 2026-11-08T04:21:53~54+09:00)
+  - https://query1.finance.yahoo.com/v8/finance/chart/000660.KS , https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11 , https://query1.finance.yahoo.com/v8/finance/chart/005930.KS (확보 2026-11-08T04:21:53~54+09:00)
 - 구간 직전 흐름: 11/2(미국) 키옥시아의 보수적 분기 가이던스로 마이크론이 -5.78% 빠졌고(https://www.heygotrade.com/en/news/micron-mu-stock-news-november-3-2026/ , 확보 2026-11-08T04:22:46+09:00), SK하이닉스도 11/3에 -5.03%였다. 메모리 업종을 겨냥한 악재가 픽을 잠그기 전부터 쌓이고 있었다.
 - SK하이닉스 자체의 구간 내 공시·악재는 출처 확인 못함(검색에서 찾지 못함). 구간 밖 참고로, 다음 날 11/6에도 -10.44% 더 빠졌다.
 

@@ -26,8 +26,9 @@ TEAM = "claude"
 VERDICTS = ("분석 실수", "시장 전체 움직임", "구간 밖 사건", "예측 못한 새 소식", "운·잡음")
 SECTIONS = ("## 1. 그때의 논리", "## 2. 실제로 무슨 일이 있었나", "## 3. 판정", "## 4. 놓친 신호·틀린 가정", "## 5. 다음에 바꿀 점")
 # 원 가격·금액: 조사가 붙어도 잡는다(1,393,000원에서, 45달러로, 5만 원, 3조원대). '3원칙'·'2원화'처럼 원으로 시작하는 낱말은 제외
-MONEY = re.compile(r"[$₩￦]\s*\d|\d[\d,.]*\s*(?:천|만|억|조)*\s*(?:원(?![인칙화자유래전천본격리론소형점문])|달러|USD|KRW)|(?:USD|KRW)\s*\d"
-                   r"|목표\s*주?가|종가\s*[\d,]{4,}")
+MONEY = re.compile(r"[$₩￦]\s*\d|\d\s*\$|\d[\d,.]*\s*(?:천|만|억|조)+\s*원|\d[\d,.]*원(?![인칙화자유래전천본격리론소형점문장가])"
+                   r"|\d[\d,.]*\s*(?:달러|불|USD|KRW)(?![A-Za-z])|(?:USD|KRW)\s*\d|목표\s*주?가"
+                   r"|(?:종가|주가|고점|저점|시가)\s*(?:는|은|가|이|:|：|\()?\s*(?:\d{1,3}(?:,\d{3})+|\d{4,}(?!-\d{2}-)|\d+\.\d{2}(?![\d.]*\s*%))")
 
 
 def review_dir(d: Path) -> Path:
@@ -92,7 +93,7 @@ def check(path: Path) -> list[str]:
         errs.append("경로는 reviews/losses/<라운드>/<에이전트>-<KR|US>.md")
     if not t.startswith("# 손실 복기 — "):
         errs.append("첫 줄은 '# 손실 복기 — <pick_id>'")
-    elif m and not re.search(rf"{m.group(1)}-(?:sandbox-)?[a-z]+-{m.group(2)}-{m.group(3)}\s*$", t.splitlines()[0]):
+    elif m and not re.fullmatch(rf"# 손실 복기 — {m.group(1)}-(?:sandbox-)?[a-z]+-{m.group(2)}-{m.group(3)}\s*", t.splitlines()[0]):
         errs.append("첫 줄 pick_id(<라운드>-<팀>-<에이전트>-<시장>)가 파일 경로와 다름")
     pos = [t.find(s) for s in SECTIONS]
     for s, i in zip(SECTIONS, pos):

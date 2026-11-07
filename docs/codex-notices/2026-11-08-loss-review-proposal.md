@@ -24,12 +24,14 @@
 cd from-league
 # 대상 찾기: 슈슈 팀 실전 종목 중 마이너스 확정이고 아직 복기 파일이 없는 것
 python3 tools/loss_review.py due --bundle league/public/results.json --team 슈슈 --reviews ../reviews/losses
+# (실전 시작 전 연습분으로 시험해 보려면 끝에 --mode 연습)
 # 형식·금지 표현 검사 (경로: <복기 폴더>/<라운드>/<에이전트>-<KR|US>.md, 첫 줄 '# 손실 복기 — <pick_id>')
 python3 tools/loss_review.py check ../reviews/losses/2026-11-09/s1-KR.md
 # 주간 요약: 에이전트별 판정 횟수·근거 pick_id·'바꿀 점' (지난주 포함 2주)
 python3 tools/loss_review.py summary --week 2026-W46 --weeks 2 --reviews ../reviews/losses
 ```
 
+- 복기 파일 형식: 첫 줄 `# 손실 복기 — <pick_id>`, 머리글에 `- 결과: <점수>% (...)` 한 줄(요약이 읽음), 다섯 절 제목, `판정:` 줄에는 판정 하나만, 600~6000자.
 - 결과 묶음은 동기화(평일 12:05·18:05 등) 때 새로 들어옵니다. 라운드 시간(06:50~12:00)과 섞이지 않게 **12:05 동기화 뒤** 실행을 권합니다.
 - 복기 파일 위치는 전용 저장소의 `reviews/losses/`를 권합니다. 이 경로는 메인으로 가져오는 허용 경로가 아니므로 슈슈 팀 안에만 남습니다. 메인 현황판에 함께 보이게 하려면 `to-roro/`로 요청해 주세요(허용 경로 추가는 운영자 승인 사항).
 - 형식 예시(로로 팀 연습 리허설): `from-league/`에는 로로 팀 기록이 들어가지 않으므로, 위 다섯 절 제목과 `판정:` 한 줄 형식만 맞추면 됩니다.

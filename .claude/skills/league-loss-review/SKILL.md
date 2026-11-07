@@ -22,7 +22,7 @@ description: AI 투자 리그 로로 팀 종목이 확정 마이너스 점수를
 ## 1단계 — 대상 찾기
 
 ```
-git pull --rebase --autostash
+git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0
 python3 tools/loss_review.py due --json          # 연습은 --dir league/sandbox
 ```
 
@@ -64,7 +64,7 @@ python3 tools/loss_review.py due --json          # 연습은 --dir league/sandbo
 
 1. `python3 tools/loss_review.py check <파일>...` — 전부 "통과"여야 한다. 형식 문제만 해당 에이전트에게 SendMessage로 고치게 한다(판단 내용은 진행자가 바꾸지 않는다).
 2. 통과한 파일만 **경로를 하나씩 지정해** 커밋한다: `git add <통과한 파일>...`(폴더 통째로 add하지 않는다), 커밋 메시지 `league: loss reviews <라운드들>`. 기본 브랜치에 push한다: `git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0`. 거절되면 `git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0` 뒤 다시 push한다.
-   - 같은 복기 파일이 원격에 이미 있어 충돌하면(다른 세션이 먼저 씀) 원격 파일을 채택한다(`git checkout --theirs <파일>` 또는 내 커밋에서 그 파일을 뺀다).
+   - 같은 복기 파일이 원격에 이미 있어 rebase가 충돌하면(다른 세션이 먼저 씀) 원격 판을 채택한다: `git checkout origin/claude/web-vs-desktop-differences-ir8pm0 -- <파일>` → `git add <파일>` → `git rebase --continue`(커밋이 비면 `git rebase --skip`). rebase 중에는 `--theirs`가 **내** 파일이므로 쓰지 않는다.
 3. 두 번 고쳐도 통과하지 못한 건은 **파일을 지운다**(`rm`). 커밋하지 않고 보고에 남긴다. 검사를 통과하지 못한 파일은 `due`가 다시 대상으로 잡으므로 다음 실행이 다시 쓴다.
 
 ## 보고 (사용자에게, 짧게)
