@@ -91,6 +91,7 @@ sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 
 ## 1단계 — 독립 분석 (07:05–07:40, 병렬)
 
 Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행한다. `subagent_type`은 각 멤버 id(`buffett`, `lynch`, `dalio`, `wood`, `burry`, 교체 시 `momentum`, `quant`)다. 다른 멤버의 결과는 보여주지 않는다.
+- **지침은 방금 pull한 파일 기준:** 오래 켜진 세션은 에이전트 정의를 예전 판으로 들고 있을 수 있다. 그래서 각 프롬프트 맨 앞에 `.claude/agents/<id>.md` 본문(앞머리 `---` 블록 제외)을 그대로 붙이고 "아래 지침(v<버전>)을 따르라"고 적는다. 그 버전이 `guideline-check`의 승인 버전과 같아야 한다.
 
 각 에이전트에게 보내는 프롬프트:
 
@@ -119,7 +120,7 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
 > 추가 검색은 허용하지만 08:30 KST 이후 정보와 상대 팀 파일은 금지다. 숫자를 지어내지 마라.
 > 분석 원문을 `league/rounds/<날짜>/claude/r1-<id>.md`에 저장하고, 마지막에 아래 JSON 블록을 반환하라.
 > ```json
-> {"agent_id":"<id>","candidates":[{"market":"KR","ticker":"005930","name":"삼성전자","rationale":"...","risks":["..."],"catalyst":"...","flip_condition":"...","sources":[{"url":"...","as_of":"YYYY-MM-DD 또는 확인 못함","retrieved_at":"YYYY-MM-DDTHH:MM:SS+09:00"}]}]}
+> {"agent_id":"<id>","candidates":[{"market":"KR","ticker":"005930","name":"삼성전자","rationale":"...","risks":["..."],"catalyst":"...","flip_condition":"...","p_beat":0.58,"exp_excess":0.4,"sources":[{"url":"...","as_of":"YYYY-MM-DD 또는 확인 못함","retrieved_at":"YYYY-MM-DDTHH:MM:SS+09:00"}]}]}
 > ```
 
 받은 JSON을 바로 점검한다. 문제가 있으면 해당 에이전트에게 SendMessage로 형식만 고쳐 달라고 한다.
@@ -138,7 +139,9 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
 > (2) 네 후보를 유지할지 바꿀지 결정하고 이유를 써라. 바꾼다면 새 후보도 1단계와 같은 형식으로 낸다.
 > 반론은 이번 1회뿐이다. 결과를 `league/rounds/<날짜>/claude/r2-<id>.md`에 저장하고, 최종 JSON을 반환하라.
 > ```json
-> {"agent_id":"<id>","final":[{"market":"KR","ticker":"...","name":"...","rationale":"...","risks":["..."],"sources":[...]}],"changed":false,"why":"..."}
+> {"agent_id":"<id>","final":[{"market":"KR","ticker":"...","name":"...","rationale":"...","risks":["..."],"p_beat":0.58,"exp_excess":0.4,"sources":[...]}],"changed":false,"why":"..."}
+>
+> `p_beat`는 다음 날 그 시장 지수를 이길 확률(0~1), `exp_excess`는 예상 초과수익(%p)이다(지침 v2 '결론은 숫자로'). CSV에는 들어가지 않고 `final.json`에 남아 주간 복기의 적중률·확률 보정 점검에 쓰인다.
 > ```
 
 - 이 단계에서 반복 토론은 하지 않는다.

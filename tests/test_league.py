@@ -15,8 +15,19 @@ def new_league():
     (d / "agents").mkdir()
     for f in ("config.json", "universe.json"):
         shutil.copy(ROOT / "league" / f, d / f)
-    shutil.copy(ROOT / "league" / "agents" / "roster.json", d / "agents" / "roster.json")
+    pin_roster_v1(d / "agents" / "roster.json")
     return d
+
+
+def pin_roster_v1(dst):
+    """시험 고정값: 실제 명단의 지침 버전(실전 v2 등)과 무관하게 v1로 둔다. 버전 규칙 시험은 따로 버전을 넣는다."""
+    r = json.loads((ROOT / "league" / "agents" / "roster.json").read_text())
+    for key in r:
+        for a in r[key] if isinstance(r[key], list) else []:
+            if isinstance(a, dict) and "version" in a:
+                a["version"] = 1
+                a.pop("versions", None)
+    Path(dst).write_text(json.dumps(r, ensure_ascii=False))
 
 
 def use_mode(d, mode="combined_bottom1", **watch):
@@ -302,7 +313,7 @@ class Receipts(unittest.TestCase):
         (lg / "agents").mkdir()
         for f in ("config.json", "universe.json"):
             shutil.copy(ROOT / "league" / f, lg / f)
-        shutil.copy(ROOT / "league" / "agents" / "roster.json", lg / "agents" / "roster.json")
+        pin_roster_v1(lg / "agents" / "roster.json")
         self.run = lambda *a: subprocess.run(["git", *a], cwd=self.repo, check=True, capture_output=True, text=True).stdout.strip()
         self.run("init", "-q"); self.run("config", "user.email", "t@t"); self.run("config", "user.name", "t")
         self.run("add", "."); self.run("commit", "-qm", "init")
@@ -1429,6 +1440,17 @@ class LinesWithoutLedger(unittest.TestCase):
         self.assertNotRegex(json.dumps(rows), r'"(rationale|close|base_close|ticker|name)"')
 
 
+class AgentsV2(unittest.TestCase):
+    def test_v2_guidelines_registered_from_first_round(self):
+        """지침 v2(하루 단위 렌즈·숫자 결론): 현재 파일 = 보관본, 명단 v2는 11/9 라운드부터, 11/6 연습은 v1."""
+        r = {a["id"]: a for a in json.loads((ROOT / "league/agents/roster.json").read_text())["claude"]}
+        for aid in ("buffett", "lynch", "dalio", "wood", "burry"):
+            cur, arch = L.guideline_paths(aid, 2)
+            self.assertEqual(cur.read_text(), arch.read_text(), aid)
+            self.assertIn("리그 판단 규칙 (v2", cur.read_text()); self.assertIn("리그 하루 렌즈", cur.read_text())
+            self.assertEqual((L.version_for_round(r[aid], "2026-11-06"), L.version_for_round(r[aid], "2026-11-09")), (1, 2))
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 
@@ -1462,7 +1484,7 @@ class BoundaryCases(unittest.TestCase):
         m3 = {"id": "x", "version": 3, "versions": [{"version": 2, "from_round": "2026-11-16"}, {"version": 3, "from_round": "2026-11-23"}]}
         self.assertEqual([L.version_for_round(m3, r) for r in ("2026-11-13", "2026-11-16", "2026-11-23")], [1, 2, 3])
         t = MarketLeagues(); d = t._league(); t._fill(d)
-        ro = json.loads((d / "agents" / "roster.json").read_text()) if (d / "agents" / "roster.json").exists() else json.loads((L.ROOT / "league" / "agents" / "roster.json").read_text())
+        ro = json.loads((d / "agents" / "roster.json").read_text())
         for a in ro["claude"]:
             if a["id"] == "lynch":
                 a.update(version=2, versions=[{"version": 2, "from_round": "2026-11-13"}])
