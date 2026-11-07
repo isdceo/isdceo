@@ -312,7 +312,8 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .ptag{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;white-space:nowrap;overflow:hidden}
 .ptag em{font-style:normal;color:#fff;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tcw .tchart{max-height:min(210px,34vh)}
-@media (min-width:900px) and (min-height:700px){.tcw .tchart{max-height:260px}}
+@media (min-width:900px) and (min-height:700px){.tcw .tchart{max-height:300px}}
+@media (max-height:700px){.tcw .tchart{max-height:min(180px,34vh)}}
 .rdet .st{display:flex;flex-wrap:wrap;gap:2px 10px}.rdet .st span{white-space:nowrap}
 .rdet .lp{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:baseline}
 .rhd{display:flex;gap:8px;padding:0 2px 4px;font-size:13px;color:#cbb88a;border-bottom:1px solid rgba(255,255,255,.12)}.rhd span:first-child{flex:1}.rhd span:not(:first-child){width:78px;text-align:right}.rhd::after{content:"";width:14px}
@@ -662,7 +663,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       if (chart) {
         const all = teams.flatMap((x) => x.v).concat(rows.flatMap((r) => r.v)).filter((v) => v != null).concat([0]);
         const lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo) * 0.1 || 0.5;
-        const W = 320, H = 168, L0 = 34, R0 = 12, T0 = 16, B0 = 20;
+        const W = 320, H = 168, L0 = 46, R0 = 12, T0 = 16, B0 = 20;   // 왼쪽 46: '+12.3%' 같은 눈금이 잘리지 않게
         const x = (i) => L0 + i * (W - L0 - R0) / (days.length - 1);
         const y = (v) => T0 + (hi + pad - v) * (H - T0 - B0) / ((hi + pad) - (lo - pad));
         const lastIdx = (v) => v.length - 1 - [...v].reverse().findIndex((q) => q != null);
@@ -671,7 +672,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
           const cands = [ly - 10, ly + 18, ly - 22, ly + 30].filter((q) => q > T0 + 2 && q < H - B0 + 4), score = (q) => Math.min(...avoid.map((a) => Math.abs(a - (q - 4))));
           const lyT = cands.length ? cands.reduce((b, q) => (score(q) > score(b) + 2 ? q : b)) : ly - 10;
           return `<g class="ag ${r.a.team === C ? 'c' : 's'}" data-k="${r.k}"><path d="${path(r.v, x, y)}" fill="none" stroke-linejoin="round"/>
-            <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.4"/><text class="agl" x="${(lx - 8).toFixed(1)}" y="${lyT.toFixed(1)}" text-anchor="end">${esc(r.a.nickname)} ${pct(r.last)}%</text></g>`; }).join('');
+            <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.4"/><text class="agl" x="${(li === 0 ? lx + 8 : lx - 8).toFixed(1)}" y="${lyT.toFixed(1)}" text-anchor="${li === 0 ? 'start' : 'end'}">${esc(r.a.nickname)} ${pct(r.last)}%</text></g>`; }).join('');
         const lines = teams.map(({t, v}) => { const last = lastIdx(v);
           return `<path class="tline" d="${path(v, x, y)}" fill="none" stroke="${TEAM_COL[t]}" stroke-width="3" stroke-linejoin="round"/>` +
             (last >= 0 && v[last] != null ? `<circle class="tline" cx="${x(last).toFixed(1)}" cy="${y(v[last]).toFixed(1)}" r="3.8" fill="${TEAM_COL[t]}"/>` : ''); }).join('');
@@ -703,7 +704,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     return d ? {d, ps: mine.filter((p) => p.round_date === d).sort((x, y) => (x.market > y.market ? 1 : -1))} : null; };
   const rankList = (rs, compact, mode, mk) => rs.map((r) => { const id = `rd${++rid}`; const lp = mode ? lastPicks(r.a, mode, mk || 'ALL') : null; return `<div class="rrow"><button type="button" class="rmain" aria-expanded="false" aria-controls="${id}">
         <b class="rk">${r.n ? (r.tie ? `<small>공동</small>${r.rank}` : r.rank) : '—'}</b><span class="av">${avHTML(r.a)}</span>
-        <span class="nm"><b>${esc(r.a.nickname)}</b> ${tchip(r.a.team)}${!compact && r.isLast ? ' <span class="tag dn">꼴등</span>' : ''}</span>
+        <span class="nm"><b>${esc(r.a.nickname)}</b> ${tchip(r.a.team)}</span>
         <span class="val">${r.n ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>${r.ex != null ? `<small>지수 대비 ${pct(r.ex)}%p</small>` : ''}` : '<span class="no">—</span>'}</span></button>
       <div class="rdet" id="${id}" hidden>${lp ? `<div class="lp"><span class="muted">${md(lp.d)} 종목</span> ${lp.ps.map(pickTxt).join(' ')}</div>` : ''}<span>${esc(r.a.label)}</span><span class="st"><span>확정 ${r.n}건</span>${r.w ? `<span>관망 ${r.w}회</span>` : ''}${r.n ? `<span>중앙값 ${pct(r.med)}%</span><span>최고 ${pct(r.best)}%</span><span>최저 ${pct(r.min)}%</span>` : ''}</span>
         <button type="button" class="fastbtn sm" data-card="${esc(r.a.nickname)}">카드 보기</button></div></div>`; }).join('');
@@ -965,7 +966,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const rkeys = [...new Set(T.picks.map((p) => `${p.round_date}|${p.mode}`).concat(rows.map((r) => `${r.date}|${r.mode}`)))].sort().reverse();
       const roundsHTML = rkeys.length ? `<div class="rhd"><span>라운드</span><span>로로 팀</span><span>슈슈 팀</span></div>` + rkeys.map((k, i) => { const [d, mo] = k.split('|');
         const ps = T.picks.filter((p) => p.round_date === d && p.mode === mo);
-        const avgCell = (team) => { const r = rows.find((x) => x.date === d && x.team === team && x.mode === mo); if (r && r.avg != null) return `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>`;
+        const avgCell = (team) => { const r = rows.find((x) => x.date === d && x.team === team && x.mode === mo && x.avg != null); if (r && r.avg != null) return `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>`;
           return ps.some((p) => p.team === team) ? '<span class="no">채점 전</span>' : '<span class="no">—</span>'; };
         const team = (tm) => { const xs = ps.filter((p) => p.team === tm); if (!xs.length) return '';
           const ags = [...new Set(xs.map((p) => p.agent_id))].map((id) => { const one = xs.filter((p) => p.agent_id === id).sort((x, y) => (x.market > y.market ? 1 : -1)); const a = T.agents.find((x) => x.team === tm && x.agent_id === id);
@@ -1053,6 +1054,11 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       sheetB.querySelectorAll('[data-fmk]').forEach((p) => p.hidden = fsel.dataset.mk !== 'ALL' && p.dataset.fmk !== fsel.dataset.mk); });
     if (fsel) { const f = store('league.recF'); if (f && typeof f === 'object') { const mb = fsel.querySelector(`[data-fmode="${CSS.escape(String(f.mode))}"]`); if (mb) mb.onclick(); const kb2 = fsel.querySelector(`[data-fmk-btn="${CSS.escape(String(f.mk))}"]`); if (kb2) kb2.onclick(); } }
     const rb = sheetB.querySelector('.rbar'); if (rb) { const setH = () => sheetB.style.setProperty('--rbh', rb.offsetHeight + 'px'); setH(); if (window.ResizeObserver) new ResizeObserver(setH).observe(rb); }
+    // 키보드로 이동한 줄이 위에 붙은 탭 줄·그래프 밑에 숨지 않게 내려 준다
+    if (!sheetB._fi) sheetB._fi = sheetB.addEventListener('focusin', (e) => { const el = e.target; if (!el || el === sheetB || el.closest('.rbar') || el.closest('.tcw')) return;
+      let cover = sheetB.getBoundingClientRect().top; const bar = sheetB.querySelector('.rbar'); if (bar) cover = Math.max(cover, bar.getBoundingClientRect().bottom);
+      const pane = el.closest('[data-fp]'), tcw = pane && pane.querySelector('.tcw'); if (tcw && getComputedStyle(tcw).position === 'sticky') cover = Math.max(cover, tcw.getBoundingClientRect().bottom);
+      const r = el.getBoundingClientRect(); if (r.top < cover + 4) sheetB.scrollBy({top: r.top - cover - 8}); }) || 1;
     sheetB.querySelectorAll('.trow[data-hk]').forEach((r) => { const go = () => { const pane = r.closest('.trend'), svg = pane.querySelector('.tchart'), on = r.getAttribute('aria-pressed') !== 'true';
         pane.querySelectorAll('.trow[data-hk]').forEach((x) => x.setAttribute('aria-pressed', String(on && x === r)));
         if (svg) { svg.classList.toggle('hl', on); svg.querySelectorAll('.ag').forEach((g) => { const hit = on && g.dataset.k === r.dataset.hk; if (g.classList.contains('on') && !hit) svg.insertBefore(g, svg.querySelector('.tline')); g.classList.toggle('on', hit); if (hit) svg.appendChild(g); }); }
