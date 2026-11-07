@@ -57,7 +57,21 @@ def load_lines(d: Path) -> dict:
     return out
 
 
-def check_lines(path: Path, base: Path | None = None, now: datetime | None = None) -> list[str]:
+def picks_index(base: Path, teams=("shushu", "sandbox-shushu")) -> list[dict]:
+    """대사 검사용 접수 종목 목록(원장 전체 대신): 슈슈 팀의 접수된 pick_id와 접수 영수증만. 종목·근거·가격은 넣지 않는다."""
+    out = []
+    for dd in (Path(base), Path(base) / "sandbox"):
+        subs = {(s_["team"], s_["round_date"]): s_ for s_ in L.read_ledger(dd, "submissions") if s_.get("status") == "accepted"}
+        for p in L.read_ledger(dd, "picks"):
+            if p["team"] in teams:
+                r = subs.get((p["team"], p["round_date"])) or {}
+                out.append({"pick_id": p["pick_id"], "team": p["team"], "round_date": p["round_date"], "market": p["market"],
+                            "agent_id": p["agent_id"], "receipt_commit": (p.get("submission") or {}).get("commit") or r.get("commit"),
+                            "receipt_pushed_at": r.get("pushed_at")})
+    return sorted(out, key=lambda x: (x["round_date"], x["team"], x["pick_id"]))
+
+
+def check_lines(path: Path, base: Path | None = None, now: datetime | None = None, index: Path | None = None) -> list[str]:
     """한 줄 이유 파일 검사. 문제 목록을 돌려준다(빈 목록이면 통과).
     - 파일 이름 <라운드>-<팀>.json, 내용 {pick_id: 문장}
     - pick_id 가 원장의 그 라운드·그 팀 종목이어야 한다(다른 팀 종목에 대사를 쓰지 않는다)
@@ -80,7 +94,14 @@ def check_lines(path: Path, base: Path | None = None, now: datetime | None = Non
         return errs + [f"JSON 읽기 실패: {e}"]
     if not isinstance(lines, dict) or not lines:
         return errs + ["{pick_id: 문장} 형태의 내용이 없음"]
-    ids = {p["pick_id"] for p in L.read_ledger(base, "picks") if p["round_date"] == rd and p["team"] == team}
+    if index is not None:                     # 원장이 없는 곳(슈슈 전용 저장소 사본): 공식 접수 종목 목록으로 검사
+        try:
+            rows = json.loads(Path(index).read_text())
+        except Exception as e:  # noqa: BLE001
+            return errs + [f"접수 종목 목록을 읽지 못함: {e}"]
+        ids = {r["pick_id"] for r in rows if r.get("round_date") == rd and r.get("team") == team}
+    else:
+        ids = {p["pick_id"] for p in L.read_ledger(base, "picks") if p["round_date"] == rd and p["team"] == team}
     if not ids:
         errs.append(f"원장에 {rd} {team} 종목이 없음 (원본 공개 뒤 영수증이 accepted 인지 확인)")
     for k, v in lines.items():
@@ -314,9 +335,11 @@ def main():
     ap.add_argument("--no-logos", action="store_true", help="--out 에서 회사 로고(logos.json)를 받지 않는다")
     ap.add_argument("--check-lines", metavar="FILE", help="한 줄 이유 파일 검사 (예: league/lines/2026-11-09-claude.json)")
     ap.add_argument("--base", help="--check-lines 의 원장 폴더 (기본 league/, 연습은 league/sandbox)")
+    ap.add_argument("--picks-index", help="--check-lines 를 원장 대신 접수 종목 목록(JSON)으로 (슈슈 전용 저장소: from-league/shushu-picks.json)")
     a = ap.parse_args()
     if a.check_lines:
-        errs = check_lines(Path(a.check_lines), Path(a.base) if a.base else None)
+        errs = check_lines(Path(a.check_lines), Path(a.base) if a.base else None,
+                           index=Path(a.picks_index) if a.picks_index else None)
         for e in errs:
             print("문제:", e)
         print("통과" if not errs else f"문제 {len(errs)}건")

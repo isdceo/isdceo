@@ -533,6 +533,8 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
     subs = [r for dd in (main / "league", main / "league" / "sandbox") for r in L.read_ledger(dd, "submissions")
             if r.get("team") in ("shushu", "sandbox-shushu")]
     (dst / "receipts-shushu.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in subs))
+    import dashboard_data as DD                            # 대사 검사용 접수 종목 목록(원장 전체 대신)
+    (dst / "shushu-picks.json").write_text(json.dumps(DD.picks_index(main / "league"), ensure_ascii=False, indent=1) + "\n")
     sync = L.read_ledger(main / "league", "external_pushes")
     (dst / "sync-log.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in sync))
     plans = {}
@@ -552,6 +554,8 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
         "- `sync-log.jsonl`: 이 저장소 push를 메인이 처리한 기록(push 시각, 가져온 파일, 영수증)\n"
         "- `league/public/results.json`: 공유 결과 묶음(마감 전 종목·원 가격 없음)\n"
         "- `update-plan.json`: 규칙 v2.1 업데이트 계획(이번 주·지난주)\n"
+        "- `shushu-picks.json`: 슈슈 팀 접수 종목 pick_id 목록(대사 검사용). 검사: `cd from-league && python3 tools/dashboard_data.py --check-lines ../lines/<날짜>-shushu.json --picks-index shushu-picks.json` (연습은 `--base league/sandbox` 추가)\n"
+        "- `league/rounds/<날짜>/snapshot.json(.sha256)`: 그날 06:50 공통 자료(가격 제외판). 생성 직후 동기화가 바로 보냄\n"
         "- `docs/codex-notices/`: 로로 팀 공지·회신\n"
         "- `tools/`, `league/config.json`, `league/universe/`, `league/agents/roster.json`: CSV 사전 검증용\n"
         "  예: `cd from-league && python3 tools/league.py import-csv ../submit/<날짜>.csv --team shushu --dry-run`\n")

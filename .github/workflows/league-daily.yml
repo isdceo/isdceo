@@ -28,6 +28,7 @@ on:
         default: false
 permissions:
   contents: write
+  actions: write          # 06:50 공통 자료 직후 슈슈 저장소 동기화를 바로 부르기 위해
 concurrency:
   group: league-ledger-${{ github.ref }}
   cancel-in-progress: false
@@ -105,3 +106,12 @@ jobs:
             sleep $((i * 5))
           done
           exit 1
+      - name: Send common data to 슈슈 repo right away
+        if: steps.t.outputs.on == 'true' && steps.t.outputs.task == 'snapshot' && steps.t.outputs.target == 'league'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 슈슈 팀 라운드(07:05) 전에 가격 제외 공통 자료가 전용 저장소 from-league/ 에 도착하도록 동기화를 바로 실행
+          ON=$(python3 -c "import json;print(str((json.load(open('league/config.json')).get('shushu_repo') or {}).get('enabled', False)).lower())")
+          [ "$ON" = "true" ] || { echo "shushu_repo 꺼짐"; exit 0; }
+          gh workflow run league-shushu-sync.yml --ref "$GITHUB_REF_NAME" || echo "::warning::슈슈 동기화 호출 실패 — 06:57 예약 실행이 보냄"

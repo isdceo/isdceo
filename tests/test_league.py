@@ -1354,6 +1354,47 @@ class SealedSubmission(unittest.TestCase):
         self.assertEqual(dpath.read_text(), "최종")
 
 
+class LinesWithoutLedger(unittest.TestCase):
+    """슈슈 요청: 원장 없이(전용 저장소 사본) 접수 종목 목록으로 대사 검사 + 오류 조건."""
+    def setUp(self):
+        import dashboard_data as D
+        self.D = D
+        self.tmp = Path(tempfile.mkdtemp())
+        self.idx = self.tmp / "shushu-picks.json"
+        self.idx.write_text(json.dumps([
+            {"pick_id": "2026-11-09-shushu-s1-KR", "team": "shushu", "round_date": "2026-11-09"},
+            {"pick_id": "2026-11-09-shushu-s1-US", "team": "shushu", "round_date": "2026-11-09"},
+            {"pick_id": "2026-11-09-sandbox-shushu-s1-KR", "team": "sandbox-shushu", "round_date": "2026-11-09"}]))
+        self.after = datetime.fromisoformat("2026-11-09T09:00:00+09:00")
+
+    def check(self, lines, name="2026-11-09-shushu.json", now=None):
+        f = self.tmp / name; f.write_text(json.dumps(lines, ensure_ascii=False))
+        return self.D.check_lines(f, L.ROOT / "league", now or self.after, index=self.idx)
+
+    def test_pass(self):
+        self.assertEqual(self.check({"2026-11-09-shushu-s1-KR": "튼튼한 회사야.", "2026-11-09-shushu-s1-US": "꾸준히 크는 중."}), [])
+
+    def test_error_conditions(self):
+        e = self.check({"2026-11-09-shushu-s1-KR": "괜찮아."})
+        self.assertTrue(any("한 줄 이유가 없는 종목" in x for x in e))                              # 빠진 종목
+        e = self.check({"2026-11-09-claude-buffett-KR": "남의 종목", "2026-11-09-shushu-s1-KR": "a", "2026-11-09-shushu-s1-US": "b"})
+        self.assertTrue(any("이 라운드·이 팀의 종목이 아님" in x for x in e))                       # 다른 팀 pick_id
+        e = self.check({"2026-11-09-shushu-s1-KR": "종가 7만원 돌파", "2026-11-09-shushu-s1-US": "b"})
+        self.assertTrue(any("가격처럼" in x for x in e))                                          # 가격 표현
+        e = self.check({"2026-11-09-shushu-s1-KR": "a", "2026-11-09-shushu-s1-US": "b"}, now=datetime.fromisoformat("2026-11-09T08:00:00+09:00"))
+        self.assertTrue(any("마감" in x for x in e))                                              # 마감 전
+        e = self.check({"2026-11-10-shushu-s1-KR": "a"}, name="2026-11-10-shushu.json")
+        self.assertTrue(any("종목이 없음" in x for x in e))                                        # 목록에 그 라운드 없음
+        self.idx.write_text("{깨진 JSON")
+        self.assertTrue(any("목록을 읽지 못함" in x for x in self.check({"x": "y"})))               # 목록 파일 오류
+
+    def test_index_from_ledger_has_no_prices_or_other_team(self):
+        t = MarketLeagues(); d = t._league(); t._fill(d)
+        rows = self.D.picks_index(d)
+        self.assertTrue(rows); self.assertEqual({r["team"] for r in rows}, {"shushu"})
+        self.assertNotRegex(json.dumps(rows), r'"(rationale|close|base_close|ticker|name)"')
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 
