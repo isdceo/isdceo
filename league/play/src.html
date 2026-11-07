@@ -1030,6 +1030,9 @@ table.rec.wk td:first-child{width:44px;text-align:center}
         <p class="muted">갱신 ${esc(String(T.generated_at || '').slice(0, 16).replace('T', ' '))} KST</p>`},
   };
   let sheetOpener = null;
+  const REC_FOCUS = '[data-card],.trow[data-nick],[data-show]';
+  const saveRecState = (el) => { const all = [...sheetB.querySelectorAll('.rmain')], foc = [...sheetB.querySelectorAll(REC_FOCUS)];
+    recState = {scroll: sheetB.scrollTop, exp: all.map((x) => x.getAttribute('aria-expanded') === 'true'), focus: foc.indexOf(el)}; };
   const openSheet = (key, focusNick, keepOpener) => {
     const s = SHEETS[key]; if (!s) return;
     if (!game.classList.contains('sheeted') && !keepOpener) sheetOpener = document.activeElement;
@@ -1061,7 +1064,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     if (!sheetB._fi) sheetB._fi = sheetB.addEventListener('focusin', (e) => { const el = e.target; if (!el || el === sheetB || el.closest('.rbar') || el.closest('.tcw') || !el.matches(':focus-visible')) return;   // 키보드 포커스만(누를 때는 움직이지 않음)
       let cover = sheetB.getBoundingClientRect().top; const bar = sheetB.querySelector('.rbar'); if (bar) cover = Math.max(cover, bar.getBoundingClientRect().bottom);
       const pane = el.closest('[data-fp]'), tcw = pane && pane.querySelector('.tcw'); if (tcw && getComputedStyle(tcw).position === 'sticky') cover = Math.max(cover, tcw.getBoundingClientRect().bottom);
-      const r = el.getBoundingClientRect(); if (r.top < cover + 4) sheetB.scrollBy({top: r.top - cover - 8}); }) || 1;
+      const r = el.getBoundingClientRect(); const sb = sheetB.getBoundingClientRect().bottom; if (r.top < cover + 4) sheetB.scrollBy({top: r.top - cover - 8}); else if (r.bottom > sb - 4) sheetB.scrollBy({top: r.bottom - sb + 8}); }) || 1;
     sheetB.querySelectorAll('.trow[data-hk]').forEach((r) => { const go = () => { const pane = r.closest('.trend'), svg = pane.querySelector('.tchart'), on = r.getAttribute('aria-pressed') !== 'true';
         pane.querySelectorAll('.trow[data-hk]').forEach((x) => x.setAttribute('aria-pressed', String(on && x === r)));
         if (svg) { svg.classList.toggle('hl', on); svg.querySelectorAll('.ag').forEach((g) => { const hit = on && g.dataset.k === r.dataset.hk; if (g.classList.contains('on') && !hit) svg.insertBefore(g, svg.querySelector('.tline')); g.classList.toggle('on', hit); if (hit) svg.appendChild(g); }); }
@@ -1069,8 +1072,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
           if (sr.top < top) { const lim = r.getBoundingClientRect().bottom - sheetB.getBoundingClientRect().bottom + 4; sheetB.scrollBy({top: Math.max(sr.top - top - 8, lim), behavior: reduce ? 'auto' : 'smooth'}); } } };   // 누른 줄은 화면에 남긴다
       r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
     sheetB.querySelectorAll('.rmain').forEach((b) => b.onclick = () => { const d = b.nextElementSibling, on = d.hidden; d.hidden = !on; b.setAttribute('aria-expanded', String(on)); });
-    const saveRec = (el) => { if (key !== 'record') return; const all = [...sheetB.querySelectorAll('.rmain')], foc = [...sheetB.querySelectorAll('[data-card],.trow[data-nick]')];
-      recState = {scroll: sheetB.scrollTop, exp: all.map((x) => x.getAttribute('aria-expanded') === 'true'), focus: foc.indexOf(el)}; };
+    const saveRec = (el) => { if (key === 'record') saveRecState(el); };
     const back = key === 'record' ? 'record' : 'picks';
     sheetB.querySelectorAll('[data-card]').forEach((b) => b.onclick = () => { const a = active.find((x) => x.nickname === b.dataset.card); if (a) { saveRec(b); open(a, back); } });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
@@ -1079,7 +1081,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     if (key === 'record' && recState && keepOpener) {   // 카드에서 돌아오면 보던 자리 그대로
       const st = recState; recState = null; [...sheetB.querySelectorAll('.rmain')].forEach((b, i) => { if (st.exp[i] != null && (b.getAttribute('aria-expanded') === 'true') !== st.exp[i]) b.click(); });
       sheetB.scrollTop = st.scroll; requestAnimationFrame(() => { sheetB.scrollTop = st.scroll; });
-      const f = [...sheetB.querySelectorAll('[data-card],.trow[data-nick]')][st.focus]; if (f) { f.focus({ preventScroll: true }); return; } $('#sheet-x').focus({ preventScroll: true }); return; }
+      const f = [...sheetB.querySelectorAll(REC_FOCUS)][st.focus]; if (f) { f.focus({ preventScroll: true }); return; } $('#sheet-x').focus({ preventScroll: true }); return; }
     recState = null; sheetB.scrollTop = 0; requestAnimationFrame(() => { sheetB.scrollTop = 0; }); if (focusNick) { const r = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`); if (r) { r.focus({ preventScroll: true }); return; } } $('#sheet-x').focus({ preventScroll: true });
   };
   function closeSheet(silent) { if (!game.classList.contains('sheeted')) return; sheet.classList.remove('on'); game.classList.remove('sheeted'); if (!silent && sheetOpener && sheetOpener.isConnected) sheetOpener.focus({ preventScroll: true }); }
@@ -1119,7 +1121,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     $('#show-sum').classList.add('on'); $('#show-skip').hidden = true; store('league.showSeen', showKey); refreshShowBtn(); $('#show-x').focus({ preventScroll: true });
   };
   const openShow = () => {
-    if (!SR) return; showOpener = document.activeElement; showFrom = game.classList.contains('sheeted') ? 'record' : null; shut(true); closeSheet(true);
+    if (!SR) return; showOpener = document.activeElement; showFrom = game.classList.contains('sheeted') && sheet.classList.contains('rec') ? 'record' : null; if (showFrom) saveRecState(document.activeElement); shut(true); closeSheet(true);
     $('#show-t').textContent = `${md(SR.date)} ${SR.mode} 라운드 결과`; $('#show-sub').textContent = '확정 점수만 숫자로 보여 줍니다 · 하루 수익률(배당 포함, %)';
     const grid = $('#show-grid'); grid.innerHTML = '';
     const tms = [C, Sx].filter((tm) => SR.picks.some((p) => p.team === tm));
@@ -1149,7 +1151,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     }, 250 + k * step)));
     showTimers.push(setTimeout(showDone, 250 + cards.length * step + 450));
   };
-  const closeShow = () => { if (!game.classList.contains('showing')) return; showTimers.forEach(clearTimeout); showTimers = []; game.classList.remove('showing'); if (store('league.showSeen') !== showKey && $('#show-sum').classList.contains('on')) store('league.showSeen', showKey); refreshShowBtn(); if (showFrom) { showFrom = null; openSheet('record', null, true); const b = sheetB.querySelector('[data-show]'); if (b) b.focus({ preventScroll: true }); return; } (showOpener && showOpener.isConnected ? showOpener : showbtn).focus({ preventScroll: true }); };
+  const closeShow = () => { if (!game.classList.contains('showing')) return; showTimers.forEach(clearTimeout); showTimers = []; game.classList.remove('showing'); if (store('league.showSeen') !== showKey && $('#show-sum').classList.contains('on')) store('league.showSeen', showKey); refreshShowBtn(); if (showFrom) { showFrom = null; openSheet('record', null, true); return; } (showOpener && showOpener.isConnected ? showOpener : showbtn).focus({ preventScroll: true }); };
   showbtn.onclick = (e) => { e.stopPropagation(); openShow(); };
   $('#show-skip').onclick = showDone; $('#show-x').onclick = closeShow;
   window.__show = openShow;
