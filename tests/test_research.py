@@ -70,6 +70,19 @@ class CheckCsvMore(unittest.TestCase):
         self.assertFalse(any("3행" in x and "2,000" in x for x in w), w)                  # 지수 인용은 같은 날 기록과 일치
         self.assertTrue(any("3행" in x and "190,700" in x and "다름" in x for x in w), w)  # 날짜가 뒤에 와도 대조
 
+    def test_swapped_values_are_flagged(self):
+        """2차 검수 지적: 다른 종목 값과 같다고 불일치가 덮이면 안 됨."""
+        d = Path(tempfile.mkdtemp()); log = d / "log.jsonl"
+        R.write_log(log, [R._rec("close", "KR", "005930", "2026-11-13", 219500.0, "u", b"x"),
+                          R._rec("close", "KR", "000660", "2026-11-13", 612000.0, "u", b"x")])
+        f = d / "x.csv"
+        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+                     "2026-11-16,buffett,1,KR,005930,삼성전자,2026-11-16T08:10:00+09:00,\"11/13 종가 612,000원\",위험,\n"
+                     "2026-11-16,lynch,1,KR,035720,카카오,2026-11-16T08:10:00+09:00,\"11/13 종가 612,000원\",위험,\n", encoding="utf-8")
+        w = R.check_csv(f, log, CFG)
+        self.assertTrue(any(x.startswith("2행") and "000660" in x for x in w), w)
+        self.assertTrue(any(x.startswith("3행") and "000660" in x for x in w), w)
+
 
 if __name__ == "__main__":
     unittest.main()

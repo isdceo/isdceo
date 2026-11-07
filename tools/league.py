@@ -1552,7 +1552,7 @@ def main():
         wk = a.arg or iso_week(datetime.now(KST).date() - timedelta(days=7))
         res = weekly_close(d, wk)
         for r in res:
-            print(f"{r['team']} {r['week']}: 탈락 {r['eliminate'] or '없음'} → 대체 {r['replacement'] or '없음'}"
+            print(f"{r['team']} {r['week']}{(' ' + r['market']) if r.get('market') else ''}: 탈락 {r['eliminate'] or '없음'} → 대체 {r['replacement'] or '없음'}"
                   + (f" · 보류: {'; '.join(r['hold_reasons'])}" if r['hold_reasons'] else ""))
         if not res:
             print(f"{wk}: 새로 마감할 팀 없음 (이미 마감했거나 기록 없음)")

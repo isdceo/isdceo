@@ -64,7 +64,13 @@ jobs:
           D="${{ inputs.date }}"; [ -z "$D" ] && D=$(TZ=Asia/Seoul date +%F)
           OPEN=$(python3 -c "import sys;sys.path.insert(0,'tools');import league as L;from datetime import date;print(len(L.open_markets(date.fromisoformat('$D'),L.load_config(L.ROOT/'league'))))")
           if [ "$OPEN" = "0" ]; then echo "$D 두 시장 모두 휴장 — 라운드 없음"; exit 0; fi
+          # 월요일: 06:30 주간 마감이 늦거나 빠졌으면 여기서 먼저 마감한다(이미 마감했으면 아무것도 하지 않음).
+          # 07:05 라운드가 새 명단(리그별 탈락·합류)으로 검사되게 하기 위해서다.
+          if [ "$(TZ=Asia/Seoul date -d "$D" +%u)" = "1" ]; then
+            python3 tools/league.py weekly-close --dir "${{ steps.t.outputs.target }}" | tee weekly.txt
+          fi
           python3 tools/league.py snapshot "$D" --dir "${{ steps.t.outputs.target }}" | tee summary.txt
+          [ -f weekly.txt ] && cat weekly.txt >> summary.txt || true
       - name: Collect and score
         if: steps.t.outputs.on == 'true' && steps.t.outputs.task == 'collect'
         env:

@@ -78,29 +78,13 @@ jobs:
           PROJECT=$(python3 -c "import json;print(json.load(open('league/config.json')).get('cloudflare_project', 'isdceo-league'))")
           # 잠금 함수(functions/_middleware.js)를 사이트와 함께 올린다
           rm -rf deploy && mkdir deploy && cp -r site deploy/site && cp -r league/site-functions deploy/functions
-          cd deploy && npx --yes wrangler@4 pages deploy site --project-name "$PROJECT" --branch main --commit-dirty=true
-      - name: Verify the site asks for a password
+          cd deploy && npx --yes wrangler@4 pages deploy site --project-name "$PROJECT" --branch main --commit-dirty=true 2>&1 | tee ../deploy.log
+          test "${PIPESTATUS[0]}" -eq 0
+      - name: Verify the site asks for a password (roll back to a locked deployment if not)
         if: steps.gate.outputs.go == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           PROJECT=$(python3 -c "import json;print(json.load(open('league/config.json')).get('cloudflare_project', 'isdceo-league'))")
-          sleep 20
-          for U in "https://$PROJECT.pages.dev/" "https://$PROJECT.pages.dev/data/table.js" "https://$PROJECT.pages.dev/av/"; do
-            C=$(curl -s -o /dev/null -m 20 -w '%{http_code}' "$U"); W=$(curl -s -o /dev/null -m 20 -w '%{http_code}' -u operator:wrong "$U")
-            echo "$U → 로그인 없음 $C / 틀린 비밀번호 $W"
-            if [ "$C" != "401" ] || [ "$W" != "401" ]; then
-              echo "::error::$U 가 잠겨 있지 않음 — 직전 배포(잠금 확인을 통과했던 것)로 되돌린다"
-              API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT/deployments"
-              PREV=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$API?env=production&per_page=5" \
-                | python3 -c "import json,sys;r=json.load(sys.stdin).get('result') or [];print(r[1]['id'] if len(r)>1 else '')")
-              if [ -n "$PREV" ]; then
-                R=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$API/$PREV/rollback")
-                echo "되돌리기 요청: HTTP $R (배포 $PREV)"
-              else
-                echo "::error::되돌릴 직전 배포 없음 — deploy_enabled 를 끄고 Cloudflare 에서 배포를 지울 것"
-              fi
-              exit 1
-            fi
-          done
+          python3 tools/pages_guard.py verify --project "$PROJECT" --deploy-log deploy.log

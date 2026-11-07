@@ -194,9 +194,10 @@ def check_csv(path: Path, log: Path, cfg: dict) -> list[str]:
     """근거의 'MM/DD 종가 숫자'를 기록과 대조하고, 출처 기준일이 라운드보다 늦지 않은지 본다. 경고 목록만 돌려준다."""
     recs = read_logs(log)
     closes = {(r["market"], r["ticker"], r["session"]): r["value"] for r in recs if r.get("kind") in ("close", "macro") and r.get("value") is not None}
-    by_day: dict = {}
+    by_day: dict = {}                                 # (시장, 날짜) → [(종목, 값)]
     for (m_, t_, s_), v_ in closes.items():
-        by_day.setdefault((m_, s_), []).append(v_)
+        by_day.setdefault((m_, s_), []).append((t_, v_))
+    MACRO = {"KOSPI", "^KS11", "SPY", "^TNX", "KRW=X"}
     bench = {"KR": "KOSPI", "US": "SPY"}
     warns = []
     with open(path, newline="", encoding="utf-8-sig") as f:
@@ -217,13 +218,19 @@ def check_csv(path: Path, log: Path, cfg: dict) -> list[str]:
                 if bs and claim_d != bs:
                     warns.append(f"{who}: 근거의 {mm}/{dd} 종가는 기준 세션({bs.isoformat()})이 아님")
                 ref = closes.get((m, t, claim_d.isoformat()))
-                same_day = by_day.get((m, claim_d.isoformat()), [])
-                if ref is None and any(abs(v / x - 1) <= 0.001 for x in same_day if x):
-                    continue                                  # 지수·다른 종목 종가 인용: 같은 날 기록과 일치
-                if ref is None:
+                day = by_day.get((m, claim_d.isoformat()), [])
+                hit = lambda pool: next((t_ for t_, x in pool if x and abs(v / x - 1) <= 0.001), None)
+                other = hit([(t_, x) for t_, x in day if t_ != t and t_ not in MACRO])
+                if hit([(t_, x) for t_, x in day if t_ in MACRO]) and (ref is None or abs(v / ref - 1) > 0.001):
+                    continue                                  # 지수·환율·금리 인용(근거에 지수 종가를 함께 쓴 경우)
+                if ref is not None:                           # 자기 종목 기록이 있으면 그 값과만 비교(다른 종목 값과 같아도 통과 안 함)
+                    if abs(v / ref - 1) > 0.001:
+                        warns.append(f"{who}: {mm}/{dd} 종가 {num}가 조사 기록({ref:g})과 다름"
+                                     + (f" — 다른 종목({other}) 값과 같음, 종목을 바꿔 쓴 것 아닌지 확인" if other else ""))
+                elif other:
+                    warns.append(f"{who}: {mm}/{dd} 종가 {num}는 이 종목 기록이 없고 다른 종목({other}) 값과 같음 — 확인 필요")
+                else:
                     warns.append(f"{who}: {mm}/{dd} 종가 {num}는 조사 기록에 없음 — 직접 확인 필요")
-                elif abs(v / ref - 1) > 0.001 and not any(abs(v / x - 1) <= 0.001 for x in same_day if x):                   # 종가는 정확히 같아야 함(반올림 여유 0.1%)
-                    warns.append(f"{who}: {mm}/{dd} 종가 {num}가 조사 기록({ref:g})과 다름")
             for s in (row.get("sources") or "").split(";"):
                 parts = s.split("|")
                 if len(parts) >= 2 and re.fullmatch(r"\d{4}-\d{2}-\d{2}", parts[1].strip()) and parts[1].strip() > rd.isoformat():
