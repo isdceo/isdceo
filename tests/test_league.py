@@ -948,7 +948,8 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.csv").exists())
         r = self.sync(f"{rd}T08:35:00+09:00")[0]["receipts"][0]
         self.assertEqual(r["status"], "accepted")
-        self.assertTrue(L.read_ledger(self.repo / "league", "submissions")[-1].get("early_reveal"))
+        last = L.read_ledger(self.repo / "league", "submissions")[-1]
+        self.assertTrue(last.get("sealed")); self.assertFalse(last.get("early_reveal"))   # 비공개 저장소에 봉인 보관 → 마감 전 공개 아님
 
     def test_only_allowed_paths_copied(self):
         rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
@@ -1207,6 +1208,20 @@ class ShushuRepoSync(unittest.TestCase):
         posted = []
         w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat(f"{rd}T08:41:00+09:00"), post=lambda b: posted.append(b) or "u")
         self.assertEqual([x["kind"] for x in w], ["taint"]); self.assertIn("12:00 전에", posted[0])
+
+    def test_sealed_commit_and_reveal_in_one_push(self):
+        """지문과 원본을 08:30 전 한 번에 비공개 저장소에 push: 지문은 바로 committed, 원본은 마감 뒤 자동 accepted(봉인 보관)."""
+        rd = "2026-11-10"; body = self.csv(rd)
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"submit/{rd}.csv": body, f"submit/{rd}-debate.md": "토론"}, f"{rd}T08:15:00+09:00")
+        out = self.sync(f"{rd}T08:20:00+09:00")
+        self.assertEqual(out[0]["receipts"][0]["status"], "committed")
+        self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.csv").exists())          # 마감 전에는 메인에 없음
+        out = self.sync(f"{rd}T08:31:00+09:00")
+        r = [x for o in out for x in o["receipts"]]
+        self.assertEqual([x["status"] for x in r], ["accepted"])
+        sub = [x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "accepted"][0]
+        self.assertTrue(sub["sealed"]); self.assertNotIn("early_reveal", sub)
+        self.assertEqual(sub["commitment_pushed_at"], f"{rd}T08:15:00+09:00")
 
     def test_mirror_push_not_recorded(self):
         """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""

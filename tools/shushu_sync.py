@@ -320,7 +320,10 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         try:
             if g.get("release"):
                 _restore_held(ext, act, g["ready"])
-            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url, bad)
+            # 마감 전에 비공개 전용 저장소에 올려 두고 마감 뒤 꺼낸 원본: '마감 전 공개'가 아니라 '봉인 보관'
+            sealed = bool(g.get("release")) and all(u["kind"] in ("reveal", "debate", "lines") for u in g["ready"]) \
+                and pushed < L.lock_deadline(date.fromisoformat(g["ready"][0]["rd"]), _team_cfg(main, g["ready"][0].get("dst") or ""))
+            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url, bad, sealed)
         except L.CommitmentPending as e:
             _rollback(main, prev, snap, [u["dst"] for u in g["ready"] if u.get("dst")])   # 이 push만 되돌리고 다음 실행에서 다시
             out.append({"activity_id": act["id"], "status": "pending", "note": str(e), "receipts": [], "lines": []})
@@ -392,7 +395,7 @@ def _restore_held(ext: Path, act: dict, units: list[dict]):
 
 
 def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units: list[dict], run_id: str, run_url: str,
-           bad: set | None = None):
+           bad: set | None = None, sealed: bool = False):
     """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다."""
     if not units:
         return [], [], ""
@@ -423,7 +426,7 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
     event = {"before": prev, "after": after, "ref": "refs/heads/main", "commits": [],
              "pusher": {"name": f"{repo}:{(act.get('actor') or {}).get('login')}"},
              "repository": {"pushed_at": int(pushed.timestamp())},
-             "judged_by": "shushu_repo.activity.timestamp",
+             "judged_by": "shushu_repo.activity.timestamp", "sealed": sealed,
              "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
     receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
     lines = [(u["dst"], _check_lines(main, u["dst"])) for u in wrote if u["kind"] == "lines"]
@@ -575,7 +578,8 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     st = {s["status"] for s in subs}
     if mk and live and "07:00" <= hm < "08:15":
         add("round", rd, f"@codex 오늘({rd}) 실전 라운드를 진행해 주세요. 열린 시장: {'·'.join(mk)}. {PROC} 절차대로 분석하고, "
-            f"**08:20까지 `submit/{rd}.sha256` 하나만** push해 주세요(원본·토론·대사는 넣지 않음). 마감 08:30 KST, 판정은 이 저장소의 push 시각입니다.")
+            f"**08:20까지 `submit/{rd}.sha256`과 `submit/{rd}.csv`·`submit/{rd}-debate.md`를 함께** push해 주세요. 원본은 이 비공개 저장소에 봉인돼 "
+            f"08:30 뒤 자동으로 공개·접수됩니다. 마감 08:30 KST, 판정은 이 저장소의 push 시각입니다.")
     if mk and live and "08:30" < hm < "11:40" and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 공개 마감 12:00 KST.")
