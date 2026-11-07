@@ -164,11 +164,18 @@ def latest_scores(d: Path) -> dict:
         out[r["pick_id"]] = r
     return out
 
+def is_watch(p: dict, cfg: dict) -> bool:
+    """'관망' 카드(v1.9): 종목 대신 비교 지수를 따라가는 제출."""
+    return str(p.get("ticker", "")).upper() == (cfg.get("watch") or {}).get("ticker", "WATCH")
+
 def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict] | None = None) -> dict:
     """추천 1건의 현재 채점 상태를 계산한다 (원장에 쓰지는 않음)."""
     w = cfg["weekly"]
     cas = cas or []
     m, t = p["market"], p["ticker"]
+    watch = is_watch(p, cfg)
+    if watch:                                   # 관망: 비교 지수 가격 수익률이 점수(초과 0). 지수라 배당·분할 확인 없음
+        t = cfg.get("benchmarks", {}).get(m)
     base_s, eval_s = date.fromisoformat(p["base_session"]), date.fromisoformat(p["eval_session"])
     out = {"pick_id": p["pick_id"], "eval_session": p["eval_session"], "status": "pending", "score": None,
            "score_price_only": None, "reason": None, "delayed": False}
@@ -207,7 +214,7 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
         total = round((ev["close"] / base["close"] - 1) * 100, 2)
         price_only, div, ratio, refs = None, 0.0, 1.0, []
     else:
-        checked, div, ratio, divs, splits = ca_for(cas, m, t, base_s, s, cfg)
+        checked, div, ratio, divs, splits = (True, 0.0, 1.0, [], []) if watch else ca_for(cas, m, t, base_s, s, cfg)
         if not checked:
             out.update(status="held", reason="배당·분할 정보 미확인")
             return out
@@ -217,7 +224,7 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
         total, price_only = compute_scores(base["close"], ev["close"], ratio, div)
         refs = [c["hash"] for c in divs + splits]
         lim = cfg.get("extreme_move_hold_pct", 30)
-        if abs(total) > lim and not p.get("extreme_move_confirmed"):
+        if abs(total) > lim and not watch and not p.get("extreme_move_confirmed"):
             # 기업행동 누락·가격 오류 가능성: 운영자 확인 전까지 보류 (확인 기록은 corrections 원장 또는 별도 승인으로)
             confirmed = any(c.get("type") == "extreme_move_confirmed" and c.get("pick_id") == p["pick_id"]
                             for c in cas)
@@ -230,7 +237,7 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
     bench_ret = excess = None
     if bench and bb_ and be_ and bb_.get("close") and be_.get("close"):
         bench_ret = round((be_["close"] / bb_["close"] - 1) * 100, 2)
-        excess = round(total - bench_ret, 2)
+        excess = 0.0 if watch else round(total - bench_ret, 2)
     final = base.get("status") == "final" and ev.get("status") == "final"
     out.update(status="final" if final else "provisional", score=total, score_price_only=price_only,
                benchmark=bench, benchmark_return=bench_ret, score_excess=excess,
@@ -633,8 +640,22 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
     errs = []
     uni = universe_for(d, date.fromisoformat(rec["round_date"]))
     rd = date.fromisoformat(rec["round_date"])
+    wcfg = cfg.get("watch") or {}
     if rec["market"] not in ("KR", "US"):
         errs.append("market은 KR 또는 US")
+    elif is_watch(rec, cfg):
+        if not wcfg.get("from") or rd < date.fromisoformat(wcfg["from"]):
+            errs.append(f"관망은 {wcfg.get('from') or '(미정)'} 라운드부터 낼 수 있음")
+        if not round_sessions(rec["market"], rd, cfg):
+            errs.append(f"{rec['round_date']}은 {rec['market']} 휴장일 — 이 시장 제출 불가")
+        if not str(rec.get("rationale") or "").strip():
+            errs.append("관망도 근거(rationale)가 필요함")
+        wk = iso_week(rd)
+        used = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
+                and is_watch(p, cfg) and iso_week(date.fromisoformat(p["round_date"])) == wk]
+        cap = int(wcfg.get("max_per_week", 2))
+        if len(used) + 1 > cap:
+            errs.append(f"{rec['agent_id']} 관망은 주 {cap}회까지 ({wk} 이미 {len(used)}회)")
     elif rec["ticker"] not in uni[rec["market"]]:
         errs.append(f"대상 범위 밖 종목: {rec['market']} {rec['ticker']}")
     elif not round_sessions(rec["market"], rd, cfg):
@@ -699,8 +720,11 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
                             row["ticker"].strip(), row.get("name", "").strip(), row["locked_at"].strip(),
                             row.get("rationale", ""), [r.strip() for r in (row.get("risks") or "").split("|") if r.strip()],
                             srcs, cfg)
+            if is_watch(rec, cfg):
+                rec["ticker"] = (cfg.get("watch") or {}).get("ticker", "WATCH")
+                rec["name"] = (cfg.get("watch") or {}).get("name", "관망")
             errs = validate_pick(rec, d, cfg, existing + ok)
-            if not srcs:
+            if not srcs and not is_watch(rec, cfg):
                 errs.append("데이터 출처(sources) 없음")
             for sx in srcs:
                 if sx.get("retrieved_at"):
@@ -712,7 +736,7 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
                         errs.append(f"출처 확보 시각 형식 오류: {sx['retrieved_at']}")
             if not (row.get("rationale") or "").strip():
                 errs.append("선정 근거(rationale) 없음")
-            if not rec["risks"]:
+            if not rec["risks"] and not is_watch(rec, cfg):      # 관망은 위험 요인 선택
                 errs.append("위험 요인(risks) 없음")
             if not ver.isdigit():
                 errs.append("agent_version 없음 (정수)")

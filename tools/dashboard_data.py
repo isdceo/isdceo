@@ -151,6 +151,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                     "imported": s.get("imported", 0)})
 
         lines = load_lines(d)
+        cfg_w = L.load_config(d)
         for p in data["picks"]:
             if team_of(p["team"]) not in TEAM_LABEL:      # 옛 공용 시험(sandbox) 기록은 제외
                 continue
@@ -161,7 +162,8 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                  "market": p["market"], "ticker": p["ticker"], "name": p.get("name") or "",
                                  "status": s.get("status") or "pending", "score": s.get("score"),
                                  "score_price_only": s.get("score_price_only"), "score_excess": s.get("score_excess"),
-                                 "reason": s.get("reason") or "", "line": lines.get(p["pick_id"], "")})
+                                 "reason": s.get("reason") or "", "line": lines.get(p["pick_id"], ""),
+                                 "watch": L.is_watch(p, cfg_w)})
 
         for team, t in data["teams"].items():
             for x in t["series"]:
@@ -205,7 +207,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                              "visible_picks": picks_n.get((mode, team, r["round"]), 0)})
     if logos:   # 공개된(마감이 지난) 종목만. 운영자 전용 현황판용, 공유 결과 묶음에는 넣지 않는다
         import logos as LG
-        seen = sorted({(p["market"], p["ticker"]) for p in out["picks"]})
+        seen = sorted({(p["market"], p["ticker"]) for p in out["picks"] if not p.get("watch")})
         out["logos"] = [{"key": f"{m}|{t}", "market": m, "ticker": t, "logo": LG.fetch_logo(m, t) or ""} for m, t in seen]
     out["calendar"] = calendar(now, base=base)
     out["notices"] = [{"file": f.name} for f in sorted((L.ROOT / "docs" / "codex-notices").glob("*.md"), reverse=True)]

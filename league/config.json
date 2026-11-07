@@ -51,6 +51,13 @@
     "US": "SPY"
   },
   "extreme_move_hold_pct": 30,
+  "watch": {
+    "from": "2026-11-16",
+    "ticker": "WATCH",
+    "name": "관망",
+    "max_per_week": 2,
+    "note": "규칙 v1.9(2026-11-07 운영자 결정): 종목 대신 '관망'을 낼 수 있다. 점수 = 같은 구간 비교 지수(KR KOSPI, US SPY) 가격 수익률, 초과 점수 0. 제출로 센다. 에이전트당 주(월~일) 최대 2회(시장 합산). 근거(rationale)는 필수, 출처는 선택"
+  },
   "benchmarks_note": "US 비교 기준은 S&P 500 지수 라이선스 문제로 SPY(ETF) 종가로 대체 (2026-11-04 운영자 결정). SPY는 보수·배당 때문에 지수와 미세하게 다름",
   "open_license_sources": [
     "fsc_disclosure"

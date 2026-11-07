@@ -382,7 +382,9 @@ def due_sessions(d: Path, today: date) -> dict:
     for p in L.read_ledger(d, "picks"):
         for s_ in (p.get("base_session"), p.get("eval_session")):
             if s_ and date.fromisoformat(s_) < today:
-                need.setdefault((p["market"], s_), set()).add(p["ticker"])
+                tk = need.setdefault((p["market"], s_), set())
+                if not L.is_watch(p, cfg):                 # 관망은 비교 지수만 있으면 된다(아래에서 추가)
+                    tk.add(p["ticker"])
     for (m, s_), tks in list(need.items()):
         b = cfg.get("benchmarks", {}).get(m)
         if b:
@@ -406,7 +408,7 @@ def kr_corporate_actions_due(d: Path, today: date) -> list[dict]:
     cas = L.corporate_actions(d)
     todo = {}
     for p in L.read_ledger(d, "picks"):
-        if p["market"] != "KR" or not p.get("eval_session"):
+        if p["market"] != "KR" or not p.get("eval_session") or L.is_watch(p, cfg):
             continue
         b, e = date.fromisoformat(p["base_session"]), date.fromisoformat(p["eval_session"])
         if e >= today or L.ca_for(cas, "KR", p["ticker"], b, e, cfg)[0]:

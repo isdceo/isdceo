@@ -808,3 +808,45 @@ class LeagueBottom(unittest.TestCase):
     def test_ratio_threshold_for_holiday_week(self):
         w = {"min_scored_ratio": 0.6}
         self.assertEqual((L._min_needed(10, w, "x"), L._min_needed(9, w, "x"), L._min_needed(45, w, "x")), (6, 6, 27))
+
+
+class Watch(unittest.TestCase):
+    """규칙 v1.9 관망 카드: 비교 지수 수익률이 점수, 초과 0, 주 2회, 11/16부터."""
+    def test_watch_scores_benchmark_and_limits(self):
+        d = new_league()
+        # 11/16(월) 라운드: KR 기준 11/13 → 평가 11/16
+        price(d, "KR", "KOSPI", "2026-11-13", 2000.0); price(d, "KR", "KOSPI", "2026-11-16", 1960.0)
+        p = pick(d, "buffett", "2026-11-16", "KR", "WATCH")
+        w = L.evaluate_pick(p, L.price_index(d), L.load_config(d), date(2026, 11, 17), L.corporate_actions(d))
+        self.assertEqual((w["status"], w["score"], w["benchmark_return"], w["score_excess"]), ("final", -2.0, -2.0, 0.0))
+        # 지수만 있으면 되므로 배당·분할 확인이 없어도 보류되지 않는다
+        self.assertIsNone(w["reason"])
+        pick(d, "buffett", "2026-11-17", "KR", "WATCH")                     # 같은 주 2회째 OK
+        with self.assertRaisesRegex(ValueError, "주 2회"):
+            pick(d, "buffett", "2026-11-18", "US", "WATCH")                 # 3회째(시장 합산) 거부
+        pick(d, "buffett", "2026-11-23", "US", "WATCH")                     # 다음 주는 다시 가능
+        pick(d, "lynch", "2026-11-18", "US", "WATCH")                       # 다른 에이전트는 따로 셈
+
+    def test_watch_not_before_start_and_needs_reason(self):
+        d = new_league()
+        with self.assertRaisesRegex(ValueError, "부터 낼 수 있음"):
+            pick(d, "buffett", "2026-11-13", "KR", "WATCH")
+        cfg = L.load_config(d)
+        rec = L.make_pick("claude", "buffett", 1, "2026-11-16", "KR", "WATCH", "관망", "2026-11-16T08:00:00+09:00",
+                          " ", [], [], cfg)
+        self.assertTrue(any("근거" in e for e in L.validate_pick(rec, d, cfg, [])))
+
+    def test_watch_csv_without_sources_and_due_sessions(self):
+        import collectors as C
+        d = new_league()
+        f = d / "w.csv"
+        L.make_csv([{"agent_id": "buffett", "agent_version": 1, "market": "KR", "ticker": "watch", "name": "",
+                     "locked_at": "2026-11-16T08:00:00+09:00", "rationale": "지수 급락 뒤라 하루 방향이 불확실해 관망",
+                     "risks": [], "sources": []},
+                    {"agent_id": "buffett", "agent_version": 1, "market": "US", "ticker": "AAPL", "name": "Apple",
+                     "locked_at": "2026-11-16T08:00:00+09:00", "rationale": "근거", "risks": ["위험"],
+                     "sources": [{"url": "https://example.com", "as_of": "2026-11-13"}]}], "2026-11-16", f)
+        ok, bad = L.import_csv(d, f, "claude")
+        self.assertEqual(bad, []); w = [x for x in ok if x["market"] == "KR"][0]; self.assertEqual((w["ticker"], w["name"]), ("WATCH", "관망"))
+        due = C.due_sessions(d, date(2026, 11, 17))
+        self.assertEqual(due[("KR", "2026-11-13")], ["KOSPI"])               # WATCH가 아니라 지수만 받는다
