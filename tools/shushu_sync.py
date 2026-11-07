@@ -39,7 +39,6 @@ RULES = [  # (전용 저장소 경로, 메인 경로 틀, 마감 전 보류 여�
     (re.compile(rf"^practice-lines/{D}-sandbox-shushu\.json$"), "league/sandbox/lines/{0}-sandbox-shushu.json", True, "lines"),
     (re.compile(rf"^to-roro/({D}-[a-z0-9-]{{1,60}})\.md$"), "league/inbox/shushu/{0}.md", True, "message"),
 ]
-MSG_HOLD = "12:00"          # 슈슈 → 로로 메시지는 그날 원본 공개 마감(12:00) 뒤에만 메인에 들인다(당일 종목 정보 차단)
 ZERO = "0" * 40
 MIRROR_DIR = "from-league"
 
@@ -53,18 +52,30 @@ def git_bytes(*a, cwd) -> bytes:
 
 
 def map_path(p: str):
+    """허용 경로면 (메인 경로, 라운드 날짜, 마감 전 보류 여부, 종류). 날짜가 실제 날짜가 아니면 None."""
     for rx, tmpl, hold, kind in RULES:
         m = rx.match(p)
         if m:
-            return tmpl.format(m.group(1)), m.group(m.lastindex), hold, kind
+            rd = re.search(r"\d{4}-\d{2}-\d{2}", m.group(1)).group(0)
+            try:
+                date.fromisoformat(rd)
+            except ValueError:
+                return None
+            return tmpl.format(m.group(1)), rd, hold, kind
     return None
 
 
+ACT_TYPES = {"push", "force_push", "branch_creation", "pr_merge", "merge_queue_merge"}
+SETTLE = timedelta(minutes=2)          # activity 목록 반영 지연: 이보다 최근 push는 다음 실행에서 (순서 꼬임 방지)
+MAX_BYTES = 1_000_000
+SHA_LINE = re.compile(rb"^[0-9a-f]{64}(  \S{1,80})?\n?$")
+
+
 def fetch_activity(repo: str, token: str) -> list[dict]:
-    """GitHub 서버가 기록한 push 목록(모든 브랜치, 오래된 것부터). 전용 저장소 사용자가 바꿀 수 없는 시각이다.
-    Codex 클라우드처럼 작업 브랜치에 push하고 PR을 여는 방식도 그 브랜치 push 시각으로 판정한다(병합 시각이 아님).
-    병합으로 같은 파일이 다시 들어오면 메인과 내용이 같아 영수증을 새로 만들지 않는다."""
-    url = f"https://api.github.com/repos/{repo}/activity?activity_type=push&per_page=100&direction=asc"
+    """GitHub 서버가 기록한 push 계열 활동(모든 브랜치, 오래된 것부터). 전용 저장소 사용자가 바꿀 수 없는 시각이다.
+    새 브랜치 첫 push(branch_creation)·강제 push·PR 병합도 받는다. Codex 클라우드처럼 작업 브랜치에 push하고 PR을 여는 방식은
+    그 브랜치 push 시각으로 판정한다(병합 시각이 아님). 병합으로 같은 파일이 다시 들어오면 메인과 내용이 같아 영수증을 새로 만들지 않는다."""
+    url = f"https://api.github.com/repos/{repo}/activity?per_page=100&direction=asc"
     out = []
     while url:
         req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}", "User-Agent": UA,
@@ -73,7 +84,8 @@ def fetch_activity(repo: str, token: str) -> list[dict]:
             out += json.loads(r.read() or b"[]")
             nxt = re.search(r'<([^>]+)>;\s*rel="next"', r.headers.get("Link") or "")
             url = nxt.group(1) if nxt else None
-    out = [a for a in out if str(a.get("ref", "refs/heads/")).startswith("refs/heads/") and a.get("after") and a["after"] != ZERO]
+    out = [a for a in out if a.get("activity_type", "push") in ACT_TYPES and str(a.get("ref", "refs/heads/")).startswith("refs/heads/")
+           and a.get("after") and a["after"] != ZERO]
     return sorted(out, key=lambda a: (a["timestamp"], a["id"]))
 
 
@@ -85,86 +97,189 @@ def _have(ext: Path, sha: str) -> bool:
     return subprocess.run(["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=ext, capture_output=True).returncode == 0
 
 
-def _changed(ext: Path, before: str, after: str) -> list[str]:
+def _changed(ext: Path, before: str, after: str, base_branch: str = "main") -> list[str]:
     for sha in (after, before):
         if sha and sha != ZERO and not _have(ext, sha):
             subprocess.run(["git", "fetch", "-q", "origin", sha], cwd=ext, capture_output=True)
-    if before and before != ZERO:
-        try:
-            return git("diff", "--name-only", "--diff-filter=AM", before, after, cwd=ext).splitlines()
-        except subprocess.CalledProcessError:
-            pass                                       # 강제 push 등으로 이전 커밋이 없으면 전체 목록
+    if not _have(ext, after):
+        raise RuntimeError(f"커밋 {after[:12]}를 받을 수 없음(브랜치 삭제·강제 push?)")
+    base = before if before and before != ZERO and _have(ext, before) else None
+    if base is None:                                   # 새 브랜치: 기본 브랜치와 갈라진 곳부터
+        r = subprocess.run(["git", "merge-base", f"origin/{base_branch}", after], cwd=ext, capture_output=True, text=True)
+        base = r.stdout.strip() if r.returncode == 0 and r.stdout.strip() != after else None
+    if base:
+        return git("diff", "--no-renames", "--name-only", "--diff-filter=AMT", base, after, cwd=ext).splitlines()
     return git("ls-tree", "-r", "--name-only", after, cwd=ext).splitlines()
 
 
+def _round_day(day: date, cfg: dict) -> bool:
+    return day.weekday() < 5 and bool(L.open_markets(day, cfg))
+
+
+def _first_round_on_or_after(day: date, cfg: dict) -> date:
+    for _ in range(30):
+        if _round_day(day, cfg):
+            return day
+        day += timedelta(days=1)
+    return day
+
+
+def hold_until(kind: str, rd: str, pushed: datetime, cfg: dict) -> datetime | None:
+    """마감 전 공개 차단. 원본·토론·대사: 라운드 날 마감 전 push면 (그날, 파일 날짜) 중 늦은 쪽의 마감까지,
+    마감 뒤 push면 파일 날짜의 마감이 아직이면 그때까지(다음 라운드 정보는 공지의 '종목 언급 금지' 정책으로 막는다).
+    메시지: 라운드 날 12:00 전에 push했으면 그날 12:00까지. 지문은 보류 없음."""
+    if kind == "commitment":
+        return None
+    if kind == "message":
+        noon = pushed.replace(hour=12, minute=0, second=0, microsecond=0)
+        return noon if _round_day(pushed.date(), cfg) and pushed < noon else None
+    R = _first_round_on_or_after(pushed.date(), cfg)
+    if pushed < L.lock_deadline(R, cfg):              # 그날 라운드 마감 전 push: 파일 날짜가 지난 날이어도 그 마감까지
+        return L.lock_deadline(max(R, date.fromisoformat(rd)), cfg)
+    dl = L.lock_deadline(date.fromisoformat(rd), cfg)  # 마감 뒤 push: 앞으로 올 라운드 이름이면 그 마감까지
+    return dl if dl > pushed else None
+
+
+def in_round_window(now: datetime, cfg: dict) -> bool:
+    """라운드 날 06:50~12:00: 이 시간에는 메시지를 메인에 들이지 않는다(로로 팀 라운드 진행 중)."""
+    hm = now.strftime("%H:%M")
+    return _round_day(now.date(), cfg) and "06:50" <= hm < "12:00"
+
+
+def _team_cfg(main: Path, dst: str) -> dict:
+    team = "sandbox-shushu" if dst.startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
+    return L.load_config(L.ledger_dir_for(team, main))
+
+
+def _classify(ext: Path, act: dict, files: list[str], main: Path) -> tuple[list[dict], int, list[str]]:
+    """허용 파일 → 작업 단위, 무시한 파일 수, 문제(형식·크기) 설명."""
+    units, ignored, problems = [], 0, []
+    for f in files:
+        m = map_path(f)
+        if not m:
+            ignored += 1
+            continue
+        dst, rd, _, kind = m
+        spec = f"{act['after']}:{f}"
+        t = subprocess.run(["git", "cat-file", "-t", spec], cwd=ext, capture_output=True, text=True).stdout.strip()
+        size = int(subprocess.run(["git", "cat-file", "-s", spec], cwd=ext, capture_output=True, text=True).stdout.strip() or 0) if t == "blob" else 0
+        if t != "blob" or size > MAX_BYTES:
+            problems.append(f"{f}: 일반 파일이 아니거나 {MAX_BYTES:,}바이트 초과 — 무시")
+            continue
+        if kind == "commitment" and not SHA_LINE.match(git_bytes("show", spec, cwd=ext)):
+            problems.append(f"{f}: 지문 파일은 64자리 sha256(+ 두 칸 + 파일 이름) 한 줄만 — 무시")
+            continue
+        units.append({"file": f, "dst": dst, "rd": rd, "kind": kind})
+    return units, ignored, problems
+
+
 def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime | None = None,
-         run_id: str = "", run_url: str = "") -> list[dict]:
-    """전용 저장소 push를 차례로 처리한다. 반환: 이번에 처리한 push 요약(원장 external_pushes에도 기록)."""
+         run_id: str = "", run_url: str = "", base_branch: str = "main") -> list[dict]:
+    """전용 저장소 push를 시각 순으로 처리한다(원장 external_pushes에 기록, 같은 push는 한 번만).
+    마감 전 공개 파일은 그 파일만 뒤로 미루고(held), 나머지는 계속 처리한다. 미룬 파일은 때가 되면 원래 push 시각으로 처리한다."""
     now = now or datetime.now(L.KST)
     d = main / "league"
-    done = {x["activity_id"] for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo}
-    out = []
+    cfg = L.load_config(d)
+    recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
+    done = {x["activity_id"] for x in recs if x.get("type", "push") == "push"}
+    released = {(x["activity_id"], x["file"]) for x in recs if x.get("type") == "release"}
+    groups, out = [], []
+    # 1) 새 push
     for act in activities:
-        if act["id"] in done:
+        if act["id"] in done or _ts(act["timestamp"]) > now - SETTLE:
             continue
         pushed = _ts(act["timestamp"])
-        files = _changed(ext, act.get("before"), act["after"])
-        if files and all(f.startswith(MIRROR_DIR + "/") for f in files):
-            continue                                   # 메인이 보낸 사본 push — 기록하지 않음(기록하면 사본·기록이 끝없이 반복)
-        mapped, ignored, held = [], [], []
-        for f in files:
-            m = map_path(f)
-            if not m:
-                ignored.append(f)
-                continue
-            dst, rd, hold, kind = m
-            team = "sandbox-shushu" if dst.startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
-            cfg = L.load_config(L.ledger_dir_for(team, main))
-            if kind == "message":                      # 메시지: push한 날 12:00 뒤에만 (파일 이름 날짜와 무관)
-                h_, m_ = map(int, MSG_HOLD.split(":"))
-                if now <= pushed.replace(hour=h_, minute=m_, second=0, microsecond=0):
-                    held.append(f)
-            elif hold and now <= L.lock_deadline(date.fromisoformat(rd), cfg):
-                held.append(f)
-            mapped.append((f, dst, kind))
-        if held:
-            # 마감 전 원본·토론·대사: 메인에 들이지 않고 이 push부터 마감 뒤까지 보류(뒤 push도 순서대로 기다린다)
-            out.append({"activity_id": act["id"], "status": "held_until_deadline", "files": held})
+        base = {"repo": repo, "activity_id": act["id"], "type": "push", "activity_type": act.get("activity_type", "push"),
+                "ref_hash": L.hashlib.sha256(str(act.get("ref")).encode()).hexdigest()[:12],
+                "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": (act.get("actor") or {}).get("login"),
+                "run_id": str(run_id)}
+        try:
+            files = _changed(ext, act.get("before"), act["after"], base_branch)
+            if files and all(f.startswith(MIRROR_DIR + "/") for f in files):
+                continue                               # 메인이 보낸 사본 push — 기록하지 않음
+            units, ignored, problems = _classify(ext, act, files, main)
+        except Exception as e:  # noqa: BLE001  — 한 push의 문제로 동기화 전체가 멈추지 않게
+            L.append(d, "external_pushes", {**base, "status": "error", "error": str(e)[:300]})
+            out.append({**base, "status": "error", "error": str(e)[:300], "receipts": [], "lines": []})
+            continue
+        ready, held = [], []
+        for u in units:
+            until = hold_until(u["kind"], u["rd"], pushed, _team_cfg(main, u["dst"]))
+            (held if (until and now <= until) or (u["kind"] == "message" and in_round_window(now, cfg)) else ready).append({**u, "until": until})
+        groups.append({"act": act, "pushed": pushed, "base": base, "ready": ready, "held": held,
+                       "ignored": ignored, "problems": problems})
+    # 2) 미뤄 둔 파일 중 때가 된 것
+    for h in [x for x in recs if x.get("type") == "held" and (x["activity_id"], x["file"]) not in released]:
+        until = datetime.fromisoformat(h["until"]) if h.get("until") else None
+        if (until and now <= until) or (h["kind"] == "message" and in_round_window(now, cfg)):
+            continue
+        groups.append({"act": {"id": h["activity_id"], "after": h["s_after"], "actor": {"login": h.get("actor")}},
+                       "pushed": datetime.fromisoformat(h["pushed_at"]), "release": True, "base": None,
+                       "ready": [{"file": h["file"], "dst": h["dst"], "rd": h["rd"], "kind": h["kind"]}], "held": [], "ignored": 0, "problems": []})
+    groups.sort(key=lambda g: (g["pushed"], str(g["act"]["id"])))
+    for g in groups:
+        act, pushed = g["act"], g["pushed"]
+        prev = git("rev-parse", "HEAD", cwd=main)
+        try:
+            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url)
+        except L.CommitmentPending as e:
+            git("reset", "-q", "--hard", prev, cwd=main)   # 이 push는 기록하지 않고 다음 실행에서 다시
+            out.append({"activity_id": act["id"], "status": "pending", "note": str(e), "receipts": [], "lines": []})
             break
-        rec = {"repo": repo, "activity_id": act["id"], "ref": act.get("ref"), "s_before": act.get("before"), "s_after": act["after"],
-               "pushed_at": pushed.isoformat(), "actor": (act.get("actor") or {}).get("login"),
-               "files": [f for f, _, _ in mapped], "ignored": ignored, "run_id": str(run_id), "run_url": run_url}
-        receipts, lines = [], []
-        if mapped:
-            prev = git("rev-parse", "HEAD", cwd=main)
-            for f, dst, kind in mapped:
-                p = main / dst
-                p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_bytes(git_bytes("show", f"{act['after']}:{f}", cwd=ext))      # 바이트 그대로
-                git("add", dst, cwd=main)
-            if git("status", "--porcelain", "--", *[dst for _, dst, _ in mapped], cwd=main):
-                git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-                    "commit", "-q", "-m", f"league: shushu repo push {act['after'][:7]} ({pushed.isoformat(timespec='seconds')})",
-                    "-m", f"source: {repo}@{act['after']} activity {act['id']}", cwd=main)
-                after = git("rev-parse", "HEAD", cwd=main)
-                event = {"before": prev, "after": after, "ref": "refs/heads/main", "commits": [],
-                         "pusher": {"name": f"{repo}:{rec['actor']}"},
-                         "repository": {"pushed_at": int(pushed.timestamp())},
-                         "judged_by": "shushu_repo.activity.timestamp",
-                         "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
-                try:
-                    receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
-                except L.CommitmentPending as e:       # 순서대로 처리하므로 보통 생기지 않음
-                    rec["note"] = str(e)
-                lines = [(dst, _check_lines(main, dst)) for _, dst, kind in mapped if kind == "lines"]
-                rec["main_commit"] = after
-            else:
-                rec["note"] = "메인과 같은 내용 — 변경 없음"
-        rec["receipts"] = [{"path": r["path"], "status": r["status"], "errors": r["errors"]} for r in receipts]
-        rec["lines"] = [{"path": p_, "ok": ok} for p_, ok in lines]
-        L.append(d, "external_pushes", rec)
-        out.append({**rec, "status": "processed"})
+        summary = {"receipts": [{"path": r["path"], "status": r["status"], "errors": r["errors"]} for r in receipts],
+                   "lines": [{"path": p_, "ok": ok} for p_, ok in lines]}
+        if g.get("release"):
+            for u in g["ready"]:
+                L.append(main / "league", "external_pushes", {"repo": repo, "activity_id": act["id"], "type": "release", "file": u["file"],
+                                                              "pushed_at": pushed.isoformat(), "run_id": str(run_id), "note": note, **summary})
+            out.append({"activity_id": act["id"], "status": "released", "s_after": act["after"], "pushed_at": pushed.isoformat(),
+                        "files": [u["file"] for u in g["ready"]], "note": note, **summary})
+            continue
+        rec = {**g["base"], "status": "processed", "files": [u["file"] for u in g["ready"]],
+               "held_files": [u["file"] for u in g["held"]], "ignored_count": g["ignored"], "problems": g["problems"], "note": note, **summary}
+        L.append(main / "league", "external_pushes", rec)
+        for u in g["held"]:
+            L.append(main / "league", "external_pushes", {"repo": repo, "activity_id": act["id"], "type": "held", "file": u["file"],
+                                                          "dst": u["dst"], "rd": u["rd"], "kind": u["kind"], "s_after": act["after"],
+                                                          "pushed_at": pushed.isoformat(), "actor": rec["actor"],
+                                                          "until": u["until"].isoformat() if u["until"] else None})
+        out.append(rec)
     return out
+
+
+def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units: list[dict], run_id: str, run_url: str):
+    """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다."""
+    if not units:
+        return [], [], ""
+    notes, wrote = [], []
+    for u in units:
+        if u["kind"] in ("commitment", "reveal"):
+            team = "sandbox-shushu" if u["dst"].startswith("league/imports/sandbox-") else "shushu"
+            subs = L.read_ledger(L.ledger_dir_for(team, main), "submissions")
+            want = "committed" if u["kind"] == "commitment" else "accepted"
+            if any(x.get("path") == u["dst"] and x.get("status") == want for x in subs):
+                notes.append(f"{u['file']}: 이미 {want} — 메인 파일을 덮어쓰지 않음(다시 낸 것은 인정되지 않음)")
+                continue
+        p = main / u["dst"]
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext))       # 바이트 그대로
+        git("add", u["dst"], cwd=main)
+        wrote.append(u)
+    if not wrote or not git("status", "--porcelain", "--", *[u["dst"] for u in wrote], cwd=main):
+        return [], [], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
+    prev = git("rev-parse", "HEAD~0", cwd=main)
+    git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+        "commit", "-q", "-m", f"league: shushu repo push {act['after'][:7]} ({pushed.isoformat(timespec='seconds')})",
+        "-m", f"source: {repo}@{act['after']} activity {act['id']}", cwd=main)
+    after = git("rev-parse", "HEAD", cwd=main)
+    event = {"before": prev, "after": after, "ref": "refs/heads/main", "commits": [],
+             "pusher": {"name": f"{repo}:{(act.get('actor') or {}).get('login')}"},
+             "repository": {"pushed_at": int(pushed.timestamp())},
+             "judged_by": "shushu_repo.activity.timestamp",
+             "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
+    receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
+    lines = [(u["dst"], _check_lines(main, u["dst"])) for u in wrote if u["kind"] == "lines"]
+    return receipts, lines, "; ".join(notes)
 
 
 def _check_lines(main: Path, dst: str) -> bool:
@@ -176,7 +291,7 @@ def _check_lines(main: Path, dst: str) -> bool:
 
 
 # ───────── 메인 → 전용 저장소 사본 (원 가격 없음, 허용 목록만) ─────────
-MIRROR_FILES = ["league/public/results.json", "league/config.json", "league/agents/roster.json",
+MIRROR_FILES = ["league/public/results.json", "league/agents/roster.json",
                 "league/imports/shushu/roster.json", "docs/codex-team-guide.md", "docs/results-bundle.md",
                 "requirements.txt", ".gitattributes"]
 MIRROR_GLOBS = ["docs/codex-notices/*.md", "league/universe/*.json", "tools/*.py",
@@ -187,6 +302,18 @@ MIRROR_GLOBS = ["docs/codex-notices/*.md", "league/universe/*.json", "tools/*.py
                 "league/imports/shushu/agents/**/*", "docs/codex-notices/replies/*.md"]
 MIRROR_LEDGERS = ["weekly_decisions", "guidelines", "approvals", "outages"]      # 원 가격이 없는 원장만
 NO_PRICE = re.compile(r'"(base_close|eval_close|close|amount|adj_close|open|high|low)"\s*:')
+# 글 속 가격: "KO 95.73", "SPY: 733.00", "종가 12,345원" 같은 것 (퍼센트는 제외)
+PRICE_TEXT = re.compile(r"\b[A-Z]{1,5}(?:\.[A-Z])?\s*[:=]?\s*\$?\d{1,6}\.\d{2}\b(?!\s*%)|종가\s*[:：]?\s*\$?[\d,]{2,}(?:\.\d+)?\s*(?:원|달러)?")
+CONFIG_DROP = {"provider_verified", "providers", "providers_note"}
+
+
+def _config_copy(cfg: dict) -> dict:
+    """검증에 필요한 설정만: 메모(note)와 제공처 확인 기록(실제 종가가 적혀 있음)은 뺀다."""
+    def clean(x):
+        if isinstance(x, dict):
+            return {k: clean(v) for k, v in x.items() if k not in CONFIG_DROP and k != "note" and not k.endswith("_note")}
+        return [clean(v) for v in x] if isinstance(x, list) else x
+    return clean(cfg)
 
 
 def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
@@ -202,11 +329,22 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
         src = main / f
         if not src.exists():
             continue
-        if f.endswith((".json", ".jsonl")) and NO_PRICE.search(src.read_text(errors="replace")) and not f.startswith("tools/"):
-            raise SystemExit(f"사본 중단: {f} 에 가격처럼 보이는 칸이 있음")
+        if not f.startswith("tools/"):
+            text = src.read_text(errors="replace")
+            if f.endswith((".json", ".jsonl")) and NO_PRICE.search(text):
+                raise SystemExit(f"사본 중단: {f} 에 가격처럼 보이는 칸이 있음")
+            hit = PRICE_TEXT.search(text)
+            if hit:
+                raise SystemExit(f"사본 중단: {f} 에 가격처럼 보이는 글({hit.group(0)!r})이 있음 — 지우거나 표현을 바꾼 뒤 다시")
         (dst / f).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst / f)
         wrote.append(f)
+    cfg_copy = json.dumps(_config_copy(L.load_config(main / "league")), ensure_ascii=False, indent=2) + "\n"
+    if PRICE_TEXT.search(cfg_copy) or NO_PRICE.search(cfg_copy):
+        raise SystemExit("사본 중단: 설정 사본에 가격처럼 보이는 값이 있음")
+    (dst / "league").mkdir(parents=True, exist_ok=True)
+    (dst / "league" / "config.json").write_text(cfg_copy)
+    wrote.append("league/config.json")
     # 슈슈 팀 영수증과 연결 기록, 업데이트 계획(이번 주·지난주)
     subs = [r for dd in (main / "league", main / "league" / "sandbox") for r in L.read_ledger(dd, "submissions")
             if r.get("team") in ("shushu", "sandbox-shushu")]
@@ -235,6 +373,7 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
 
 # ───────── 슈슈 깨우기: 전용 저장소 운영 채널 이슈에 @codex 댓글 (Codex 클라우드가 작업을 시작) ─────────
 CHANNEL_TITLE = "리그 운영 채널 (자동)"
+NOTICE_CAP = 2            # 새 공지·회신 알림은 하루 2번까지(자동 주고받기가 끝없이 돌지 않게)
 SIGN = "\n\n— 로로 팀 자동 메시지 (메인 리그 저장소 league-shushu-sync). 답이나 질문은 `to-roro/<날짜>-<주제>.md` 파일로 push해 주세요."
 PROC = "`from-league/league/imports/shushu/daily-procedure.md`"
 
@@ -261,7 +400,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     live = rd >= (cfg.get("season_start") or "9999")
     subs = [s for s in L.read_ledger(d, "submissions") if s.get("team") == "shushu" and s.get("round_date") == rd]
     st = {s["status"] for s in subs}
-    if mk and live and "07:00" <= hm < "08:00":
+    if mk and live and "07:00" <= hm < "08:15":
         add("round", rd, f"@codex 오늘({rd}) 실전 라운드를 진행해 주세요. 열린 시장: {'·'.join(mk)}. {PROC} 절차대로 분석하고, "
             f"**08:20까지 `submit/{rd}.sha256` 하나만** push해 주세요(원본·토론·대사는 넣지 않음). 마감 08:30 KST, 판정은 이 저장소의 push 시각입니다.")
     if mk and live and "08:30" < hm < "11:40" and "committed" in st and "accepted" not in st:
@@ -280,7 +419,9 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             "리그별 결과와 최종 업데이트 자격을 확인하고, 바뀐 점이나 승인 요청이 있으면 07:00까지 `to-roro/`로 보내 주세요.")
     # 새 공지·회신 (메인 docs/codex-notices) — 내용 해시로 판단
     new = [p for p in _notes(main) if ("notice", p.name + ":" + L._sha(p)[:12]) not in sent]
-    if new and not (mk and live and "06:50" <= hm < "12:00"):          # 라운드 시간에는 보내지 않는다
+    today_notices = sum(1 for w in L.read_ledger(d, "shushu_wakes") if w["kind"] == "notice" and w.get("url") != "seeded"
+                        and str(w.get("at", "")).startswith(rd))
+    if new and not (mk and live and "06:50" <= hm < "12:00") and today_notices < NOTICE_CAP:   # 라운드 시간 제외, 하루 상한
         names = ", ".join(f"`{p.relative_to(main / 'docs')}`" for p in new[:10])
         out.append({"kind": "notice", "key": "|".join(p.name + ":" + L._sha(p)[:12] for p in new),
                     "keys": [p.name + ":" + L._sha(p)[:12] for p in new],
@@ -297,29 +438,46 @@ def _api(method: str, url: str, token: str, body: dict | None = None):
         return json.loads(r.read() or b"null")
 
 
-def wake(main: Path, repo: str, token: str, now: datetime | None = None, post=None) -> list[dict]:
+def _marker(w: dict) -> str:
+    return f"<!-- league-wake:{w['kind']}:{L.hashlib.sha256(w['key'].encode()).hexdigest()[:16]} -->"
+
+
+def wake(main: Path, repo: str, token: str, now: datetime | None = None, post=None, existing=None) -> list[dict]:
+    """깨우기 댓글. 댓글에 표식을 넣고, 달기 전에 채널의 기존 댓글에서 같은 표식을 찾아 GitHub 쪽 상태로도 한 번만 보장한다."""
     now = now or datetime.now(L.KST)
+    d = main / "league"
     todo = due_wakes(main, now)
-    if not any(w["kind"] == "notice" for w in L.read_ledger(main / "league", "shushu_wakes")):
+    if not any(w["kind"] == "notice" for w in L.read_ledger(d, "shushu_wakes")):
         # 처음 켤 때 이미 있는 공지는 보낸 것으로 표시만 한다(이전 공지는 운영자가 이미 전달함)
         for k in notice_keys(main):
-            L.append(main / "league", "shushu_wakes", {"kind": "notice", "key": k, "at": now.isoformat(timespec="seconds"), "url": "seeded"})
+            L.append(d, "shushu_wakes", {"kind": "notice", "key": k, "at": now.isoformat(timespec="seconds"), "url": "seeded"})
         todo = [w for w in todo if w["kind"] != "notice"]
     if not todo:
         return []
-    api = f"https://api.github.com/repos/{repo}"
     if post is None:
-        issues = _api("GET", f"{api}/issues?state=open&per_page=100", token) or []
-        num = next((i["number"] for i in issues if i.get("title") == CHANNEL_TITLE and "pull_request" not in i), None)
-        if num is None:
+        api = f"https://api.github.com/repos/{repo}"
+        ch = next((w for w in reversed(L.read_ledger(d, "shushu_wakes")) if w["kind"] == "channel"), None)
+        num = int(ch["key"]) if ch else None
+        if num is None:                                # 처음 한 번 채널 이슈를 만들고 번호를 원장에 고정(제목이 바뀌거나 같은 제목이 생겨도 그대로)
             num = _api("POST", f"{api}/issues", token, {"title": CHANNEL_TITLE, "body":
-                       "로로 팀(메인 리그 저장소)이 자동으로 남기는 운영 채널입니다. 댓글의 @codex 요청으로 슈슈 팀 작업이 시작됩니다." + SIGN})["number"]
+                       "로로 팀(메인 리그 저장소)이 자동으로 남기는 운영 채널입니다. 댓글의 @codex 요청으로 슈슈 팀 작업이 시작됩니다. 닫지 말아 주세요." + SIGN})["number"]
+            L.append(d, "shushu_wakes", {"kind": "channel", "key": str(num), "at": now.isoformat(timespec="seconds"), "url": f"issue {num}"})
+        existing = []
+        page = 1
+        while True:
+            cs = _api("GET", f"{api}/issues/{num}/comments?per_page=100&page={page}", token) or []
+            existing += [c.get("body") or "" for c in cs]
+            if len(cs) < 100:
+                break
+            page += 1
         post = lambda b: _api("POST", f"{api}/issues/{num}/comments", token, {"body": b})["html_url"]
+    existing = existing or []
     sent = []
     for w in todo:
-        url = post(w["body"] + SIGN)
+        mk = _marker(w)
+        url = "already-posted" if any(mk in b for b in existing) else post(w["body"] + SIGN + "\n" + mk)
         for k in w.get("keys", [w["key"]]):
-            L.append(main / "league", "shushu_wakes", {"kind": w["kind"], "key": k, "at": now.isoformat(timespec="seconds"), "url": url})
+            L.append(d, "shushu_wakes", {"kind": w["kind"], "key": k, "at": now.isoformat(timespec="seconds"), "url": url})
         sent.append({**w, "url": url})
     return sent
 
@@ -340,15 +498,17 @@ def main_():
         tok = os.environ.get("SHUSHU_REPO_TOKEN")
         if not (repo and tok):
             sys.exit("저장소 이름 또는 SHUSHU_REPO_TOKEN 없음")
-        res = pull(ROOT, ext, fetch_activity(repo, tok), repo, run_id=a.run_id, run_url=a.run_url)
+        res = pull(ROOT, ext, fetch_activity(repo, tok), repo, run_id=a.run_id, run_url=a.run_url, base_branch=branch)
         for r in res:
-            if r["status"] == "held_until_deadline":
-                print(f"보류(마감 전 공개 파일): {', '.join(r['files'])} — 08:30 뒤 다음 실행에서 처리")
-            else:
-                rs = "; ".join(f"{x['path']} {x['status']} {' '.join(x['errors'])}".strip() for x in r["receipts"]) or r.get("note") or "제출 파일 없음"
-                print(f"push {r['s_after'][:7]} {r['pushed_at']} → {rs}")
-                for x in r["lines"]:
-                    print(f"  대사 {x['path']}: {'통과' if x['ok'] else '검사 실패'}")
+            rs = "; ".join(f"{x['path']} {x['status']} {' '.join(x['errors'])}".strip() for x in r.get("receipts", [])) or r.get("note") or "제출 파일 없음"
+            head = f"push {str(r.get('s_after') or '')[:7]} {r.get('pushed_at', '')} [{r['status']}]"
+            print(f"{head} → {rs if r['status'] != 'error' else r.get('error')}")
+            if r.get("held_files"):
+                print(f"  마감 전 공개 파일 보류(때가 되면 이 push 시각으로 처리): {', '.join(r['held_files'])}")
+            for x in r.get("problems", []):
+                print(f"  무시: {x}")
+            for x in r.get("lines", []):
+                print(f"  대사 {x['path']}: {'통과' if x['ok'] else '검사 실패'}")
         if not res:
             print("새 push 없음")
         if any(not x["ok"] for r in res for x in r.get("lines", [])):

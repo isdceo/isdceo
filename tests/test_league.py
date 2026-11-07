@@ -936,16 +936,16 @@ class ShushuRepoSync(unittest.TestCase):
     def test_late_commitment_by_source_time(self):
         rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
         self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n"}, f"{rd}T08:30:05+09:00")
-        self.assertEqual(self.sync(f"{rd}T08:31:00+09:00")[0]["receipts"][0]["status"], "late")
+        self.assertEqual(self.sync(f"{rd}T08:31:00+09:00"), [])                     # 반영 지연 여유(2분) 전
+        self.assertEqual(self.sync(f"{rd}T08:33:00+09:00")[0]["receipts"][0]["status"], "late")
 
     def test_csv_before_deadline_held_out_of_main(self):
         """마감 전 원본은 메인에 들이지 않는다(로로 팀 세션이 볼 수 없게). 마감 뒤 처리하면 마감 전 공개로 기록."""
         rd = "2026-11-10"; body = self.csv(rd)
         self.spush({f"submit/{rd}.csv": body}, f"{rd}T08:10:00+09:00")
         out = self.sync(f"{rd}T08:15:00+09:00")
-        self.assertEqual(out[0]["status"], "held_until_deadline")
+        self.assertEqual(out[0]["held_files"], [f"submit/{rd}.csv"])
         self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.csv").exists())
-        self.assertEqual(L.read_ledger(self.repo / "league", "external_pushes"), [])
         r = self.sync(f"{rd}T08:35:00+09:00")[0]["receipts"][0]
         self.assertEqual(r["status"], "accepted")
         self.assertTrue(L.read_ledger(self.repo / "league", "submissions")[-1].get("early_reveal"))
@@ -954,8 +954,8 @@ class ShushuRepoSync(unittest.TestCase):
         rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
         self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n", ".github/workflows/x.yml": "on: push",
                     "league/ledger/scores.jsonl": "{}", "from-league/league/config.json": "{}"}, f"{rd}T08:20:00+09:00")
-        out = self.sync(f"{rd}T08:21:00+09:00")
-        self.assertEqual(sorted(out[0]["ignored"]), [".github/workflows/x.yml", "from-league/league/config.json", "league/ledger/scores.jsonl"])
+        out = self.sync(f"{rd}T08:23:00+09:00")
+        self.assertEqual(out[0]["ignored_count"], 3)
         self.assertFalse((self.repo / ".github").exists())
         self.assertFalse((self.repo / "league/ledger/scores.jsonl").exists())
 
@@ -974,9 +974,9 @@ class ShushuRepoSync(unittest.TestCase):
     def test_message_to_roro_held_until_noon(self):
         """슈슈 → 로로 메시지는 push한 날 12:00 뒤에만 메인에 들어온다(로로 팀이 당일 종목 정보를 미리 보지 않게)."""
         self.spush({"to-roro/2026-11-10-question.md": "질문"}, "2026-11-10T08:10:00+09:00")
-        self.assertEqual(self.sync("2026-11-10T11:50:00+09:00")[0]["status"], "held_until_deadline")
+        self.assertEqual(self.sync("2026-11-10T11:50:00+09:00")[0]["held_files"], ["to-roro/2026-11-10-question.md"])
         self.assertFalse((self.repo / "league/inbox/shushu/2026-11-10-question.md").exists())
-        self.assertEqual(self.sync("2026-11-10T12:05:00+09:00")[0]["status"], "processed")
+        self.assertEqual(self.sync("2026-11-10T12:05:00+09:00")[0]["status"], "released")
         self.assertEqual((self.repo / "league/inbox/shushu/2026-11-10-question.md").read_text(), "질문")
 
     def test_wakes_once_each(self):
@@ -999,6 +999,96 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual([x["kind"] for x in w], ["notice"]); self.assertIn("2026-11-10-answer.md", posted[-1])
         self.assertNotIn("v2.0-market-leagues", posted[-1])                      # 기존 공지는 처음 켤 때 표시만
 
+    # ── 검수 1차 재현 사례 ──
+    def _sha_line(self, rd):
+        return f"{self.sh.sha256(self.csv(rd).encode()).hexdigest()}  {rd}.csv\n"
+
+    def test_rename_into_submit_is_seen(self):
+        rd = "2026-11-10"; body = self.csv(rd)
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"practice/{rd}.csv": body}, f"{rd}T08:20:00+09:00")
+        self.g(self.work, "mv", f"practice/{rd}.csv", f"submit/{rd}.csv"); self.spush({}, f"{rd}T08:40:00+09:00")
+        out = self.sync(f"{rd}T08:50:00+09:00")
+        self.assertIn("accepted", [x["status"] for r in out for x in r["receipts"]])
+
+    def test_commitment_with_extra_text_not_imported(self):
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd) + "KR 005930 오늘 픽\n"}, f"{rd}T08:05:00+09:00")
+        out = self.sync(f"{rd}T08:10:00+09:00")
+        self.assertEqual(out[0]["receipts"], []); self.assertTrue(out[0]["problems"])
+        self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.sha256").exists())
+
+    def test_past_dated_file_still_held_before_deadline(self):
+        rd = "2026-11-10"
+        self.spush({"submit/2026-11-09-debate.md": "오늘 005930", "lines/2026-11-09-shushu.json": "{}"}, f"{rd}T08:00:00+09:00")
+        out = self.sync(f"{rd}T08:10:00+09:00")
+        self.assertEqual(sorted(out[0]["held_files"]), ["lines/2026-11-09-shushu.json", "submit/2026-11-09-debate.md"])
+        self.assertFalse((self.repo / "league/imports/shushu/2026-11-09-debate.md").exists())
+
+    def test_ignored_names_not_written_to_ledger(self):
+        rd = "2026-11-10"
+        self.spush({"notes/KR-005930-US-NVDA.txt": "x", f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:00:00+09:00")
+        self.sync(f"{rd}T08:05:00+09:00")
+        self.assertNotIn("005930", (self.repo / "league/ledger/external_pushes.jsonl").read_text())
+
+    def test_bad_date_and_missing_commit_do_not_stop_sync(self):
+        rd = "2026-11-10"
+        self.spush({"submit/2026-02-30.sha256": "x"}, f"{rd}T08:00:00+09:00")
+        self.acts.append({"id": 99, "before": self.last, "after": "f" * 40, "timestamp": "2026-11-09T23:01:00Z",
+                          "activity_type": "push", "actor": {"login": "x"}})
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
+        out = self.sync(f"{rd}T08:25:00+09:00")
+        self.assertEqual(sorted(r["status"] for r in out), ["error", "processed", "processed"])
+        self.assertEqual([x["status"] for r in out for x in r.get("receipts", [])], ["committed"])
+
+    def test_held_file_does_not_block_later_commitment(self):
+        """다음 날 토론 파일이 보류돼도 뒤의 당일 지문은 바로 처리되고, 원본 공개 깨우기가 나간다."""
+        rd = "2026-11-10"
+        self.spush({"submit/2026-11-11-debate.md": "준비"}, f"{rd}T07:50:00+09:00")
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
+        out = self.sync(f"{rd}T08:40:00+09:00")
+        self.assertEqual(out[1]["receipts"][0]["status"], "committed")
+        posted = []
+        w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat(f"{rd}T08:41:00+09:00"), post=lambda b: posted.append(b) or "u")
+        self.assertEqual([x["kind"] for x in w], ["reveal"])
+
+    def test_message_in_round_window_waits_until_noon(self):
+        self.spush({"to-roro/2026-11-09-note.md": "전날 저녁"}, "2026-11-09T20:00:00+09:00")
+        self.assertEqual(self.sync("2026-11-10T07:05:00+09:00")[0]["held_files"], ["to-roro/2026-11-09-note.md"])
+        self.assertFalse((self.repo / "league/inbox/shushu/2026-11-09-note.md").exists())
+        self.assertEqual(self.sync("2026-11-10T12:05:00+09:00")[0]["status"], "released")
+
+    def test_new_branch_diffs_against_main(self):
+        """새 브랜치 첫 push(before=0)는 기본 브랜치에서 갈라진 뒤의 파일만 본다."""
+        rd = "2026-11-10"
+        self.spush({"README.md": "y"}, f"{rd}T07:00:00+09:00")
+        self.g(self.work, "checkout", "-q", "-b", "codex/x")
+        (self.work / "submit").mkdir(exist_ok=True); (self.work / "submit" / f"{rd}.sha256").write_text(self._sha_line(rd))
+        self.g(self.work, "add", "."); self.g(self.work, "commit", "-qm", "b"); self.g(self.work, "push", "-q", "origin", "codex/x")
+        after = self.g(self.work, "rev-parse", "HEAD")
+        self.acts.append({"id": 50, "before": "0" * 40, "after": after, "timestamp": "2026-11-09T23:20:00Z",
+                          "activity_type": "branch_creation", "ref": "refs/heads/codex/x", "actor": {"login": "c"}})
+        self.g(self.ext, "fetch", "-q", "origin")
+        out = self.sync(f"{rd}T08:30:00+09:00")
+        self.assertEqual(out[-1]["files"], [f"submit/{rd}.sha256"])
+        self.assertEqual(out[-1]["receipts"][0]["status"], "committed")
+
+    def test_accepted_file_not_overwritten(self):
+        rd = "2026-11-10"; body = self.csv(rd)
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
+        self.spush({f"submit/{rd}.csv": body}, f"{rd}T08:40:00+09:00")
+        self.spush({f"submit/{rd}.csv": body.replace("005930", "000660")}, f"{rd}T08:50:00+09:00")
+        out = self.sync(f"{rd}T09:00:00+09:00")
+        self.assertIn("덮어쓰지 않음", out[-1]["note"])
+        self.assertEqual((self.repo / "league/imports/shushu" / f"{rd}.csv").read_text(), body)
+
+    def test_wake_not_reposted_when_marker_exists(self):
+        """push 충돌로 원장 기록이 사라져 다시 돌아도, 채널에 같은 표식 댓글이 있으면 다시 달지 않는다."""
+        posted = []
+        now = datetime.fromisoformat("2026-11-10T07:05:00+09:00")
+        mk = self.X._marker({"kind": "round", "key": "2026-11-10"})
+        w = self.X.wake(self.repo, "o/shushu", "t", now=now, post=lambda b: posted.append(b) or "u", existing=["앞 댓글 " + mk])
+        self.assertEqual((posted, w[0]["url"]), ([], "already-posted"))
+
     def test_mirror_push_not_recorded(self):
         """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""
         self.spush({"from-league/README.md": "copy"}, "2026-11-10T08:00:00+09:00")
@@ -1013,6 +1103,11 @@ class ShushuRepoSync(unittest.TestCase):
         bad = [f for f in wrote if re.search(r"ledger/(prices|scores|corporate_actions|picks|price_checks|corrections)\.jsonl$|with-prices", f)]
         self.assertEqual(bad, [])
         self.assertTrue((ext / "from-league" / "receipts-shushu.jsonl").exists())
+        cfg = (ext / "from-league" / "league" / "config.json").read_text()
+        self.assertNotIn("provider_verified", cfg); self.assertNotRegex(cfg, r"\b[A-Z]{1,5} \d+\.\d{2}\b")
+        for f in (ext / "from-league").rglob("*"):
+            if f.is_file() and "tools" not in f.parts:
+                self.assertIsNone(self.X.PRICE_TEXT.search(f.read_text(errors="replace")), str(f))
         self.assertTrue((ext / "from-league" / "tools" / "league.py").exists())
 
 
