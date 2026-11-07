@@ -64,7 +64,9 @@ def picks_index(base: Path, teams=("shushu", "sandbox-shushu")) -> list[dict]:
         subs = {(s_["team"], s_["round_date"]): s_ for s_ in L.read_ledger(dd, "submissions") if s_.get("status") == "accepted"}
         for p in L.read_ledger(dd, "picks"):
             if p["team"] in teams:
-                r = subs.get((p["team"], p["round_date"])) or {}
+                r = subs.get((p["team"], p["round_date"]))
+                if not r:                     # 접수(accepted) 영수증이 없는 종목은 목록에 넣지 않는다
+                    continue
                 out.append({"pick_id": p["pick_id"], "team": p["team"], "round_date": p["round_date"], "market": p["market"],
                             "agent_id": p["agent_id"], "receipt_commit": (p.get("submission") or {}).get("commit") or r.get("commit"),
                             "receipt_pushed_at": r.get("pushed_at")})
@@ -99,9 +101,11 @@ def check_lines(path: Path, base: Path | None = None, now: datetime | None = Non
             rows = json.loads(Path(index).read_text())
         except Exception as e:  # noqa: BLE001
             return errs + [f"접수 종목 목록을 읽지 못함: {e}"]
-        ids = {r["pick_id"] for r in rows if r.get("round_date") == rd and r.get("team") == team}
+        ids = {r["pick_id"] for r in rows if r.get("round_date") == rd and r.get("team") == team and r.get("receipt_pushed_at")}
     else:
-        ids = {p["pick_id"] for p in L.read_ledger(base, "picks") if p["round_date"] == rd and p["team"] == team}
+        accepted = any(s_.get("status") == "accepted" and s_.get("team") == team and s_.get("round_date") == rd
+                       for s_ in L.read_ledger(base, "submissions"))
+        ids = {p["pick_id"] for p in L.read_ledger(base, "picks") if p["round_date"] == rd and p["team"] == team} if accepted else set()
     if not ids:
         errs.append(f"원장에 {rd} {team} 종목이 없음 (원본 공개 뒤 영수증이 accepted 인지 확인)")
     for k, v in lines.items():

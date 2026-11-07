@@ -1354,6 +1354,27 @@ class SealedSubmission(unittest.TestCase):
         self.assertEqual(dpath.read_text(), "최종")
 
 
+class HolidaySnapshotMirror(unittest.TestCase):
+    """슈슈 시험 ①: 휴장 시장 표시("open": false)가 든 공통 자료가 가격으로 오인돼 사본에서 빠지지 않는다."""
+    def test_holiday_snapshot_mirrored(self):
+        import shushu_sync as X
+        self.assertIsNone(X.NO_PRICE.search('{"markets": {"US": {"open": false, "note": "휴장"}}}'))
+        self.assertIsNotNone(X.NO_PRICE.search('{"open": 101.5}')); self.assertIsNotNone(X.NO_PRICE.search('{"close":"95.73"}'))
+        main = Path(tempfile.mkdtemp())
+        shutil.copytree(L.ROOT / "tools", main / "tools"); (main / "league").mkdir()
+        shutil.copy(L.ROOT / "league" / "config.json", main / "league" / "config.json")
+        shutil.copytree(L.ROOT / "league" / "agents", main / "league" / "agents")
+        r = main / "league" / "rounds" / "2026-11-26"; r.mkdir(parents=True)              # 11/26: 미국 휴장(추수감사절)
+        snap, body = L.snapshot(L.ROOT / "league", date(2026, 11, 26), "price-free", now="2026-11-26T06:50:00+09:00")
+        self.assertIn('"open": false', body.replace('"open":false', '"open": false'))
+        (r / "snapshot.json").write_text(body); (r / "snapshot.json.sha256").write_text("x  snapshot.json\n")
+        ext = Path(tempfile.mkdtemp())
+        wrote = X.mirror(main, ext, today=date(2026, 11, 26))
+        self.assertIn("league/rounds/2026-11-26/snapshot.json", wrote)
+        self.assertEqual((ext / "from-league/league/rounds/2026-11-26/snapshot.json").read_text(), body)
+        self.assertNotIn("snapshot", (ext / "from-league" / "skipped.txt").read_text())
+
+
 class LinesWithoutLedger(unittest.TestCase):
     """슈슈 요청: 원장 없이(전용 저장소 사본) 접수 종목 목록으로 대사 검사 + 오류 조건."""
     def setUp(self):
@@ -1361,10 +1382,12 @@ class LinesWithoutLedger(unittest.TestCase):
         self.D = D
         self.tmp = Path(tempfile.mkdtemp())
         self.idx = self.tmp / "shushu-picks.json"
+        rcpt = {"receipt_commit": "abc1234", "receipt_pushed_at": "2026-11-09T08:20:00+09:00"}
         self.idx.write_text(json.dumps([
-            {"pick_id": "2026-11-09-shushu-s1-KR", "team": "shushu", "round_date": "2026-11-09"},
-            {"pick_id": "2026-11-09-shushu-s1-US", "team": "shushu", "round_date": "2026-11-09"},
-            {"pick_id": "2026-11-09-sandbox-shushu-s1-KR", "team": "sandbox-shushu", "round_date": "2026-11-09"}]))
+            {"pick_id": "2026-11-09-shushu-s1-KR", "team": "shushu", "round_date": "2026-11-09", **rcpt},
+            {"pick_id": "2026-11-09-shushu-s1-US", "team": "shushu", "round_date": "2026-11-09", **rcpt},
+            {"pick_id": "2026-11-09-sandbox-shushu-s1-KR", "team": "sandbox-shushu", "round_date": "2026-11-09", **rcpt},
+            {"pick_id": "2026-11-12-shushu-s1-KR", "team": "shushu", "round_date": "2026-11-12"}]))     # 접수 영수증 없음
         self.after = datetime.fromisoformat("2026-11-09T09:00:00+09:00")
 
     def check(self, lines, name="2026-11-09-shushu.json", now=None):
@@ -1388,9 +1411,20 @@ class LinesWithoutLedger(unittest.TestCase):
         self.idx.write_text("{깨진 JSON")
         self.assertTrue(any("목록을 읽지 못함" in x for x in self.check({"x": "y"})))               # 목록 파일 오류
 
+    def test_unreceipted_picks_fail(self):
+        """슈슈 시험 ②: accepted 영수증이 없는 종목은 목록에 있어도 대사 검사를 통과하지 못한다."""
+        e = self.check({"2026-11-12-shushu-s1-KR": "아무 말"}, name="2026-11-12-shushu.json",
+                       now=datetime.fromisoformat("2026-11-12T09:00:00+09:00"))
+        self.assertTrue(any("종목이 없음" in x for x in e)); self.assertTrue(any("이 라운드·이 팀의 종목이 아님" in x for x in e))
+
     def test_index_from_ledger_has_no_prices_or_other_team(self):
         t = MarketLeagues(); d = t._league(); t._fill(d)
+        self.assertEqual(self.D.picks_index(d), [])                                    # 영수증 없이 원장에만 있는 종목은 제외
+        for rd in ("2026-11-09", "2026-11-10"):
+            L.append(d, "submissions", {"team": "shushu", "round_date": rd, "status": "accepted", "commit": "c" * 40,
+                                        "pushed_at": f"{rd}T08:20:00+09:00", "path": f"league/imports/shushu/{rd}.csv"})
         rows = self.D.picks_index(d)
+        self.assertEqual({r["round_date"] for r in rows}, {"2026-11-09", "2026-11-10"})
         self.assertTrue(rows); self.assertEqual({r["team"] for r in rows}, {"shushu"})
         self.assertNotRegex(json.dumps(rows), r'"(rationale|close|base_close|ticker|name)"')
 

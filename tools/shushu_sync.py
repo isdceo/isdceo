@@ -467,7 +467,8 @@ MIRROR_GLOBS = ["docs/codex-notices/*.md", "league/universe/*.json", "tools/*.py
                 "league/imports/shushu/weekly-review-v2.1.md", "league/imports/shushu/rule-conformance.md",
                 "league/imports/shushu/agents/**/*", "docs/codex-notices/replies/*.md"]
 MIRROR_LEDGERS = ["weekly_decisions", "guidelines", "approvals", "outages"]      # 원 가격이 없는 원장만
-NO_PRICE = re.compile(r'"(base_close|eval_close|close|amount|adj_close|open|high|low)"\s*:')
+# 가격 칸: 이름이 가격 칸이고 값이 숫자(문자열 숫자 포함)일 때만. 휴장 표시 "open": false 같은 값은 가격이 아니다
+NO_PRICE = re.compile(r'"(base_close|eval_close|close|amount|adj_close|open|high|low)"\s*:\s*"?-?\d')
 # 글 속 가격: "KO 95.73", "SPY: 733.00", "종가 12,345원" 같은 것 (퍼센트는 제외)
 PRICE_TEXT = re.compile(r"\b[A-Z]{1,5}(?:\.[A-Z])?\s*[:=]?\s*\$?\d{1,6}\.\d{2}\b(?!\s*%)"
                         r"|종가\s*(?:는|은|:|：)?\s*\$?(?:\d[\d,]*\.\d+|\d{1,3}(?:,\d{3})+)"
