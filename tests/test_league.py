@@ -1502,6 +1502,24 @@ class EveningRecheckFixes(unittest.TestCase):
         self.assertIn("대사 검사 실패", out[0]["note"]); self.assertEqual(out[0]["lines"][0]["ok"], False)
         self.assertEqual(json.loads(dst.read_text()), good)                    # 실패 파일은 반입 안 됨, 기존 대사 유지
 
+    def test_reveal_and_lines_in_same_push(self):
+        """슈슈 재검수: 원본과 대사를 같은 push에 넣어도 원본을 먼저 접수한 뒤 대사를 검사해 반입한다."""
+        shutil.copytree(L.ROOT / "tools", self.repo / "tools")
+        cp = self.repo / "league/config.json"; c = json.loads(cp.read_text())
+        c["commit_reveal"]["from"] = "2026-11-01"; cp.write_text(json.dumps(c, ensure_ascii=False))   # 지난 날짜로 지문 방식 시험
+        (self.repo / "league/sandbox").mkdir(parents=True, exist_ok=True)
+        (self.repo / "league/sandbox/config.json").write_text(json.dumps(c, ensure_ascii=False))            # 연습 원장 설정도 같게
+        rd = "2026-11-05"
+        self.spush({f"practice/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:10:00+09:00")
+        lines = {f"{rd}-sandbox-shushu-s1-KR": "튼튼해.", f"{rd}-sandbox-shushu-s1-US": "꾸준해."}
+        self.spush({f"practice/{rd}.csv": self.csv(rd), f"practice-lines/{rd}-sandbox-shushu.json": json.dumps(lines, ensure_ascii=False)},
+                   f"{rd}T08:40:00+09:00")
+        out = self.sync(f"{rd}T08:50:00+09:00")
+        last = out[-1]
+        self.assertEqual([x["status"] for x in last["receipts"]], ["accepted"])
+        self.assertEqual(last["lines"], [{"path": f"league/sandbox/lines/{rd}-sandbox-shushu.json", "ok": True}])
+        self.assertEqual(json.loads((self.repo / f"league/sandbox/lines/{rd}-sandbox-shushu.json").read_text()), lines)
+
     def test_loader_ignores_other_team_lines(self):
         import dashboard_data as D
         d = Path(tempfile.mkdtemp()); (d / "lines").mkdir()

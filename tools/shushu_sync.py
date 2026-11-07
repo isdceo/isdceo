@@ -395,13 +395,15 @@ def _restore_held(ext: Path, act: dict, units: list[dict]):
 
 def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units: list[dict], run_id: str, run_url: str,
            bad: set | None = None):
-    """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다."""
+    """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다.
+    대사는 같은 push의 원본을 먼저 반영·판정한 뒤(접수된 종목이 원장에 생긴 뒤) 임시 위치에서 검사해, 통과한 것만 따로 반입한다."""
     if not units:
         return [], [], ""
     order = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
     units = sorted(units, key=lambda u: order.get(u["kind"], 9))
-    notes, wrote, failed_lines = [], [], []
-    for u in units:
+    notes, wrote, failed_lines, receipts = [], [], [], []
+    # 1) 지문·원본·토론·메시지
+    for u in [x for x in units if x["kind"] != "lines"]:
         if u["kind"] in ("commitment", "reveal"):
             team = "sandbox-shushu" if u["dst"].startswith("league/imports/sandbox-") else "shushu"
             if (team, u["rd"]) in (bad or set()):
@@ -422,39 +424,51 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
         p = main / u["dst"]
         p.parent.mkdir(parents=True, exist_ok=True)
         raw = git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext)
-        if u["kind"] == "lines":
-            # 대사는 임시 위치에서 먼저 검사하고, 통과한 파일만 확정 경로에 반입한다(실패 파일이 화면에 읽히지 않게)
-            import tempfile as _tf
-            tmpd = Path(_tf.mkdtemp())
-            (tmpd / Path(u["dst"]).name).write_bytes(raw)
-            if not _check_lines(main, u["dst"], path=tmpd / Path(u["dst"]).name):
-                notes.append(f"{u['file']}: 대사 검사 실패 — 반입하지 않음(기존 대사 유지)")
-                u["failed"] = True
-                failed_lines.append(u["dst"])
-                continue
         p.write_bytes(raw)                                                             # 바이트 그대로
         git("add", u["dst"], cwd=main)
         u["sha256"] = L.hashlib.sha256(raw).hexdigest()
         wrote.append(u)
-    if not wrote or not git("status", "--porcelain", "--", *[u["dst"] for u in wrote], cwd=main):
-        return [], [(d_, False) for d_ in failed_lines], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
-    prev = git("rev-parse", "HEAD~0", cwd=main)
-    git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-        "commit", "-q", "-m", f"league: shushu repo push {act['after'][:7]} ({pushed.isoformat(timespec='seconds')})",
-        "-m", f"source: {repo}@{act['after']} activity {act['id']}", cwd=main)
-    after = git("rev-parse", "HEAD", cwd=main)
-    event = {"before": prev, "after": after, "ref": "refs/heads/main", "commits": [],
-             "pusher": {"name": f"{repo}:{(act.get('actor') or {}).get('login')}"},
-             "repository": {"pushed_at": int(pushed.timestamp())},
-             "judged_by": "shushu_repo.activity.timestamp",
-             # 파일마다: 원래 push가 그 파일 라운드의 마감 전이면 '봉인'(비공개 저장소에 있었고 메인에는 마감 뒤에만 들어옴).
-             # 원본은 마감 전에는 늘 보류되므로 여기까지 왔다면 반입 시점은 마감 뒤다. 첫 발견이 마감 뒤인 경우도 같다.
-             "sealed_paths": [u["dst"] for u in wrote if u["kind"] == "reveal"
-                              and pushed <= L.lock_deadline(date.fromisoformat(u["rd"]), _team_cfg(main, u["dst"]))],
-             "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
-    receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
-    lines = [(u["dst"], True) for u in wrote if u["kind"] == "lines"] + [(d_, False) for d_ in failed_lines]
-    notes += [f"{u['dst']} sha256 {u['sha256']}" for u in wrote if u["kind"] in ("debate", "lines", "message")]   # 출처·해시 기록
+    msg = ["-m", f"league: shushu repo push {act['after'][:7]} ({pushed.isoformat(timespec='seconds')})",
+           "-m", f"source: {repo}@{act['after']} activity {act['id']}"]
+    if wrote and git("status", "--porcelain", "--", *[u["dst"] for u in wrote], cwd=main):
+        prev = git("rev-parse", "HEAD~0", cwd=main)
+        git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+            "commit", "-q", *msg, cwd=main)
+        after = git("rev-parse", "HEAD", cwd=main)
+        event = {"before": prev, "after": after, "ref": "refs/heads/main", "commits": [],
+                 "pusher": {"name": f"{repo}:{(act.get('actor') or {}).get('login')}"},
+                 "repository": {"pushed_at": int(pushed.timestamp())},
+                 "judged_by": "shushu_repo.activity.timestamp",
+                 # 파일마다: 원래 push가 그 파일 라운드의 마감 전이면 '봉인'(비공개 저장소에 있었고 메인에는 마감 뒤에만 들어옴).
+                 # 원본은 마감 전에는 늘 보류되므로 여기까지 왔다면 반입 시점은 마감 뒤다. 첫 발견이 마감 뒤인 경우도 같다.
+                 "sealed_paths": [u["dst"] for u in wrote if u["kind"] == "reveal"
+                                  and pushed <= L.lock_deadline(date.fromisoformat(u["rd"]), _team_cfg(main, u["dst"]))],
+                 "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
+        receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
+    elif wrote:
+        notes.append("메인과 같은 내용 — 변경 없음")
+    # 2) 대사: 위에서 접수된 원본까지 반영된 원장으로 임시 위치에서 검사 → 통과한 것만 반입·커밋
+    lines_ok = []
+    for u in [x for x in units if x["kind"] == "lines"]:
+        raw = git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext)
+        import tempfile as _tf
+        tmp = Path(_tf.mkdtemp()) / Path(u["dst"]).name
+        tmp.write_bytes(raw)
+        if not _check_lines(main, u["dst"], path=tmp):
+            notes.append(f"{u['file']}: 대사 검사 실패 — 반입하지 않음(기존 대사 유지)")
+            failed_lines.append(u["dst"])
+            continue
+        p = main / u["dst"]
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(raw)
+        git("add", u["dst"], cwd=main)
+        u["sha256"] = L.hashlib.sha256(raw).hexdigest()
+        lines_ok.append(u)
+    if lines_ok and git("status", "--porcelain", "--", *[u["dst"] for u in lines_ok], cwd=main):
+        git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+            "commit", "-q", *msg, "-m", "한 줄 대사", cwd=main)
+    lines = [(u["dst"], True) for u in lines_ok] + [(d_, False) for d_ in failed_lines]
+    notes += [f"{u['dst']} sha256 {u['sha256']}" for u in wrote + lines_ok if u["kind"] in ("debate", "lines", "message")]   # 출처·해시 기록
     return receipts, lines, "; ".join(notes)
 
 
