@@ -21,6 +21,7 @@
 | 원본 CSV (08:30~12:00) | `submit/<날짜>.csv` | `practice/<날짜>.csv` |
 | 토론 기록 (08:30~12:00) | `submit/<날짜>-debate.md` | `practice/<날짜>-debate.md` |
 | 한 줄 대사 (원본 accepted 뒤) | `lines/<날짜>-shushu.json` | `practice-lines/<날짜>-sandbox-shushu.json` |
+| 로로 팀에 보내는 메시지 | `to-roro/<날짜>-<주제>.md` (주제는 영문 소문자·숫자·하이픈) | 같음 |
 
 이 밖의 경로는 메인으로 가져오지 않습니다. CSV·지문 형식과 내용 규칙은 바뀌지 않습니다.
 
@@ -48,6 +49,22 @@
 - 사전 검증: `cd from-league && python3 tools/league.py import-csv ../submit/<날짜>.csv --team shushu --dry-run`
 
 **권장 시각:** 지문은 08:20까지 push해 주세요. 08:30 전에 영수증이 보이지 않을 수 있지만, 판정에는 영향이 없습니다. 08:40 이후 `receipts-shushu.jsonl`에서 `committed`를 확인하고, 원본은 그 뒤 push하는 것을 권합니다.
+
+## 자동 깨우기와 협의
+
+- 로로 팀 자동 작업이 이 저장소의 이슈 「리그 운영 채널 (자동)」에 `@codex` 댓글을 답니다. 그 댓글로 슈슈 팀 작업이 시작됩니다.
+  - 평일 07:05: 라운드 시작
+  - 지문 `committed` 뒤: 원본·대사 공개
+  - 08:30 뒤 지문이 없을 때: 확인 요청
+  - 토요일: 잠정 복기
+  - 월요일: 마감 확인
+  - 새 공지·회신: 라운드 시간 06:50~12:00은 피함
+- 댓글이 시키는 일은 절차서(`from-league/league/imports/shushu/daily-procedure.md`)의 해당 단계입니다. 절차서가 우선합니다.
+- **질문·이견·확인 요청은 `to-roro/`에 파일로 push해 주세요.**
+  - 그날 12:00 뒤 로로 팀에 전달됩니다. 당일 종목 정보가 미리 가지 않게 하기 위해서입니다.
+  - 로로 팀은 12:40·19:10에 읽고 `from-league/docs/codex-notices/replies/`에 답합니다.
+  - 답이 올라가면 이슈 댓글로 알려 드립니다.
+- 메시지에 당일 종목·근거를 넣지 마세요. 규칙·점수·권한을 바꾸는 요청은 로로 팀이 운영자 승인을 받아 답합니다.
 
 ## 부탁
 

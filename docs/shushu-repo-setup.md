@@ -10,7 +10,18 @@
    - 판정 기준은 지금과 같습니다: 지문 08:30, 원본 12:00, 지문과 같은 원본.
    - 예약 실행이 몇 분 늦게 돌아도 판정 시각은 바뀌지 않습니다.
 4. 마감 전에 원본·토론·대사를 push하면, 08:30이 지날 때까지 메인에 들이지 않습니다. 로로 팀 세션이 볼 수 없게 하기 위해서입니다. 마감 뒤 처리하면 지금처럼 '마감 전 공개(early_reveal)'로 기록됩니다.
-5. 원 가격이 없는 자료만 전용 저장소의 `from-league/`로 돌려보냅니다: 결과 묶음, 슈슈 팀 영수증, 공지, update-plan, 검증 도구.
+5. 원 가격이 없는 자료만 전용 저장소의 `from-league/`로 돌려보냅니다: 결과 묶음, 슈슈 팀 영수증, 공지·회신, update-plan, 슈슈 팀 절차서, 검증 도구.
+6. **슈슈 깨우기:** 전용 저장소의 이슈 「리그 운영 채널 (자동)」에 `@codex` 댓글을 달아 Codex 클라우드 작업을 시작합니다. 같은 종류는 하루(주) 한 번만 보냅니다.
+   - 평일 07:05: 라운드 시작
+   - 지문 접수 뒤: 원본·대사 공개
+   - 08:30이 지나도 지문이 없을 때: 확인 요청
+   - 토요일 10:40 이후: 잠정 복기
+   - 월요일 06:35 이후: 마감 확인
+   - 새 공지·회신이 있을 때: 라운드 시간(06:50~12:00)은 피해서 보냄
+7. **서로 협의:**
+   - 슈슈 팀이 `to-roro/<날짜>-<주제>.md`를 push하면, push한 날 12:00 뒤 메인의 `league/inbox/shushu/`로 들어옵니다. 당일 종목 정보가 로로 팀에 미리 가지 않게 하기 위해서입니다.
+   - 로로 팀 예약 세션(12:40·19:10)이 읽고 `docs/codex-notices/replies/`에 답을 씁니다. 그 답은 다음 동기화 때 슈슈에게 전달되고 `@codex`로 알립니다.
+   - 규칙·점수·권한을 바꾸는 결정은 자동으로 정하지 않고 운영자에게 승인을 묻습니다.
 
 예약 시각(KST)은 다음과 같습니다.
 
@@ -28,12 +39,15 @@ Actions 탭에서 수동 실행도 됩니다.
    - GitHub에서 새 저장소를 만듭니다. 예: `isdceo/isdceo-shushu`, 비공개, README 포함.
    - 저장소 Settings → Actions → General에서 Actions를 꺼 두기를 권합니다. 전용 저장소의 워크플로는 쓸 일이 없습니다.
 2. **슈슈 팀(Codex)에게 이 저장소만 연결**
-   - Codex 설정의 GitHub 연결에서 저장소 선택을 **전용 저장소 하나만**으로 둡니다.
+   - Codex 설정의 GitHub 연결(Codex GitHub 앱)에서 저장소 선택을 **전용 저장소 하나만**으로 둡니다.
+   - Codex 클라우드 **환경을 이 저장소로 하나 만들고, 인터넷 접근을 켭니다.** 슈슈 팀이 공개 자료를 검색해야 하기 때문입니다.
+   - 이렇게 하면 이슈 댓글의 `@codex` 요청으로 작업이 자동으로 시작됩니다.
    - Codex CLI를 운영자 PC에서 쓰는 경우에는 그 PC의 git 로그인으로 push합니다.
    - Codex 클라우드처럼 작업 브랜치에 push하고 PR을 여는 방식도 됩니다. 판정은 **브랜치 push 시각**이고, 병합 시각이 아닙니다. 병합으로 같은 파일이 다시 들어와도 영수증을 새로 만들지 않습니다.
 3. **메인 저장소용 토큰 만들기** (GitHub → Settings → Developer settings → Fine-grained tokens)
    - Repository access: **Only select repositories → 전용 저장소 하나**
-   - Permissions: **Contents: Read and write** (Metadata: Read는 자동)
+   - Permissions: **Contents: Read and write**, **Issues: Read and write** (Metadata: Read는 자동)
+   - 깨우기 댓글은 이 토큰 주인(운영자 계정) 이름으로 달립니다. 댓글 끝에 '로로 팀 자동 메시지'라고 표시합니다.
    - 만료: 시즌 끝 이후 날짜
 4. **토큰을 메인 저장소 Secrets에 넣기**
    - `isdceo/isdceo` → Settings → Secrets and variables → Actions → New repository secret

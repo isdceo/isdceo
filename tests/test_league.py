@@ -971,6 +971,34 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(out[1]["receipts"], [])                         # 같은 내용 → 영수증 없음
         self.assertEqual([s["status"] for s in L.read_ledger(self.repo / "league", "submissions")], ["committed"])
 
+    def test_message_to_roro_held_until_noon(self):
+        """슈슈 → 로로 메시지는 push한 날 12:00 뒤에만 메인에 들어온다(로로 팀이 당일 종목 정보를 미리 보지 않게)."""
+        self.spush({"to-roro/2026-11-10-question.md": "질문"}, "2026-11-10T08:10:00+09:00")
+        self.assertEqual(self.sync("2026-11-10T11:50:00+09:00")[0]["status"], "held_until_deadline")
+        self.assertFalse((self.repo / "league/inbox/shushu/2026-11-10-question.md").exists())
+        self.assertEqual(self.sync("2026-11-10T12:05:00+09:00")[0]["status"], "processed")
+        self.assertEqual((self.repo / "league/inbox/shushu/2026-11-10-question.md").read_text(), "질문")
+
+    def test_wakes_once_each(self):
+        """슈슈 깨우기: 라운드 시작·원본 공개·새 공지를 한 번씩만, 처음 켤 때 기존 공지는 보내지 않음."""
+        shutil.copytree(ROOT / "docs" / "codex-notices", self.repo / "docs" / "codex-notices")
+        posted = []
+        post = lambda b: posted.append(b) or f"u{len(posted)}"
+        w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T07:05:00+09:00"), post=post)
+        self.assertEqual([x["kind"] for x in w], ["round"])
+        self.assertIn("submit/2026-11-10.sha256", posted[0]); self.assertTrue(posted[0].startswith("@codex"))
+        self.assertEqual(self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T07:15:00+09:00"), post=post), [])
+        rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
+        self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n"}, f"{rd}T08:20:00+09:00"); self.sync(f"{rd}T08:31:00+09:00")
+        w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T08:31:00+09:00"), post=post)
+        self.assertEqual([x["kind"] for x in w], ["reveal"])
+        (self.repo / "docs" / "codex-notices" / "replies").mkdir(exist_ok=True)
+        (self.repo / "docs" / "codex-notices" / "replies" / "2026-11-10-answer.md").write_text("답")
+        self.assertEqual(self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T10:00:00+09:00"), post=post), [])  # 라운드 시간엔 보내지 않음
+        w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T12:30:00+09:00"), post=post)
+        self.assertEqual([x["kind"] for x in w], ["notice"]); self.assertIn("2026-11-10-answer.md", posted[-1])
+        self.assertNotIn("v2.0-market-leagues", posted[-1])                      # 기존 공지는 처음 켤 때 표시만
+
     def test_mirror_push_not_recorded(self):
         """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""
         self.spush({"from-league/README.md": "copy"}, "2026-11-10T08:00:00+09:00")

@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks",
-           "weekly_decisions", "guidelines", "outages", "external_pushes")
+           "weekly_decisions", "guidelines", "outages", "external_pushes", "shushu_wakes")
 
 # ───────────────────────── 설정 ─────────────────────────
 
