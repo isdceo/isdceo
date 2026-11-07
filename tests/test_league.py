@@ -2115,3 +2115,13 @@ class LossReview(unittest.TestCase):
         s = self.LR.summary(self.d, L.iso_week(date.fromisoformat(row["round_date"])))
         self.assertIn(row["pick_id"], [c["pick_id"] for c in s["corrected"]])
 
+
+    def test_known_close_from_ledger_is_blocked_in_any_phrasing(self):
+        row = self.LR.due(self.d)[0]
+        p = {x["pick_id"]: x for x in L.read_ledger(self.d, "picks")}[row["pick_id"]]
+        f = self.LR.review_path(self.d, p); f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(self._valid(row["pick_id"]))
+        self.assertEqual(self.LR.check(f), [])
+        c = self.LR._known_closes(f)[0]
+        f.write_text(self._valid(row["pick_id"]).replace("## 3. 판정", f"참고로 그날 숫자는 {c} 근처였다\n## 3. 판정"))
+        self.assertTrue(any("원장에 기록된" in e for e in self.LR.check(f)))

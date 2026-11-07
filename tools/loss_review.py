@@ -136,6 +136,28 @@ def _table_prices(t: str) -> str | None:
     return None
 
 
+def _known_closes(path: Path) -> list[str]:
+    """복기 파일 경로(<리그>/reviews/losses/<라운드>/<에이전트>-<시장>.md)로 그 종목의 원장 종가를 찾아, 본문에 나올 수 있는 표기들을 돌려준다.
+    경험칙(MONEY)과 별도로, 실제 기록된 원 가격은 어떤 문장 꼴로 써도 막기 위한 정확한 안전장치다(원장이 없으면 빈 목록)."""
+    try:
+        d = path.resolve().parents[3]
+        rd = path.parent.name; aid, mk = path.stem.rsplit("-", 1)
+        picks = [p for p in L.read_ledger(d, "picks") if p.get("round_date") == rd and p.get("agent_id") == aid and p.get("market") == mk]
+        if not picks:
+            return []
+        tk = picks[-1]["ticker"]
+        out = set()
+        for r in L.read_ledger(d, "prices"):
+            if r.get("market") == mk and r.get("ticker") == tk and r.get("close"):
+                c = float(r["close"])
+                if c >= 100 or c != int(c):
+                    for s in ({f"{c:,.0f}", f"{c:.0f}"} if c == int(c) else {f"{c:,.2f}", f"{c:.2f}", f"{c:,.2f}".rstrip("0")}):
+                        out.add(s)
+        return sorted(out, key=len, reverse=True)
+    except Exception:
+        return []
+
+
 def check(path: Path) -> list[str]:
     errs = []
     if not path.exists():
@@ -159,6 +181,10 @@ def check(path: Path) -> list[str]:
         errs.append("판정은 하나만")
     elif not v or not any(x in v.group(1) for x in VERDICTS):
         errs.append(f"'판정: <{' | '.join(VERDICTS)}>' 줄이 필요")
+    for c in _known_closes(path):
+        if re.search(r"(?<![\d.,])" + re.escape(c) + r"(?![\d]|[.,]\d)", t):
+            errs.append(f"원장에 기록된 이 종목의 종가와 같은 숫자 {c!r} — 원 가격 금지")
+            break
     te = _table_prices(t)
     if te:
         errs.append(f"표의 가격 칸에 원 가격 금지: {te!r}")
