@@ -1952,3 +1952,38 @@ class UpdatePlan(unittest.TestCase):
         rec["pick_id"] += "-v2"; L.append(d, "picks", rec)                              # 이번 주 중간부터 v2로 뜀
         plan = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W46")["agents"]}
         self.assertEqual((plan[("claude", "lynch")]["status"], plan[("claude", "lynch")]["version"]), ("cooldown", 2))
+
+
+class LossReview(unittest.TestCase):
+    """마이너스 확정 점수 → 그 에이전트의 손실 복기(사용자 요청 2026-11-08)."""
+    def setUp(self):
+        sys.path.insert(0, str(ROOT / "tools"))
+        import loss_review as LR
+        self.LR = LR
+        self.d = Path(tempfile.mkdtemp())
+        L.make_sample(self.d)
+
+    def test_due_lists_only_final_negative_non_watch_without_file(self):
+        rows = self.LR.due(self.d)
+        sc = L.latest_scores(self.d); cfg = L.load_config(self.d)
+        picks = {p["pick_id"]: p for p in L.read_ledger(self.d, "picks")}
+        self.assertTrue(rows)
+        for r in rows:
+            p = picks[r["pick_id"]]
+            self.assertEqual(p["team"], "claude"); self.assertFalse(L.is_watch(p, cfg))
+            self.assertEqual(sc[r["pick_id"]]["status"], "final"); self.assertLess(sc[r["pick_id"]]["score"], 0)
+        f = self.LR.review_path(self.d, picks[rows[0]["pick_id"]]); f.parent.mkdir(parents=True, exist_ok=True); f.write_text("x")
+        self.assertNotIn(rows[0]["pick_id"], [r["pick_id"] for r in self.LR.due(self.d)])
+
+    def _doc(self, extra=""):
+        body = "\n".join(["# 손실 복기 — 2026-11-09-claude-wood-KR", "- 에이전트: 미래광 (혁신형) v2", "- 결과: -2.10% (지수 KOSPI -0.50%, 지수 대비 -1.60%p)", "",
+                          "## 1. 그때의 논리", "가" * 200, "## 2. 실제로 무슨 일이 있었나", "https://example.com 확인 " + "나" * 200,
+                          "## 3. 판정", "판정: 분석 실수", "이유", "## 4. 놓친 신호·틀린 가정", "다" * 100, "## 5. 다음에 바꿀 점", "라" * 100, extra])
+        f = self.d / "reviews/losses/2026-11-09/wood-KR.md"; f.parent.mkdir(parents=True, exist_ok=True); f.write_text(body)
+        return f
+
+    def test_check_passes_good_and_blocks_prices(self):
+        self.assertEqual(self.LR.check(self._doc()), [])
+        self.assertTrue(any("가격" in e for e in self.LR.check(self._doc("목표가 120,000원"))))
+        self.assertTrue(any("가격" in e for e in self.LR.check(self._doc("$45 근처"))))
+        self.assertEqual(self.LR.check(self._doc("종가 기준 -2.1%")), [])
