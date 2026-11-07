@@ -81,7 +81,7 @@ jobs:
           cd deploy && npx --yes wrangler@4 pages deploy site --project-name "$PROJECT" --branch main --commit-dirty=true 2>&1 | tee ../deploy.log
           test "${PIPESTATUS[0]}" -eq 0
       - name: Verify the site asks for a password (roll back to a locked deployment if not)
-        if: steps.gate.outputs.go == 'true'
+        if: always() && steps.gate.outputs.go == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

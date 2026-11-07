@@ -10,8 +10,11 @@ on:
 permissions:
   contents: write
   actions: read
+# 같은 그룹 대기열은 1개뿐이라 대기 중인 실행이 새 실행에 밀려 취소될 수 있다(그러면 그 push의 영수증이 빠진다).
+# 그래서 제출 처리는 push마다 따로 돌리고(취소 없음), 커밋이 겹치면 최신 원장 위에서 다시 처리한다(아래 Commit receipt).
+# 공유 결과 묶음(results.json) 갱신은 league-lines 워크플로가 이 작업이 끝난 뒤 공유 그룹에서 한다.
 concurrency:
-  group: league-ledger-${{ github.ref }}
+  group: league-submission-${{ github.run_id }}
   cancel-in-progress: false
 jobs:
   receipt:
@@ -38,25 +41,44 @@ jobs:
             --run-created-at "${{ steps.run.outputs.created_at }}" | tee receipt.txt
           echo "pushed_at(raw)=$(jq -r '.repository.pushed_at' "$GITHUB_EVENT_PATH") run_created_at=${{ steps.run.outputs.created_at }}" | tee -a receipt.txt
           { echo '### 제출 영수증'; echo '```'; cat receipt.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - name: Refresh shared results bundle
-        run: python3 tools/dashboard_data.py --bundle league/public/results.json   # 마감 전 종목·원 가격 제외, 섞이면 실패
       - name: Verify ledgers
         run: |
           python3 tools/league.py verify
           python3 tools/league.py verify --dir league/sandbox
       - name: Commit receipt
+        env:
+          RUN_CREATED_AT: ${{ steps.run.outputs.created_at }}
         run: |
           git config user.name "league-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for p in league/ledger league/sandbox league/public; do [ -e "$p" ] && git add "$p"; done
+          receipt() {
+            python3 tools/league.py receipt "$GITHUB_EVENT_PATH" --run-id "${{ github.run_id }}" \
+              --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              --run-created-at "$RUN_CREATED_AT" | tee receipt.txt
+            python3 tools/league.py verify && python3 tools/league.py verify --dir league/sandbox
+          }
+          stage() { for p in league/ledger league/sandbox; do [ -e "$p" ] && git add "$p"; done; }
+          stage
           if git diff --cached --quiet; then
             # 처리한 제출이 있는데 기록할 변경이 없으면 영수증 유실 → 실패로 알린다
             if grep -qE ' (accepted|committed|late|rejected) ' receipt.txt; then echo "::error::영수증이 생성됐지만 커밋할 변경이 없음"; exit 1; fi
             echo "기록할 영수증 없음"; exit 0
           fi
           git commit -q -m "league: submission receipt for ${GITHUB_SHA::7}" -m "$(cat receipt.txt)"
-          for i in 1 2 3; do
-            git fetch -q origin "$GITHUB_REF_NAME" && git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
-            sleep $((i * 5))
+          for i in 1 2 3 4 5 6; do
+            git fetch -q origin "$GITHUB_REF_NAME"
+            if git rebase -q "origin/$GITHUB_REF_NAME"; then
+              git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            else
+              # 다른 제출 영수증과 겹침(해시 체인 원장은 합칠 수 없음) → 최신 원장 위에서 이 push를 다시 처리한다
+              git rebase --abort || true
+              git reset -q --hard "origin/$GITHUB_REF_NAME"
+              receipt
+              stage
+              if git diff --cached --quiet; then echo "다시 처리했더니 기록할 것 없음(이미 반영됨)"; exit 0; fi
+              git commit -q -m "league: submission receipt for ${GITHUB_SHA::7} (재처리)" -m "$(cat receipt.txt)"
+              git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            fi
+            sleep $((i * 3))
           done
           exit 1

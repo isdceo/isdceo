@@ -686,6 +686,20 @@ class CommitReveal(Receipts):
         pk = L.read_ledger(self.repo / "league", "picks")[0]
         self.assertEqual(pk["submission"]["committed_at"], "2026-11-10T08:20:00+09:00")
 
+    def test_same_push_processed_twice_records_once(self):
+        """3차 검수: 겹친 영수증을 최신 원장 위에서 다시 처리하거나 재실행해도 같은 push는 한 번만 기록."""
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        self._commit(rd, body, "2026-11-10T08:20:00+09:00")
+        before = self.run("rev-parse", "HEAD")
+        p = self.repo / "league" / "imports" / "shushu" / f"{rd}.csv"; p.write_text(body)
+        self.run("add", "."); self.run("commit", "-qm", "reveal")
+        ev = {"before": before, "after": self.run("rev-parse", "HEAD"), "ref": "refs/heads/main", "pusher": {"name": "x"},
+              "repository": {"pushed_at": int(datetime.fromisoformat("2026-11-10T08:40:00+09:00").timestamp())}, "commits": []}
+        first = L.process_push(ev, run_id="1", cwd=self.repo)
+        again = L.process_push(ev, run_id="2", cwd=self.repo)
+        self.assertEqual((first[0]["status"], again), ("accepted", []))
+        self.assertEqual(len(L.read_ledger(self.repo / "league", "picks")), 2)
+
     def test_reveal_hash_mismatch_rejected_then_retry(self):
         rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
         self._commit(rd, body, "2026-11-10T08:20:00+09:00")

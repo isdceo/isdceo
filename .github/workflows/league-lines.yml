@@ -1,4 +1,5 @@
 # 한 줄 이유(lines/<날짜>-<팀>.json) push → 검사(--check-lines) → 공유 결과 묶음(results.json) 갱신·커밋
+# 제출 영수증 작업(league-submission)이 끝난 뒤에도 묶음을 갱신한다(공유 그룹에서 직렬 처리, 대기 중 취소돼도 다음 실행이 전체를 다시 만듦).
 # 영수증·채점과 무관하다. 검사에 실패한 파일은 묶음 갱신 때도 자동으로 걸러지지만, 실패를 알리기 위해 이 작업을 실패로 끝낸다.
 name: league-lines
 on:
@@ -6,6 +7,9 @@ on:
     paths:
       - 'league/lines/*.json'
       - 'league/sandbox/lines/*.json'
+  workflow_run:                       # 제출 영수증이 기록된 뒤 공유 결과 묶음 갱신(공개된 종목 반영)
+    workflows: [league-submission]
+    types: [completed]
 permissions:
   contents: write
 concurrency:
@@ -19,11 +23,16 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 2
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+      - name: Latest branch state
+        if: github.event_name == 'workflow_run'
+        run: git pull -q --ff-only origin "${{ github.event.workflow_run.head_branch }}" || true
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: pip install -q -r requirements.txt
       - name: Check changed line files
+        if: github.event_name == 'push'
         run: |
           fail=0
           for f in $(git diff --name-only HEAD~1 HEAD -- 'league/lines/*.json' 'league/sandbox/lines/*.json'); do
@@ -38,14 +47,15 @@ jobs:
         run: |
           git config user.name "league-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BR="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}"
           git add league/public
           if ! git diff --cached --quiet; then
             git commit -q -m "league: results bundle (한 줄 이유 반영) for ${GITHUB_SHA::7}"
             ok=0
             for i in 1 2 3; do
-              git fetch -q origin "$GITHUB_REF_NAME" && git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && ok=1 && break
+              git fetch -q origin "$BR" && git rebase -q "origin/$BR" && git push -q origin "HEAD:$BR" && ok=1 && break
               sleep $((i * 5))
             done
             [ "$ok" = 1 ] || exit 1
           fi
-          [ "$fail" = 0 ] || { echo "::error::한 줄 이유 검사 실패 — 위 '문제:' 줄을 확인하세요"; exit 1; }
+          [ "${fail:-0}" = 0 ] || { echo "::error::한 줄 이유 검사 실패 — 위 '문제:' 줄을 확인하세요"; exit 1; }

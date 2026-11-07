@@ -658,6 +658,8 @@ def weekly_close(d: Path, week: str, now: str | None = None) -> list[dict]:
     cfg = load_config(d)
     done = {(x["team"], x["week"]) for x in read_ledger(d, "weekly_decisions")}
     out = []
+    if cfg.get("season_start") and week < iso_week(date.fromisoformat(cfg["season_start"])):
+        return out                                  # 시즌 시작 전 주는 마감하지 않는다(빈 보류 기록이 원장에 남지 않게)
     if cfg["weekly"].get("mode") == "per_market_bottom1":
         # 두 리그를 같은 명단 기준으로 계산한 뒤 기록한다(먼저 기록한 리그의 교체가 다른 리그 계산에 섞이지 않게)
         plan = [(mk, weekly_market_league(d, week, mk)) for mk in MARKETS
@@ -1081,6 +1083,11 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
     judged_at, judged_src = (pushed_at, "push_event.repository.pushed_at") if pushed_at else (run_at, "workflow_run.created_at")
     receipts = []
     for path in changed_submission_files(event, cwd):
+        # 같은 push(커밋)·같은 파일의 영수증이 이미 있으면 다시 만들지 않는다(재실행·충돌 재처리 때 중복 방지)
+        m_ = (COMMIT_RE.match(path) or SUBMISSION_RE.match(path))
+        if m_ and any(x.get("path") == path and x.get("commit") == event["after"]
+                      for x in read_ledger(ledger_dir_for(m_.group(1), cwd), "submissions")):
+            continue
         if COMMIT_RE.match(path):
             receipts.append(_process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, run_url, run_at, cwd))
             continue

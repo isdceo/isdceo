@@ -48,7 +48,8 @@ def api(method: str, path: str, tok: str, acct: str, proj: str):
 
 
 def this_deploy_url(log_text: str, proj: str) -> str | None:
-    m = re.findall(rf"https://([a-z0-9-]+)\.{re.escape(proj)}\.pages\.dev", log_text)
+    # 배포별 고유 주소는 16진수 해시(예: 1a2b3c4d)다. "main" 같은 브랜치 별칭 주소는 제외한다
+    m = re.findall(rf"https://([0-9a-f]{{8,}})\.{re.escape(proj)}\.pages\.dev", log_text)
     return f"https://{m[-1]}.{proj}.pages.dev" if m else None
 
 
