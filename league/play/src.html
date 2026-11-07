@@ -251,7 +251,7 @@ table.rec th:first-child,table.rec td:first-child{text-align:left}
 table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14px}
 .sheet [data-pane][hidden]{display:none!important}
 .trend svg{display:block;width:100%;height:auto;max-width:520px}
-.trend .tl{font-size:12px;fill:#cbbd9c}.trend .zero{stroke:rgba(255,255,255,.28);stroke-dasharray:3 3}
+.trend .tl{font-size:12px;fill:#cbbd9c}.trend .grid{stroke:rgba(255,255,255,.08)}.trend .zero{stroke:rgba(255,255,255,.28);stroke-dasharray:3 3}
 .spk{display:block;width:96px;height:28px;flex:0 0 96px}
 .trow{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
 .trow .who2{flex:1;min-width:0}.trow .who2 b,.trow .who2 small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trow .v{text-align:right;min-width:62px;font-family:var(--disp)}
@@ -262,7 +262,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .scrim{position:absolute;inset:0;z-index:24;display:none;background:rgba(5,0,12,.35)}
 .game.sheeted .scrim{display:block}
 /* 기록판: 탭 + 공통 선택(위에 붙음), 한 줄 순위, 글자 3단계(숫자 17~18 · 본문 15 · 보조 13) */
-.sheet [data-fp][hidden],.sheet [data-fmk][hidden],.sheet .fsel[hidden],.sheet .rdet[hidden]{display:none!important}
+.sheet [data-fp][hidden],.sheet [data-fmk][hidden],.sheet .fsel[hidden],.sheet .rdet[hidden],.sheet .wkblk[hidden]{display:none!important}
 .sheet .body{font-size:15px}
 .sheet .muted{color:#cdc2e2;font-size:13px}
 .sheet h3{font-size:18px;margin:16px 0 6px}
@@ -311,10 +311,12 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .rdet{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:0 2px 10px 44px;font-size:13px;color:#ddd2f0}
 .ptag{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;white-space:nowrap;overflow:hidden}
 .ptag em{font-style:normal;color:#fff;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tcw .tchart{max-height:min(210px,34vh)}
+.rdet .st{display:flex;flex-wrap:wrap;gap:2px 10px}.rdet .st span{white-space:nowrap}
 .rdet .lp{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:baseline}
 .rhd{display:flex;gap:8px;padding:0 2px 4px;font-size:13px;color:#cbb88a;border-bottom:1px solid rgba(255,255,255,.12)}.rhd span:first-child{flex:1}.rhd span:not(:first-child){width:78px;text-align:right}.rhd::after{content:"";width:14px}
 .rnd .rmain .nm b{font-size:16px}.rnd .rv{flex:none;width:78px;text-align:right;font-family:var(--disp);font-size:16px}
-.rnd .chev{flex:none;width:14px;color:#e8cf8e;transition:transform .2s}.rnd .rmain[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.rnd .chev{flex:none;display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;transform-origin:50% 50%;color:#e8cf8e;transition:transform .2s}.rnd .rmain[aria-expanded="true"] .chev{transform:rotate(90deg)}
 .pdet{display:block;padding:0 2px 10px}
 .pteam{margin-top:6px}.pteam .lg{margin:6px 0 2px}
 .prow{display:grid;grid-template-columns:64px minmax(0,1fr);gap:6px;align-items:start;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
@@ -606,7 +608,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const sc = fin.map((p) => p.score), ex = fin.filter((p) => p.score_excess != null).map((p) => p.score_excess);
       return { a, n: sc.length, w: mine.filter((p) => p.watch).length, avg: sc.length ? sc.reduce((x, y) => x + y, 0) / sc.length : null,
         med: sc.length ? med(sc) : null, min: sc.length ? Math.min(...sc) : null, best: sc.length ? Math.max(...sc) : null,
-        ex: ex.length ? ex.reduce((x, y) => x + y, 0) / ex.length : null }; });
+        ex: ex.length && ex.length === sc.length ? ex.reduce((x, y) => x + y, 0) / ex.length : null }; });   // 지수 대비는 모든 확정 종목에 값이 있을 때만
     const has = rows.filter((r) => r.n), none = rows.filter((r) => !r.n);
     const q = (v) => Math.round(v * 1e6) / 1e6;   // 더하는 순서로 생기는 아주 작은 차이는 같은 점수로 본다
     has.sort((x, y) => q(y.avg) - q(x.avg) || q(y.med) - q(x.med) || q(y.min) - q(x.min));
@@ -646,7 +648,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const teams = [C, Sx].map((t) => ({t, v: cumSeries(fin.filter((p) => p.team === t), days)}));
       const duel = `<div class="duel">${teams.map(({t, v}) => { const vv = v.filter((q) => q != null), lv = vv.length ? vv[vv.length - 1] : null;
         return `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="${lv == null ? 'no' : sgn(lv)}">${lv == null ? '—' : pct(lv) + '%'}</b></div>`; }).join('')}</div>
-        <p class="muted cap">${m} · ${days.length}라운드 누적 종목당 평균${chart ? '' : ' · 라운드가 3개 이상 쌓이면 그래프가 나옵니다'}</p>`;
+        <p class="muted cap">${m} · ${days.length}라운드 누적 종목당 평균${m === '연습' ? ' · 두 팀 연습 날짜가 달라 참고용' : ''}${chart ? '' : ' · 라운드가 3개 이상 쌓이면 그래프가 나옵니다'}</p>`;
       const rows = active.map((a) => { const mine = fin.filter((p) => p.team === a.team && p.agent_id === a.agent_id);
         const v = cumSeries(mine, days), vv = v.filter((q) => q != null);
         // ▲▼: 자기 점수가 마지막으로 더해진 라운드에서 얼마나 바뀌었나(그 라운드에 새 점수가 없으면 표시 안 함)
@@ -675,6 +677,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
         svg = `<div class="tcw"><svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${m} ${mk === 'ALL' ? '통합' : mk} 팀·에이전트 누적 종목당 평균 흐름">
           <line class="zero" x1="${L0}" x2="${W - R0}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>
           <text class="tl" x="${L0 - 4}" y="${(y(0) + 4).toFixed(1)}" text-anchor="end">0%</text>
+          ${[hi, lo].filter((v, i, a) => Math.abs(y(v) - y(0)) > 14 && a.indexOf(v) === i).map((v) => `<line class="grid" x1="${L0}" x2="${W - R0}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/><text class="tl" x="${L0 - 4}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${v > 0 ? '+' : '−'}${Math.abs(v).toFixed(v >= 10 || v <= -10 ? 0 : 1)}</text>`).join('')}
           <text class="tl" x="${x(0).toFixed(1)}" y="${H - 5}" text-anchor="start">${md(days[0])}</text>
           <text class="tl" x="${x(days.length - 1).toFixed(1)}" y="${H - 5}" text-anchor="end">${md(days[days.length - 1])}</text>${ags}${lines}</svg>
           <div class="tleg"><span><i style="background:${TEAM_COL[C]}"></i>로로 팀 평균</span><span><i style="background:${TEAM_COL[Sx]}"></i>슈슈 팀 평균</span><span class="muted">가는 선: 에이전트 · 아래 이름을 누르면 강조</span></div></div>`;
@@ -700,7 +703,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
         <b class="rk">${r.n ? (r.tie ? `<small>공동</small>${r.rank}` : r.rank) : '—'}</b><span class="av">${avHTML(r.a)}</span>
         <span class="nm"><b>${esc(r.a.nickname)}</b> ${tchip(r.a.team)}${!compact && r.isLast ? ' <span class="tag dn">꼴등</span>' : ''}</span>
         <span class="val">${r.n ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>${r.ex != null ? `<small>지수 대비 ${pct(r.ex)}%p</small>` : ''}` : '<span class="no">—</span>'}</span></button>
-      <div class="rdet" id="${id}" hidden>${lp ? `<div class="lp"><span class="muted">${md(lp.d)} 종목</span> ${lp.ps.map(pickTxt).join(' ')}</div>` : ''}<span>${esc(r.a.label)}</span><span>확정 ${r.n}건${r.w ? ` · 관망 ${r.w}회` : ''}${r.n ? ` · 중앙값 ${pct(r.med)}% · 최고 ${pct(r.best)}% · 최저 ${pct(r.min)}%` : ''}</span>
+      <div class="rdet" id="${id}" hidden>${lp ? `<div class="lp"><span class="muted">${md(lp.d)} 종목</span> ${lp.ps.map(pickTxt).join(' ')}</div>` : ''}<span>${esc(r.a.label)}</span><span class="st"><span>확정 ${r.n}건</span>${r.w ? `<span>관망 ${r.w}회</span>` : ''}${r.n ? `<span>중앙값 ${pct(r.med)}%</span><span>최고 ${pct(r.best)}%</span><span>최저 ${pct(r.min)}%</span>` : ''}</span>
         <button type="button" class="fastbtn sm" data-card="${esc(r.a.nickname)}">카드 보기</button></div></div>`; }).join('');
   const rankBoard = (modes) => {
     if (!modes.length) return '<p class="muted">채점된 종목이 생기면 두 팀 10명 순위가 여기에 나옵니다.</p>';
@@ -941,9 +944,15 @@ table.rec.wk td:first-child{width:44px;text-align:center}
         <h3>다가오는 라운드</h3><div class="rows">${up.map((r) => `<div class="row"><div class="who2"><b>${md(r.date)}</b><small>마감 08:30 · 채점 ${md(r.score_at.slice(0, 10))} 10:30</small></div><span class="tag">${r.date >= SEASON ? '실전' : '연습'} · ${esc(r.markets)}</span></div>`).join('')}</div>
         <p class="muted">한국·미국 거래일 달력 기준입니다. 한쪽 시장이 쉬면 남은 시장만, 둘 다 쉬면 라운드가 없습니다.</p>`; }},
     record: {t: '기록판', c: '#1f8a4c', html: () => {
-      const rows = (T.team_daily || []).filter((r) => r.team === C || r.team === Sx);
+      // 라운드별 팀 평균: team_daily가 우선. 그 라운드·팀 줄이 아직 없으면(수집이 한쪽만 끝난 날 등) 공개 종목이 모두 확정·보류일 때만 확정 점수로 채운다
+      const rows = (T.team_daily || []).filter((r) => r.team === C || r.team === Sx).slice();
+      [...new Set(T.picks.filter((p) => p.team === C || p.team === Sx).map((p) => `${p.round_date}|${p.mode}|${p.team}`))].forEach((k) => { const [d, mo, tm] = k.split('|');
+        if (rows.some((r) => r.date === d && r.team === tm && r.mode === mo && r.avg != null)) return;
+        const xs = T.picks.filter((p) => p.round_date === d && p.mode === mo && p.team === tm); if (xs.some((p) => p.status !== 'final' && p.status !== 'held')) return;
+        const f = xs.filter((p) => p.status === 'final' && p.score != null); if (!f.length) return;
+        rows.push({date: d, team: tm, mode: mo, avg: f.reduce((s, p) => s + p.score, 0) / f.length, n: f.length}); });
       const days = [...new Set(rows.map((r) => r.date))].sort();
-      const by = (d, team) => rows.find((r) => r.date === d && r.team === team);
+      const by = (d, team) => rows.find((r) => r.date === d && r.team === team && r.avg != null) || rows.find((r) => r.date === d && r.team === team);
       const live = days.filter((d) => by(d, C) && by(d, Sx) && by(d, C).mode === '실전' && by(d, C).avg != null && by(d, Sx).avg != null);
       const beads = live.map((d) => { const a = by(d, C).avg, b = by(d, Sx).avg; const ra = Math.round(a * 100), rb = Math.round(b * 100), w = ra > rb ? 'c' : ra < rb ? 's' : 't'; return `<span class="bead ${w}" title="${md(d)} 로로 ${pct(a)}% / 슈슈 ${pct(b)}%">${{c: '로', s: '슈', t: '='}[w]}</span>`; }).join('');
       const R2 = (v) => Math.round(v * 100), nC = live.filter((d) => R2(by(d, C).avg) > R2(by(d, Sx).avg)).length, nS = live.filter((d) => R2(by(d, C).avg) < R2(by(d, Sx).avg)).length;
@@ -967,16 +976,16 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const tAvg = (t) => { const xs = T.picks.filter((p) => p.team === t && p.mode === m0 && p.status === 'final' && p.score != null); return xs.length ? xs.reduce((s, p) => s + p.score, 0) / xs.length : null; };
       const duel = live.length
         ? `<div class="duel"><div class="dc c"><span>로로 팀</span><b>${nC}승</b></div><div class="dc s"><span>슈슈 팀</span><b>${nS}승</b></div></div><p class="muted cap">실전 ${live.length}라운드${live.length - nC - nS ? ` · 무승부 ${live.length - nC - nS}` : ''} · 라운드마다 종목당 평균이 높은 팀이 1승</p>`
-        : m0 ? `<div class="duel">${[C, Sx].map((t) => { const v = tAvg(t); return `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="${v == null ? 'no' : sgn(v)}">${v == null ? '—' : pct(v) + '%'}</b></div>`; }).join('')}</div><p class="muted cap">${m0} 누적 종목당 평균${m0 === '실전' ? '' : ' · 실전 승패는 11/9 라운드부터'}</p>` : '';
+        : m0 ? `<div class="duel">${[C, Sx].map((t) => { const v = tAvg(t); return `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="${v == null ? 'no' : sgn(v)}">${v == null ? '—' : pct(v) + '%'}</b></div>`; }).join('')}</div><p class="muted cap">${m0} 누적 종목당 평균${m0 === '실전' ? '' : ' · 두 팀 연습 날짜가 달라 참고용 · 실전 승패는 11/9 라운드부터'}</p>` : '';
       const wk = st.map((r) => r.week).sort().pop(), cur = st.filter((r) => r.week === wk && r.avg != null);
       const lgs = cur.some((r) => r.market) ? [['KR', '♦ 한국 리그'], ['US', '♣ 미국 리그']] : [[null, '이번 주']];
       const nameOf = (r) => esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id);
       const weekSum = cur.length ? `<div class="wsum">${lgs.map(([mk, t]) => { const rs = cur.filter((r) => (r.market || null) === mk); if (rs.length < 2) return '';
           const hi = Math.min(...rs.map((r) => r.league_rank)), lo = Math.max(...rs.map((r) => r.league_rank));
           const who = (k) => rs.filter((r) => r.league_rank === k).map((r) => `${nameOf(r)} ${tchip(r.team)}`).join(', ');
-          return `<div class="wl"><b>${t}</b><span>👑 ${who(hi)}</span><span class="risk">⚠ ${who(lo)}</span></div>`; }).join('')}</div>` : '<p class="muted">이번 주 리그 순위(1위·탈락 위험)는 11/9 주부터 나옵니다.</p>';
+          return `<div class="wl"><b>${t}</b><span>👑 ${who(hi)}</span><span class="risk">⚠ ${who(lo)}</span></div>`; }).join('')}</div>` : '<p class="muted" style="margin-top:12px">이번 주 리그 순위(1위·탈락 위험)는 11/9 주부터 나옵니다.</p>';
       const top = m0 ? rankOf(m0, 'ALL').filter((r) => r.n && r.rank <= 3) : [];   // 3위 동점자는 모두
-      const sum = `${duel}<h3>이번 주 ${wk ? `<span class="muted">${wkTxt(wk)}</span>` : ''}</h3>${weekSum}
+      const sum = `${duel}${cur.length ? `<h3>이번 주 <span class="muted">${wkTxt(wk).replace(/ 주$/, '')}</span></h3>` : ''}${weekSum}
         ${top.length ? `<h3>누적 상위 3 <span class="muted">${m0} · 통합</span></h3><div class="rlist">${rankList(top, true, m0, 'ALL')}</div><p class="more"><button type="button" class="linkbtn" data-goto="rank">전체 순위 보기 ›</button></p>` : ''}
         ${!duel && !top.length && !cur.length ? '<p class="muted">채점된 라운드가 생기면 요약이 나옵니다.</p>' : ''}
         ${SR ? `<p><button type="button" class="fastbtn" data-show>▶ ${md(SR.date)} ${SR.mode} 결과 쇼 보기</button></p>` : ''}`;
@@ -987,7 +996,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       return `<div class="rbar"><div class="tabs rtabs" role="tablist">${TABS.map(([k, t], i) => `<button role="tab" id="rt-${k}" aria-controls="rp-${k}" aria-selected="${!i}" tabindex="${i ? -1 : 0}" data-tab="${k}">${t}</button>`).join('')}</div>${fsel}</div>
         <div data-pane="sum" id="rp-sum" role="tabpanel" aria-labelledby="rt-sum">${sum}</div>
         <div data-pane="flow" id="rp-flow" role="tabpanel" aria-labelledby="rt-flow" hidden>${trendBoard(modes)}</div>
-        <div data-pane="rank" id="rp-rank" role="tabpanel" aria-labelledby="rt-rank" hidden><h3>이번 주 리그 순위 <span class="muted">실전 · 탈락 기준</span></h3>${weekBoard(st)}<h3>누적 순위 <span class="muted">참고</span></h3>${rankBoard(modes)}</div>
+        <div data-pane="rank" id="rp-rank" role="tabpanel" aria-labelledby="rt-rank" hidden><div class="wkblk" ${m0 && m0 !== '실전' ? 'hidden' : ''}><h3>이번 주 리그 순위 <span class="muted">실전 · 탈락 기준</span></h3>${weekBoard(st)}</div><h3>누적 순위 <span class="muted">참고</span></h3>${rankBoard(modes)}</div>
         <div data-pane="log" id="rp-log" role="tabpanel" aria-labelledby="rt-log" hidden>${live.length ? `<h3>실전 승패</h3><div class="beads">${beads}</div>` : ''}
           <h3>라운드별 기록</h3>${roundsHTML || '<p class="muted">아직 공개된 라운드가 없습니다.</p>'}
           ${help('점수는 하루 수익률(배당 포함, %)입니다. 팀 비교는 종목 한 건당 평균으로 합니다. 최근 라운드가 위에 오고, 줄을 누르면 그 라운드 종목이 펼쳐집니다. 마감이 지난 종목만 보입니다.')}</div>`; }},
@@ -1027,7 +1036,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     if (rtabs) {
       const tbs = [...rtabs.querySelectorAll('button')];
       tbs.forEach((b, i) => { const base = b.onclick; b.onclick = () => { base(); tbs.forEach((x) => x.tabIndex = x === b ? 0 : -1); if (fsel) fsel.hidden = !['flow', 'rank'].includes(b.dataset.tab); store('league.recTab', b.dataset.tab); sheetB.scrollTop = 0; };
-        b.onkeydown = (e) => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); const n = tbs[(i + d + tbs.length) % tbs.length]; n.onclick(); n.focus({ preventScroll: true }); }; });
+        b.onkeydown = (e) => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0, j = e.key === 'Home' ? 0 : e.key === 'End' ? tbs.length - 1 : d ? (i + d + tbs.length) % tbs.length : -1; if (j < 0) return; e.preventDefault(); const n = tbs[j]; n.onclick(); n.focus({ preventScroll: true }); }; });
       const keep = store('league.recTab'); const kb = keep && rtabs.querySelector(`[data-tab="${CSS.escape(String(keep))}"]`); if (kb) kb.onclick();
       sheetB.querySelectorAll('[data-goto]').forEach((g) => g.onclick = () => rtabs.querySelector(`[data-tab="${g.dataset.goto}"]`)?.onclick());
     }
@@ -1036,7 +1045,8 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       fsel.querySelectorAll('[data-fmk-btn]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.fmkBtn === fsel.dataset.mk)));
       fsel.querySelectorAll('[data-fmode]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.fmode === fsel.dataset.mode)));
       sheetB.querySelectorAll('[data-fp]').forEach((p) => p.hidden = p.dataset.fp !== `${fsel.dataset.mode}|${fsel.dataset.mk}`);
-      sheetB.querySelectorAll('.trow[aria-pressed="true"]').forEach((x) => x.click());   // 다른 칸으로 가면 강조를 푼다
+      sheetB.querySelectorAll('.trow[aria-pressed="true"]').forEach((x) => x.click());
+      const wb = sheetB.querySelector('.wkblk'); if (wb) wb.hidden = fsel.dataset.mode !== '실전';   // 주간 순위는 실전만   // 다른 칸으로 가면 강조를 푼다
       sheetB.querySelectorAll('[data-fmk]').forEach((p) => p.hidden = fsel.dataset.mk !== 'ALL' && p.dataset.fmk !== fsel.dataset.mk); });
     if (fsel) { const f = store('league.recF'); if (f && typeof f === 'object') { const mb = fsel.querySelector(`[data-fmode="${CSS.escape(String(f.mode))}"]`); if (mb) mb.onclick(); const kb2 = fsel.querySelector(`[data-fmk-btn="${CSS.escape(String(f.mk))}"]`); if (kb2) kb2.onclick(); } }
     const rb = sheetB.querySelector('.rbar'); if (rb) { const setH = () => sheetB.style.setProperty('--rbh', rb.offsetHeight + 'px'); setH(); if (window.ResizeObserver) new ResizeObserver(setH).observe(rb); }
