@@ -185,6 +185,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
         if mode == "실전" and per_market:         # 주간 순위: 한국·미국 리그 따로 (규칙 v2.0)
             weeks = sorted({L.iso_week(datetime.fromisoformat(p["round_date"]).date()) for p in data["picks"]})
             for wk in weeks:
+                tot = {}
                 for mk in L.MARKETS:
                     lg = L.weekly_market_league(d, wk, mk)
                     dec = lg["decision"]
@@ -204,18 +205,19 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                     for team, t in lg["teams"].items():
                         out["team_weeks"].append({"key": f"{mode}|{wk}|{mk}|{team}", "mode": mode, "week": wk, "market": mk,
                                                   "team": label(team), "avg": t["avg"], "scored": t["scored"], "picks": t["picks"],
-                                                  "expected": t["expected"], "held": None,
-                                                  "hold": " / ".join(dec["hold_reasons"])})
-                # 팀 승패는 리그를 나눠도 두 시장 합친 종목당 평균 그대로 (market = ALL)
-                for team in L.load_config(d)["teams"]:
-                    ms = [r for r in out["team_weeks"] if r["week"] == wk and r["team"] == label(team) and r["market"] in L.MARKETS]
-                    if not ms:
-                        continue
-                    sc = sum(r["scored"] for r in ms)
+                                                  "expected": t["expected"], "held": t["held_or_pending"],
+                                                  "hold": " / ".join(dec["hold_reasons"])})   # 보류는 그 리그 전체 결정
+                    for team, t in lg["teams"].items():
+                        acc = tot.setdefault(team, {"scored": 0, "picks": 0, "expected": 0, "held": 0, "sum_raw": 0.0})
+                        for k_, v_ in (("scored", "scored"), ("picks", "picks"), ("expected", "expected"),
+                                       ("held", "held_or_pending"), ("sum_raw", "sum_raw")):
+                            acc[k_] += t[v_]
+                # 팀 승패는 리그를 나눠도 두 시장 합친 종목당 평균 그대로 (market = ALL, 반올림 전 합으로 계산)
+                for team, acc in tot.items():
                     out["team_weeks"].append({"key": f"{mode}|{wk}|ALL|{team}", "mode": mode, "week": wk, "market": "ALL",
-                                              "team": label(team), "scored": sc, "picks": sum(r["picks"] for r in ms),
-                                              "expected": sum(r["expected"] for r in ms), "held": None, "hold": "",
-                                              "avg": round(sum(r["avg"] * r["scored"] for r in ms if r["avg"] is not None) / sc, 2) if sc else None})
+                                              "team": label(team), "scored": acc["scored"], "picks": acc["picks"],
+                                              "expected": acc["expected"], "held": acc["held"], "hold": "",
+                                              "avg": round(acc["sum_raw"] / acc["scored"], 2) if acc["scored"] else None})
         elif mode == "실전":                       # 주간 순위: 두 팀 10명 통합 (규칙 v1.8)
             weeks = sorted({L.iso_week(datetime.fromisoformat(p["round_date"]).date()) for p in data["picks"]})
             for wk in weeks:

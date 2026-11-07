@@ -552,7 +552,11 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
   const seenKey = (a) => `${a.team}|${a.agent_id}|${picksOf(a).last || ''}`;
   const isUnseen = (a) => { const pp = picksOf(a); if (!(pp.KR || pp.US)) return false; return !(store('league.seen') || []).includes(seenKey(a)); };
   const markSeen = (a) => { const s = store('league.seen') || []; const k = seenKey(a); if (!s.includes(k)) { s.push(k); store('league.seen', s.slice(-200)); } document.querySelectorAll('.plate').forEach((p) => { if (p.dataset.nick === a.nickname) p.classList.remove('unseen'); }); };
-  const weekRow = (a) => (T.standings || []).filter((r) => r.team === a.team && r.agent_id === a.agent_id).sort((x, y) => (x.week < y.week ? 1 : -1))[0];
+  // 이번 주 점수: 리그가 나뉜 뒤(v2.0)에는 같은 주 한국·미국 줄을 확정 건수로 가중 평균한다
+  const weekRow = (a) => { const mine = (T.standings || []).filter((r) => r.team === a.team && r.agent_id === a.agent_id); if (!mine.length) return null;
+    const wk = mine.map((r) => r.week).sort().pop(), rs = mine.filter((r) => r.week === wk && r.avg != null && r.scored);
+    if (rs.length < 2) return mine.filter((r) => r.week === wk).sort((x, y) => (y.scored || 0) - (x.scored || 0))[0];
+    const n = rs.reduce((s, r) => s + r.scored, 0); return {...rs[0], market: null, scored: n, avg: Math.round(rs.reduce((s, r) => s + r.avg * r.scored, 0) / n * 100) / 100}; };
   const scoreOf = (a) => { const r = weekRow(a); if (r && r.avg != null) return {v: r.avg, tag: '이번 주'};
     const pp = picksOf(a), xs = ['KR', 'US'].map((k) => pp[k]).filter((p) => p && p.score != null && p.status === 'final'); if (!xs.length) return null;
     return {v: xs.reduce((s, p) => s + p.score, 0) / xs.length, tag: pp.mode === '연습' ? '연습' : '최근'}; };

@@ -968,7 +968,22 @@ class MarketLeagues(unittest.TestCase):
         for team in {r["team"] for r in tw.values()}:
             kr, us, al = tw[("KR", team)], tw[("US", team)], tw[("ALL", team)]
             self.assertEqual(al["scored"], kr["scored"] + us["scored"])
-            self.assertAlmostEqual(al["avg"], (kr["avg"] * kr["scored"] + us["avg"] * us["scored"]) / al["scored"], places=1)
+
+    def test_team_average_uses_raw_scores_not_rounded(self):
+        """검수: 시장별 반올림 평균을 다시 평균하면 팀 승패가 뒤집힐 수 있다 → 원점수 합으로 계산."""
+        import dashboard_data as D
+        d = self._league()
+        # 에이전트별 평균이 반올림되면 달라지는 점수 (원값 종목당 평균: 로로 0.0719 < 슈슈 0.0731)
+        self._scores(d, "claude", {a: [0.0719] * 5 for a in self.CLAUDE}, {a: [0.0719] * 5 for a in self.CLAUDE})
+        self._scores(d, "shushu", {a: [0.0731] * 5 for a in self.SHUSHU}, {a: [0.0731] * 5 for a in self.SHUSHU})
+        sc = {p["pick_id"]: s["score"] for p in L.read_ledger(d, "picks") for s in L.read_ledger(d, "scores") if s["pick_id"] == p["pick_id"]}
+        out = D.build(datetime.fromisoformat("2026-11-15T12:00:00+09:00"), base=d)
+        al = {r["team"]: r for r in out["team_weeks"] if r["market"] == "ALL"}
+        for team, lab in (("claude", D.label("claude")), ("shushu", D.label("shushu"))):
+            raw = [v for k, v in sc.items() if f"-{team}-" in k]
+            self.assertEqual(al[lab]["avg"], round(sum(raw) / len(raw), 2))
+        kr = L.weekly_market_league(d, "2026-W46", "KR")["teams"]
+        self.assertLessEqual(kr["claude"]["avg"], kr["shushu"]["avg"])
 
     def test_close_updates_only_that_market(self):
         d = self._league(); self._fill(d)

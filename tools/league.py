@@ -415,6 +415,7 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
                      "sum": round(sum(vals), 2) if vals else 0.0, "new_this_week": a.get("joined_week") == week,
                      "avg_excess": _avg(exc),
                      "markets": {mk: {"avg": _avg(by_m[mk]), "scored": len(by_m[mk]), "avg_excess": _avg(exc_m[mk]),
+                                      "sum_raw": sum(by_m[mk]),          # 팀 평균은 반올림 전 합으로 낸다
                                       "median": round(statistics.median(by_m[mk]), 2) if by_m[mk] else None,
                                       "min": min(by_m[mk]) if by_m[mk] else None, "expected": exp_m[mk],
                                       "picks": sum(1 for p in mine if p["market"] == mk),
@@ -556,10 +557,12 @@ def weekly_market_league(d: Path, week: str, mk: str) -> dict:
             continue
         mr = [{"agent_id": r["agent_id"], "label": r["label"], "version": r["version"], "team": team, "market": mk,
                **{k: r["markets"][mk][k] for k in ("avg", "median", "min", "scored", "expected", "picks", "watch",
-                                                   "held_or_pending", "avg_excess", "new_this_week")}} for r in t]
+                                                   "held_or_pending", "avg_excess", "new_this_week", "sum_raw")}} for r in t]
         sc = sum(r["scored"] for r in mr)
+        raw = sum(r["sum_raw"] for r in mr)
         teams[team] = {"scored": sc, "expected": sum(r["expected"] for r in mr), "picks": sum(r["picks"] for r in mr),
-                       "avg": round(sum(r["avg"] * r["scored"] for r in mr if r["avg"] is not None) / sc, 2) if sc else None}
+                       "held_or_pending": sum(r["held_or_pending"] for r in mr), "sum_raw": raw,
+                       "avg": round(raw / sc, 2) if sc else None}
         rows += mr
     rows.sort(key=key, reverse=True)
     for i, r in enumerate(rows, 1):
