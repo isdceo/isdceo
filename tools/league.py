@@ -993,7 +993,7 @@ def readiness(d: Path, root: Path = ROOT) -> list[dict]:
         nb = sum(1 for b_ in bench if (team, b_["id"]) in appr)
         add(f"{cfg['teams'][team]['label']}", "현역 5명 · 승인된 대기 후보 2명 이상", len(mem) == 5 and nb >= 2, f"현역 {len(mem)} · 승인 대기 {nb}")
     add("운영", "자동화 스위치 (automation_enabled)", bool(cfg.get("automation_enabled")), str(cfg.get("automation_enabled")), "운영자 결정")
-    add("운영", "지인 배포 (deploy_enabled + Cloudflare Access)", bool(cfg.get("deploy_enabled")), "docs/deploy-cloudflare.md", "운영자: 계정")
+    add("운영", "운영자 보기 배포 (deploy_enabled + 비밀번호 잠금)", bool(cfg.get("deploy_enabled")), "docs/deploy-cloudflare.md 0장 · 지인 공개는 제공처 회신 뒤", "운영자: 계정")
     add("운영", "리그 시작일", bool(cfg.get("season_start")), cfg.get("season_start") or "미정", "운영자 결정")
     return items
 
