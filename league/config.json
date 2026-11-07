@@ -20,9 +20,10 @@
     "protect_first_week": false,
     "halt_void_after_sessions": 5,
     "missing_price_wait_sessions": 3,
-    "mode": "combined_bottom1",
+    "mode": "per_market_bottom1",
     "min_scored_ratio": 0.6,
-    "mode_note": "두 팀 현역 전원(10명) 통합 순위의 꼴등 1명만 퇴출 (2026-11-05 운영자 결정, 규칙 v1.8). 보류: 팀마다 확정 채점 < 그 팀 기대 제출의 60%, 꼴등 확정 채점 < 자기 기대 제출의 60%, 꼴등 동점. 채점 안 된 추천은 0점이 아니라 제외. 고정값(min_scored_for_elimination·min_total_scored_in_week)은 min_scored_ratio가 없을 때만 쓴다"
+    "mode_note_v2": "규칙 v2.0 (2026-11-07 운영자 결정, 2026-W46 주간 마감부터): 한국 리그·미국 리그를 따로 세워 리그마다 두 팀 통틀어 꼴등 1명을 그 시장에서만 뺀다(다른 시장은 계속 참가). 빈자리는 그 팀의 승인된 대기 후보 중 그 시장에 아직 없는 첫 후보가 다음 주부터 그 시장에만 들어간다. 보류 조건은 리그마다 따로: 팀의 그 시장 확정 < 기대의 60%, 꼴등 확정 < 자기 기대의 60%, 꼴등 동점",
+    "mode_note": "(v1.8, 지금은 per_market_bottom1) 두 팀 현역 전원(10명) 통합 순위의 꼴등 1명만 퇴출 (2026-11-05 운영자 결정, 규칙 v1.8). 보류: 팀마다 확정 채점 < 그 팀 기대 제출의 60%, 꼴등 확정 채점 < 자기 기대 제출의 60%, 꼴등 동점. 채점 안 된 추천은 0점이 아니라 제외. 고정값(min_scored_for_elimination·min_total_scored_in_week)은 min_scored_ratio가 없을 때만 쓴다"
   },
   "calendar_overrides": {
     "KR": {
@@ -56,7 +57,8 @@
     "ticker": "WATCH",
     "name": "관망",
     "max_per_week": 2,
-    "note": "규칙 v1.9(2026-11-07 운영자 결정): 종목 대신 '관망'을 낼 수 있다. 점수 = 같은 구간 비교 지수(KR KOSPI, US SPY) 가격 수익률, 초과 점수 0. 제출로 센다. 에이전트당 주(월~일) 최대 2회(시장 합산). 근거(rationale)는 필수, 출처는 선택"
+    "max_per_week_per_market": 1,
+    "note": "규칙 v1.9(2026-11-07 운영자 결정): 종목 대신 '관망'을 낼 수 있다. 점수 = 같은 구간 비교 지수(KR KOSPI, US SPY) 가격 수익률, 초과 점수 0. 제출로 센다. 에이전트당 리그(시장)별 주(월~일) 1회(v2.0, 2026-11-07 변경. 원래 합산 2회). 근거(rationale)는 필수, 출처는 선택"
   },
   "benchmarks_note": "US 비교 기준은 S&P 500 지수 라이선스 문제로 SPY(ETF) 종가로 대체 (2026-11-04 운영자 결정). SPY는 보수·배당 때문에 지수와 미세하게 다름",
   "open_license_sources": [

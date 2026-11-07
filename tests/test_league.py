@@ -19,6 +19,17 @@ def new_league():
     return d
 
 
+def use_mode(d, mode="combined_bottom1", **watch):
+    """시험용 설정 바꾸기: 주간 방식(예전 통합 방식 시험용)·관망 한도."""
+    p = d / "config.json"
+    c = json.loads(p.read_text())
+    c["weekly"]["mode"] = mode
+    if watch:
+        c.setdefault("watch", {}).update(watch)
+    p.write_text(json.dumps(c, ensure_ascii=False))
+    return d
+
+
 def price(d, m, t, s, close, **kw):
     L.append(d, "prices", {"market": m, "ticker": t, "session": s, "close": close, "basis": "unadjusted",
                            "halted": False, "status": "final", **kw})
@@ -364,6 +375,7 @@ class Weekly(unittest.TestCase):
         """results: {agent: [점수...]} → W46 월~금 라운드, 하루 KR·US 순서로 최대 10건 기록"""
         days = ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13"]
         slots = [(rd, m) for rd in days for m in ("KR", "US")]
+        use_mode(d)                                                # 예전 통합 방식(v1.8) 시험
         cfg = L.load_config(d)
         for agent, scores in results.items():
             for (rd, m), sc in zip(slots, scores):
@@ -753,7 +765,7 @@ class LeagueBottom(unittest.TestCase):
             "members": [{"id": s, "label": f"{s}형", "version": 1} for s in self.SHUSHU],
             "bench": [{"id": "s6", "label": "s6형", "version": 1}]}, ensure_ascii=False))
         L.append(d, "approvals", {"type": "bench", "team": "shushu", "agent_id": "s6", "decision": "approved"})
-        return d
+        return use_mode(d)                                         # 예전 통합 방식(v1.8) 시험
 
     def _scores(self, d, team, results):
         days = ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13"]
@@ -821,11 +833,18 @@ class Watch(unittest.TestCase):
         self.assertEqual((w["status"], w["score"], w["benchmark_return"], w["score_excess"]), ("final", -2.0, -2.0, 0.0))
         # 지수만 있으면 되므로 배당·분할 확인이 없어도 보류되지 않는다
         self.assertIsNone(w["reason"])
-        pick(d, "buffett", "2026-11-17", "KR", "WATCH")                     # 같은 주 2회째 OK
+        with self.assertRaisesRegex(ValueError, "KR 관망은 주 1회"):
+            pick(d, "buffett", "2026-11-17", "KR", "WATCH")                 # v2.0: 같은 리그 같은 주 2회째 거부
+        pick(d, "buffett", "2026-11-18", "US", "WATCH")                     # 다른 리그는 따로 1회
+        pick(d, "buffett", "2026-11-23", "KR", "WATCH")                     # 다음 주는 다시 가능
+        pick(d, "lynch", "2026-11-17", "KR", "WATCH")                       # 다른 에이전트는 따로 셈
+
+    def test_watch_combined_cap_when_configured(self):
+        d = use_mode(new_league(), "per_market_bottom1", max_per_week_per_market=None)
+        c = json.loads((d / "config.json").read_text()); c["watch"].pop("max_per_week_per_market"); (d / "config.json").write_text(json.dumps(c))
+        pick(d, "buffett", "2026-11-16", "KR", "WATCH"); pick(d, "buffett", "2026-11-17", "KR", "WATCH")
         with self.assertRaisesRegex(ValueError, "주 2회"):
-            pick(d, "buffett", "2026-11-18", "US", "WATCH")                 # 3회째(시장 합산) 거부
-        pick(d, "buffett", "2026-11-23", "US", "WATCH")                     # 다음 주는 다시 가능
-        pick(d, "lynch", "2026-11-18", "US", "WATCH")                       # 다른 에이전트는 따로 셈
+            pick(d, "buffett", "2026-11-18", "US", "WATCH")
 
     def test_watch_not_before_start_and_needs_reason(self):
         d = new_league()
@@ -850,3 +869,103 @@ class Watch(unittest.TestCase):
         self.assertEqual(bad, []); w = [x for x in ok if x["market"] == "KR"][0]; self.assertEqual((w["ticker"], w["name"]), ("WATCH", "관망"))
         due = C.due_sessions(d, date(2026, 11, 17))
         self.assertEqual(due[("KR", "2026-11-13")], ["KOSPI"])               # WATCH가 아니라 지수만 받는다
+
+
+class MarketLeagues(unittest.TestCase):
+    """규칙 v2.0: 한국·미국 리그를 따로 세워 리그마다 꼴등 1명을 그 시장에서만 뺀다."""
+    CLAUDE = ["buffett", "lynch", "dalio", "wood", "burry"]
+    SHUSHU = ["s1", "s2", "s3", "s4", "s5"]
+
+    def _league(self):
+        d = new_league()
+        shutil.copytree(ROOT / "league" / "imports" / "shushu", d / "imports" / "shushu",
+                        ignore=shutil.ignore_patterns("*.csv", "*.sha256", "*.md"))
+        for t, a in (("claude", "momentum"), ("claude", "quant"), ("shushu", "s6")):
+            L.append(d, "approvals", {"type": "bench", "team": t, "agent_id": a, "decision": "approved"})
+        return use_mode(d, "per_market_bottom1")
+
+    def _scores(self, d, team, kr: dict, us: dict, week_days=("2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13")):
+        cfg = L.load_config(d)
+        for m, res in (("KR", kr), ("US", us)):
+            for agent, scores in res.items():
+                for rd, sc in zip(week_days, scores):
+                    t = "005930" if m == "KR" else "AAPL"
+                    rec = L.make_pick(team, agent, 1, rd, m, t, t, f"{rd}T08:00:00+09:00", "", [], [{"url": "x", "as_of": rd}], cfg)
+                    L.append(d, "picks", rec)
+                    if sc is not None:
+                        L.append(d, "scores", {"pick_id": rec["pick_id"], "status": "final", "score": sc})
+
+    def _fill(self, d, kr_bottom=("claude", "burry"), us_bottom=("shushu", "s1")):
+        for team, ids in (("claude", self.CLAUDE), ("shushu", self.SHUSHU)):
+            kr = {a: [-5.0 if (team, a) == kr_bottom else 1.0 + i] * 5 for i, a in enumerate(ids)}
+            us = {a: [-5.0 if (team, a) == us_bottom else 1.0 + i] * 5 for i, a in enumerate(ids)}
+            self._scores(d, team, kr, us)
+
+    def test_each_league_eliminates_its_own_bottom(self):
+        d = self._league(); self._fill(d)
+        kr, us = L.weekly_market_league(d, "2026-W46", "KR"), L.weekly_market_league(d, "2026-W46", "US")
+        self.assertEqual(len(kr["ranking"]), 10)
+        self.assertEqual((kr["decision"]["eliminate_team"], kr["decision"]["eliminate"], kr["decision"]["replacement"]), ("claude", "burry", "momentum"))
+        self.assertEqual((us["decision"]["eliminate_team"], us["decision"]["eliminate"], us["decision"]["replacement"]), ("shushu", "s1", "s6"))
+        w = L.weekly(d, "2026-W46", "claude")["decision"]
+        self.assertEqual((w["markets"]["KR"]["eliminate"], w["markets"]["US"]["eliminate"]), ("burry", None))
+
+    def test_close_updates_only_that_market(self):
+        d = self._league(); self._fill(d)
+        recs = L.weekly_close(d, "2026-W46", now="2026-11-16T06:30:00+09:00")
+        self.assertEqual(sorted((r["market"], r["team"], r["eliminate"]) for r in recs),
+                         [("KR", "claude", "burry"), ("KR", "shushu", None), ("US", "claude", None), ("US", "shushu", "s1")])
+        self.assertEqual(L.weekly_close(d, "2026-W46"), [])                              # 다시 마감해도 중복 없음
+        ro = L.load_roster(d)
+        burry = next(a for a in ro["claude"] if a["id"] == "burry")
+        self.assertEqual((L.mstatus(burry, "KR")["status"], L.mstatus(burry, "US")["status"], burry["status"]), ("eliminated", "active", "active"))
+        mom = next(a for a in ro["claude"] if a["id"] == "momentum")
+        self.assertEqual((L.mstatus(mom, "KR")["status"], L.mstatus(mom, "KR")["joined_week"], L.mstatus(mom, "US")["status"]), ("active", "2026-W47", "bench"))
+        # W47 제출: burry는 미국만, momentum은 한국만
+        cfg = L.load_config(d)
+        mk = lambda a, m, t: L.make_pick("claude", a, 1, "2026-11-16", m, t, t, "2026-11-16T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-13"}], cfg)
+        self.assertTrue(any("한국 리그에서 탈락" in e for e in L.validate_pick(mk("burry", "KR", "005930"), d, cfg, [])))
+        self.assertEqual(L.validate_pick(mk("burry", "US", "AAPL"), d, cfg, []), [])
+        self.assertTrue(any("미국 리그 참가 전" in e for e in L.validate_pick(mk("momentum", "US", "AAPL"), d, cfg, [])))
+        self.assertEqual(L.validate_pick(mk("momentum", "KR", "005930"), d, cfg, []), [])
+        # CSV 필수 시장: burry는 미국만 내도 누락 아님
+        f = d / "w47.csv"
+        L.make_csv([{"agent_id": "burry", "agent_version": 1, "market": "US", "ticker": "AAPL", "name": "Apple", "locked_at": "2026-11-16T08:00:00+09:00",
+                     "rationale": "근거", "risks": ["위험"], "sources": [{"url": "https://e.com", "as_of": "2026-11-13"}]}], "2026-11-16", f)
+        ok, bad = L.import_csv(d, f, "claude", dry_run=True)
+        self.assertEqual(bad, [])
+        # 다음 주 순위: 한국 리그에는 momentum, burry 없음 / 미국 리그에는 burry
+        rows47 = {r["agent_id"]: r for r in L.weekly(d, "2026-W47", "claude", _rows_only=True)["ranking"]}
+        self.assertFalse(rows47["burry"]["markets"]["KR"]["active"]); self.assertTrue(rows47["burry"]["markets"]["US"]["active"])
+        self.assertTrue(rows47["momentum"]["markets"]["KR"]["active"]); self.assertFalse(rows47["momentum"]["markets"]["US"]["active"])
+        self.assertEqual(rows47["momentum"]["expected"], 5)
+
+    def test_same_bench_can_fill_other_market_later_and_full_elimination(self):
+        d = self._league(); self._fill(d)
+        L.weekly_close(d, "2026-W46", now="2026-11-16T06:30:00+09:00")
+        # W47: 미국 리그 꼴등이 burry → claude 미국 빈자리에는 아직 미국에 없는 momentum(한국에서 뛰는 중)이 우선
+        days47 = ("2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20")
+        kr = {a: [1.0 + i] * 5 for i, a in enumerate(["buffett", "lynch", "dalio", "wood", "momentum"])}
+        us = {a: [-5.0 if a == "burry" else 1.0 + i] * 5 for i, a in enumerate(self.CLAUDE)}
+        self._scores(d, "claude", kr, us, days47)
+        self._scores(d, "shushu", {a: [2.0 + i] * 5 for i, a in enumerate(self.SHUSHU)},
+                     {a: [2.0 + i] * 5 for i, a in enumerate(["s2", "s3", "s4", "s5", "s6"])}, days47)
+        us_dec = L.weekly_market_league(d, "2026-W47", "US")["decision"]
+        self.assertEqual((us_dec["eliminate"], us_dec["replacement"]), ("burry", "momentum"))
+        L.weekly_close(d, "2026-W47", now="2026-11-23T06:30:00+09:00")
+        ro = L.load_roster(d)
+        burry = next(a for a in ro["claude"] if a["id"] == "burry")
+        self.assertEqual((burry["status"], burry["eliminated_week"]), ("eliminated", "2026-W47"))   # 두 리그 모두 탈락 → 완전 탈락
+        mom = next(a for a in ro["claude"] if a["id"] == "momentum")
+        self.assertEqual((L.mstatus(mom, "KR")["status"], L.mstatus(mom, "US")["status"], L.mstatus(mom, "US")["joined_week"]), ("active", "active", "2026-W48"))
+
+    def test_hold_is_per_league(self):
+        d = self._league()
+        for team, ids in (("claude", self.CLAUDE), ("shushu", self.SHUSHU)):
+            kr = {a: [-5.0 if (team, a) == ("claude", "burry") else 1.0 + i] * 5 for i, a in enumerate(ids)}
+            us = {a: ([1.0 + i] * 2 + [None] * 3) for i, a in enumerate(ids)}            # 미국 확정 10/25 < 15
+            self._scores(d, team, kr, us)
+        self.assertEqual(L.weekly_market_league(d, "2026-W46", "KR")["decision"]["eliminate"], "burry")
+        us = L.weekly_market_league(d, "2026-W46", "US")["decision"]
+        self.assertIsNone(us["eliminate"])
+        self.assertTrue(any("미국 리그" in r and "10건 < 15건" in r for r in us["hold_reasons"]))

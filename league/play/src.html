@@ -337,6 +337,11 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 @keyframes leave{to{filter:grayscale(1) brightness(.6);translate:0 18%;opacity:.45}}
 .elim .in .im{animation:arrive .8s cubic-bezier(.2,.9,.3,1.3) 1.6s both}
 @keyframes arrive{from{translate:0 30%;opacity:0;scale:.8}to{translate:0 0;opacity:1;scale:1}}
+.elim .duo.rows{flex-direction:column;align-items:stretch;gap:10px}
+.elim .lrow{display:flex;align-items:flex-end;justify-content:center;gap:clamp(12px,5vw,48px)}
+.elim .lrow .lg{align-self:center;font-family:var(--disp);color:var(--gold);font-size:14px;min-width:3.5em;text-align:right}
+.elim .duo.rows .p .im{width:clamp(72px,15vmin,130px)}
+.elim .duo.rows .p{font-size:clamp(13px,1.8vw,17px);gap:4px}
 .elim .arrow{font-size:30px;color:#ffd77a;animation:fadeIn .4s ease-out 1.4s both}
 .elim p{margin:0;max-width:520px;text-align:center;font-size:13px;color:#d8d0ea}
 .elim button{font-family:var(--disp);font-size:16px;padding:.4em 1.4em;border-radius:12px;border:0;cursor:pointer;color:#3a1a00;background:linear-gradient(180deg,#fff1b0,#ffcf4a 45%,#e79a16);box-shadow:0 3px 0 #9a5a08}
@@ -517,6 +522,14 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     let rk = 0; has.forEach((r, i) => { rk = i && r.avg === has[i - 1].avg && r.med === has[i - 1].med && r.min === has[i - 1].min ? rk : i + 1; r.rank = rk; });
     return has.concat(none);
   };
+  // 이번 주 리그별 순위(탈락 기준, v2.0). 예전 통합 순위 자료(market 없음)도 그대로 보여 준다
+  const weekBoard = (st) => {
+    if (!st.length) return '<p class="muted">첫 주간 순위는 11/9 주부터 나옵니다. 한국 리그·미국 리그마다 두 팀 통틀어 꼴등 1명이 그 리그에서만 빠집니다.</p>';
+    const wk = st.map((r) => r.week).sort().pop(), cur = st.filter((r) => r.week === wk);
+    const tbl = (rows) => `<table class="rec"><tr><th>순위</th><th>에이전트</th><th>평균</th><th>확정</th></tr>${rows.sort((x, y) => x.league_rank - y.league_rank).map((r, i, arr) => `<tr><td>${r.league_rank}</td><td>${esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id)} <span class="muted">${short(r.team)}</span>${r.out ? ' <span class="tag dn">탈락</span>' : i === arr.length - 1 && arr.length > 1 && !r.closed ? ' <span class="tag dn">꼴등</span>' : ''}</td><td>${r.avg != null ? pct(r.avg) + '%' : '—'}</td><td>${r.scored}/${r.expected}${r.watch ? ` <span class="muted">관망 ${r.watch}</span>` : ''}</td></tr>`).join('')}</table>`;
+    if (!cur.some((r) => r.market)) return tbl(cur);
+    return [['KR', '♦ 한국 리그'], ['US', '♣ 미국 리그']].map(([mk, t]) => { const rows = cur.filter((r) => r.market === mk); return rows.length ? `<p style="margin:8px 0 4px"><b>${t}</b> <span class="muted">${wk}</span></p>${tbl(rows)}` : ''; }).join('');
+  };
   const MKS = [['ALL', '통합'], ['KR', '한국 ♦'], ['US', '미국 ♣']];
   const rankBoard = () => {
     const modes = ['실전', '연습'].filter((m) => T.picks.some((p) => p.mode === m && p.status === 'final'));
@@ -531,7 +544,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
         <div class="seg" role="group" aria-label="시장">${MKS.map(([k, t]) => `<button type="button" data-rmk="${k}" aria-pressed="${k === 'ALL'}">${t}</button>`).join('')}</div>
         ${modes.length > 1 ? `<div class="seg" role="group" aria-label="구분">${modes.map((m) => `<button type="button" data-rmode="${m}" aria-pressed="${m === modes[0]}">${m}</button>`).join('')}</div>` : `<span class="muted">${modes[0]} 누적</span>`}</div>
       ${modes.map((m) => MKS.map(([k]) => pane(m, k)).join('')).join('')}
-      <p class="muted">확정 점수의 종목당 평균 순입니다(같으면 중앙값 → 최저점). 한국·미국 순위는 참고용이고, 탈락은 아래 통합 주간 순위로 정합니다. 관망은 지수 수익률로 점수에 들어갑니다. 줄을 누르면 카드를 볼 수 있습니다.${modes.includes('연습') ? ' 연습은 두 팀 라운드 날짜가 달라 참고용입니다.' : ''}</p>`;
+      <p class="muted">확정 점수의 종목당 평균 순입니다(같으면 중앙값 → 최저점). 탈락은 아래 리그별 주간 순위로 정합니다(누적 순위는 참고용). 관망은 지수 수익률로 점수에 들어갑니다. 줄을 누르면 카드를 볼 수 있습니다.${modes.includes('연습') ? ' 연습은 두 팀 라운드 날짜가 달라 참고용입니다.' : ''}</p>`;
   };
   // 안 본 카드: 그 캐릭터의 최근 라운드를 이 기기에서 아직 다 열어 보지 않았으면 표시(기기에만 저장)
   const narrowPlate = () => innerWidth < 1000;   // 가로 휴대폰: 이름판이 좁아 '연습' 같은 머리말을 뺀다
@@ -662,7 +675,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     ['KR', 'US'].forEach((mk) => {
       const p = pp[mk]; const slot = document.createElement('div'); slot.className = 'slot2'; const c = document.createElement('div'); c.className = 'big'; const hint = document.createElement('div'); hint.className = 'hint';
       slot.append(c, hint); cardsEl.appendChild(slot);
-      if (!p) { c.innerHTML = '<div class="back" style="opacity:.3"></div>'; hint.textContent = '이번 라운드 없음'; return; }
+      if (!p) { const ms = (a.markets || {})[mk]; c.innerHTML = '<div class="back" style="opacity:.3"></div>'; hint.textContent = ms === '탈락' ? `${mk === 'KR' ? '한국' : '미국'} 리그 탈락` : ms === '미참가' ? `${mk === 'KR' ? '한국' : '미국'} 리그 미참가` : '이번 라운드 없음'; return; }
       const sc = p.score == null ? (p.status === 'held' ? '보류' : '채점 전') : pct(p.score) + '%' + (p.status !== 'final' ? ' 잠정' : '');
       const col = p.score == null ? '#6b6253' : p.status !== 'final' ? '#a8650b' : p.score >= 0 ? '#1f7a45' : '#b3261e';
       const corner = `${mk}<br>${mk === 'KR' ? '♦' : '♣'}`;
@@ -764,7 +777,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       return `${SR ? `<p><button type="button" class="fastbtn" data-show>▶ ${md(SR.date)} ${SR.mode} 결과 쇼 보기</button></p>` : ''}<h3>실전 승패</h3><div class="beads">${beads || '<span class="muted">실전 라운드가 채점되면 여기에 쌓입니다(11/9 라운드부터).</span>'}</div>
         ${live.length ? `<p>지금까지 ${live.length}라운드 · 로로 팀 ${nC}승 · 슈슈 팀 ${nS}승 · 무승부 ${live.length - nC - nS}</p>` : ''}
         <h3>에이전트 순위</h3>${rankBoard()}
-        <h3>이번 주 통합 순위 <span class="muted" style="font-size:12px">(탈락 기준)</span></h3>${st.length ? `<table class="rec"><tr><th>순위</th><th>에이전트</th><th>종목당 평균</th></tr>${st.map((r) => `<tr><td>${r.league_rank}</td><td>${esc(r.nickname || r.agent || r.agent_id)} <span class="muted">${short(r.team)}</span></td><td>${r.avg != null ? pct(r.avg) + '%' : '—'}</td></tr>`).join('')}</table>` : '<p class="muted">첫 주간 순위는 11/9 주부터 나옵니다. 주간 마감에서 10명 중 꼴등 1명이 탈락합니다.</p>'}
+        <h3>이번 주 리그 순위 <span class="muted" style="font-size:12px">(탈락 기준)</span></h3>${weekBoard(st)}
         <h3>라운드별 팀 평균</h3><table class="rec"><tr><th>라운드</th><th>로로 팀</th><th>슈슈 팀</th></tr>${days.map((d) => `<tr><td>${md(d)} <span class="muted">${(by(d, C) || by(d, Sx)).mode}</span></td><td>${cell(by(d, C))}</td><td>${cell(by(d, Sx))}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">아직 채점된 라운드가 없습니다.</td></tr>'}</table>
         <p class="muted">점수는 하루 수익률(배당 포함, %)입니다. 팀 비교는 종목 한 건당 평균으로 합니다.</p>`; }},
     picks: {t: '고른 종목 · 대기석', c: '#2a62c6', html: () => {
@@ -781,8 +794,8 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
         <li>두 팀(로로 팀·슈슈 팀) 에이전트가 평일마다 한국·미국 종목을 1개씩 고릅니다. 마감은 08:30 KST입니다.</li>
         <li>점수는 그날 종가 기준 하루 수익률(배당 포함, %)이고 다음 날 10:30에 채점합니다. 원 가격은 보여 주지 않습니다.</li>
         <li>마감이 지난 라운드의 종목만 공개합니다. 한쪽 시장이 쉬는 날은 남은 시장만, 둘 다 쉬면 라운드가 없습니다.</li>
-        <li>11/16부터는 종목 대신 <b>관망</b>을 낼 수 있습니다(에이전트당 주 2회). 관망 점수는 그날 지수(한국 KOSPI, 미국 SPY) 수익률입니다.</li>
-        <li>매주 두 팀 10명을 한 줄로 세워 꼴등 1명이 탈락하고 대기 후보가 들어옵니다. 채점이 모자라면 탈락을 미룹니다.</li>
+        <li>11/16부터는 종목 대신 <b>관망</b>을 낼 수 있습니다(에이전트당 리그별 주 1회). 관망 점수는 그날 지수(한국 KOSPI, 미국 SPY) 수익률입니다.</li>
+        <li>매주 <b>한국 리그·미국 리그</b>를 따로 세워, 리그마다 두 팀 통틀어 꼴등 1명이 그 리그에서만 빠지고 대기 후보가 그 자리에 들어옵니다. 다른 리그는 계속 뜁니다. 채점이 모자라면 탈락을 미룹니다.</li>
         <li>캐릭터는 창작 캐릭터이며, 에이전트는 투자 스타일 이름만 씁니다. 실존 인물의 추천이 아닙니다.</li></ul>
         <h3>모의 게임입니다</h3><p>돈이나 베팅은 없고, 실제 수익률·투자 권유가 아닙니다.</p>
         <h3>데이터 출처</h3><p>한국 종가·지수 — <b>한국거래소 통계정보</b>(KRX Open API)를 사용한 결과 · 미국 종가·배당 — Alpha Vantage · 한국 공시 — 금융감독원 OpenDART. 원 가격은 표시하지 않고 계산된 점수만 표시합니다.</p>
@@ -904,15 +917,31 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     coach('lobby', mid, '캐릭터를 누르면 카드를 볼 수 있어요', '이름판이나 테이블 위 카드를 눌러도 돼요', false, true); }, reduce ? 300 : 2400);
 
   // ── 주간 탈락·합류 장면: 주간 마감으로 탈락자가 생기면 이 기기에서 한 번 보여 준다 ──
-  const elimWeek = [...T.agents].map((a) => a.eliminated_week).filter(Boolean).sort().pop();
+  const EV = T.agents.flatMap((a) => (a.events || []).map((e) => ({ a, ...e })));
+  const elimWeek = EV.some((e) => e.type === 'eliminated') ? EV.filter((e) => e.type === 'eliminated').map((e) => e.week).sort().pop()
+    : [...T.agents].map((a) => a.eliminated_week).filter(Boolean).sort().pop();
   const openElim = () => {
     if (!elimWeek) return false;
-    const out = T.agents.filter((a) => a.eliminated_week === elimWeek), inn = T.agents.filter((a) => a.joined_week === elimWeek);
-    if (!out.length) return false;
-    $('#elim-t').textContent = `${elimWeek} 주간 마감`;
+    const LG = { KR: '한국', US: '미국' };
     const card = (a, cls, cap) => `<div class="p ${cls}"><div class="im">${avHTML(a)}</div>${esc(a.nickname)}<small>${short(a.team)} 팀 · ${esc(a.label)} · ${cap}</small></div>`;
-    $('#elim-duo').innerHTML = out.map((a) => card(a, 'out', '대기석으로')).join('') + (inn.length ? '<div class="arrow" aria-hidden="true">➜</div>' + inn.map((a) => card(a, 'in', '테이블 합류')).join('') : '');
-    $('#elim-p').textContent = `이번 주 10명 통합 순위 꼴등은 대기석으로 가고${inn.length ? ', 대기 1순위가 자리를 이어받습니다' : ''}. 모의 예측 게임이며 실제 투자 성과가 아닙니다.`;
+    let out, inn, text;
+    if (EV.length) {                                       // v2.0: 리그별 탈락·합류
+      out = EV.filter((e) => e.type === 'eliminated' && e.week === elimWeek);
+      const jw = EV.filter((e) => e.type === 'joined' && e.week > elimWeek).map((e) => e.week).sort()[0];
+      inn = EV.filter((e) => e.type === 'joined' && e.week === jw);
+      if (!out.length) return false;
+      const duo = $('#elim-duo'); duo.classList.add('rows');   // 리그마다 한 줄: 빠지는 사람 → 들어오는 사람
+      duo.innerHTML = ['KR', 'US'].map((mk) => { const o = out.filter((e) => e.market === mk), n = inn.filter((e) => e.market === mk); if (!o.length) return '';
+        return `<div class="lrow"><span class="lg">${mk === 'KR' ? '♦ 한국' : '♣ 미국'}</span>${o.map((e) => card(e.a, 'out', '이 리그에서 빠짐')).join('')}${n.length ? '<div class="arrow" aria-hidden="true">➜</div>' + n.map((e) => card(e.a, 'in', '이 리그 합류')).join('') : ''}</div>`; }).join('');
+      text = `한국·미국 리그마다 꼴등 1명이 그 리그에서만 빠지고${inn.length ? ', 대기 후보가 그 리그 자리를 이어받습니다' : ''}. 다른 리그는 계속 뜁니다. 모의 예측 게임이며 실제 투자 성과가 아닙니다.`;
+    } else {
+      out = T.agents.filter((a) => a.eliminated_week === elimWeek); inn = T.agents.filter((a) => a.joined_week === elimWeek);
+      if (!out.length) return false;
+      $('#elim-duo').innerHTML = out.map((a) => card(a, 'out', '대기석으로')).join('') + (inn.length ? '<div class="arrow" aria-hidden="true">➜</div>' + inn.map((a) => card(a, 'in', '테이블 합류')).join('') : '');
+      text = `이번 주 10명 통합 순위 꼴등은 대기석으로 가고${inn.length ? ', 대기 1순위가 자리를 이어받습니다' : ''}. 모의 예측 게임이며 실제 투자 성과가 아닙니다.`;
+    }
+    $('#elim-t').textContent = `${elimWeek} 주간 마감`;
+    $('#elim-p').textContent = text;
     game.classList.add('elimming'); $('#elim-x').focus({ preventScroll: true }); store('league.elim.' + elimWeek, 1); return true;
   };
   const closeElim = () => { if (!game.classList.contains('elimming')) return; game.classList.remove('elimming'); (document.querySelector('.dock button') || document.body).focus({ preventScroll: true }); };

@@ -292,6 +292,9 @@ def load_roster(d: Path) -> dict:
         team, wk = dec["team"], dec["week"]
         members = roster.setdefault(team, [])
         bench_key = "bench" if team == "claude" else f"bench_{team}"
+        if dec.get("market"):                       # v2.0 리그별 결정: 그 시장 자리만 바뀐다
+            _apply_market_decision(members, roster.get(bench_key, []), dec)
+            continue
         if dec.get("eliminate"):
             for a in members:
                 if a["id"] == dec["eliminate"]:
@@ -303,6 +306,65 @@ def load_roster(d: Path) -> dict:
             members.append({**{k: v for k, v in b.items() if k not in ("approved", "approved_at")}, "status": "active",
                             "joined_week": dec["effective_week"], "eliminated_week": None, "version": b.get("version", 1)})
     return roster
+
+MARKETS = ("KR", "US")
+
+def mstatus(a: dict, mk: str) -> dict:
+    """시장별 참가 상태 {status: active|eliminated|bench, joined_week, eliminated_week}.
+    리그별 결정이 없던 멤버는 두 시장 모두 같은 상태(예전 방식)."""
+    ms = (a.get("markets") or {}).get(mk)
+    if ms:
+        return ms
+    return {"status": a.get("status", "active"), "joined_week": a.get("joined_week"), "eliminated_week": a.get("eliminated_week")}
+
+def active_in(a: dict, mk: str, week: str) -> bool:
+    """그 주에 그 시장에서 뛰는가 (탈락한 주까지는 포함, 합류 주부터 포함)."""
+    ms = mstatus(a, mk)
+    if ms.get("status") == "bench":
+        return False
+    if ms.get("joined_week") and ms["joined_week"] > week:
+        return False
+    return ms.get("status") == "active" or (ms.get("eliminated_week") or "") >= week
+
+def _sync_overall(a: dict):
+    sts = [mstatus(a, m) for m in MARKETS]
+    if any(x.get("status") == "active" for x in sts):
+        a["status"], a["eliminated_week"] = "active", None
+    else:
+        a["status"] = "eliminated"
+        a["eliminated_week"] = max((x.get("eliminated_week") or "" for x in sts), default=None) or None
+    # 합류 주: 참가 중인 시장 중 가장 이른 합류(원래 멤버처럼 합류 기록이 없는 시장이 있으면 없음)
+    live = [x for x in sts if x.get("status") != "bench"]
+    a["joined_week"] = None if any(not x.get("joined_week") for x in live) else min((x["joined_week"] for x in live), default=None)
+
+def _apply_market_decision(members: list, bench: list, dec: dict):
+    mk, wk = dec["market"], dec["week"]
+    def materialize(a):
+        a["markets"] = {m: dict(mstatus(a, m)) for m in MARKETS}
+    if dec.get("eliminate"):
+        for a in members:
+            if a["id"] == dec["eliminate"]:
+                materialize(a)
+                a["markets"][mk].update(status="eliminated", eliminated_week=wk)
+                _sync_overall(a)
+    if dec.get("replacement"):
+        rid = dec["replacement"]
+        a = next((x for x in members if x["id"] == rid), None)
+        if a is None:
+            b = next((x for x in bench if x["id"] == rid), {"id": rid, "label": rid})
+            a = {**{k: v for k, v in b.items() if k not in ("approved", "approved_at", "markets")}, "version": b.get("version", 1),
+                 "markets": {m: {"status": "bench", "joined_week": None, "eliminated_week": None} for m in MARKETS}}
+            members.append(a)
+        else:
+            materialize(a)
+        a["markets"][mk] = {"status": "active", "joined_week": dec["effective_week"], "eliminated_week": None}
+        _sync_overall(a)
+
+def bench_available(d: Path, roster: dict, team: str, mk: str) -> list[dict]:
+    """그 시장 빈자리에 넣을 수 있는 승인된 대기 후보(순서대로). 이미 그 시장에서 뛰었거나 탈락한 사람은 제외."""
+    members = {a["id"]: a for a in roster.get(team, [])}
+    return [b for b in _approved_bench(d, roster, team)
+            if b["id"] not in members or mstatus(members[b["id"]], mk).get("status") == "bench"]
 
 def _avg(v):
     return round(statistics.mean(v), 2) if v else None
@@ -317,9 +379,7 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
     cfg = load_config(d)
     w = cfg["weekly"]
     roster = load_roster(d)
-    members = [a for a in roster.get(team, [])
-               if (a["status"] == "active" or (a.get("eliminated_week") or "") >= week)
-               and (not a.get("joined_week") or a["joined_week"] <= week)]
+    members = [a for a in roster.get(team, []) if any(active_in(a, mk, week) for mk in MARKETS)]
     scores = latest_scores(d)
     picks = [p for p in read_ledger(d, "picks") if p["team"] == team and iso_week(date.fromisoformat(p["round_date"])) == week]
     # 이 주의 기대 제출 수 = 라운드별 열린 시장 수 (에이전트 합류 이후)
@@ -331,8 +391,8 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
         mine = [p for p in picks if p["agent_id"] == a["id"]]
         outs = [o for o in outages if (o["team"] == team) and (o.get("agent_id") in (None, a["id"]))
                 and iso_week(date.fromisoformat(o["round_date"])) == week]
-        expected = sum(len(open_markets(dd, cfg)) for dd in week_days
-                       if not a.get("joined_week") or iso_week(dd) >= a["joined_week"])
+        exp_m = {mk: sum(1 for dd in week_days if mk in open_markets(dd, cfg) and active_in(a, mk, week)) for mk in MARKETS}
+        expected = sum(exp_m.values())
         fin = [(p, scores[p["pick_id"]]) for p in mine
                if p["pick_id"] in scores and scores[p["pick_id"]]["status"] == "final"]
         vals = [sc["score"] for _, sc in fin]
@@ -354,8 +414,14 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
                      "min": min(vals) if vals else None, "max": max(vals) if vals else None,
                      "sum": round(sum(vals), 2) if vals else 0.0, "new_this_week": a.get("joined_week") == week,
                      "avg_excess": _avg(exc),
-                     "markets": {mk: {"avg": _avg(by_m[mk]), "scored": len(by_m[mk]), "avg_excess": _avg(exc_m[mk])}
-                                 for mk in ("KR", "US")}})
+                     "markets": {mk: {"avg": _avg(by_m[mk]), "scored": len(by_m[mk]), "avg_excess": _avg(exc_m[mk]),
+                                      "median": round(statistics.median(by_m[mk]), 2) if by_m[mk] else None,
+                                      "min": min(by_m[mk]) if by_m[mk] else None, "expected": exp_m[mk],
+                                      "picks": sum(1 for p in mine if p["market"] == mk),
+                                      "watch": sum(1 for p in mine if p["market"] == mk and is_watch(p, cfg)),
+                                      "held_or_pending": sum(1 for p in mine if p["market"] == mk and scores.get(p["pick_id"], {}).get("status") in ("held", "pending", "provisional", None)),
+                                      "active": active_in(a, mk, week), "new_this_week": mstatus(a, mk).get("joined_week") == week}
+                                 for mk in MARKETS}})
     nz = lambda v: -1e9 if v is None else v      # 0점은 유효한 값이므로 `or`를 쓰면 안 됨
     key = lambda r: (nz(r["avg"]), nz(r["median"]), nz(r["min"]))
     rows.sort(key=key, reverse=True)
@@ -363,6 +429,15 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
         r["rank"] = i
     if _rows_only:
         return {"week": week, "team": team, "ranking": rows}
+    if w.get("mode") == "per_market_bottom1":
+        decision = {"mode": "per_market_bottom1", "markets": {}}
+        for mk in MARKETS:
+            dec = weekly_market_league(d, week, mk)["decision"]
+            mine = dec.get("eliminate_team") == team
+            decision["markets"][mk] = {"eliminate": dec["eliminate"] if mine else None, "replacement": dec["replacement"] if mine else None,
+                                       "hold_reasons": dec["hold_reasons"], "notes": dec.get("notes", []) if mine else [],
+                                       "league_bottom": dec.get("bottom"), "closed_at": dec.get("closed_at")}
+        return {"week": week, "team": team, "ranking": rows, "decision": decision}
     if w.get("mode") == "combined_bottom1":
         lg = weekly_league(d, week)
         dec = lg["decision"]
@@ -467,6 +542,61 @@ def weekly_league(d: Path, week: str) -> dict:
                         hold_reasons=closed[0].get("hold_reasons", []), closed_at=closed[0].get("closed_at"))
     return {"week": week, "mode": "combined_bottom1", "ranking": rows, "teams": teams, "decision": decision}
 
+def weekly_market_league(d: Path, week: str, mk: str) -> dict:
+    """v2.0 리그별 순위: 그 시장에서 뛴 두 팀 에이전트를 한 줄로 세우고 꼴등 1명을 그 시장에서만 뺀다.
+    보류: 팀마다 그 시장 확정 채점 < 그 팀 그 시장 기대 제출의 min_scored_ratio, 꼴등 확정 < 자기 기대의 비율, 꼴등 동점."""
+    cfg = load_config(d)
+    w = cfg["weekly"]
+    nz = lambda v: -1e9 if v is None else v
+    key = lambda r: (nz(r["avg"]), nz(r["median"]), nz(r["min"]))
+    rows, teams = [], {}
+    for team in cfg["teams"]:
+        t = [r for r in weekly(d, week, team, _rows_only=True)["ranking"] if r["markets"][mk]["active"]]
+        if not t:
+            continue
+        mr = [{"agent_id": r["agent_id"], "label": r["label"], "version": r["version"], "team": team, "market": mk,
+               **{k: r["markets"][mk][k] for k in ("avg", "median", "min", "scored", "expected", "picks", "watch",
+                                                   "held_or_pending", "avg_excess", "new_this_week")}} for r in t]
+        sc = sum(r["scored"] for r in mr)
+        teams[team] = {"scored": sc, "expected": sum(r["expected"] for r in mr), "picks": sum(r["picks"] for r in mr),
+                       "avg": round(sum(r["avg"] * r["scored"] for r in mr if r["avg"] is not None) / sc, 2) if sc else None}
+        rows += mr
+    rows.sort(key=key, reverse=True)
+    for i, r in enumerate(rows, 1):
+        r["league_rank"] = i
+    decision = {"eliminate": None, "eliminate_team": None, "replacement": None, "hold_reasons": [], "notes": [],
+                "bottom": None, "thresholds": {}, "market": mk}
+    lab = {"KR": "한국", "US": "미국"}[mk]
+    if rows:
+        for team, s_ in teams.items():
+            need = _min_needed(s_["expected"], w, "min_total_scored_in_week")
+            decision["thresholds"][team] = need
+            if s_["scored"] < need:
+                decision["hold_reasons"].append(f"{lab} 리그 {cfg['teams'][team]['label']} 확정 채점 {s_['scored']}건 < {need}건 (기대 {s_['expected']}건 기준, 데이터 부족)")
+        bottom = rows[-1]
+        decision["bottom"] = {"team": bottom["team"], "agent_id": bottom["agent_id"], "label": bottom["label"]}
+        need_a = _min_needed(bottom["expected"], w, "min_scored_for_elimination")
+        if bottom["scored"] < need_a:
+            decision["hold_reasons"].append(f"{lab} 리그 꼴등 {bottom['label']} 채점 {bottom['scored']}건 < {need_a}건")
+        if w.get("protect_first_week") and bottom["new_this_week"]:
+            decision["hold_reasons"].append(f"{lab} 리그 꼴등 {bottom['label']}는 이번 주 합류 (첫 주 보호)")
+        if sum(1 for r in rows if key(r) == key(bottom)) > 1:
+            decision["hold_reasons"].append(f"{lab} 리그 꼴등 동점 (평균·중앙값·최저점 모두 같음)")
+        if not decision["hold_reasons"]:
+            decision.update(eliminate=bottom["agent_id"], eliminate_team=bottom["team"])
+            bench = bench_available(d, load_roster(d), bottom["team"], mk)
+            if bench:
+                decision["replacement"] = bench[0]["id"]
+            else:
+                decision["notes"].append(f"{lab} 리그에 넣을 승인된 대기 후보 없음 — 자리 비움 (빈자리는 미제출로 세지 않음)")
+    closed = [x for x in read_ledger(d, "weekly_decisions") if x["week"] == week and x.get("market") == mk]
+    if closed:
+        hit = next((x for x in closed if x.get("eliminate")), None)
+        decision.update(eliminate=hit["eliminate"] if hit else None, eliminate_team=hit["team"] if hit else None,
+                        replacement=hit["replacement"] if hit else None,
+                        hold_reasons=closed[0].get("hold_reasons", []), closed_at=closed[0].get("closed_at"))
+    return {"week": week, "mode": "per_market_bottom1", "market": mk, "ranking": rows, "teams": teams, "decision": decision}
+
 def next_week(week: str) -> str:
     y, w = map(int, week.split("-W"))
     return iso_week(date.fromisocalendar(y, w, 1) + timedelta(days=7))
@@ -477,6 +607,26 @@ def weekly_close(d: Path, week: str, now: str | None = None) -> list[dict]:
     cfg = load_config(d)
     done = {(x["team"], x["week"]) for x in read_ledger(d, "weekly_decisions")}
     out = []
+    if cfg["weekly"].get("mode") == "per_market_bottom1":
+        # 두 리그를 같은 명단 기준으로 계산한 뒤 기록한다(먼저 기록한 리그의 교체가 다른 리그 계산에 섞이지 않게)
+        plan = [(mk, weekly_market_league(d, week, mk)) for mk in MARKETS
+                if not any(x["week"] == week and x.get("market") == mk for x in read_ledger(d, "weekly_decisions"))]
+        at = now or datetime.now(KST).isoformat(timespec="seconds")
+        for mk, lg in plan:
+            if not lg["ranking"]:
+                continue
+            dec = lg["decision"]
+            for team in lg["teams"]:
+                mine = dec["eliminate_team"] == team
+                rec = {"team": team, "week": week, "market": mk, "effective_week": next_week(week), "mode": "per_market_bottom1",
+                       "eliminate": dec["eliminate"] if mine else None, "replacement": dec["replacement"] if mine else None,
+                       "hold_reasons": dec["hold_reasons"], "notes": dec["notes"] if mine else [], "league_bottom": dec["bottom"],
+                       "ranking": [{k: r[k] for k in ("league_rank", "agent_id", "avg", "avg_excess", "scored", "expected",
+                                                       "picks", "watch", "held_or_pending")}
+                                   for r in lg["ranking"] if r["team"] == team],
+                       "closed_at": at}
+                out.append(append(d, "weekly_decisions", rec))
+        return out
     if cfg["weekly"].get("mode") == "combined_bottom1":
         if any(wk == week for _, wk in done):
             return out
@@ -653,9 +803,15 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         wk = iso_week(rd)
         used = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
                 and is_watch(p, cfg) and iso_week(date.fromisoformat(p["round_date"])) == wk]
-        cap = int(wcfg.get("max_per_week", 2))
-        if len(used) + 1 > cap:
-            errs.append(f"{rec['agent_id']} 관망은 주 {cap}회까지 ({wk} 이미 {len(used)}회)")
+        per_m = wcfg.get("max_per_week_per_market")
+        if per_m is not None:                       # v2.0: 리그(시장)별 주 N회
+            used_m = [p for p in used if p["market"] == rec["market"]]
+            if len(used_m) + 1 > int(per_m):
+                errs.append(f"{rec['agent_id']} {rec['market']} 관망은 주 {per_m}회까지 ({wk} 이미 {len(used_m)}회)")
+        else:
+            cap = int(wcfg.get("max_per_week", 2))
+            if len(used) + 1 > cap:
+                errs.append(f"{rec['agent_id']} 관망은 주 {cap}회까지 ({wk} 이미 {len(used)}회)")
     elif rec["ticker"] not in uni[rec["market"]]:
         errs.append(f"대상 범위 밖 종목: {rec['market']} {rec['ticker']}")
     elif not round_sessions(rec["market"], rd, cfg):
@@ -673,10 +829,14 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         if not m:
             errs.append(f"{rec['agent_id']}는 {rec['team']} 팀 명단에 없음")
         else:
-            if m.get("status") == "eliminated" and (m.get("eliminated_week") or "") < wk:
-                errs.append(f"{rec['agent_id']}는 {m.get('eliminated_week')}에 탈락 — 제출 불가")
-            if m.get("joined_week") and m["joined_week"] > wk:
-                errs.append(f"{rec['agent_id']}는 {m['joined_week']}부터 참가")
+            ms = mstatus(m, rec["market"]) if rec["market"] in MARKETS else {}
+            lab = {"KR": "한국", "US": "미국"}.get(rec["market"], rec["market"])
+            if ms.get("status") == "bench":
+                errs.append(f"{rec['agent_id']}는 {lab} 리그 참가 전 — 이 시장 제출 불가")
+            elif ms.get("status") == "eliminated" and (ms.get("eliminated_week") or "") < wk:
+                errs.append(f"{rec['agent_id']}는 {ms.get('eliminated_week')}에 {lab} 리그에서 탈락 — 이 시장 제출 불가")
+            if ms.get("joined_week") and ms["joined_week"] > wk:
+                errs.append(f"{rec['agent_id']}는 {ms['joined_week']}부터 {lab} 리그 참가")
             if rec.get("agent_version") is not None and m.get("version") is not None and int(rec["agent_version"]) != int(m["version"]):
                 errs.append(f"{rec['agent_id']} 지침 버전 불일치: 제출 v{rec['agent_version']} / 승인 v{m['version']}")
     same = [p for p in existing if p["team"] == rec["team"] and p["round_date"] == rec["round_date"]]
@@ -743,8 +903,12 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
             (bad if errs else ok).append({"line": i, "pick": rec, "errors": errs} if errs else rec)
     # 파일 단위 검사: 에이전트마다 그날 열린 시장(KR·US)에서 각 1종목 필수
     rows = ok + [b["pick"] for b in bad]
+    team_roster = {a["id"]: a for a in load_roster(d).get(team, [])}
     for (agent, rd) in sorted({(r["agent_id"], r["round_date"]) for r in rows}):
         need = open_markets(date.fromisoformat(rd), cfg)
+        if agent in team_roster:                    # v2.0: 그 리그에서 뛰는 시장만 필수
+            wk = iso_week(date.fromisoformat(rd))
+            need = {mk for mk in need if active_in(team_roster[agent], mk, wk) and (mstatus(team_roster[agent], mk).get("status") == "active")}
         have = {r["market"] for r in rows if r["agent_id"] == agent and r["round_date"] == rd}
         if need - have:
             bad.append({"line": 0, "pick": {"agent_id": agent, "round_date": rd},

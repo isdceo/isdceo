@@ -130,3 +130,11 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 - 종목명·점수는 써도 되지만 **원 가격을 다른 곳에서 가져와 붙이지 않는다.**
 - 점수 상태를 구분해 표시한다: `final`만 확정, `provisional`은 "잠정", `pending`·`held`는 "채점 전/보류".
 - 점수는 모의 예측 점수이며 실제 수익률·투자 권유가 아니다.
+
+## v2.0 리그 분리에 따른 칸 (2026-11-07)
+
+- `agents[].markets`: `{"KR": "현역|탈락|미참가|대기", "US": ...}` — 리그(시장)별 참가 상태
+- `agents[].events`: `[{"market": "KR", "type": "eliminated|joined", "week": "2026-W46"}]` — 리그별 탈락·합류 기록(합류 주는 효력 주)
+- `standings[].market`, `standings[].watch`: 주간 순위가 리그마다 따로 나온다(`weekly.mode = per_market_bottom1`). `rank`·`league_rank`는 그 리그 안의 순위
+- `team_weeks[].market`: 리그별 팀 주간 합계
+- `picks[].watch`: 관망 카드 여부(v1.9)

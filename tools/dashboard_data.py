@@ -120,17 +120,27 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
         if team not in TEAM_LABEL:
             continue
         bench = key.startswith("bench")
-        for i, m in enumerate(members, 1):
-            if bench and (team, m["id"]) not in approved:
+        member_ids = {m["id"] for m in L.load_roster(base).get(team, [])}
+        rank_i = 0
+        for m in members:
+            if bench and ((team, m["id"]) not in approved or m["id"] in member_ids):   # 한 리그에라도 합류한 후보는 현역 쪽에 표시
                 continue
-            status = (f"대기 {i}순위" if bench else
+            rank_i += bench
+            status = (f"대기 {rank_i}순위" if bench else
                       "탈락" if m.get("status") == "eliminated" else "현역")
+            # 리그(시장)별 참가 상태와 탈락·합류 기록 (v2.0)
+            mk_state = {mk: {"active": "현역", "eliminated": "탈락", "bench": "미참가"}.get(L.mstatus(m, mk).get("status"), "현역")
+                        for mk in L.MARKETS} if not bench else {mk: "대기" for mk in L.MARKETS}
+            events = [] if bench else [{"market": mk, "type": t, "week": L.mstatus(m, mk).get(f"{t}_week")}
+                                       for mk in L.MARKETS for t in ("eliminated", "joined")
+                                       if (m.get("markets") or {}).get(mk, {}).get(f"{t}_week")]
             out["agents"].append({"key": f"{TEAM_LABEL[team]}|{names[(team, m['id'])]}", "team": TEAM_LABEL[team],
                                   "agent_id": m["id"], "name": names[(team, m["id"])],
                                   "nickname": m.get("nickname") or "", "label": m.get("label") or m["id"],
                                   "tagline": m.get("tagline") or "", "avatar": m.get("avatar") or "", "status": status,
                                   "version": m.get("version", 1), "joined_week": m.get("joined_week") or "",
-                                  "eliminated_week": m.get("eliminated_week") or ""})
+                                  "eliminated_week": m.get("eliminated_week") or "",
+                                  "markets": mk_state, "events": events})
 
     state = {"done": "완료", "todo": "남음", "manual": "확인 필요"}
     for r in L.readiness(base):
@@ -171,7 +181,32 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                           "date": x["date"], "sum": x["sum"], "cumulative": x["cumulative"], "n": x["n"],
                                           "avg": x.get("avg"), "cum_avg": x.get("cum_avg"), "cum_n": x.get("cum_n")})
 
-        if mode == "실전":                       # 주간 순위: 두 팀 10명 통합 (규칙 v1.8)
+        per_market = L.load_config(d)["weekly"].get("mode") == "per_market_bottom1"
+        if mode == "실전" and per_market:         # 주간 순위: 한국·미국 리그 따로 (규칙 v2.0)
+            weeks = sorted({L.iso_week(datetime.fromisoformat(p["round_date"]).date()) for p in data["picks"]})
+            for wk in weeks:
+                for mk in L.MARKETS:
+                    lg = L.weekly_market_league(d, wk, mk)
+                    dec = lg["decision"]
+                    for r in lg["ranking"]:
+                        out["standings"].append({"key": f"{mode}|{wk}|{mk}|{r['team']}|{r['agent_id']}", "mode": mode, "week": wk,
+                                                 "market": mk, "league_rank": r["league_rank"], "rank": r["league_rank"],
+                                                 "team": label(r["team"]), "agent_id": r["agent_id"],
+                                                 "agent": names.get((r["team"], r["agent_id"]), r["label"]),
+                                                 "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
+                                                 "scored": r["scored"], "picks": r["picks"], "expected": r["expected"],
+                                                 "watch": r["watch"], "missed": max(r["expected"] - r["picks"], 0),
+                                                 "held": r["held_or_pending"],
+                                                 "submit_rate": round(r["picks"] / r["expected"] * 100, 1) if r["expected"] else None,
+                                                 "closed": bool(dec.get("closed_at")),
+                                                 "out": "탈락" if (dec.get("closed_at") and dec["eliminate_team"] == r["team"]
+                                                                and dec["eliminate"] == r["agent_id"]) else ""})
+                    for team, t in lg["teams"].items():
+                        out["team_weeks"].append({"key": f"{mode}|{wk}|{mk}|{team}", "mode": mode, "week": wk, "market": mk,
+                                                  "team": label(team), "avg": t["avg"], "scored": t["scored"], "picks": t["picks"],
+                                                  "expected": t["expected"], "held": None,
+                                                  "hold": " / ".join(dec["hold_reasons"])})
+        elif mode == "실전":                       # 주간 순위: 두 팀 10명 통합 (규칙 v1.8)
             weeks = sorted({L.iso_week(datetime.fromisoformat(p["round_date"]).date()) for p in data["picks"]})
             for wk in weeks:
                 lg = L.weekly_league(d, wk)

@@ -225,6 +225,8 @@ class WeeklyCloseAndDue(unittest.TestCase):
     def setUp(self):
         self.d = Path(tempfile.mkdtemp()) / "sample"
         L.make_sample(self.d, close_week=False)        # W46 예시: 마감 전 상태
+        from test_league import use_mode
+        use_mode(self.d)                                # 예전 통합 방식(v1.8) 시험
 
     def test_close_fixes_decision_and_updates_roster(self):
         before = L.weekly(self.d, "2026-W46", "claude")["decision"]
