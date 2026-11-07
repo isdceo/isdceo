@@ -956,6 +956,20 @@ class MarketLeagues(unittest.TestCase):
         w = L.weekly(d, "2026-W46", "claude")["decision"]
         self.assertEqual((w["markets"]["KR"]["eliminate"], w["markets"]["US"]["eliminate"]), ("burry", None))
 
+    def test_dashboard_league_rows_and_team_total(self):
+        """현황판: 주간 순위는 리그별(market KR/US) 줄, 팀 대결에는 두 시장 합친 통합(ALL) 줄."""
+        import dashboard_data as D
+        d = self._league(); self._fill(d)
+        out = D.build(datetime.fromisoformat("2026-11-15T12:00:00+09:00"), base=d)
+        st = [r for r in out["standings"] if r["week"] == "2026-W46"]
+        self.assertEqual({r["market"] for r in st}, {"KR", "US"})
+        self.assertEqual(sorted(r["league_rank"] for r in st if r["market"] == "KR"), list(range(1, 11)))
+        tw = {(r["market"], r["team"]): r for r in out["team_weeks"] if r["week"] == "2026-W46"}
+        for team in {r["team"] for r in tw.values()}:
+            kr, us, al = tw[("KR", team)], tw[("US", team)], tw[("ALL", team)]
+            self.assertEqual(al["scored"], kr["scored"] + us["scored"])
+            self.assertAlmostEqual(al["avg"], (kr["avg"] * kr["scored"] + us["avg"] * us["scored"]) / al["scored"], places=1)
+
     def test_close_updates_only_that_market(self):
         d = self._league(); self._fill(d)
         recs = L.weekly_close(d, "2026-W46", now="2026-11-16T06:30:00+09:00")

@@ -206,6 +206,16 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                                   "team": label(team), "avg": t["avg"], "scored": t["scored"], "picks": t["picks"],
                                                   "expected": t["expected"], "held": None,
                                                   "hold": " / ".join(dec["hold_reasons"])})
+                # 팀 승패는 리그를 나눠도 두 시장 합친 종목당 평균 그대로 (market = ALL)
+                for team in L.load_config(d)["teams"]:
+                    ms = [r for r in out["team_weeks"] if r["week"] == wk and r["team"] == label(team) and r["market"] in L.MARKETS]
+                    if not ms:
+                        continue
+                    sc = sum(r["scored"] for r in ms)
+                    out["team_weeks"].append({"key": f"{mode}|{wk}|ALL|{team}", "mode": mode, "week": wk, "market": "ALL",
+                                              "team": label(team), "scored": sc, "picks": sum(r["picks"] for r in ms),
+                                              "expected": sum(r["expected"] for r in ms), "held": None, "hold": "",
+                                              "avg": round(sum(r["avg"] * r["scored"] for r in ms if r["avg"] is not None) / sc, 2) if sc else None})
         elif mode == "실전":                       # 주간 순위: 두 팀 10명 통합 (규칙 v1.8)
             weeks = sorted({L.iso_week(datetime.fromisoformat(p["round_date"]).date()) for p in data["picks"]})
             for wk in weeks:
