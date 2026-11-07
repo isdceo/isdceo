@@ -1037,11 +1037,19 @@ class ShushuRepoSync(unittest.TestCase):
                           "activity_type": "push", "actor": {"login": "x"}})
         self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
         out = self.sync(f"{rd}T08:25:00+09:00")
-        self.assertEqual(sorted(r["status"] for r in out), ["processed", "processed", "retry"])
-        self.assertEqual([x["status"] for r in out for x in r.get("receipts", [])], ["committed"])
-        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:35:00+09:00")], ["retry"])         # 일시 오류일 수 있어 다시 시도
-        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:45:00+09:00")], ["error"])         # 3번째에 확정
-        self.assertEqual(self.sync(f"{rd}T08:55:00+09:00"), [])
+        # 마감 전 push를 받을 수 없으면: 순서를 지키려고 뒤의 push는 기다린다
+        self.assertEqual(sorted(r["status"] for r in out), ["processed", "retry"])
+        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:35:00+09:00")], ["retry"])
+        # 3번째에 확정 → 그 라운드는 운영자 확인 대기, 뒤 지문은 자동 접수하지 않음(골라 되살리기 차단)
+        out3 = self.sync(f"{rd}T08:45:00+09:00")
+        self.assertEqual([r["status"] for r in out3], ["error", "processed"])
+        self.assertEqual(out3[1]["receipts"], []); self.assertEqual(len(out3[1]["held_files"]), 1)
+        self.assertEqual(L.read_ledger(self.repo / "league", "submissions"), [])
+        # 운영자 확인 뒤 해제하면 원래 push 시각(08:20)으로 판정
+        L.append(self.repo / "league", "external_pushes", {"repo": "o/shushu", "type": "untaint", "team": "shushu", "round": rd, "reason": "확인"})
+        r = self.sync(f"{rd}T09:00:00+09:00")
+        self.assertEqual(r[0]["receipts"][0]["status"], "committed")
+        self.assertEqual(L.read_ledger(self.repo / "league", "submissions")[0]["pushed_at"], f"{rd}T08:20:00+09:00")
 
     def test_held_file_does_not_block_later_commitment(self):
         """다음 날 토론 파일이 보류돼도 뒤의 당일 지문은 바로 처리되고, 원본 공개 깨우기가 나간다."""
@@ -1117,6 +1125,38 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual([x["status"] for x in subs], ["committed"])                         # 앞 push 영수증 유지
         self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.csv").exists())       # 대기한 push만 되돌림
         self.assertEqual(L.verify(self.repo / "league"), [])
+
+    def test_cannot_pick_commitment_by_hiding_branches(self):
+        """3차 검수 N8: 지문 두 개를 다른 브랜치로 올리고 지운 뒤 하나만 되살려도 고를 수 없다."""
+        rd = "2026-11-10"
+        h1 = self._sha_line(rd)
+        h2 = f"{self.sh.sha256(b'other').hexdigest()}  {rd}.csv\n"
+        self.spush({f"submit/{rd}.sha256": h1}, f"{rd}T08:20:00+09:00")
+        self.acts[-1]["after"] = "a" * 40                                     # 지운 브랜치 a (받을 수 없음)
+        self.spush({f"submit/{rd}.sha256": h2}, f"{rd}T08:21:00+09:00")       # 되살린 브랜치 b
+        for t in ("08:30", "08:40"):
+            self.assertEqual([r["status"] for r in self.sync(f"{rd}T{t}:00+09:00")], ["retry"])
+        self.sync(f"{rd}T08:50:00+09:00")
+        self.assertEqual(L.read_ledger(self.repo / "league", "submissions"), [])           # b 자동 접수 없음
+
+    def test_cannot_pick_held_reveal_by_hiding_branch(self):
+        """3차 검수 N9: 보류된 마감 전 원본 둘 중 하나를 지워도 다른 하나가 대신 접수되지 않는다."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:10:00+09:00")
+        self.spush({f"submit/{rd}.csv": CommitReveal._csv(self, rd, [("s1", "KR", "000660"), ("s1", "US", "MSFT")])}, f"{rd}T08:15:00+09:00")
+        self.sync(f"{rd}T08:20:00+09:00")                                     # 둘 다 보류
+        real = self.X._restore_held
+        def fake(ext, act, units):
+            if act["id"] == 1:
+                raise RuntimeError("받을 수 없음")
+            return real(ext, act, units)
+        self.X._restore_held = fake
+        try:
+            for t in ("08:40", "08:50", "09:00", "09:10"):
+                self.sync(f"{rd}T{t}:00+09:00")
+        finally:
+            self.X._restore_held = real
+        self.assertEqual([x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "accepted"], [])
 
     def test_mirror_push_not_recorded(self):
         """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""

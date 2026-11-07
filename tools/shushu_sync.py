@@ -105,7 +105,12 @@ def _changed(ext: Path, before: str, after: str, prior_main: str | None = None, 
         raise RuntimeError(f"커밋 {after[:12]}를 받을 수 없음(브랜치 삭제·강제 push?)")
     base = before if before and before != ZERO and _have(ext, before) else None
     if base is None and prior_main and prior_main != after and _have(ext, prior_main):
-        base = prior_main                              # 새 브랜치·강제 push: 이 push 전 마지막 기본 브랜치 상태부터
+        # 새 브랜치·강제 push: 이 push 전 마지막 기본 브랜치 상태와 갈라진 지점부터(오래된 기준의 브랜치가 옛 내용을 '수정'으로 보이지 않게)
+        r = subprocess.run(["git", "merge-base", prior_main, after], cwd=ext, capture_output=True, text=True)
+        mb = r.stdout.strip() if r.returncode == 0 else ""
+        if mb == after:
+            return []                                  # 이미 기본 브랜치에 들어 있는 커밋 — 새 파일 없음
+        base = mb or None
     if base:
         return git("diff", "--no-renames", "--name-only", "--diff-filter=AMT", base, after, cwd=ext).splitlines()
     if first:                                          # 저장소의 맨 첫 push만 트리 전체
@@ -175,6 +180,19 @@ def _classify(ext: Path, act: dict, files: list[str], main: Path) -> tuple[list[
 
 
 MAX_TRIES = 3            # 받을 수 없음 등 일시 오류는 이만큼 실행에서 다시 시도한 뒤에만 오류로 확정
+TEAMS = ("shushu", "sandbox-shushu")
+
+
+def _pre_deadline_round(pushed: datetime, cfg: dict) -> str | None:
+    """push가 어느 라운드의 마감 전이었으면 그 라운드 날짜(지문·원본을 고를 여지가 있는 push)."""
+    R = _first_round_on_or_after(pushed.date(), cfg)
+    return R.isoformat() if pushed < L.lock_deadline(R, cfg) else None
+
+
+def tainted(recs: list[dict]) -> set[tuple[str, str]]:
+    """(팀, 라운드): 마감 전 push 중 끝내 받을 수 없는 것이 있어 자동 접수하지 않는 라운드(운영자 확인 대기)."""
+    t = {(x["team"], x["round"]) for x in recs if x.get("type") == "taint"}
+    return t - {(x["team"], x["round"]) for x in recs if x.get("type") == "untaint"}
 
 
 def _name(u: dict) -> str:
@@ -223,6 +241,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         if x.get("type") in ("push_error", "release_error"):
             tries[(x["type"], x.get("held_id") or x["activity_id"])] = tries.get((x["type"], x.get("held_id") or x["activity_id"]), 0) + 1
     groups, out = [], []
+    block = None
     # 1) 새 push
     main_ref = f"refs/heads/{base_branch}"
     for i, act in enumerate(activities):
@@ -246,6 +265,16 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "error",
                                             "attempt": n, "error": str(e)[:300]})
             out.append({**base, "status": "error" if final else "retry", "error": str(e)[:300], "receipts": [], "lines": []})
+            rr = _pre_deadline_round(pushed, cfg)
+            if rr and final:
+                # 마감 전 push를 끝내 받을 수 없음: 뒤의 지문·원본을 자동으로 인정하면 '골라 되살리기'가 가능해진다 → 그 라운드 운영자 확인
+                for t_ in TEAMS:
+                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": rr, "activity_id": act["id"],
+                                                    "pushed_at": pushed.isoformat(), "reason": "마감 전 push를 받을 수 없음"})
+                recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
+            elif rr:
+                block = pushed                         # 순서를 지키려고 이 뒤의 push·보류 해제는 다음 실행으로 미룬다
+                break
             continue
         ready, held = [], []
         for u in units:
@@ -256,20 +285,34 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     # 2) 미뤄 둔 파일 중 때가 된 것
     for h in [x for x in recs if x.get("type") == "held" and x["held_id"] not in released]:
         until = datetime.fromisoformat(h["until"]) if h.get("until") else None
+        if h.get("taint") and (("sandbox-shushu" if str(h.get("dst", "")).startswith("league/imports/sandbox-") else "shushu"), h["rd"]) in tainted(recs):
+            continue
         if (until and now <= until) or (h["kind"] == "message" and in_round_window(now, cfg)):
             continue
         groups.append({"act": {"id": h["activity_id"], "after": h["s_after"], "actor": {"login": h.get("actor")}},
                        "pushed": datetime.fromisoformat(h["pushed_at"]), "release": h, "base": None,
                        "ready": [{"file": h.get("file"), "file_hash": h.get("file_hash"), "dst": h.get("dst"), "rd": h["rd"], "kind": h["kind"]}],
                        "held": [], "ignored": 0, "problems": []})
+    if block is not None:
+        groups = [g for g in groups if g["pushed"] < block]
     groups.sort(key=lambda g: (g["pushed"], str(g["act"]["id"])))
+    bad = tainted(recs)
+    def _team_of(u):
+        return "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
     for g in groups:
         act, pushed = g["act"], g["pushed"]
+        # 확인 대기 라운드의 지문·원본은 처리하지 않고 보류로 둔다(운영자가 untaint 하면 원래 push 시각으로 처리)
+        stuck = [u for u in g["ready"] if u["kind"] in ("commitment", "reveal") and (_team_of(u), u["rd"]) in bad]
+        if stuck:
+            if g.get("release"):
+                continue
+            g["ready"] = [u for u in g["ready"] if u not in stuck]
+            g["held"] = g["held"] + [{**u, "until": None, "taint": True} for u in stuck]
         prev, snap = git("rev-parse", "HEAD", cwd=main), _ledger_snapshot(main)
         try:
             if g.get("release"):
                 _restore_held(ext, act, g["ready"])
-            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url)
+            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url, bad)
         except L.CommitmentPending as e:
             _rollback(main, prev, snap, [u["dst"] for u in g["ready"] if u.get("dst")])   # 이 push만 되돌리고 다음 실행에서 다시
             out.append({"activity_id": act["id"], "status": "pending", "note": str(e), "receipts": [], "lines": []})
@@ -288,6 +331,17 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                 rec.update({**g["base"], "type": "push" if final else "push_error", "status": "error", "attempt": n, "error": str(e)[:300]})
             L.append(d, "external_pushes", rec)
             out.append({**rec, "status": "error" if final else "retry", "receipts": [], "lines": []})
+            if g.get("release"):
+                u = g["ready"][0]
+                team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
+                rr = max(u["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())
+                if final and u["kind"] in ("reveal", "debate"):
+                    # 보류한 원본을 끝내 꺼낼 수 없음: 같은 라운드의 다른 원본을 대신 인정하지 않는다
+                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": rr, "activity_id": act["id"],
+                                                    "pushed_at": pushed.isoformat(), "reason": "보류한 원본을 받을 수 없음"})
+                    bad.add((team, rr))
+                elif not final:
+                    break                              # 순서를 지키려고 뒤의 처리는 다음 실행으로
             continue
         summary = {"receipts": [{"path": r["path"], "status": r["status"], "errors": r["errors"]} for r in receipts],
                    "lines": [{"path": p_, "ok": ok} for p_, ok in lines]}
@@ -304,7 +358,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         for k, u in enumerate(g["held"]):
             h = {"repo": repo, "activity_id": act["id"], "type": "held", "held_id": f"{act['id']}#{k}", "rd": u["rd"], "kind": u["kind"],
                  "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": rec["actor"],
-                 "until": u["until"].isoformat() if u["until"] else None}
+                 "until": u["until"].isoformat() if u["until"] else None, "taint": bool(u.get("taint"))}
             if u["kind"] == "message":                 # 메시지 이름은 보류 중 원장에 남기지 않는다(해시만)
                 h["file_hash"] = L.hashlib.sha256(u["file"].encode()).hexdigest()
             else:
@@ -329,7 +383,8 @@ def _restore_held(ext: Path, act: dict, units: list[dict]):
             u["file"], u["dst"] = hit, map_path(hit)[0]
 
 
-def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units: list[dict], run_id: str, run_url: str):
+def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units: list[dict], run_id: str, run_url: str,
+           bad: set | None = None):
     """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다."""
     if not units:
         return [], [], ""
@@ -337,6 +392,9 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
     for u in units:
         if u["kind"] in ("commitment", "reveal"):
             team = "sandbox-shushu" if u["dst"].startswith("league/imports/sandbox-") else "shushu"
+            if (team, u["rd"]) in (bad or set()):
+                notes.append(f"{u['file']}: {u['rd']} 라운드는 운영자 확인 대기(마감 전 push 중 받을 수 없는 것이 있음) — 자동 접수 안 함")
+                continue
             subs = L.read_ledger(L.ledger_dir_for(team, main), "submissions")
             want = "committed" if u["kind"] == "commitment" else "accepted"
             if any(x.get("path") == u["dst"] and x.get("status") == want for x in subs):
@@ -413,6 +471,23 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
     for f in files:
         src = main / f
         if not src.exists():
+            continue
+        if f == "league/public/results.json":         # 대사 하나에 가격 표현이 있으면 그 대사만 비운다(묶음 전체를 빼지 않음)
+            try:
+                b = json.loads(src.read_text())
+                for pk in b.get("picks", []):
+                    if pk.get("line") and PRICE_TEXT.search(pk["line"]):
+                        pk["line"] = ""
+                        skipped.append(f"{f}: {pk.get('pick_id')} 대사(가격처럼 보이는 표현) 비움")
+                text = json.dumps(b, ensure_ascii=False, indent=1) + "\n"
+            except Exception:  # noqa: BLE001
+                text = src.read_text(errors="replace")
+            if NO_PRICE.search(text) or PRICE_TEXT.search(text):
+                skipped.append(f"{f}: 가격처럼 보이는 글")
+                continue
+            (dst / f).parent.mkdir(parents=True, exist_ok=True)
+            (dst / f).write_text(text)
+            wrote.append(f)
             continue
         if not f.startswith("tools/"):
             text = src.read_text(errors="replace")
@@ -580,7 +655,8 @@ def wake(main: Path, repo: str, token: str, now: datetime | None = None, post=No
 
 def main_():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["pull", "mirror", "wake"])
+    ap.add_argument("cmd", choices=["pull", "mirror", "wake", "untaint"])
+    ap.add_argument("--round"); ap.add_argument("--team"); ap.add_argument("--reason")
     ap.add_argument("--ext", required=True, help="전용 저장소 체크아웃 폴더")
     ap.add_argument("--repo", help="owner/name (기본: config shushu_repo.repo)")
     ap.add_argument("--branch")
@@ -609,6 +685,12 @@ def main_():
             print("새 push 없음")
         if any(not x["ok"] for r in res for x in r.get("lines", [])):
             sys.exit(3)
+    elif a.cmd == "untaint":                            # 운영자 확인 뒤에만 (원장에 남음)
+        if not (a.round and a.team and a.reason):
+            sys.exit("--round --team --reason 필요")
+        L.append(ROOT / "league", "external_pushes", {"repo": repo, "type": "untaint", "team": a.team, "round": a.round,
+                                                      "reason": a.reason, "at": datetime.now(L.KST).isoformat(timespec="seconds")})
+        print(f"{a.team} {a.round} 확인 대기 해제 — 다음 동기화부터 그 라운드 push를 처리")
     elif a.cmd == "wake":
         tok = os.environ.get("SHUSHU_REPO_TOKEN")
         if not (repo and tok):
