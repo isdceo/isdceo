@@ -973,17 +973,19 @@ class MarketLeagues(unittest.TestCase):
         """검수: 시장별 반올림 평균을 다시 평균하면 팀 승패가 뒤집힐 수 있다 → 원점수 합으로 계산."""
         import dashboard_data as D
         d = self._league()
-        # 에이전트별 평균이 반올림되면 달라지는 점수 (원값 종목당 평균: 로로 0.0719 < 슈슈 0.0731)
-        self._scores(d, "claude", {a: [0.0719] * 5 for a in self.CLAUDE}, {a: [0.0719] * 5 for a in self.CLAUDE})
-        self._scores(d, "shushu", {a: [0.0731] * 5 for a in self.SHUSHU}, {a: [0.0731] * 5 for a in self.SHUSHU})
-        sc = {p["pick_id"]: s["score"] for p in L.read_ledger(d, "picks") for s in L.read_ledger(d, "scores") if s["pick_id"] == p["pick_id"]}
+        # 시장별로 먼저 반올림하면 로로 0.00 < 슈슈 0.01, 원점수로는 둘 다 0.01 (2차 검수: 반올림 순서로 결과가 갈리는 값)
+        self._scores(d, "claude", {a: [0.004, 0.004, 0.004, 0.004, None] for a in self.CLAUDE},
+                     {a: [0.016, None, None, None, None] for a in self.CLAUDE})
+        self._scores(d, "shushu", {a: [0.009] * 5 for a in self.SHUSHU}, {a: [0.009] * 5 for a in self.SHUSHU})
+        sc = {s["pick_id"]: s["score"] for s in L.read_ledger(d, "scores")}
         out = D.build(datetime.fromisoformat("2026-11-15T12:00:00+09:00"), base=d)
         al = {r["team"]: r for r in out["team_weeks"] if r["market"] == "ALL"}
-        for team, lab in (("claude", D.label("claude")), ("shushu", D.label("shushu"))):
+        for team in ("claude", "shushu"):
             raw = [v for k, v in sc.items() if f"-{team}-" in k]
-            self.assertEqual(al[lab]["avg"], round(sum(raw) / len(raw), 2))
-        kr = L.weekly_market_league(d, "2026-W46", "KR")["teams"]
-        self.assertLessEqual(kr["claude"]["avg"], kr["shushu"]["avg"])
+            self.assertEqual(al[D.label(team)]["avg"], round(sum(raw) / len(raw), 2))
+        self.assertEqual((al[D.label("claude")]["avg"], al[D.label("shushu")]["avg"]), (0.01, 0.01))
+        us = L.weekly_market_league(d, "2026-W46", "US")["teams"]
+        self.assertEqual(us["claude"]["avg"], round(0.016, 2))
 
     def test_close_updates_only_that_market(self):
         d = self._league(); self._fill(d)

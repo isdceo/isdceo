@@ -735,7 +735,9 @@
     sel.value = weeks.includes(cur) ? cur : (weeks[0] || '');
     sel.onchange = () => dash.setParams({week: sel.value || null});
   });
+  const syncLeague = () => document.querySelectorAll('.f-league').forEach((s) => { s.value = curLeague(); });
   dash.draw('stand-body', (tbody) => {
+    syncLeague();
     const d = dash.data('standings');
     const weeks = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort().reverse() : [];
     const wk = weeks.includes(dash.params().week) ? dash.params().week : weeks[0];
@@ -1304,6 +1306,7 @@
     } else el._zoomFocus = null;
   };
   const drawBaccaratBody = (el, first) => {
+    syncLeague();
     const ag = dash.data('agents'), stn = dash.data('standings'), tw = dash.data('team_weeks'), pk = dash.data('picks');
     const wk = latestWeek();
     const week = stn.status === 'ok' && wk ? stn.data.filter((r) => r.week === wk && inLeague(r)) : [];
@@ -1317,9 +1320,9 @@
     const lowR = scoredW.length > 1 ? Math.max(...scoredW.map((r) => r.league_rank)) : null;
     const flagOf = (r) => ({isLead: !!r && r.avg != null && r.league_rank === topR, isRisk: !!r && r.avg != null && r.league_rank === lowR && lowR !== topR});
     const rowOf = (a) => week.find((r) => r.team === a.team && r.agent_id === a.agent_id) || null;
-    // 고른 리그에서 뛰는 사람만 앉힌다 (그 주 순위 줄이 있으면 마감으로 빠졌어도 그 주에는 앉힘)
+    // 고른 리그에서 뛰는 사람만 앉힌다. 그 주 순위 줄이 있으면 그 줄의 사람만(마감 직후 다음 주 합류자와 겹치지 않게)
     const active = ag.status === 'ok' ? ag.data.filter((a) => !a.status.startsWith('대기') && a.status !== '탈락'
-      && (!a.markets || a.markets[curLeague()] === '현역' || rowOf(a))) : [];
+      && (week.length ? !!rowOf(a) : (!a.markets || a.markets[curLeague()] === '현역'))) : [];
     const byRank = (team) => active.filter((a) => a.team === team).sort((x, y) => (rowOf(x)?.league_rank ?? 99) - (rowOf(y)?.league_rank ?? 99));
     const seats = [...byRank('로로 팀 (Claude)'), ...byRank('슈슈 팀 (Codex)').reverse()];
     const picksOf = (a) => {

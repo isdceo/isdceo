@@ -197,6 +197,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                                  "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
                                                  "scored": r["scored"], "picks": r["picks"], "expected": r["expected"],
                                                  "watch": r["watch"], "missed": max(r["expected"] - r["picks"], 0),
+                                                 "sum_raw": round(r["sum_raw"], 6),
                                                  "held": r["held_or_pending"],
                                                  "submit_rate": round(r["picks"] / r["expected"] * 100, 1) if r["expected"] else None,
                                                  "closed": bool(dec.get("closed_at")),
