@@ -297,6 +297,13 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .rmain .val{flex:none;text-align:right;font-family:var(--disp);font-size:18px;line-height:1.1}
 .rmain .val small,.trow .v small{display:block;font-family:inherit;font-size:13px;color:#cdc2e2}
 .trow .v small.up{color:#7dffa8}.trow .v small.dn{color:#ff8f86}
+.tchart .ag path{stroke-width:1.3;opacity:.4;transition:opacity .2s,stroke-width .2s}.tchart .ag circle{opacity:.45}
+.tchart .ag.c path{stroke:#ff9d8e}.tchart .ag.c circle{fill:#ff9d8e}.tchart .ag.s path{stroke:#93b8ff}.tchart .ag.s circle{fill:#93b8ff}
+.tchart .agl{display:none;font-size:12px;fill:#fff;paint-order:stroke;stroke:#1a0e28;stroke-width:3px;font-weight:700}
+.tchart.hl .ag{opacity:.25}.tchart.hl .tline{opacity:.45}
+.tchart.hl .ag.on{opacity:1}.tchart .ag.on path{stroke-width:3.2;opacity:1;stroke:#ffe27a}.tchart .ag.on circle{opacity:1;fill:#ffe27a;r:4.5}.tchart .ag.on .agl{display:block}
+.trow[aria-pressed="true"]{background:rgba(255,215,120,.12);border-radius:10px;box-shadow:inset 3px 0 0 #ffe27a}
+.trend .tleg{margin:2px 0 4px;font-size:13px;gap:6px 14px}
 .rdet{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:0 2px 10px 44px;font-size:13px;color:#ddd2f0}
 .fastbtn.sm{font-size:13px;padding:4px 12px;min-height:32px}
 .linkbtn{border:0;background:none;color:#ffd77a;font:inherit;font-size:14px;padding:6px 0;min-height:32px;cursor:pointer}
@@ -572,7 +579,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   const toMiddle = (xs) => { const o = [...xs].sort((x, y) => has3d(y) - has3d(x)), r = new Array(o.length), idx = [2, 1, 3, 0, 4]; o.forEach((a, k) => (r[idx[k] ?? k] = a)); return r.filter(Boolean); };
   const picksOf = (a) => { const mine = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id); const live = mine.filter((p) => p.mode === '실전'); const pool = live.length ? live : mine; const last = pool.map((p) => p.round_date).sort().pop();
     return {KR: pool.find((p) => p.round_date === last && p.market === 'KR'), US: pool.find((p) => p.round_date === last && p.market === 'US'), last, mode: pool[0] && pool[0].mode}; };
-  const pct = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+  const pct = (v) => { const r = Math.round(v * 100) / 100; return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(2); };   // 반올림 뒤 0이면 부호 없이
   // 에이전트 순위표: 두 팀 현역을 한 줄로. 확정 점수만, 종목당 평균 → 중앙값 → 최저점 순(주간 탈락 기준과 같은 순서)
   // 시장별 보기(통합·한국·미국)는 참고용이며 공식 탈락은 통합 주간 순위로 정한다(슈슈 팀 의견 2026-11-07)
   const rankOf = (mode, mk) => {
@@ -624,41 +631,44 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const duel = `<div class="duel">${teams.map(({t, v}) => { const vv = v.filter((q) => q != null), lv = vv.length ? vv[vv.length - 1] : null;
         return `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="${lv == null ? 'no' : lv >= 0 ? 'up' : 'dn'}">${lv == null ? '—' : pct(lv) + '%'}</b></div>`; }).join('')}</div>
         <p class="muted cap">${m} · ${days.length}라운드 누적 종목당 평균${chart ? '' : ' · 라운드가 3개 이상 쌓이면 그래프가 나옵니다'}</p>`;
-      let svg = '';
-      if (chart) {
-        const all = teams.flatMap((x) => x.v).filter((v) => v != null).concat([0]);
-        const lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo) * 0.15 || 0.5;
-        const W = 320, H = 116, L0 = 34, R0 = 10, T0 = 8, B0 = 20;
-        const x = (i) => L0 + i * (W - L0 - R0) / (days.length - 1);
-        const y = (v) => T0 + (hi + pad - v) * (H - T0 - B0) / ((hi + pad) - (lo - pad));
-        const lines = teams.map(({t, v}) => { const last = v.length - 1 - [...v].reverse().findIndex((q) => q != null);
-          return `<path d="${path(v, x, y)}" fill="none" stroke="${TEAM_COL[t]}" stroke-width="2.4" stroke-linejoin="round"/>` +
-            v.map((q, i) => q == null ? '' : `<circle cx="${x(i).toFixed(1)}" cy="${y(q).toFixed(1)}" r="${i === last ? 3.6 : 2.2}" fill="${TEAM_COL[t]}"/>`).join(''); }).join('');
-        svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${m} ${mk === 'ALL' ? '통합' : mk} 팀 누적 종목당 평균 흐름">
-          <line class="zero" x1="${L0}" x2="${W - R0}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>
-          <text class="tl" x="${L0 - 4}" y="${(y(0) + 4).toFixed(1)}" text-anchor="end">0%</text>
-          <text class="tl" x="${x(0).toFixed(1)}" y="${H - 5}" text-anchor="start">${md(days[0])}</text>
-          <text class="tl" x="${x(days.length - 1).toFixed(1)}" y="${H - 5}" text-anchor="end">${md(days[days.length - 1])}</text>${lines}</svg>`;
-      }
-      const spark = (v) => { const vv = v.filter((q) => q != null); if (vv.length < 3) return '';
-        const a = Math.min(...vv, 0), b = Math.max(...vv, 0), sp = (b - a) || 1, xs = (i) => 3 + i * 90 / (days.length - 1), ys = (q) => 25 - (q - a) * 22 / sp;
-        const li = v.length - 1 - [...v].reverse().findIndex((q) => q != null), last = v[li], col = last >= 0 ? '#5fd38a' : '#ff7a6b';
-        return `<svg class="spk" viewBox="0 0 96 28" aria-hidden="true"><line x1="0" x2="96" y1="${ys(0).toFixed(1)}" y2="${ys(0).toFixed(1)}" stroke="rgba(255,255,255,.22)" stroke-dasharray="2 2"/>
-          <path d="${path(v, xs, ys)}" fill="none" stroke="#e8cf8e" stroke-width="1.8"/><circle cx="${xs(li).toFixed(1)}" cy="${ys(last).toFixed(1)}" r="2.6" fill="${col}"/></svg>`; };
       const rows = active.map((a) => { const mine = fin.filter((p) => p.team === a.team && p.agent_id === a.agent_id);
         const v = cumSeries(mine, days), vv = v.filter((q) => q != null);
         // ▲▼: 자기 점수가 마지막으로 더해진 라운드에서 얼마나 바뀌었나(그 라운드에 새 점수가 없으면 표시 안 함)
         const li = days.map((d) => mine.some((p) => p.round_date === d)).lastIndexOf(true);
         return {a, v, n: mine.length, last: vv.length ? vv[vv.length - 1] : null, prev: li > 0 ? v[li - 1] : null}; })
         .sort((p, q) => (q.last ?? -1e9) - (p.last ?? -1e9));
+      rows.forEach((r, k) => (r.k = k));
+      // 한 그래프: 팀 평균 두 줄(굵게) + 에이전트 10명(가늘고 옅게). 아래 줄을 누르면 그 사람 선만 강조
+      let svg = '';
+      if (chart) {
+        const all = teams.flatMap((x) => x.v).concat(rows.flatMap((r) => r.v)).filter((v) => v != null).concat([0]);
+        const lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo) * 0.1 || 0.5;
+        const W = 320, H = 168, L0 = 34, R0 = 12, T0 = 16, B0 = 20;
+        const x = (i) => L0 + i * (W - L0 - R0) / (days.length - 1);
+        const y = (v) => T0 + (hi + pad - v) * (H - T0 - B0) / ((hi + pad) - (lo - pad));
+        const lastIdx = (v) => v.length - 1 - [...v].reverse().findIndex((q) => q != null);
+        const ags = rows.filter((r) => r.last != null).map((r) => { const li = lastIdx(r.v), lx = x(li), ly = y(r.v[li]);
+          return `<g class="ag ${r.a.team === C ? 'c' : 's'}" data-k="${r.k}"><path d="${path(r.v, x, y)}" fill="none" stroke-linejoin="round"/>
+            <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.4"/><text class="agl" x="${Math.min(lx, W - R0).toFixed(1)}" y="${(ly < T0 + 14 ? ly + 16 : ly - 8).toFixed(1)}" text-anchor="end">${esc(r.a.nickname)} ${pct(r.last)}%</text></g>`; }).join('');
+        const lines = teams.map(({t, v}) => { const last = lastIdx(v);
+          return `<path class="tline" d="${path(v, x, y)}" fill="none" stroke="${TEAM_COL[t]}" stroke-width="3" stroke-linejoin="round"/>` +
+            (last >= 0 && v[last] != null ? `<circle class="tline" cx="${x(last).toFixed(1)}" cy="${y(v[last]).toFixed(1)}" r="3.8" fill="${TEAM_COL[t]}"/>` : ''); }).join('');
+        svg = `<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${m} ${mk === 'ALL' ? '통합' : mk} 팀·에이전트 누적 종목당 평균 흐름">
+          <line class="zero" x1="${L0}" x2="${W - R0}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>
+          <text class="tl" x="${L0 - 4}" y="${(y(0) + 4).toFixed(1)}" text-anchor="end">0%</text>
+          <text class="tl" x="${x(0).toFixed(1)}" y="${H - 5}" text-anchor="start">${md(days[0])}</text>
+          <text class="tl" x="${x(days.length - 1).toFixed(1)}" y="${H - 5}" text-anchor="end">${md(days[days.length - 1])}</text>${ags}${lines}</svg>
+          <div class="tleg"><span><i style="background:${TEAM_COL[C]}"></i>로로 팀 평균</span><span><i style="background:${TEAM_COL[Sx]}"></i>슈슈 팀 평균</span><span class="muted">가는 선: 에이전트 · 아래 이름을 누르면 강조</span></div>`;
+      }
       const rowHTML = rows.map((r) => { const d = r.last != null && r.prev != null ? r.last - r.prev : null;
-        return `<div class="trow" data-nick="${esc(r.a.nickname)}" role="button" tabindex="0"><span class="av">${avHTML(r.a)}</span>
-          <div class="who2"><b>${esc(r.a.nickname)}</b> ${tchip(r.a.team)}</div>${spark(r.v)}
+        const act = chart && r.last != null ? `data-hk="${r.k}" aria-pressed="false"` : `data-nick="${esc(r.a.nickname)}"`;
+        return `<div class="trow" ${act} role="button" tabindex="0"><span class="av">${avHTML(r.a)}</span>
+          <div class="who2"><b>${esc(r.a.nickname)}</b> ${tchip(r.a.team)}</div>
           <div class="v">${r.last == null ? '<span class="no">—</span>' : `<span class="${r.last >= 0 ? 'up' : 'dn'}">${pct(r.last)}%</span>`}${d == null ? '' : `<small class="${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(2)}%p</small>`}</div></div>`; }).join('');
       return `<div class="trend" data-fp="${m}|${mk}" ${hid}>${duel}${svg}<h3>에이전트별</h3><div class="tlist">${rowHTML}</div></div>`;
     };
     return `${modes.map((m) => MKS.map(([k]) => pane(m, k)).join('')).join('')}
-      ${help('라운드마다 그때까지 확정된 점수의 종목당 평균(누적)입니다. ▲▼는 직전 라운드 대비 변화(%p). 채점 전·보류는 빼고 계산합니다. 줄을 누르면 카드를 볼 수 있습니다.')}`;
+      ${help('라운드마다 그때까지 확정된 점수의 종목당 평균(누적)입니다. ▲▼는 직전 라운드 대비 변화(%p). 채점 전·보류는 빼고 계산합니다. 그래프가 있으면 이름을 눌러 그 에이전트 선을 강조하고(다시 누르면 해제), 그래프가 없을 때는 줄을 누르면 카드가 열립니다. 카드는 순위 탭의 \'카드 보기\'로도 열 수 있습니다.')}`;
   };
   // 에이전트 순위: 한 줄 목록(순위·얼굴·애칭·팀·평균). 줄을 누르면 세부와 '카드 보기'가 펼쳐진다
   let rid = 0;
@@ -991,6 +1001,12 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       sheetB.querySelectorAll('[data-fp]').forEach((p) => p.hidden = p.dataset.fp !== `${fsel.dataset.mode}|${fsel.dataset.mk}`);
       sheetB.querySelectorAll('[data-fmk]').forEach((p) => p.hidden = fsel.dataset.mk !== 'ALL' && p.dataset.fmk !== fsel.dataset.mk); });
     if (fsel) { const f = store('league.recF'); if (f && typeof f === 'object') { const mb = fsel.querySelector(`[data-fmode="${CSS.escape(String(f.mode))}"]`); if (mb) mb.onclick(); const kb2 = fsel.querySelector(`[data-fmk-btn="${CSS.escape(String(f.mk))}"]`); if (kb2) kb2.onclick(); } }
+    sheetB.querySelectorAll('.trow[data-hk]').forEach((r) => { const go = () => { const pane = r.closest('.trend'), svg = pane.querySelector('.tchart'), on = r.getAttribute('aria-pressed') !== 'true';
+        pane.querySelectorAll('.trow[data-hk]').forEach((x) => x.setAttribute('aria-pressed', String(on && x === r)));
+        if (svg) { svg.classList.toggle('hl', on); svg.querySelectorAll('.ag').forEach((g) => { const hit = on && g.dataset.k === r.dataset.hk; g.classList.toggle('on', hit); if (hit) svg.appendChild(g); }); }
+        if (on && svg) { const bar = sheetB.querySelector('.rbar'), top = bar ? bar.getBoundingClientRect().bottom : sheetB.getBoundingClientRect().top, sr = svg.getBoundingClientRect();
+          if (sr.top < top) sheetB.scrollBy({top: sr.top - top - 8, behavior: reduce ? 'auto' : 'smooth'}); } };
+      r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
     sheetB.querySelectorAll('.rmain').forEach((b) => b.onclick = () => { const d = b.nextElementSibling, on = d.hidden; d.hidden = !on; b.setAttribute('aria-expanded', String(on)); });
     sheetB.querySelectorAll('[data-card]').forEach((b) => b.onclick = () => { const a = active.find((x) => x.nickname === b.dataset.card); if (a) open(a, 'picks'); });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
