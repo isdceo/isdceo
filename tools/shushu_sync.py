@@ -469,7 +469,7 @@ def _check_lines(main: Path, dst: str, path: Path | None = None) -> bool:
 # ───────── 메인 → 전용 저장소 사본 (원 가격 없음, 허용 목록만) ─────────
 MIRROR_FILES = ["league/public/results.json", "league/agents/roster.json",
                 "league/imports/shushu/roster.json", "docs/codex-team-guide.md", "docs/results-bundle.md",
-                "requirements.txt", ".gitattributes"]
+                "requirements.txt", ".gitattributes", "docs/bench-addition.md"]
 MIRROR_GLOBS = ["docs/codex-notices/*.md", "league/universe/*.json", "tools/*.py",
                 "league/rounds/*/snapshot.json", "league/rounds/*/snapshot.json.sha256",
                 "league/sandbox/rounds/*/snapshot.json", "league/sandbox/rounds/*/snapshot.json.sha256",
@@ -630,6 +630,18 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
         wk = L.iso_week(today - timedelta(days=7))
         add("close", wk, f"@codex 주간 마감({wk})이 끝났습니다. `from-league/league/ledger/weekly_decisions.jsonl`과 `from-league/update-plan.json`으로 "
             "리그별 결과와 최종 업데이트 자격을 확인하고, 바뀐 점이나 승인 요청이 있으면 07:00까지 `to-roro/`로 보내 주세요.")
+    # 대기 후보 보충(운영자 상시 위임): 슈슈 팀 어느 리그든 승인된 대기 후보가 기준 이하이면 주마다 한 번 새 후보 요청
+    ba = cfg.get("bench_auto") or {}
+    if ba.get("enabled") and live and not (mk and "06:50" <= hm < "12:00"):
+        import add_character as AC
+        st_ = AC.need().get("shushu", {})
+        if st_.get("need"):
+            wkb = L.iso_week(today)
+            add("bench", wkb, "@codex 슈슈 팀 대기 후보가 부족합니다(리그별 남은 승인 후보: "
+                f"한국 {st_['available'].get('KR')}명, 미국 {st_['available'].get('US')}명). 새 후보 1~2명을 제안해 주세요. "
+                f"`to-roro/{rd}-bench-proposal.md`에 후보마다 ```json 블록(team·id·nickname·label·style_ref·tagline·look)과 `## 지침` 절(v1 지침 본문)을 넣어 push하면, "
+                "검사(`from-league/tools/add_character.py --dry-run`)를 통과한 안은 운영자 상시 위임으로 자동 등록됩니다. 기존 에이전트와 다른 투자 관점, 실존 인물 사칭·특정 종목 고정 금지. "
+                "형식: `from-league/docs/bench-addition.md`.")
     # 새 공지·회신 (메인 docs/codex-notices) — 내용 해시로 판단
     new = [p for p in _notes(main) if ("notice", p.name + ":" + L._sha(p)[:12]) not in sent]
     today_notices = sum(1 for w in L.read_ledger(d, "shushu_wakes") if w["kind"] == "notice" and w.get("url") != "seeded"

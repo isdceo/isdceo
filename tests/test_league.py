@@ -1509,6 +1509,57 @@ class EveningRecheckFixes(unittest.TestCase):
         self.assertEqual(D.load_lines(d), {"2026-11-10-shushu-s1-KR": "내 대사"})
 
 
+class AddCharacter(unittest.TestCase):
+    """대기 후보 자동 추가(운영자 상시 위임): 검사 → 명단·승인 원장·지침·캐릭터 그림 반영, 실패 시 반영 안 함."""
+    def setUp(self):
+        import add_character as AC
+        self.AC = AC
+        self.root = Path(tempfile.mkdtemp())
+        for rel in ("league/config.json", "league/universe.json", "league/agents/roster.json", "league/imports/shushu/roster.json",
+                    "docs/dashboard/operator-dashboard-page.html", "league/agents/avatars/README.md"):
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True); shutil.copy(L.ROOT / rel, self.root / rel)
+        shutil.copytree(L.ROOT / "league/agents/avatars/src", self.root / "league/agents/avatars/src",
+                        ignore=shutil.ignore_patterns("__pycache__", "extra.json", "defs.svg", "preview.html"))
+        (self.root / "league/ledger").mkdir(parents=True)
+        self.saved = (AC.ROOT, AC.SRC, AC.PAGE, AC.README)
+        AC.ROOT, AC.SRC = self.root, self.root / "league/agents/avatars/src"
+        AC.PAGE, AC.README = self.root / "docs/dashboard/operator-dashboard-page.html", self.root / "league/agents/avatars/README.md"
+
+    def tearDown(self):
+        self.AC.ROOT, self.AC.SRC, self.AC.PAGE, self.AC.README = self.saved
+
+    def spec(self, **kw):
+        sp = {"team": "shushu", "id": "s8", "nickname": "등대", "label": "배당성장형", "style_ref": "공개된 배당 성장 투자 원칙 참고",
+              "tagline": "꾸준히 늘어나는 배당을 본다", "guideline": "# 등대 지침\n배당 성장.",
+              "look": {"name": "deungdae", "skin": "tan", "hair": "short", "hairc": "#3a2a20", "hat": "cap", "hatc": "#1f6f8b",
+                       "brows": "up", "nose": "button", "mouth": "grin", "glasses": "round", "outfit": "#2f6f4f", "collar": "shirt"}}
+        sp.update(kw); return sp
+
+    def test_add_ok(self):
+        self.assertEqual(self.AC.apply(self.spec(), source="test"), [])
+        sh = json.loads((self.root / "league/imports/shushu/roster.json").read_text())
+        self.assertEqual(sh["bench"][-1]["id"], "s8")
+        ap = L.read_ledger(self.root / "league", "approvals")
+        self.assertEqual((ap[-1]["agent_id"], ap[-1]["decision"]), ("s8", "approved")); self.assertIn("상시 위임", ap[-1]["approved_by"])
+        self.assertIn('id="av-deungdae"', (self.root / "docs/dashboard/operator-dashboard-page.html").read_text())
+        self.assertTrue((self.root / "league/imports/shushu/agents/s8/v1.md").exists())
+        self.assertEqual(L.verify(self.root / "league"), [])
+
+    def test_rejects_bad_specs(self):
+        bad = [self.spec(id="s1"), self.spec(label="안전마진형"), self.spec(style_ref="그레이엄처럼"),
+               self.spec(tagline="005930만 산다"), self.spec(look={**self.spec()["look"], "name": "dandan"}),
+               self.spec(look={**self.spec()["look"], "hat": "crown"})]
+        for sp in bad:
+            self.assertTrue(self.AC.apply(sp, source="t"), sp)
+        self.assertEqual(json.loads((self.root / "league/imports/shushu/roster.json").read_text())["bench"][-1]["id"], "s7")
+
+    def test_message_parse(self):
+        sp = self.spec(); g = sp.pop("guideline")
+        md = "제안\n```json\n" + json.dumps(sp, ensure_ascii=False) + "\n```\n## 지침\n" + g + "\n"
+        out = self.AC.spec_from_message(md)
+        self.assertEqual((out["id"], out["guideline"].splitlines()[0]), ("s8", "# 등대 지침"))
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 

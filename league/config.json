@@ -128,5 +128,10 @@
     "note": "B안(2026-11-07): 슈슈 팀은 전용 저장소에만 push. 메인의 league-shushu-sync 워크플로가 그 저장소의 GitHub 서버 push 시각(activity)으로 판정하고 허용 경로 파일만 가져온다. 켜려면 repo(owner/name)를 적고 enabled=true, 메인 Secrets에 SHUSHU_REPO_TOKEN(전용 저장소만, Contents 읽기·쓰기). 설정: docs/shushu-repo-setup.md",
     "wake_round": false,
     "wake_round_note": "2026-11-07 슈슈 요청: 슈슈가 자체 예약(07:05 라운드, 07:20·08:20·08:45·11:30 점검)으로 실행하므로 로로 쪽 07:05 @codex 시작 댓글은 보내지 않는다(중복 실행 방지). 지문 없음·공지 알림은 유지."
+  },
+  "bench_auto": {
+    "enabled": true,
+    "min_available": 1,
+    "note": "운영자 상시 위임(2026-11-07): 어느 리그든 승인된 대기 후보가 이 수 이하이면 슈슈 팀에 새 후보를 자동 요청(이슈 @codex)하고, 받은 안이 tools/add_character.py 검사를 통과하면 명단·승인 원장·캐릭터 그림에 자동 반영. 로로 팀은 주간 복기 세션이 같은 도구로 추가."
   }
 }
