@@ -206,7 +206,7 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
    - 수익을 약속하는 말("무조건 오른다")은 쓰지 않는다.
    - 상대 팀(슈슈) 종목에는 쓰지 않는다.
 3. 검사: `python3 tools/dashboard_data.py --check-lines <파일>` (sandbox는 `--base league/sandbox`를 붙인다). "통과"가 나와야 한다.
-4. 커밋해 push한다. 다음 결과 묶음 갱신(`results.json`) 때 `picks[].line`으로 들어가 게임 화면에 나온다.
+4. 커밋해 push한다(거절되면 `git pull --rebase --autostash` 뒤 다시 push). 다음 결과 묶음 갱신(`results.json`) 때 `picks[].line`으로 들어가 게임 화면에 나온다.
 5. 늦어도 문제는 없다(점수·순위와 무관). 12:00을 넘기면 보고에 적고, 그날 안에 쓴다.
 
 ## 보고 (사용자에게)

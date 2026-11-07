@@ -1496,6 +1496,20 @@ class V2ReviewFixes(unittest.TestCase):
         res = {x["agent_id"]: x["status"] for x in L.guideline_check(d, date(2026, 11, 6), root=r, register=False)}
         self.assertEqual((res["buffett"], res["lynch"], res["dalio"]), ("missing", "missing", "not_yet"))
 
+    def test_not_yet_checks_recorded_hash(self):
+        d, r = self._tmp()
+        L.guideline_check(d, date(2026, 11, 9), root=r, register=True)
+        ro = json.loads((d / "agents/roster.json").read_text())
+        for a in ro["claude"]:
+            if a["id"] == "wood":
+                a["version"] = 3; a["versions"] = a.get("versions", []) + [{"version": 3, "from_round": "2026-11-20"}]
+        (d / "agents/roster.json").write_text(json.dumps(ro, ensure_ascii=False))
+        v3 = (r / ".claude/agents/wood.md").read_text() + "v3\n"
+        (r / ".claude/agents/wood.md").write_text(v3); (r / "league/agents/claude/wood/v3.md").write_text(v3)
+        f2 = r / "league/agents/claude/wood/v2.md"; f2.write_text(f2.read_text() + "변조\n")
+        res = {x["agent_id"]: x["status"] for x in L.guideline_check(d, date(2026, 11, 12), root=r, register=False)}
+        self.assertEqual(res["wood"], "unapproved_edit")
+
     def test_registered_hash_mismatch_is_unapproved(self):
         d, r = self._tmp()
         L.guideline_check(d, date(2026, 11, 9), root=r, register=True)
@@ -1972,8 +1986,12 @@ class LossReview(unittest.TestCase):
             p = picks[r["pick_id"]]
             self.assertEqual(p["team"], "claude"); self.assertFalse(L.is_watch(p, cfg))
             self.assertEqual(sc[r["pick_id"]]["status"], "final"); self.assertLess(sc[r["pick_id"]]["score"], 0)
-        f = self.LR.review_path(self.d, picks[rows[0]["pick_id"]]); f.parent.mkdir(parents=True, exist_ok=True); f.write_text("x")
+        f = self.LR.review_path(self.d, picks[rows[0]["pick_id"]]); f.parent.mkdir(parents=True, exist_ok=True); f.write_text(self._valid(rows[0]["pick_id"]))
         self.assertNotIn(rows[0]["pick_id"], [r["pick_id"] for r in self.LR.due(self.d)])
+
+    def _valid(self, pid):
+        return "\n".join([f"# 손실 복기 — {pid}", "", "## 1. 그때의 논리", "가" * 200, "## 2. 실제로 무슨 일이 있었나", "https://example.com " + "나" * 200,
+                          "## 3. 판정", "판정: 운·잡음", "## 4. 놓친 신호·틀린 가정", "다" * 100, "## 5. 다음에 바꿀 점", "라" * 100])
 
     def _doc(self, extra=""):
         body = "\n".join(["# 손실 복기 — 2026-11-09-claude-wood-KR", "- 에이전트: 미래광 (혁신형) v2", "- 결과: -2.10% (지수 KOSPI -0.50%, 지수 대비 -1.60%p)", "",
@@ -2000,4 +2018,32 @@ class LossReview(unittest.TestCase):
         self.assertEqual(next(a for a in self.LR.summary(self.d, "2026-W46", 2)["agents"] if a["agent_id"] == "wood")["reviews"], 3)
         md = self.LR.summary_md(s)
         self.assertIn("분석 실수 2건", md); self.assertIsNone(self.LR.MONEY.search(md))
+
+
+    def test_due_bundle_for_shushu_safe_copy(self):
+        b = self.d / "results.json"
+        mk = lambda pid, team, st, sc, watch=False, mode="실전": {"pick_id": pid, "team": team, "mode": mode, "round_date": "2026-11-09", "agent_id": pid.split("-")[4], "market": pid.split("-")[5], "name": "x", "status": st, "score": sc, "watch": watch}
+        b.write_text(json.dumps({"picks": [mk("2026-11-09-shushu-s1-KR", "슈슈 팀 (Codex)", "final", -1.0), mk("2026-11-09-shushu-s2-KR", "슈슈 팀 (Codex)", "final", 0.5),
+                                           mk("2026-11-09-shushu-s3-KR", "슈슈 팀 (Codex)", "held", -2.0), mk("2026-11-09-shushu-s4-KR", "슈슈 팀 (Codex)", "final", -0.3, True),
+                                           mk("2026-11-09-claude-wood-KR", "로로 팀 (Claude)", "final", -1.0)]}, ensure_ascii=False))
+        rv = self.d / "shu-reviews"
+        self.assertEqual([r["pick_id"] for r in self.LR.due_bundle(b, "슈슈", rv)], ["2026-11-09-shushu-s1-KR"])
+        (rv / "2026-11-09").mkdir(parents=True); (rv / "2026-11-09/s1-KR.md").write_text(self._valid("2026-11-09-shushu-s1-KR"))
+        self.assertEqual(self.LR.due_bundle(b, "슈슈", rv), [])
+
+    def test_money_regex_catches_particles_and_spares_words(self):
+        for s in ("1,393,000원에서", "45달러로", "5만 원", "3조원대", "1천억원", "45 USD", "KRW 1,393,000", "￦1000", "목표가 150,000", "종가 1,393,000"):
+            self.assertIsNotNone(self.LR.MONEY.search(s), s)
+        for s in ("+327.9%", "3분기", "1.6배", "2026년", "3원칙", "2원화", "종가 기준 -2.1%", "지수 대비 -4.18%p"):
+            self.assertIsNone(self.LR.MONEY.search(s), s)
+
+    def test_failed_review_file_is_due_again_and_corrected_score_excluded(self):
+        row = self.LR.due(self.d)[0]
+        p = {x["pick_id"]: x for x in L.read_ledger(self.d, "picks")}[row["pick_id"]]
+        f = self.LR.review_path(self.d, p); f.parent.mkdir(parents=True, exist_ok=True); f.write_text("쓰다 만 파일")
+        self.assertIn(row["pick_id"], [r["pick_id"] for r in self.LR.due(self.d)])
+        f.write_text(f"# 손실 복기 — {row['pick_id']}\n## 3. 판정\n판정: 분석 실수\n")
+        L.append(self.d, "scores", {**L.latest_scores(self.d)[row["pick_id"]], "score": 0.4})
+        s = self.LR.summary(self.d, L.iso_week(date.fromisoformat(row["round_date"])))
+        self.assertIn(row["pick_id"], [c["pick_id"] for c in s["corrected"]])
 

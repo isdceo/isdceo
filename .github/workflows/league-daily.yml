@@ -70,7 +70,15 @@ jobs:
           if [ "$(TZ=Asia/Seoul date -d "$D" +%u)" = "1" ]; then
             python3 tools/league.py weekly-close --dir "${{ steps.t.outputs.target }}" | tee weekly.txt
           fi
-          python3 tools/league.py snapshot "$D" --dir "${{ steps.t.outputs.target }}" | tee summary.txt
+          # 라운드 세션(07:05)이 늦은 이 작업을 기다리지 못하고 공통 자료를 먼저 올렸으면 그 판을 그대로 쓴다(다시 만들면 해시가 바뀜)
+          RP="${{ steps.t.outputs.target }}/rounds/$D"
+          git fetch -q origin "$GITHUB_REF_NAME" || true
+          if git cat-file -e "origin/$GITHUB_REF_NAME:$RP/snapshot.json" 2>/dev/null; then
+            git checkout -q "origin/$GITHUB_REF_NAME" -- "$RP"
+            echo "$D 공통 자료가 이미 저장소에 있음(라운드 세션이 먼저 올림) — 다시 만들지 않음" | tee summary.txt
+          else
+            python3 tools/league.py snapshot "$D" --dir "${{ steps.t.outputs.target }}" | tee summary.txt
+          fi
           [ -f weekly.txt ] && cat weekly.txt >> summary.txt || true
       - name: Collect and score
         if: steps.t.outputs.on == 'true' && steps.t.outputs.task == 'collect'
@@ -101,8 +109,15 @@ jobs:
           for p in league/ledger league/rounds league/sandbox league/public data/league.js; do [ -e "$p" ] && git add "$p"; done
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -q -m "league: ${{ steps.t.outputs.task }} $(TZ=Asia/Seoul date +'%F %H:%M') KST" -m "$(head -c 3000 summary.txt 2>/dev/null)"
+          D="${{ inputs.date }}"; [ -z "$D" ] && D=$(TZ=Asia/Seoul date +%F); RP="${{ steps.t.outputs.target }}/rounds/$D"
           for i in 1 2 3; do
-            git fetch -q origin "$GITHUB_REF_NAME" && git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            git fetch -q origin "$GITHUB_REF_NAME" || true
+            if [ "${{ steps.t.outputs.task }}" = "snapshot" ] && git cat-file -e "origin/$GITHUB_REF_NAME:$RP/snapshot.json" 2>/dev/null; then
+              # 그사이 라운드 세션이 같은 날 공통 자료를 올렸으면 그 판을 채택(덮어쓰기·add/add 충돌 방지)
+              git checkout -q "origin/$GITHUB_REF_NAME" -- "$RP" && git commit -q --amend --no-edit --allow-empty
+            fi
+            git rebase -q "origin/$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            git rebase --abort 2>/dev/null || true
             sleep $((i * 5))
           done
           exit 1

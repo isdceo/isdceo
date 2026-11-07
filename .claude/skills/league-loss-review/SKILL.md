@@ -63,8 +63,9 @@ python3 tools/loss_review.py due --json          # 연습은 --dir league/sandbo
 ## 3단계 — 검사와 기록
 
 1. `python3 tools/loss_review.py check <파일>...` — 전부 "통과"여야 한다. 형식 문제만 해당 에이전트에게 SendMessage로 고치게 한다(판단 내용은 진행자가 바꾸지 않는다).
-2. 통과한 파일만 커밋해 push한다: `git add league/reviews/losses/` (연습은 `league/sandbox/reviews/losses/`), 커밋 메시지 `league: loss reviews <라운드들>`. 거절되면 `git pull --rebase --autostash` 뒤 다시 push한다.
-3. 두 번 고쳐도 통과하지 못한 건은 커밋하지 않고 보고에 남긴다(다음 실행이 다시 대상으로 잡는다).
+2. 통과한 파일만 **경로를 하나씩 지정해** 커밋한다: `git add <통과한 파일>...`(폴더 통째로 add하지 않는다), 커밋 메시지 `league: loss reviews <라운드들>`. 기본 브랜치에 push한다: `git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0`. 거절되면 `git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0` 뒤 다시 push한다.
+   - 같은 복기 파일이 원격에 이미 있어 충돌하면(다른 세션이 먼저 씀) 원격 파일을 채택한다(`git checkout --theirs <파일>` 또는 내 커밋에서 그 파일을 뺀다).
+3. 두 번 고쳐도 통과하지 못한 건은 **파일을 지운다**(`rm`). 커밋하지 않고 보고에 남긴다. 검사를 통과하지 못한 파일은 `due`가 다시 대상으로 잡으므로 다음 실행이 다시 쓴다.
 
 ## 보고 (사용자에게, 짧게)
 

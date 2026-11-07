@@ -748,6 +748,8 @@ def guideline_check(d: Path, round_date: date | None = None, root: Path = ROOT, 
             _, new_arch = guideline_paths(a["id"], latest, root)
             if not arch.exists() or not cur.exists() or not new_arch.exists():
                 row.update(status="missing", detail=f"{'현재 파일' if not cur.exists() else f'v{v} 보관본' if not arch.exists() else f'v{latest} 보관본'} 없음")
+            elif (a["id"], v) in seen and seen[(a["id"], v)].get("sha256") not in (None, _sha(arch)):
+                row.update(status="unapproved_edit", detail=f"v{v} 보관본이 원장에 기록된 해시와 다름 — 승인 안 된 수정")
             elif _sha(cur) != _sha(new_arch):
                 row.update(status="unapproved_edit", detail=f"{cur.relative_to(root)} 가 v{latest} 보관본과 다름 — 승인 안 된 수정")
             else:
