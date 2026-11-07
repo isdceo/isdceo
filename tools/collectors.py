@@ -272,13 +272,56 @@ def _ymd(v):
     return f"{v[:4]}-{v[4:6]}-{v[6:8]}" if len(v) == 8 and v.isdigit() else v[:10]
 
 
+NASDAQ_DIV_URL = "https://api.nasdaq.com/api/calendar/dividends?date={d}"
+
+
+def nasdaq_dividends(session: date) -> dict | None:
+    """Nasdaq 배당 달력(공개 JSON, 비공식) — 그날이 배당락일인 미국 종목 {티커: 1주당 배당(달러)}.
+    채점용 값으로 쓰지 않고 Alpha Vantage 배당 누락을 잡는 내부 대조에만 쓴다. 받지 못하면 None."""
+    req = urllib.request.Request(NASDAQ_DIV_URL.format(d=session.isoformat()),
+                                 headers={"User-Agent": "league-collector/0.1", "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.load(r)
+    except Exception:  # noqa: BLE001 — 대조 실패는 수집을 멈추지 않는다(경고만)
+        return None
+    rows = (((data or {}).get("data") or {}).get("calendar") or {}).get("rows")
+    if rows is None:
+        return None
+    want = session.strftime("%m/%d/%Y")
+    out = {}
+    for x in rows:
+        sym = str(x.get("symbol") or "").replace("/", ".").strip()
+        amt = _num(x.get("dividend_Rate"))
+        if sym and amt and x.get("dividend_Ex_Date") == want:
+            out[sym] = out.get(sym, 0) + amt
+    return out
+
+
+def dividend_mismatch(av_amount: float, nq_amount: float | None) -> str | None:
+    """Alpha Vantage 배당 합계와 Nasdaq 일정 비교. 문제면 사유, 아니면 None.
+    Nasdaq에 없고 Alpha Vantage에만 있으면 문제로 보지 않는다(Alpha Vantage가 더 많이 아는 경우)."""
+    if not nq_amount:
+        return None
+    if not av_amount:
+        return f"Nasdaq 일정에 배당 {nq_amount:g}달러가 있는데 Alpha Vantage 기록 없음"
+    if abs(av_amount - nq_amount) / nq_amount > 0.02:
+        return f"배당 금액 불일치: Alpha Vantage {av_amount:g} / Nasdaq {nq_amount:g}"
+    return None
+
+
 def collect(d: Path, provider: Provider, market: str, tickers: list[str], session: date, role: str,
             now: str | None = None) -> dict:
     """공통 검사를 거쳐 prices(및 기업행동) 원장에 기록. 결과 요약을 돌려준다."""
     assert role in ("provisional", "final")
     now = now or datetime.now(L.KST).isoformat(timespec="seconds")
     idx = L.price_index(d)
-    res = {"recorded": [], "failed": [], "skipped": [], "discrepancies": []}
+    res = {"recorded": [], "failed": [], "skipped": [], "discrepancies": [], "dividend_holds": [], "warnings": []}
+    nq = None
+    if market == "US" and role == "final" and provider.supplies_corporate_actions and provider.name != "mock":
+        nq = nasdaq_dividends(session)
+        if nq is None:
+            res["warnings"].append(f"Nasdaq 배당 일정({session})을 받지 못해 배당 대조를 못 함 — Alpha Vantage 값만으로 기록")
     got = {}
     for q in provider.fetch(market, tickers, session):
         got.setdefault(q.ticker, []).append(q)
@@ -311,6 +354,12 @@ def collect(d: Path, provider: Provider, market: str, tickers: list[str], sessio
                                "basis": q.basis, "halted": q.halted, "source": provider.name, "status": role,
                                "fetched_at": now})
         if provider.supplies_corporate_actions and role == "final":
+            why = dividend_mismatch(sum(float(x["amount"]) for x in q.dividends), (nq or {}).get(t)) if nq is not None else None
+            if why:
+                # 배당이 맞는지 모르면 '확인 완료'를 남기지 않는다 → 채점 보류(0점 아님). 운영자가 확인 뒤 manual-dividend 로 기록
+                res["dividend_holds"].append({"ticker": t, "session": session.isoformat(), "reason": why})
+                res["recorded"].append(t)
+                continue
             for dv in q.dividends:
                 L.append(d, "corporate_actions", {"type": "dividend", "market": market, "ticker": t, **dv,
                                                   "source": provider.name})
@@ -397,23 +446,53 @@ def collect_due(d: Path, today: date) -> dict:
         r = collect(d, prov, m, tks, date.fromisoformat(s_), "final")
         report["collected"].append({"market": m, "session": s_, "provider": name, "recorded": r["recorded"],
                                     "failed": r["failed"], "provider_errors": r.get("provider_errors", []),
-                                    "discrepancies": len(r["discrepancies"])})
+                                    "discrepancies": len(r["discrepancies"]),
+                                    "dividend_holds": r.get("dividend_holds", []), "warnings": r.get("warnings", [])})
     report["kr_corporate_actions"] = kr_corporate_actions_due(d, today)
     for w in L.run_scoring(d, today=today):
         report["scoring"].append({"pick_id": w["pick_id"], "status": w["status"], "score": w.get("score"), "reason": w.get("reason")})
     return report
 
 
+def manual_dividend(d: Path, market: str, ticker: str, session: date, amount: float, note: str,
+                    pay_date: str | None = None, now: str | None = None) -> list[dict]:
+    """배당 보류 해소: 운영자가 공식 발표로 확인한 배당(없으면 amount=0)을 기록하고 그 세션을 '확인 완료'로 남긴다."""
+    if not note.strip():
+        raise ValueError("note(확인한 공식 출처)는 비울 수 없다")
+    now = now or datetime.now(L.KST).isoformat(timespec="seconds")
+    src = f"manual: {note.strip()}"
+    out = []
+    if amount > 0:
+        rec = {"type": "dividend", "market": market, "ticker": ticker, "ex_date": session.isoformat(), "amount": amount,
+               "currency": "USD" if market == "US" else "KRW", "pay_date": pay_date, "source": src}
+        L.append(d, "corporate_actions", rec)
+        out.append(rec)
+    chk = {"type": "checked", "market": market, "ticker": ticker, "from": session.isoformat(), "to": session.isoformat(),
+           "source": src, "checked_at": now}
+    L.append(d, "corporate_actions", chk)
+    out.append(chk)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["collect"])
-    ap.add_argument("--provider", required=True, choices=sorted(PROVIDERS))
+    ap.add_argument("cmd", choices=["collect", "manual-dividend"])
+    ap.add_argument("--dir", default=str(L.ROOT / "league"))
     ap.add_argument("--market", required=True, choices=["KR", "US"])
     ap.add_argument("--session", required=True)
+    if len(sys.argv) > 1 and sys.argv[1] == "manual-dividend":
+        ap.add_argument("--ticker", required=True)
+        ap.add_argument("--amount", required=True, type=float, help="1주당 배당(없으면 0)")
+        ap.add_argument("--note", required=True, help="확인한 공식 출처(회사 발표 URL 등)")
+        ap.add_argument("--pay-date")
+        a = ap.parse_args()
+        print(json.dumps(manual_dividend(Path(a.dir), a.market, a.ticker, date.fromisoformat(a.session), a.amount,
+                                         a.note, a.pay_date), ensure_ascii=False, indent=1))
+        return
+    ap.add_argument("--provider", required=True, choices=sorted(PROVIDERS))
     ap.add_argument("--tickers", required=True, help="쉼표 구분")
     ap.add_argument("--role", default="provisional", choices=["provisional", "final"])
     ap.add_argument("--fixture")
-    ap.add_argument("--dir", default=str(L.ROOT / "league"))
     a = ap.parse_args()
     try:
         prov = MockProvider(a.fixture) if a.provider == "mock" else PROVIDERS[a.provider]()

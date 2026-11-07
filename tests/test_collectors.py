@@ -80,6 +80,8 @@ class AlphaVantageProvider(unittest.TestCase):
         os.environ["ALPHAVANTAGE_API_KEY"] = "test-key"
         os.environ["AV_PACE_SEC"] = "0"
         C.AlphaVantage._cache.clear()
+        self._nq = getattr(self, "_nq", C.nasdaq_dividends)
+        C.nasdaq_dividends = lambda s: getattr(self, "nasdaq", {})      # 네트워크 없이 Nasdaq 배당 일정
         p = C.AlphaVantage()
         calls = []
         def fake(url, headers=None):
@@ -93,6 +95,55 @@ class AlphaVantageProvider(unittest.TestCase):
         import os
         os.environ.pop("ALPHAVANTAGE_API_KEY", None); os.environ.pop("AV_PACE_SEC", None)
         C.AlphaVantage._cache.clear()
+        if hasattr(self, "_nq"):
+            C.nasdaq_dividends = self._nq
+
+    def test_nasdaq_dividend_cross_check(self):
+        """Nasdaq 일정에 배당이 있는데 Alpha Vantage에 없거나 금액이 다르면 '확인 완료'를 남기지 않아 채점이 보류된다."""
+        no_div = {"symbol": "X", "data": []}
+        cases = [({"X": 0.94}, no_div, True),                 # FER 사례: Alpha Vantage 누락
+                 ({"X": 0.30}, self.DIVS, True),              # 금액 불일치(0.25 vs 0.30)
+                 ({"X": 0.25}, self.DIVS, False),             # 일치
+                 ({}, self.DIVS, False),                      # Nasdaq에 없음 → Alpha Vantage 값 그대로
+                 ({}, no_div, False)]                         # 둘 다 없음
+        for nq, divs, held in cases:
+            self.nasdaq = nq
+            p, _ = self.provider({"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": divs, "SPLITS": self.SPLITS})
+            d = new_league()
+            r = C.collect(d, p, "US", ["X"], date(2026, 11, 16), "final")
+            self.assertEqual(r["recorded"], ["X"])                                        # 종가는 기록
+            cas = L.read_ledger(d, "corporate_actions")
+            self.assertEqual(bool(r["dividend_holds"]), held, (nq, divs))
+            self.assertEqual(any(c["type"] == "checked" for c in cas), not held, (nq, divs))
+            ok, amt, *_ = L.ca_for(cas, "US", "X", date(2026, 11, 13), date(2026, 11, 16))
+            self.assertEqual(ok, not held)
+        # 보류 해소: 운영자가 공식 발표로 확인해 기록
+        C.manual_dividend(d, "US", "X", date(2026, 11, 16), 0.0, "test: 회사 발표 확인 — 배당 없음")
+        self.assertTrue(L.ca_for(L.read_ledger(d, "corporate_actions"), "US", "X", date(2026, 11, 13), date(2026, 11, 16))[0])
+        with self.assertRaises(ValueError):
+            C.manual_dividend(d, "US", "X", date(2026, 11, 16), 0.5, "  ")
+
+    def test_nasdaq_unavailable_warns_and_keeps_alpha_vantage(self):
+        self.nasdaq = None
+        p, _ = self.provider({"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": self.DIVS, "SPLITS": self.SPLITS})
+        d = new_league()
+        r = C.collect(d, p, "US", ["X"], date(2026, 11, 16), "final")
+        self.assertTrue(r["warnings"] and not r["dividend_holds"])
+        self.assertTrue(any(c["type"] == "checked" for c in L.read_ledger(d, "corporate_actions")))
+
+    def test_nasdaq_rows_parsing(self):
+        import io
+        body = {"data": {"calendar": {"rows": [
+            {"symbol": "FER", "dividend_Ex_Date": "11/06/2026", "dividend_Rate": 0.941378},
+            {"symbol": "BRK/B", "dividend_Ex_Date": "11/06/2026", "dividend_Rate": "1.5"},
+            {"symbol": "OLD", "dividend_Ex_Date": "11/05/2026", "dividend_Rate": 1}]}}}
+        real = C.urllib.request.urlopen
+        C.urllib.request.urlopen = lambda req, timeout=30: io.BytesIO(json.dumps(body).encode())
+        try:
+            fn = self._nq if hasattr(self, "_nq") else C.nasdaq_dividends
+            self.assertEqual(fn(date(2026, 11, 6)), {"FER": 0.941378, "BRK.B": 1.5})
+        finally:
+            C.urllib.request.urlopen = real
 
     def test_close_and_dividend_on_ex_date(self):
         p, calls = self.provider({"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": self.DIVS, "SPLITS": self.SPLITS})
@@ -232,7 +283,8 @@ class Readiness(unittest.TestCase):
     def test_reports_known_gaps(self):
         items = {i["item"]: i for i in L.readiness(L.ROOT / "league")}
         self.assertEqual(items["미국 S&P 500 + NASDAQ-100"]["status"], "done")
-        self.assertEqual(items["자동화 스위치 (automation_enabled)"]["status"], "todo")
+        on = L.load_config(L.ROOT / "league").get("automation_enabled")
+        self.assertEqual(items["자동화 스위치 (automation_enabled)"]["status"], "done" if on else "todo")
         self.assertIn(items["한국 KOSPI200 + KOSDAQ150"]["status"], ("done", "todo"))
 
 

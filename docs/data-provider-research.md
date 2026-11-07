@@ -380,6 +380,13 @@ league-provider-check(alphavantage, US, 세션 2026-11-06, final)로 Nasdaq 일�
 2. 큰 하락 경고: 전날 대비 하락이 배당수익률 수준(예: -0.5% 이상)이고 배당 일정이 있으면 운영자 확인 요청.
 3. 외국 기업·주식 선택형 배당 종목은 운영자가 직접 확인해 기록(드묾).
 
+**적용(2026-11-07, 운영자 승인):** 1번을 넣었다(`tools/collectors.py` `nasdaq_dividends`·`dividend_mismatch`).
+- 미국 확정 수집 때 그 세션의 Nasdaq 배당 달력을 한 번 받아(종목 수와 관계없이 1회, Alpha Vantage 한도와 무관) 비교한다.
+- Nasdaq에 배당이 있는데 Alpha Vantage에 없거나 금액이 2% 넘게 다르면 종가만 기록하고 "확인 완료"를 남기지 않는다 → 채점 보류, 수집 보고의 `dividend_holds`에 사유.
+- Nasdaq을 받지 못하면 경고(`warnings`)만 남기고 예전처럼 Alpha Vantage 값으로 기록한다.
+- 보류 해소: 회사 발표로 확인한 뒤 `python3 tools/collectors.py manual-dividend --market US --session <날짜> --ticker <티커> --amount <달러, 없으면 0> --note "<공식 출처>"`.
+- 실제 확인: 11/6 Nasdaq 달력에 FER 0.941378달러(유로 0.835의 달러 환산)·JBHT 0.45달러, AAPL 없음. FER은 이제 보류로 잡힌다.
+
 ### 10.1 Alpha Vantage 약관 원문 확인 (2026-11-07)
 
 https://www.alphavantage.co/terms_of_service/ (PDF, 날짜 표기 없음) 전문을 읽었다. 법률 자문은 아니다.
