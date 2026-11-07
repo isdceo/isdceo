@@ -39,7 +39,11 @@ _NP = (r"(?!0\d{5}(?!\d))(?!(?:19|20)\d{2}(?!\d|[,.]\d))(?>\d{1,3}(?:,\d{3})+|\d
        r"(?:\.\d+)?+(?:\s*(?:천|만|억|조)(?:\s*\d++)?+)*+")
 _RIGHT = (r"(?![./:\-]\d)(?=대로|대(?=\s*(?:$|[.,;)]|초반|중반|후반|로|에|까지|에서|을|를|이었|였))"
           r"|\s*(?:$|[.,;()|\]~→*`≈]|->|이었|였|이다|이며|이고|이던|이라|으로|로|까지|에서|에|을|를|과|와|은|는|도|의|이(?![가-힣])|가(?![가-힣])|선|원|달러)"
-          r"|\s+(?:부근|근처|안팎|수준|언저리|아래|밑|위|이하|이상|초반|중반|후반|선|대로|대에|대까지|대비|이탈|돌파|붕괴|회복|기록|지지|저항|터치|도달|마감|출발))")
+          r"|\s+(?:/|부근|근처|근방|안팎|수준|언저리|정도|전후|아래|밑|위|이하|이상|초반|중반|후반|선|대로|대에|대까지|대(?=\s*(?:$|[(.,;)]))|대비|기준|이탈|돌파|붕괴|회복|기록"
+          r"|지지|저항|터치|도달|마감|출발|하회|상회|하락|상승|vs))")
+# 중간 낱말이 낀 갈래용 좁은 뒤 문맥: 맨 조사(은·는·의·과·와·을·를)와 띄어 쓴 '대에·대로'는 빼서 모델 번호·물량(보잉 737의, 35만 대에)을 살린다
+_RIGHT_F = (r"(?![./:\-]\d)(?=대로|대(?=\s*(?:$|[.,;)]))|\s*(?:$|[.,;()|\]~→*`≈]|->|이었|였|이다|이며|이고|이던|이라|으로|로|까지|에서|에|선|원|달러)"
+            r"|\s+(?:/|부근|근처|근방|안팎|수준|언저리|정도|전후|아래|밑|이하|선|대비|기준|이탈|돌파|붕괴|회복|기록|하회|상회|vs))")
 _CUE = (r"(?:종가|(?:(?<![가-힣])|(?<=[최신]))(?:시가|고가|저가)|(?<![가-힣])주가|시초가|현재가|최고가|최저가|고점|저점|주당|가격|목표\s*주?가"
         r"|평균\s*단가|(?<![가-힣])(?<!외국인 )(?<!기관 )(?<!개인 )(?<!연기금 )(?:매수가|매입가|매도가|진입가|체결가|기준가|손절가|적정주가|적정가|평단|단가|마감가|공모가))")
 _DATE = r"(?:\d{1,2}/\d{1,2}|\d{1,2}월\s*\d{1,2}일|\d{4}-\d{2}-\d{2})"
@@ -54,7 +58,7 @@ MONEY = re.compile(
     + r"|" + _GU + r"(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:(?:\s*(?:천|만|억|조))+\s*원|\s*원)(?![인칙화자유래전천본격리론소형점문장]|가(?!량|까이))"
     + r"|" + _GU + _N + r"\s*(?:달러|USD|KRW)(?![A-Za-z])|" + _GU + _N + r"불(?:(?![가-힣])|(?=에|로|으로|선|대|을|까지|도|이(?![가-힣])))|(?:USD|KRW)\s*\d"
     + r"|" + _CUE + _PART + _NP + _RIGHT                                     # 단서 바로 뒤(조사·기호만 낌)
-    + r"|" + _CUE + r"(?:는|은|가|이|도)?" + _FILL + r"\s+" + _NP + _RIGHT     # 단서와 숫자 사이에 짧은 낱말 1~3개
+    + r"|" + _CUE + r"(?:는|은|가|이|도)?" + _FILL + r"\s+" + _NP + _RIGHT_F     # 단서와 숫자 사이에 짧은 낱말 1~3개
     + r"|" + _G + _N + r"\**(?:\s*선?\s*(?:에서|에|으로|로)\s*(?:" + _DIR + r"?(?:장\s*)?마감|" + _DIR + r"출발|(?:거래|장)을?를?\s*(?:마쳤|마치|마감|끝냈|끝))|\s+마감)"
     + r"|(?<![\d/:.\-~A-Za-z&가-힣])(?:\d{1,3}(?:,\d{3})+|\d{3,})(?:\.\d+)?\**\s*(?:에|으로|로)\s*(?:출발|시작|끝났|끝냈|끝마|거래됐|거래되었|마쳤|마무리|(?:거래|장)을?를?\s*(?:시작|종료)|종료)")
 
@@ -112,7 +116,8 @@ def due_bundle(bundle: Path, team: str, reviews: Path, mode: str = "실전") -> 
 
 
 _CUE_HEAD = re.compile(r"종가|주가|시가|고가|저가|가격|단가|매수가|매도가|목표\s*주?가|평단|기준가|현재가")
-_NP_RE = re.compile(r"^\s*\**\s*" + _NP + r"\s*\**\s*$")
+_NP_RE = re.compile(r"(?<![\d.,%+\-−▲▼△▽])" + _NP + r"(?![\d.,]|\s*%)")
+_HEAD_SKIP = re.compile(r"%|률|비율|PER|PBR|총액|시가총액|배|수익비율|순자산")
 
 
 def _table_prices(t: str) -> str | None:
@@ -122,12 +127,12 @@ def _table_prices(t: str) -> str | None:
     while i < len(rows):
         if rows[i].lstrip().startswith("|") and i + 1 < len(rows) and re.match(r"^\s*\|?\s*:?-{2,}", rows[i + 1]):
             head = [c.strip() for c in rows[i].strip().strip("|").split("|")]
-            cols = [k for k, c in enumerate(head) if _CUE_HEAD.search(c) and "%" not in c and "률" not in c]
+            cols = [k for k, c in enumerate(head) if _CUE_HEAD.search(c) and not _HEAD_SKIP.search(c)]
             j = i + 2
             while j < len(rows) and rows[j].lstrip().startswith("|"):
                 cells = [c.strip() for c in rows[j].strip().strip("|").split("|")]
                 for k in cols:
-                    if k < len(cells) and _NP_RE.match(cells[k]):
+                    if k < len(cells) and _NP_RE.search(cells[k]):
                         return f"{head[k]}: {cells[k]}"
                 j += 1
             i = j
@@ -151,7 +156,7 @@ def _known_closes(path: Path) -> list[str]:
             if r.get("market") == mk and r.get("ticker") == tk and r.get("close"):
                 c = float(r["close"])
                 if c >= 100 or c != int(c):
-                    for s in ({f"{c:,.0f}", f"{c:.0f}"} if c == int(c) else {f"{c:,.2f}", f"{c:.2f}", f"{c:,.2f}".rstrip("0")}):
+                    for s in ({f"{c:,.0f}", f"{c:.0f}"} if c == int(c) else {f"{c:,.2f}", f"{c:.2f}", f"{c:,.2f}".rstrip("0"), f"{c:.2f}".rstrip("0")}):
                         out.add(s)
         return sorted(out, key=len, reverse=True)
     except Exception:
@@ -182,7 +187,7 @@ def check(path: Path) -> list[str]:
     elif not v or not any(x in v.group(1) for x in VERDICTS):
         errs.append(f"'판정: <{' | '.join(VERDICTS)}>' 줄이 필요")
     for c in _known_closes(path):
-        if re.search(r"(?<![\d.,])" + re.escape(c) + r"(?![\d]|[.,]\d)", t):
+        if re.search(r"(?<![\d.,])" + re.escape(c) + r"(?![\d]|[.,]\d|\s*%|\s*배)", t):
             errs.append(f"원장에 기록된 이 종목의 종가와 같은 숫자 {c!r} — 원 가격 금지")
             break
     te = _table_prices(t)

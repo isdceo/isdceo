@@ -31,7 +31,7 @@ argument-hint: "[주차 YYYY-Www]  (기본: 이번 주, 토요일 실행 기준)
 3. 확정되지 않은 추천(`status`가 `final`이 아닌 것, 보통 금요일 미국분)이 있으면 목록을 따로 적어 둔다. 복기 문서에 **잠정**으로 표시해야 한다.
 4. `python3 tools/league.py update-plan <주차>`로 에이전트별 업데이트 계획(frozen/eligible/cooldown/out)을 본다. 토요일 10:30 채점 뒤에 실행하면 금요일 미국분까지 대부분 확정이라 순위가 거의 고정된다. **월요일 06:30 주간 마감 뒤 다시 실행해** 상태가 바뀐 에이전트(예: 공동 1등으로 frozen이 됨)의 PR은 닫는다.
 5. `python3 tools/league.py guideline-check --dry-run`으로 현재 지침이 승인된 버전과 같은지 확인한다. `unapproved_edit`가 있으면 멈추고 운영자에게 보고한다.
-6. 손실 복기: 아직 안 쓴 건이 있으면(`python3 tools/loss_review.py due`, 연습은 `--dir league/sandbox`) 먼저 `league-loss-review` 절차로 쓰게 한다. 토요일 11:23 손실 복기 예약이 같은 건을 쓰고 있을 수 있으니, 11:40 전이면 끝날 때까지 기다렸다가 `git pull` 뒤 다시 `due`를 본다. 그다음 `python3 tools/loss_review.py summary --week <주차> --weeks 2 --out league/reviews/<주차>/claude/losses.md`(연습은 `--dir league/sandbox`)로 에이전트별 판정 횟수·근거 pick_id·'바꿀 점'을 한 표로 모은다(지난주 포함 — 냉각으로 못 고친 주의 반복도 본다). 2단계 프롬프트에 그 에이전트 칸과 손실 복기 파일 경로(`league/reviews/losses/<라운드>/<에이전트>-<시장>.md`)를 넘기고, 같은 '판정'이 두 번 이상 반복되거나 '분석 실수'가 나온 점검 항목을 개선안의 근거로 우선 검토하게 한다(냉각·동결 대상은 개선안 없이 기록만).
+6. 손실 복기: 아직 안 쓴 건이 있으면(`python3 tools/loss_review.py due`, 연습은 `--dir league/sandbox`) 먼저 `league-loss-review` 절차로 쓰게 한다. 토요일 11:23 손실 복기 예약이 같은 건을 쓰고 있을 수 있으니, 11:40 전이면 끝날 때까지 기다렸다가 `git pull` 뒤 다시 `due`를 본다. 그다음 `python3 tools/loss_review.py summary --week <주차> --weeks 2 --out league/reviews/<주차>/claude/losses.md`(연습은 `--dir league/sandbox --out league/sandbox/reviews/<주차>/claude/losses.md`)로 에이전트별 판정 횟수·근거 pick_id·'바꿀 점'을 한 표로 모은다(지난주 포함 — 냉각으로 못 고친 주의 반복도 본다). 2단계 프롬프트에 그 에이전트 칸과 손실 복기 파일 경로(`league/reviews/losses/<라운드>/<에이전트>-<시장>.md`)를 넘기고, 같은 '판정'이 두 번 이상 반복되거나 '분석 실수'가 나온 점검 항목을 개선안의 근거로 우선 검토하게 한다(냉각·동결 대상은 개선안 없이 기록만).
 
 ## 2단계 — 에이전트별 복기 (병렬)
 
