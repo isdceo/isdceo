@@ -232,7 +232,7 @@ html,body,.game,button,.who,.plate,.pair,.row{touch-action:pan-x pan-y}
 .tabs button[aria-selected="true"]{background:linear-gradient(180deg,#fff1b0,#e79a16);color:#3a1a00;border-color:#fff8d8}
 .beads{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-radius:12px;background:rgba(0,0,0,.25);min-height:46px;align-items:center}
 .bead{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--disp);font-size:14px;border:3px solid}
-.bead.c{border-color:#ff9a52;color:#ffc58a}.bead.s{border-color:#6fb2ff;color:#9fd0ff}.bead.t{border-color:#bbb;color:#ddd}
+.bead.c{border-color:#e0614f;color:#ffb4a6}.bead.s{border-color:#5b8fe0;color:#b9d2ff}.bead.t{border-color:#bbb;color:#ddd}
 table.rec{width:100%;border-collapse:collapse;font-size:13px}
 .rank .row{flex-wrap:nowrap;gap:8px;padding-top:6px;padding-bottom:6px}.rank .who2{flex:1;min-width:0}.rank .av{width:38px;height:38px}
 .rank .rk{flex:none;width:24px;text-align:center;font-family:var(--disp);font-size:18px;color:#f3d27a}
@@ -312,6 +312,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .ptag{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;white-space:nowrap;overflow:hidden}
 .ptag em{font-style:normal;color:#fff;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tcw .tchart{max-height:min(210px,34vh)}
+@media (min-width:900px) and (min-height:700px){.tcw .tchart{max-height:260px}}
 .rdet .st{display:flex;flex-wrap:wrap;gap:2px 10px}.rdet .st span{white-space:nowrap}
 .rdet .lp{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:baseline}
 .rhd{display:flex;gap:8px;padding:0 2px 4px;font-size:13px;color:#cbb88a;border-bottom:1px solid rgba(255,255,255,.12)}.rhd span:first-child{flex:1}.rhd span:not(:first-child){width:78px;text-align:right}.rhd::after{content:"";width:14px}
@@ -677,10 +678,11 @@ table.rec.wk td:first-child{width:44px;text-align:center}
         svg = `<div class="tcw"><svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${m} ${mk === 'ALL' ? '통합' : mk} 팀·에이전트 누적 종목당 평균 흐름">
           <line class="zero" x1="${L0}" x2="${W - R0}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>
           <text class="tl" x="${L0 - 4}" y="${(y(0) + 4).toFixed(1)}" text-anchor="end">0%</text>
-          ${[hi, lo].filter((v, i, a) => Math.abs(y(v) - y(0)) > 14 && a.indexOf(v) === i).map((v) => `<line class="grid" x1="${L0}" x2="${W - R0}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/><text class="tl" x="${L0 - 4}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${v > 0 ? '+' : '−'}${Math.abs(v).toFixed(v >= 10 || v <= -10 ? 0 : 1)}</text>`).join('')}
+          ${[hi, lo].filter((v, i, a) => Math.abs(y(v) - y(0)) > 14 && a.indexOf(v) === i).map((v) => `<line class="grid" x1="${L0}" x2="${W - R0}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/><text class="tl" x="${L0 - 4}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end">${v > 0 ? '+' : '−'}${Math.abs(v).toFixed(v >= 10 || v <= -10 ? 0 : 1)}%</text>`).join('')}
+          ${days.length <= 5 ? days.slice(1, -1).map((d, i) => `<text class="tl" x="${x(i + 1).toFixed(1)}" y="${H - 5}" text-anchor="middle">${md(d).replace(/\(.\)$/, '')}</text>`).join('') : ''}
           <text class="tl" x="${x(0).toFixed(1)}" y="${H - 5}" text-anchor="start">${md(days[0])}</text>
           <text class="tl" x="${x(days.length - 1).toFixed(1)}" y="${H - 5}" text-anchor="end">${md(days[days.length - 1])}</text>${ags}${lines}</svg>
-          <div class="tleg"><span><i style="background:${TEAM_COL[C]}"></i>로로 팀 평균</span><span><i style="background:${TEAM_COL[Sx]}"></i>슈슈 팀 평균</span><span class="muted">가는 선: 에이전트 · 아래 이름을 누르면 강조</span></div></div>`;
+          <div class="tleg"><span><i style="background:${TEAM_COL[C]}"></i>로로 팀 평균</span><span><i style="background:${TEAM_COL[Sx]}"></i>슈슈 팀 평균</span></div></div><p class="muted cap">가는 선은 에이전트 · 아래 이름을 누르면 그 선을 강조</p>`;
       }
       const rowHTML = rows.map((r) => { const d = r.last != null && r.prev != null ? r.last - r.prev : null;
         const act = !chart ? `data-nick="${esc(r.a.nickname)}" role="button" tabindex="0"` : r.last != null ? `data-hk="${r.k}" aria-pressed="false" role="button" tabindex="0"` : 'aria-disabled="true"';
@@ -830,7 +832,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   const sndBtn = $('#snd'); const syncSnd = () => { sndBtn.setAttribute('aria-pressed', String(sound)); sndBtn.setAttribute('aria-label', sound ? '소리 끄기' : '소리 켜기'); };
   syncSnd(); sndBtn.onclick = (e) => { e.stopPropagation(); sound = !sound; try { localStorage.setItem('league.sound', sound ? '1' : '0'); } catch (err) { /* 저장 안 됨 */ } syncSnd(); if (sound) sfx('up', 1); };
   const cardsEl = $('#cards'), bubble = $('#bubble'), act = $('#act');
-  let typing = null, cur = null, opener = null, openerNick = null, fromSheet = null;
+  let typing = null, cur = null, opener = null, openerNick = null, fromSheet = null, recState = null;   // recState: 기록판에서 카드를 열 때의 스크롤·펼침·포커스(닫으면 되살림)
   const say = (p, mk) => { const line = `“${p.line || (p.watch ? '이번 판은 지켜볼게. 지수만큼만 간다!' : p.name + ', 이번 판은 이걸로 간다!')}”`; const big = p.status === 'final' && p.score != null && Math.abs(p.score) >= 5; bubble.innerHTML = `<b>${big ? `<em class="${p.score > 0 ? '' : 'dn'}">${p.watch ? '시장이 ' : ''}${p.score > 0 ? '크게 올랐어!' : '크게 내렸어…'}</em>` : ''}${mk === 'KR' ? '♦' : '♣'} ${esc(p.name || p.ticker)}</b><span></span>`; bubble.classList.remove('on'); void bubble.offsetWidth; bubble.classList.add('on');
     bubble._line = line; const sp = bubble.querySelector('span'), ch = [...line]; let k = 0; clearInterval(typing); if (reduce || fast) { sp.textContent = line; return; } typing = setInterval(() => { sp.textContent = ch.slice(0, ++k).join(''); if (k >= ch.length) clearInterval(typing); }, 30); };
   const mono = (t) => { let h = 0; for (const c of String(t)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 55% 42%)`; };
@@ -954,7 +956,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const days = [...new Set(rows.map((r) => r.date))].sort();
       const by = (d, team) => rows.find((r) => r.date === d && r.team === team && r.avg != null) || rows.find((r) => r.date === d && r.team === team);
       const live = days.filter((d) => by(d, C) && by(d, Sx) && by(d, C).mode === '실전' && by(d, C).avg != null && by(d, Sx).avg != null);
-      const beads = live.map((d) => { const a = by(d, C).avg, b = by(d, Sx).avg; const ra = Math.round(a * 100), rb = Math.round(b * 100), w = ra > rb ? 'c' : ra < rb ? 's' : 't'; return `<span class="bead ${w}" title="${md(d)} 로로 ${pct(a)}% / 슈슈 ${pct(b)}%">${{c: '로', s: '슈', t: '='}[w]}</span>`; }).join('');
+      const beads = live.map((d) => { const a = by(d, C).avg, b = by(d, Sx).avg; const ra = Math.round(a * 100), rb = Math.round(b * 100), w = ra > rb ? 'c' : ra < rb ? 's' : 't'; const lbl = `${md(d)} ${{c: '로로 팀 승', s: '슈슈 팀 승', t: '무승부'}[w]} · 로로 ${pct(a)}% / 슈슈 ${pct(b)}%`; return `<span class="bead ${w}" role="img" aria-label="${lbl}" title="${lbl}">${{c: '로', s: '슈', t: '='}[w]}</span>`; }).join('');
       const R2 = (v) => Math.round(v * 100), nC = live.filter((d) => R2(by(d, C).avg) > R2(by(d, Sx).avg)).length, nS = live.filter((d) => R2(by(d, C).avg) < R2(by(d, Sx).avg)).length;
       const st = (T.standings || []).slice().sort((x, y) => x.league_rank - y.league_rank);
       const cell = (r) => r && r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span> <span class="muted">${r.n}건</span>` : '<span class="no">—</span>';
@@ -970,7 +972,8 @@ table.rec.wk td:first-child{width:44px;text-align:center}
             return `<div class="prow"><b>${esc(a ? a.nickname : one[0].agent || id)}</b><div class="pp">${one.map(pickTxt).join('')}</div></div>`; }).join('');
           return `<div class="pteam"><p class="lg">${tchip(tm)} <span class="muted">${xs.length}종목</span></p>${ags}</div>`; };
         const id = `rr${i}`;
-        return `<div class="rrow rnd"><button type="button" class="rmain" aria-expanded="${!i}" aria-controls="${id}"><span class="nm"><b>${md(d)}</b> <span class="muted">${mo}</span></span><span class="rv">${avgCell(C)}</span><span class="rv">${avgCell(Sx)}</span><span class="chev" aria-hidden="true">›</span></button>
+        const lab = `${md(d)} ${mo} · 로로 팀 ${avgCell(C).replace(/<[^>]+>/g, '')} · 슈슈 팀 ${avgCell(Sx).replace(/<[^>]+>/g, '')} · 종목 보기`;
+        return `<div class="rrow rnd"><button type="button" class="rmain" aria-label="${lab}" aria-expanded="${!i}" aria-controls="${id}"><span class="nm"><b>${md(d)}</b> <span class="muted">${mo}</span></span><span class="rv">${avgCell(C)}</span><span class="rv">${avgCell(Sx)}</span><span class="chev" aria-hidden="true">›</span></button>
           <div class="rdet pdet" id="${id}" ${i ? 'hidden' : ''}>${team(C)}${team(Sx)}</div></div>`; }).join('') : '';
       // 요약: 팀 대결 → 이번 주 리그 1위·꼴등 → 누적 상위 3명
       const tAvg = (t) => { const xs = T.picks.filter((p) => p.team === t && p.mode === m0 && p.status === 'final' && p.score != null); return xs.length ? xs.reduce((s, p) => s + p.score, 0) / xs.length : null; };
@@ -1057,10 +1060,18 @@ table.rec.wk td:first-child{width:44px;text-align:center}
           if (sr.top < top) sheetB.scrollBy({top: sr.top - top - 8, behavior: reduce ? 'auto' : 'smooth'}); } };
       r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
     sheetB.querySelectorAll('.rmain').forEach((b) => b.onclick = () => { const d = b.nextElementSibling, on = d.hidden; d.hidden = !on; b.setAttribute('aria-expanded', String(on)); });
-    sheetB.querySelectorAll('[data-card]').forEach((b) => b.onclick = () => { const a = active.find((x) => x.nickname === b.dataset.card); if (a) open(a, 'picks'); });
+    const saveRec = (el) => { if (key !== 'record') return; const all = [...sheetB.querySelectorAll('.rmain')], foc = [...sheetB.querySelectorAll('[data-card],.trow[data-nick]')];
+      recState = {scroll: sheetB.scrollTop, exp: all.map((x) => x.getAttribute('aria-expanded') === 'true'), focus: foc.indexOf(el)}; };
+    const back = key === 'record' ? 'record' : 'picks';
+    sheetB.querySelectorAll('[data-card]').forEach((b) => b.onclick = () => { const a = active.find((x) => x.nickname === b.dataset.card); if (a) { saveRec(b); open(a, back); } });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
-    sheetB.querySelectorAll('.row[data-nick],.trow[data-nick]').forEach((r) => { const go = () => { const a = active.find((x) => x.nickname === r.dataset.nick); if (a) open(a, 'picks'); }; r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
-    sheet.classList.add('on'); game.classList.add('sheeted'); sheetB.scrollTop = 0; requestAnimationFrame(() => { sheetB.scrollTop = 0; }); if (focusNick) { const r = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`); if (r) { r.focus({ preventScroll: true }); return; } } $('#sheet-x').focus({ preventScroll: true });
+    sheetB.querySelectorAll('.row[data-nick],.trow[data-nick]').forEach((r) => { const go = () => { const a = active.find((x) => x.nickname === r.dataset.nick); if (a) { saveRec(r); open(a, back); } }; r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
+    sheet.classList.add('on'); game.classList.add('sheeted');
+    if (key === 'record' && recState && keepOpener) {   // 카드에서 돌아오면 보던 자리 그대로
+      const st = recState; recState = null; [...sheetB.querySelectorAll('.rmain')].forEach((b, i) => { if (st.exp[i] != null && (b.getAttribute('aria-expanded') === 'true') !== st.exp[i]) b.click(); });
+      sheetB.scrollTop = st.scroll; requestAnimationFrame(() => { sheetB.scrollTop = st.scroll; });
+      const f = [...sheetB.querySelectorAll('[data-card],.trow[data-nick]')][st.focus]; if (f) { f.focus({ preventScroll: true }); return; } $('#sheet-x').focus({ preventScroll: true }); return; }
+    recState = null; sheetB.scrollTop = 0; requestAnimationFrame(() => { sheetB.scrollTop = 0; }); if (focusNick) { const r = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`); if (r) { r.focus({ preventScroll: true }); return; } } $('#sheet-x').focus({ preventScroll: true });
   };
   function closeSheet(silent) { if (!game.classList.contains('sheeted')) return; sheet.classList.remove('on'); game.classList.remove('sheeted'); if (!silent && sheetOpener && sheetOpener.isConnected) sheetOpener.focus({ preventScroll: true }); }
   document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); sfx('tap'); buzz(8); openSheet(b.dataset.open); }));
