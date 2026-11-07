@@ -1987,3 +1987,17 @@ class LossReview(unittest.TestCase):
         self.assertTrue(any("가격" in e for e in self.LR.check(self._doc("목표가 120,000원"))))
         self.assertTrue(any("가격" in e for e in self.LR.check(self._doc("$45 근처"))))
         self.assertEqual(self.LR.check(self._doc("종가 기준 -2.1%")), [])
+
+    def test_summary_groups_verdicts_and_fixes(self):
+        for rd, aid, mk, verdict in (("2026-11-09", "wood", "KR", "분석 실수"), ("2026-11-10", "wood", "US", "분석 실수"), ("2026-11-10", "dalio", "KR", "시장 전체 움직임"), ("2026-11-02", "wood", "KR", "운·잡음")):
+            f = self.d / f"reviews/losses/{rd}/{aid}-{mk}.md"; f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(f"# 손실 복기 — {rd}-claude-{aid}-{mk}\n- 결과: -1.50% (지수 대비 -1.00%p)\n\n## 1. 그때의 논리\n가\n## 3. 판정\n판정: {verdict}\n## 5. 다음에 바꿀 점\n- 구간 안 일정 점검을 먼저 한다\n(제안일 뿐)\n")
+        s = self.LR.summary(self.d, "2026-W46")
+        w = next(a for a in s["agents"] if a["agent_id"] == "wood")
+        self.assertEqual((w["reviews"], w["mistakes"], list(w["repeated"])), (2, 2, ["분석 실수"]))
+        self.assertEqual([x["text"] for x in w["fixes"]], ["구간 안 일정 점검을 먼저 한다"] * 2)
+        self.assertEqual(s["agents"][0]["agent_id"], "wood")
+        self.assertEqual(next(a for a in self.LR.summary(self.d, "2026-W46", 2)["agents"] if a["agent_id"] == "wood")["reviews"], 3)
+        md = self.LR.summary_md(s)
+        self.assertIn("분석 실수 2건", md); self.assertIsNone(self.LR.MONEY.search(md))
+

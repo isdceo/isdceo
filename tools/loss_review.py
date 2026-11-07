@@ -2,7 +2,9 @@
 
   python3 tools/loss_review.py due [--dir league] [--json]      → 아직 복기가 없는 마이너스 확정 종목
   python3 tools/loss_review.py check <복기 파일>...              → 형식·금지 표현 검사
-  python3 tools/loss_review.py list [--dir league] [--week 2026-W46] → 작성된 복기 목록(주간 복기 입력)
+  python3 tools/loss_review.py list [--dir league] [--week 2026-W46] → 작성된 복기 목록
+  python3 tools/loss_review.py summary --week 2026-W46 [--dir league] [--weeks 2] [--out 파일.md] [--json]
+                                                               → 에이전트별 판정 횟수·근거 pick_id·'바꿀 점' 모음(주간 복기 입력)
 
 복기 파일: league/reviews/losses/<라운드>/<에이전트>-<시장>.md (연습은 league/sandbox/reviews/losses/…)
 - 확정(final) 점수만 대상이다. 잠정·보류·무효와 관망(지수 추종)은 제외한다.
@@ -100,13 +102,89 @@ def listing(d: Path, week: str | None = None) -> list[dict]:
     return out
 
 
+def _section(t: str, head: str) -> str:
+    i = t.find(head)
+    if i < 0:
+        return ""
+    j = t.find("\n## ", i + len(head))
+    return t[i + len(head): j if j >= 0 else None].split("\n", 1)[-1].strip()
+
+
+def _weeks_back(week: str, n: int) -> set[str]:
+    y, w = week.split("-W")
+    mon = date.fromisocalendar(int(y), int(w), 1)
+    return {L.iso_week(date.fromordinal(mon.toordinal() - 7 * k)) for k in range(n)}
+
+
+def summary(d: Path, week: str, weeks: int = 1) -> dict:
+    """에이전트별: 복기 수, 판정별 개수와 pick_id, '바꿀 점' 항목, 반복 신호.
+    반복 신호 = 같은 판정이 2건 이상(특히 '분석 실수') — v2.1 규칙의 '같은 유형 오류 pick_id 2건 이상' 후보. 최종 판단은 주간 복기가 한다."""
+    want = _weeks_back(week, max(1, weeks))
+    agents: dict[str, dict] = {}
+    for f in sorted(review_dir(d).glob("*/*.md")):
+        rd = f.parent.name
+        try:
+            if L.iso_week(date.fromisoformat(rd)) not in want:
+                continue
+        except ValueError:
+            continue
+        t = f.read_text(encoding="utf-8")
+        m = re.match(r"([a-z0-9]+)-(KR|US)$", f.stem)
+        if not m:
+            continue
+        aid, mk = m.groups()
+        pid = (t.splitlines()[0].split("— ", 1)[-1].strip() if t else "") or f"{rd}-{aid}-{mk}"
+        v = re.search(r"^판정:\s*(.+)$", t, re.M)
+        verdict = next((x for x in VERDICTS if v and x in v.group(1)), "판정 없음")
+        res = re.search(r"^- 결과:\s*([+−-]?\d+(?:\.\d+)?)%", t, re.M)
+        score = float(res.group(1).replace("−", "-")) if res else None
+        fixes = [re.sub(r"^\s*(?:[-*]|\d+[.)])\s*", "", x).strip() for x in _section(t, "## 5. 다음에 바꿀 점").splitlines()]
+        fixes = [x for x in fixes if len(x) >= 8 and not x.startswith(("(", "（", ">"))][:4]
+        a = agents.setdefault(aid, {"agent_id": aid, "reviews": 0, "verdicts": {}, "fixes": [], "scores": []})
+        a["reviews"] += 1
+        a["verdicts"].setdefault(verdict, []).append(pid)
+        a["fixes"] += [{"pick_id": pid, "text": x} for x in fixes]
+        if score is not None:
+            a["scores"].append(score)
+    for a in agents.values():
+        a["repeated"] = {k: v for k, v in a["verdicts"].items() if len(v) >= 2}
+        a["mistakes"] = len(a["verdicts"].get("분석 실수", []))
+    rows = sorted(agents.values(), key=lambda a: (-a["mistakes"], -a["reviews"], a["agent_id"]))
+    return {"week": week, "weeks": sorted(want), "agents": rows,
+            "totals": {k: sum(len(a["verdicts"].get(k, [])) for a in rows) for k in VERDICTS + ("판정 없음",)}}
+
+
+def summary_md(s: dict, names: dict | None = None) -> str:
+    names = names or {}
+    L_ = [f"# 손실 복기 요약 — {s['week']}" + (f" (최근 {len(s['weeks'])}주: {', '.join(s['weeks'])})" if len(s["weeks"]) > 1 else ""), ""]
+    if not s["agents"]:
+        return "\n".join(L_ + ["이 기간에 손실 복기가 없습니다.", ""])
+    L_ += ["| 에이전트 | 복기 | " + " | ".join(VERDICTS) + " | 반복 신호 |", "|---|---:|" + "---:|" * len(VERDICTS) + "---|"]
+    for a in s["agents"]:
+        rep_ = ", ".join(f"{k} {len(v)}건" for k, v in a["repeated"].items()) or "—"
+        L_.append(f"| {names.get(a['agent_id'], a['agent_id'])} | {a['reviews']} | " + " | ".join(str(len(a["verdicts"].get(k, []))) for k in VERDICTS) + f" | {rep_} |")
+    L_ += ["", "판정별 합계: " + " · ".join(f"{k} {n}" for k, n in s["totals"].items() if n), "",
+           "> 반복 신호는 '같은 판정 2건 이상'일 뿐이다. 개선안 근거가 되려면 주간 복기가 원인이 같은 유형인지 확인한다(규칙 v2.1). '시장 전체 움직임'·'운·잡음'은 지침 수정 근거가 아니다.", ""]
+    for a in s["agents"]:
+        L_.append(f"## {names.get(a['agent_id'], a['agent_id'])}")
+        for k, v in a["verdicts"].items():
+            L_.append(f"- {k}: {', '.join(v)}")
+        if a["fixes"]:
+            L_.append("- 바꿀 점(복기 제안):")
+            L_ += [f"  - {x['text']} ({x['pick_id']})" for x in a["fixes"]]
+        L_.append("")
+    return "\n".join(L_)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["due", "check", "list"])
+    ap.add_argument("cmd", choices=["due", "check", "list", "summary"])
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--dir", default="league")
     ap.add_argument("--week")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--weeks", type=int, default=1, help="summary: 이번 주 포함 최근 몇 주")
+    ap.add_argument("--out", help="summary: 마크다운 저장 경로")
     a = ap.parse_args()
     d = (L.ROOT / a.dir) if not Path(a.dir).is_absolute() else Path(a.dir)
     if a.cmd == "due":
@@ -117,6 +195,17 @@ def main():
             for r in rows:
                 print(f"{r['pick_id']}  {r['nickname'] or r['agent_id']}  {r['market']} {r['name']}  {r['score']:+.2f}%  → {r['path']}")
             print(f"복기 필요 {len(rows)}건")
+        return
+    if a.cmd == "summary":
+        if not a.week:
+            sys.exit("--week 필요 (예: 2026-W46)")
+        s = summary(d, a.week, a.weeks)
+        roster = L.load_roster(d) if (d / "agents" / "roster.json").exists() else L.load_roster(L.ROOT / "league")
+        names = {x["id"]: f"{x.get('nickname') or x['id']} ({x['id']})" for x in roster.get(TEAM, []) + roster.get("bench", [])}
+        md = summary_md(s, names)
+        if a.out:
+            Path(a.out).parent.mkdir(parents=True, exist_ok=True); Path(a.out).write_text(md + "\n", encoding="utf-8")
+        print(json.dumps(s, ensure_ascii=False, indent=1) if a.json else md)
         return
     if a.cmd == "list":
         rows = listing(d, a.week)
