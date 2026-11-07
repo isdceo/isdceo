@@ -70,7 +70,7 @@
   "providers_note": "사용권 확인 전 기술 검증 후보. 키가 없으면 수집을 건너뛴다. 미국 확정 제공처는 2026-11-06부터 Alpha Vantage 무료 키(개인·비상업, 저장 제한 없음). Tiingo 무료 플랜은 약관(2026-10-06)상 파생 결과물을 임시로만 둘 수 있어 쓰지 않는다(docs/data-provider-research.md 8장)",
   "automation_enabled": false,
   "automation_note": "true 로 바꾸면 league-daily 워크플로가 공통 자료(06:50)·수집·채점(10:30)·주간 마감(월 06:30)을 실행한다",
-  "deploy_enabled": false,
+  "deploy_enabled": true,
   "cloudflare_project": "isdceo-league",
   "deploy_note": "운영자 혼자 보기 배포(비밀번호 잠금). docs/deploy-cloudflare.md 0장의 SITE_PASSWORD 설정과 GitHub Secrets 두 개를 먼저 끝낸 뒤 true 로",
   "provider_verified": {
