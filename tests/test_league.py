@@ -1481,6 +1481,29 @@ class V2ReviewFixes(unittest.TestCase):
         on = {r["agent_id"]: r for r in L.guideline_check(d, date(2026, 11, 9), register=False)}
         self.assertEqual((on["buffett"]["status"], on["buffett"]["version"]), ("new_version", 2))
 
+    def _tmp(self):
+        d = Path(tempfile.mkdtemp()); (d / "ledger").mkdir(); (d / "agents").mkdir()
+        for f in ("config.json", "universe.json"):
+            shutil.copy(ROOT / "league" / f, d / f)
+        shutil.copy(ROOT / "league/agents/roster.json", d / "agents/roster.json")
+        r = Path(tempfile.mkdtemp())
+        shutil.copytree(ROOT / ".claude/agents", r / ".claude/agents"); shutil.copytree(ROOT / "league/agents/claude", r / "league/agents/claude")
+        return d, r
+
+    def test_not_yet_still_reports_missing_files(self):
+        d, r = self._tmp()
+        (r / ".claude/agents/buffett.md").unlink(); (r / "league/agents/claude/lynch/v2.md").unlink()
+        res = {x["agent_id"]: x["status"] for x in L.guideline_check(d, date(2026, 11, 6), root=r, register=False)}
+        self.assertEqual((res["buffett"], res["lynch"], res["dalio"]), ("missing", "missing", "not_yet"))
+
+    def test_registered_hash_mismatch_is_unapproved(self):
+        d, r = self._tmp()
+        L.guideline_check(d, date(2026, 11, 9), root=r, register=True)
+        for f in (r / ".claude/agents/wood.md", r / "league/agents/claude/wood/v2.md"):
+            f.write_text(f.read_text() + "추가 줄\n")
+        res = {x["agent_id"]: x["status"] for x in L.guideline_check(d, date(2026, 11, 10), root=r, register=False)}
+        self.assertEqual((res["wood"], res["buffett"]), ("unapproved_edit", "ok"))
+
     def test_dashboard_version_follows_build_time(self):
         import dashboard_data as D
         ver = lambda now: {(a["team"], a["agent_id"]): a["version"] for a in D.build(now)["agents"]}

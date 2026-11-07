@@ -26,7 +26,7 @@ sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 
 `league/config.json`의 `commit_reveal.from`(2026-11-09) 이후 라운드는 다음 순서다.
 
 1. 08:30 전: CSV 원본의 sha256 **지문 파일(`<날짜>.sha256`)만** push → 영수증 `committed`
-2. 08:30~12:00: 원본 CSV, 토론 기록, `league/rounds/<날짜>/claude/` 폴더 push → 영수증 `accepted`
+2. 08:30~12:00: 원본 CSV, 토론 기록, `league/rounds/<날짜>/claude/` 폴더(official이면 지침 기록 `league/ledger/guidelines.jsonl`도) push → 영수증 `accepted`
 
 **마감 전에는 종목이 들어 있는 파일(CSV, debate.md, r1/r2/final.json, timing.json 등)을 커밋에 넣지도 push하지도 않는다.** 지문 커밋에는 `.sha256` 파일 하나만 들어간다.
 `commit_reveal.from` 이전 날짜의 라운드(연습)는 예전 방식대로 08:30 전에 CSV를 바로 push한다.
@@ -74,13 +74,13 @@ sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 
 2. `python3 tools/league.py schedule <날짜> --to <날짜>`로 열린 시장, 기준·평가 세션을 확인한다.
    - 두 시장 모두 휴장이면 라운드가 없다고 보고하고 끝낸다.
 3. 공통 자료를 확인한다: `league/rounds/<날짜>/snapshot.json`과 `.sha256`.
-   - 없으면 `python3 tools/league.py snapshot <날짜>`(가격 제외판)로 만들고, 해시를 확인한다.
+   - 없으면 `python3 tools/league.py snapshot <날짜>`(가격 제외판)로 만들고, 해시를 확인한다. 직접 만들었으면 종목 정보가 없는 공통 자료이므로 **곧바로** `snapshot.json`·`.sha256` 두 파일만 커밋해 push한다(`league: snapshot <날짜> (round session)`). 나중에 06:50 작업이 같은 경로를 올려 08:20 pull이 막히는 것을 막는다. push가 거절되면 `git pull --rebase --autostash` 뒤, 원격에 이미 같은 파일이 있으면 그 원격 파일을 쓴다(해시를 다시 확인해 에이전트에게 알린 값과 다르면 바로 다시 알린다).
    - **가격 포함판(`--variant with-prices`)은 사용자가 사용권 확인을 알려준 뒤에만** 쓴다.
    - `disclosures`(DART 최근 14일 공시)의 상태와 건수를 확인한다. `not_configured`나 오류면 에이전트에게 "공통 자료 공시 없음"이라고 알린다.
    - 참고: KRX 전일 종가는 **08:00 KST 전후**에 공개된다(2026-11-05 확인). 07:00대에는 KRX에서 전일 종가를 받을 수 없으므로, 에이전트가 가격이 필요하면 공개 웹 자료에서 찾고 출처를 남긴다.
-4. 지침 확인: `python3 tools/league.py guideline-check <날짜> --dry-run` (이 단계에서는 확인만 한다 — 원장을 바꾸지 않아 08:20 지문 push 전 `git pull --rebase`가 막히지 않는다)
+4. 지침 확인: `python3 tools/league.py guideline-check <날짜> --dry-run` (이 단계에서는 확인만 한다 — 원장을 바꾸지 않아 08:20 지문 push 전 `git pull --rebase`가 막히지 않는다. 기록은 5단계(원본 공개) 4번에서 한다)
    - 결과가 `unapproved_edit` 또는 `missing`이면 **진행하지 않고** 운영자에게 보고한다(승인 안 된 지침 수정).
-   - `new_version`은 승인(PR 머지)된 새 버전이다. 실제 기록은 5단계에서 한다.
+   - `new_version`은 승인(PR 머지)된 새 버전이다.
    - `not_yet`은 명단에 새 버전이 있지만 이 라운드 날짜에는 아직 적용 전이라는 뜻이다. 이때는 표시된 버전의 보관본(`league/agents/claude/<id>/v<버전>.md`)을 프롬프트에 붙이고 CSV `agent_version`도 그 버전으로 쓴다.
 5. 활성 멤버와 버전: 주간 마감 기록이 반영된 명단(`python3 tools/league.py export`의 roster)에서 **리그(시장)별 참가 상태**를 본다(v2.0). 한 리그에서만 빠진 에이전트는 남은 리그 종목만 내고, 대기 후보가 한 리그에만 합류했으면 그 리그 종목만 낸다. 각 에이전트에게 "이번 라운드 네가 낼 시장"을 프롬프트에 명시한다.
    - **월요일이고 지난주에 실전 라운드가 있었으면**(첫 실전 주 2026-11-09은 해당 없음 — 마감할 지난주가 없다) `league/ledger/weekly_decisions.jsonl`에 지난주 한국(KR)·미국(US) 마감 기록이 있는지 먼저 확인한다. 명단은 이 기록으로만 정해진다(마감 전 계산값으로 바꾸지 않는다).
@@ -170,7 +170,9 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
    git push
    ```
    - `git status`로 CSV·rounds 폴더가 **커밋에 들어가지 않았는지** 확인한다(추적 안 된 상태로 남아 있어야 함).
-   - pull이 추적 안 된 파일이나 커밋 안 된 수정 때문에 막히면 `git stash -u`로 잠시 치우고 pull한 뒤 `git stash pop`한다. 이때도 지문 커밋에는 `.sha256` 하나만 넣는다.
+   - pull이 `league/rounds/<날짜>/snapshot.json`(또는 `.sha256`) 때문에 막히면(06:50 작업이 늦게 같은 파일을 올린 경우) `git diff --no-index <로컬 파일> <(git show origin/<브랜치>:<경로>)`로 비교해 같으면 로컬 두 파일만 지우고 다시 pull한다. 다르면 원격 파일을 기준으로 하되 지문 push가 먼저이고, 해시 차이는 보고에 적는다.
+   - 그 밖에 추적 안 된 파일·수정 때문에 막히면 `git stash -u`로 잠시 치우고 pull한 뒤 `git stash pop`한다. 이때도 지문 커밋에는 `.sha256` 하나만 넣는다.
+   - push가 거절되면(non-fast-forward, 다른 봇 커밋과 겹침) `git pull --rebase --autostash` 뒤 다시 push한다.
 6. `timing.json`에 "지문 push" 시각을 적는다.
 
 ## 4단계 — 지문 영수증 (08:20–08:30)
@@ -186,8 +188,8 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
 1. 현재 시각이 08:30 KST를 지났는지 확인한다. 지나지 않았으면 기다린다.
 2. 토론 기록 `<제출 폴더>/<날짜>-debate.md`를 쓴다. 내용은 1·2단계 요약, 변경 내역, 각 r1/r2 파일 경로다.
 3. CSV가 지문과 같은지 확인한다: `sha256sum <CSV>`의 값이 `.sha256` 첫 단어와 같아야 한다. 다르면 push하지 말고 사용자에게 보고한다.
-4. official이면 지침 기록을 남긴다: `python3 tools/league.py guideline-check <날짜>`(dry-run 없이 — 승인된 새 버전이 이 날짜를 적용 시작일로 `league/ledger/guidelines.jsonl`에 기록된다). 연습(sandbox)은 기록하지 않는다.
-5. `timing.json`을 마무리하고, CSV·토론 기록·`league/rounds/<날짜>/claude/` 폴더(official이면 `league/ledger/guidelines.jsonl` 포함)를 커밋해 push한다.
+4. official이면 지침 기록을 남긴다: `python3 tools/league.py guideline-check <날짜>`(dry-run 없이 — 승인된 새 버전이 이 날짜를 적용 시작일로 `league/ledger/guidelines.jsonl`에 기록된다). 연습(sandbox)은 기록하지 않는다. 여기서 `unapproved_edit`/`missing`이 나와도(그사이 pull로 들어온 변경) 원본 공개는 멈추지 않는다 — 그날 종목은 0단계에서 확인한 버전으로 이미 확정됐다. 보고 첫 줄에 적는다.
+5. `timing.json`을 마무리하고, CSV·토론 기록·`league/rounds/<날짜>/claude/` 폴더(official이면 `league/ledger/guidelines.jsonl` 포함)를 커밋해 push한다. 거절되면 `git pull --rebase --autostash` 뒤 다시 push한다.
 6. 영수증이 `accepted`인지 확인한다. `rejected`(해시 불일치)면 사유를 보고한다. 12:00 전이라면 **지문과 같은 원본**으로만 다시 push할 수 있다.
 
 ## 6단계 — 한 줄 이유 (원본 영수증 accepted 뒤, 12:00 전)

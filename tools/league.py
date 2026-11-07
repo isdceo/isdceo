@@ -746,9 +746,9 @@ def guideline_check(d: Path, round_date: date | None = None, root: Path = ROOT, 
         row = {"agent_id": a["id"], "version": v}
         if v < latest:   # 명단에 새 버전이 있지만 이 라운드에는 아직 적용 전: 보관본만 확인하고 기록하지 않는다
             _, new_arch = guideline_paths(a["id"], latest, root)
-            if not arch.exists():
-                row.update(status="missing", detail=f"v{v} 보관본 없음")
-            elif cur.exists() and new_arch.exists() and _sha(cur) != _sha(new_arch):
+            if not arch.exists() or not cur.exists() or not new_arch.exists():
+                row.update(status="missing", detail=f"{'현재 파일' if not cur.exists() else f'v{v} 보관본' if not arch.exists() else f'v{latest} 보관본'} 없음")
+            elif _sha(cur) != _sha(new_arch):
                 row.update(status="unapproved_edit", detail=f"{cur.relative_to(root)} 가 v{latest} 보관본과 다름 — 승인 안 된 수정")
             else:
                 row.update(status="not_yet", detail=f"이 라운드는 v{v}(보관본 {arch.relative_to(root)}) — v{latest}는 적용 전")
@@ -758,6 +758,8 @@ def guideline_check(d: Path, round_date: date | None = None, root: Path = ROOT, 
             row.update(status="missing", detail=f"{'현재 파일' if not cur.exists() else '보관본'} 없음")
         elif _sha(cur) != _sha(arch):
             row.update(status="unapproved_edit", detail=f"{cur.relative_to(root)} 가 v{v} 보관본과 다름 — 승인 안 된 수정")
+        elif (a["id"], v) in seen and seen[(a["id"], v)].get("sha256") not in (None, _sha(arch)):
+            row.update(status="unapproved_edit", detail=f"v{v} 보관본이 원장에 기록된 해시와 다름 — 승인 안 된 수정")
         elif (a["id"], v) in seen:
             row.update(status="ok", effective_round=seen[(a["id"], v)].get("effective_round"))
         else:
