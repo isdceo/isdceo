@@ -2034,9 +2034,10 @@ class LossReview(unittest.TestCase):
     def test_money_regex_catches_particles_and_spares_words(self):
         for s in ("1,393,000원에서", "45달러로", "5만 원", "3조원대", "1천억원", "45 USD", "KRW 1,393,000", "￦1000", "목표가 150,000", "종가 1,393,000"):
             self.assertIsNotNone(self.LR.MONEY.search(s), s)
-        for s in ("종가는 1,393,000", "종가: 1,393,000", "종가 45.20", "12$", "45불", "주가 1,393,000"):
+        for s in ("종가는 1,393,000", "종가: 1,393,000", "종가 45.20", "12$", "45불", "주가 1,393,000", "주가 187", "종가 45.2", "1,393,000에 마감했다", "주가는 13만"):
             self.assertIsNotNone(self.LR.MONEY.search(s), s)
-        for s in ("+327.9%", "3분기", "1.6배", "2026년", "3원칙", "2원화", "종가 기준 -2.1%", "지수 대비 -4.18%p", "2026-11-05 원장 기록", "Q3 원가 부담", "종가 2026-11-04 기준", "주가 -24.3%"):
+        for s in ("+327.9%", "3분기", "1.6배", "2026년", "3원칙", "2원화", "종가 기준 -2.1%", "지수 대비 -4.18%p", "2026-11-05 원장 기록", "Q3 원가 부담", "종가 2026-11-04 기준", "주가 -24.3%",
+                  "주가 2024년 고점 이후", "주가 2.15배 올랐다", "종가 2026.11.04 기준", "고점 1,000일", "저점 3개월 전", "주가 1위", "코스피 2,600선"):
             self.assertIsNone(self.LR.MONEY.search(s), s)
 
     def test_failed_review_file_is_due_again_and_corrected_score_excluded(self):
