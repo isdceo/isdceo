@@ -52,6 +52,14 @@
     "US": "SPY"
   },
   "extreme_move_hold_pct": 30,
+  "guideline_updates": {
+    "rule": "top_frozen_small_updates",
+    "from_week": "2026-W46",
+    "max_changes": 2,
+    "min_evidence_picks": 2,
+    "cooldown_weeks": 1,
+    "note": "규칙 v2.1(2026-11-07 운영자 결정): 주간 마감 뒤 어느 한 리그 1등은 그 주 지침 동결. 나머지(2~9등) 중 같은 유형의 판단 오류가 pick_id 2건 이상으로 확인된 에이전트만 작게(최대 2곳, 투자 스타일 유지) 업데이트. 지침이 바뀐 주는 다음 마감에서 다시 고치지 않음(새 버전 표본 확보). 두 리그 모두 탈락하면 업데이트 없음. 두 팀 같은 기준, 운영자 승인(PR 병합) 뒤 적용"
+  },
   "watch": {
     "from": "2026-11-16",
     "ticker": "WATCH",

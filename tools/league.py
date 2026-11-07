@@ -597,6 +597,52 @@ def weekly_market_league(d: Path, week: str, mk: str) -> dict:
                         hold_reasons=closed[0].get("hold_reasons", []), closed_at=closed[0].get("closed_at"))
     return {"week": week, "mode": "per_market_bottom1", "market": mk, "ranking": rows, "teams": teams, "decision": decision}
 
+def update_plan(d: Path, week: str) -> dict:
+    """규칙 v2.1 주간 지침 업데이트 계획. 그 주 리그별 순위(마감 기록이 있으면 그 값)로 에이전트마다
+    frozen(어느 리그 1등) / cooldown(이번 주에 새 버전으로 뛴 경우) / out(두 리그 모두 탈락) / eligible(근거가 있으면 작게 업데이트)."""
+    cfg = load_config(d)
+    gu = cfg.get("guideline_updates") or {}
+    per_market = cfg["weekly"].get("mode") == "per_market_bottom1"
+    ranks: dict = {}
+    if per_market:
+        leagues = {mk: weekly_market_league(d, week, mk) for mk in MARKETS}
+    else:
+        leagues = {"ALL": weekly_league(d, week)}
+    for mk, lg in leagues.items():
+        dec = lg["decision"]
+        best = lg["ranking"][0] if lg["ranking"] else None
+        same = lambda r: best is not None and r["scored"] and (r["avg"], r["median"], r["min"]) == (best["avg"], best["median"], best["min"])
+        for r in lg["ranking"]:
+            ranks.setdefault((r["team"], r["agent_id"]), {})[mk] = {
+                "rank": r["league_rank"], "of": len(lg["ranking"]), "scored": r["scored"], "avg": r["avg"],
+                "top": bool(same(r)),                                   # 공동 1등도 모두 1등
+                "out": dec.get("eliminate_team") == r["team"] and dec.get("eliminate") == r["agent_id"]}
+    picks = read_ledger(d, "picks")
+    rows = []
+    for (team, aid), rk in sorted(ranks.items()):
+        mine = [p for p in picks if p["team"] == team and p["agent_id"] == aid and p.get("agent_version") is not None]
+        cur_v = max((int(p["agent_version"]) for p in mine), default=1)
+        first_cur = min((p["round_date"] for p in mine if int(p["agent_version"]) == cur_v), default=None)
+        v_week = iso_week(date.fromisoformat(first_cur)) if first_cur else None
+        top = [mk for mk, x in rk.items() if x["top"]]
+        outs = [mk for mk, x in rk.items() if x["out"]]
+        all_out = per_market and len(outs) == len(MARKETS) or (not per_market and outs)
+        if top:
+            st, why = "frozen", f"{'·'.join({'KR': '한국', 'US': '미국', 'ALL': '통합'}[m] for m in top)} 리그 1등 — 이번 주 지침 동결"
+        elif all_out:
+            st, why = "out", "두 리그 모두 탈락 — 업데이트 없음"
+        elif cur_v > 1 and v_week and v_week >= week and int(gu.get("cooldown_weeks", 1)) > 0:
+            st, why = "cooldown", f"v{cur_v}로 이번 주({v_week})부터 뜀 — 다음 마감까지 새 버전 표본을 모은다"
+        else:
+            st, why = "eligible", (f"같은 유형 판단 오류가 pick_id {gu.get('min_evidence_picks', 2)}건 이상일 때만 작게(최대 {gu.get('max_changes', 2)}곳) 업데이트"
+                                   + (f" · {'·'.join({'KR': '한국', 'US': '미국'}[m] for m in outs)} 리그에서는 교체됨" if outs else ""))
+        rows.append({"team": team, "agent_id": aid, "version": cur_v, "ranks": rk, "status": st, "reason": why})
+    order = {"frozen": 0, "eligible": 1, "cooldown": 2, "out": 3}
+    rows.sort(key=lambda r: (r["team"], order[r["status"]], r["agent_id"]))
+    return {"week": week, "rule": gu.get("rule"), "max_changes": gu.get("max_changes", 2),
+            "min_evidence_picks": gu.get("min_evidence_picks", 2), "closed": any(x["week"] == week for x in read_ledger(d, "weekly_decisions")),
+            "agents": rows}
+
 def next_week(week: str) -> str:
     y, w = map(int, week.split("-W"))
     return iso_week(date.fromisocalendar(y, w, 1) + timedelta(days=7))
@@ -723,6 +769,9 @@ def review_data(d: Path, week: str, team: str = "claude") -> dict:
         agents.append({**{k: r[k] for k in ("rank", "agent_id", "label", "version", "avg", "avg_excess", "scored", "expected",
                                             "submit_rate", "held_or_pending", "void", "markets")},
                        "picks": rows, "provisional_or_pending": sum(1 for x in rows if x["status"] != "final")})
+    plan = {r["agent_id"]: {k: r[k] for k in ("status", "reason", "ranks")} for r in update_plan(d, week)["agents"] if r["team"] == team}
+    for a_ in agents:
+        a_["update_plan"] = plan.get(a_["agent_id"])
     return {"week": week, "team": team, "decision": w["decision"], "agents": agents,
             "caution": "한 주 표본(에이전트당 최대 10건)은 운의 영향이 크다. 결과 하나에 맞춘 지침 변경을 피하고, 반복되는 판단 오류만 다룬다."}
 
@@ -1456,7 +1505,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit", "update-plan"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -1515,6 +1564,9 @@ def main():
             print(f" {mark[it['status']]} {it['item']} — {it['detail']}  ({it['who']})")
         n = sum(1 for x in items if x["status"] == "done")
         print(f"\n완료 {n}/{len(items)} · ✅ 완료 ⬜ 남음 🔎 GitHub·사이트에서 확인 필요")
+    elif a.cmd == "update-plan":
+        wk = a.arg or iso_week(datetime.now(KST).date() - timedelta(days=7))      # 기본: 지난주(월요일 마감 뒤 실행)
+        print(json.dumps(update_plan(d, wk), ensure_ascii=False, indent=1))
     elif a.cmd == "review-data":
         wk = a.arg or iso_week(datetime.now(KST).date())
         print(json.dumps(review_data(d, wk, a.team), ensure_ascii=False, indent=1))

@@ -969,3 +969,25 @@ class MarketLeagues(unittest.TestCase):
         us = L.weekly_market_league(d, "2026-W46", "US")["decision"]
         self.assertIsNone(us["eliminate"])
         self.assertTrue(any("미국 리그" in r and "10건 < 15건" in r for r in us["hold_reasons"]))
+
+
+class UpdatePlan(unittest.TestCase):
+    """규칙 v2.1: 어느 리그 1등은 동결, 2~9등은 근거가 있을 때만 작게, 새 버전으로 뛴 주는 쉼, 두 리그 탈락은 없음."""
+    def test_plan(self):
+        t = MarketLeagues(); d = t._league(); t._fill(d, kr_bottom=("claude", "wood"))   # 한국 꼴등 wood, 미국 꼴등 s1
+        plan = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W46")["agents"]}
+        # 한국 1등 s5(5.0) 단독, 미국 1등 burry·s5 공동(5.0) → 공동 1등도 동결
+        self.assertEqual(plan[("shushu", "s5")]["status"], "frozen")
+        self.assertEqual(plan[("claude", "burry")]["status"], "frozen")
+        self.assertEqual(plan[("claude", "wood")]["status"], "eligible")               # 한국만 빠짐 → 미국에서 계속, 업데이트 가능
+        self.assertIn("한국 리그에서는 교체됨", plan[("claude", "wood")]["reason"])
+        self.assertEqual(plan[("claude", "lynch")]["status"], "eligible")
+        self.assertEqual(sorted(k for k, r in plan.items() if r["status"] == "frozen"), [("claude", "burry"), ("shushu", "s5")])
+
+    def test_cooldown_after_new_version(self):
+        t = MarketLeagues(); d = t._league(); t._fill(d)
+        cfg = L.load_config(d)
+        rec = L.make_pick("claude", "lynch", 2, "2026-11-12", "US", "AAPL", "AAPL", "2026-11-12T08:00:00+09:00", "", [], [{"url": "x", "as_of": "2026-11-11"}], cfg)
+        rec["pick_id"] += "-v2"; L.append(d, "picks", rec)                              # 이번 주 중간부터 v2로 뜀
+        plan = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W46")["agents"]}
+        self.assertEqual((plan[("claude", "lynch")]["status"], plan[("claude", "lynch")]["version"]), ("cooldown", 2))
