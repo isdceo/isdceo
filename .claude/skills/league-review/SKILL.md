@@ -47,6 +47,14 @@ argument-hint: "[주차 YYYY-Www]  (기본: 이번 주, 토요일 실행 기준)
 > 앞부분(frontmatter)의 name·tools는 바꾸지 말고, 리그 규칙에 해당하는 부분은 고치지 마라.
 > 마지막에 JSON을 반환하라: `{"agent_id":"<id>","proposal":true|false,"changes":[{"pick_ids":["..."],"summary":"..."}]}`
 
+## 2-1단계 — 근거 표본 감사 (참고 지표, 점수와 무관)
+
+에이전트마다 그 주 근거(rationale)에서 사실 주장 2~3개(숫자·날짜·사건)를 골라 원문과 대조한다.
+- 가격·지수: `league/rounds/<날짜>/claude/research-log.jsonl`과 공식 원장 종가(`league/ledger/prices.jsonl`)로 확인. 원장에 없는 날은 `python3 tools/research.py close --round <날짜> ... --audit`.
+- 기사·공시: 출처 URL을 열어 같은 숫자가 있는지 확인. 열 수 없으면 "확인 불가".
+- 결과를 에이전트별 "근거 정확도(맞음/틀림/확인 불가 건수)"로 복기에 기록한다. 틀린 패턴(예: 다른 날 종가, 검색 요약만 보고 단정)은 지침 개선안의 근거 pick_id로 쓴다.
+- 감사는 두 팀에 같은 방식으로 하고 결과는 공지로 공유한다. 점수·순위에는 반영하지 않는다.
+
 ## 3단계 — 점검과 PR
 
 1. 각 개선안을 원칙에 맞는지 점검한다.
