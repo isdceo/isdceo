@@ -1467,6 +1467,28 @@ class AgentsV2(unittest.TestCase):
         mk = lambda v: L.make_pick("claude", "buffett", v, "2026-11-09", "KR", "005930", "005930", "2026-11-09T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-06"}], cfg)
         self.assertEqual(L.validate_pick(mk(2), d, cfg, []), [])
         self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk(1), d, cfg, [])))
+
+class V2ReviewFixes(unittest.TestCase):
+    """독립 검토(11/8): 라운드 날짜 기준 지침 확인·현황판 버전·주간 표 버전."""
+    def test_guideline_check_before_switch_is_not_yet(self):
+        d = Path(tempfile.mkdtemp()); (d / "ledger").mkdir(); (d / "agents").mkdir()
+        for f in ("config.json", "universe.json"):
+            shutil.copy(ROOT / "league" / f, d / f)
+        shutil.copy(ROOT / "league/agents/roster.json", d / "agents/roster.json")
+        before = {r["agent_id"]: r for r in L.guideline_check(d, date(2026, 11, 6), register=True)}
+        self.assertEqual((before["buffett"]["status"], before["buffett"]["version"]), ("not_yet", 1))
+        self.assertFalse(any(g["version"] == 2 for g in L.read_ledger(d, "guidelines")))
+        on = {r["agent_id"]: r for r in L.guideline_check(d, date(2026, 11, 9), register=False)}
+        self.assertEqual((on["buffett"]["status"], on["buffett"]["version"]), ("new_version", 2))
+
+    def test_dashboard_version_follows_build_time(self):
+        import dashboard_data as D
+        ver = lambda now: {(a["team"], a["agent_id"]): a["version"] for a in D.build(now)["agents"]}
+        b, a = ver(datetime(2026, 11, 8, 12, 0, tzinfo=L.KST)), ver(datetime(2026, 11, 9, 9, 0, tzinfo=L.KST))
+        self.assertEqual([v for k, v in b.items() if k[1] in ("buffett", "s1")], [1, 1])
+        self.assertEqual([v for k, v in a.items() if k[1] in ("buffett", "s1")], [2, 2])
+
+
 class ShushuV2(unittest.TestCase):
     """슈슈 팀 시즌 전 v2(운영자 승인 2026-11-08): 지침 보관본·승인 원장·11/9 버전 검사."""
     def roster(self):

@@ -402,7 +402,7 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
                  for mk in ("KR", "US")}
         held = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") in ("held", "pending", "provisional", None))
         void = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") == "void")
-        rows.append({"agent_id": a["id"], "label": a["label"], "version": a.get("version", 1),
+        rows.append({"agent_id": a["id"], "label": a["label"], "version": max((int(p["agent_version"]) for p in mine if p.get("agent_version") is not None), default=a.get("version", 1)),
                      "picks": len(mine), "expected": expected, "missed": max(expected - len(mine), 0),
                      "submit_rate": round(len(mine) / expected * 100, 1) if expected else None,
                      "outage_rounds": sorted({o["round_date"] for o in outs}),
@@ -740,9 +740,20 @@ def guideline_check(d: Path, round_date: date | None = None, root: Path = ROOT, 
     for a in roster.get("claude", []) + [b for b in roster.get("bench", []) if b["id"] in approved]:
         if a.get("status") == "eliminated":
             continue
-        v = int(a.get("version", 1))
+        latest = int(a.get("version", 1))
+        v = (version_for_round(a, round_date.isoformat()) or latest) if round_date else latest
         cur, arch = guideline_paths(a["id"], v, root)
         row = {"agent_id": a["id"], "version": v}
+        if v < latest:   # 명단에 새 버전이 있지만 이 라운드에는 아직 적용 전: 보관본만 확인하고 기록하지 않는다
+            _, new_arch = guideline_paths(a["id"], latest, root)
+            if not arch.exists():
+                row.update(status="missing", detail=f"v{v} 보관본 없음")
+            elif cur.exists() and new_arch.exists() and _sha(cur) != _sha(new_arch):
+                row.update(status="unapproved_edit", detail=f"{cur.relative_to(root)} 가 v{latest} 보관본과 다름 — 승인 안 된 수정")
+            else:
+                row.update(status="not_yet", detail=f"이 라운드는 v{v}(보관본 {arch.relative_to(root)}) — v{latest}는 적용 전")
+            out.append(row)
+            continue
         if not cur.exists() or not arch.exists():
             row.update(status="missing", detail=f"{'현재 파일' if not cur.exists() else '보관본'} 없음")
         elif _sha(cur) != _sha(arch):
