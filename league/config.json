@@ -122,8 +122,8 @@
     "note": "마감(08:30) 전에는 CSV 원본의 sha256 지문(<날짜>.sha256)만 push하고, 원본 CSV는 08:30~12:00 KST에 push한다. 원본 해시가 지문과 같아야 접수. 마감 전 원본 push는 접수하되 early_reveal로 기록"
   },
   "shushu_repo": {
-    "enabled": false,
-    "repo": "",
+    "enabled": true,
+    "repo": "isdceo/isdceo-shushu",
     "branch": "main",
     "note": "B안(2026-11-07): 슈슈 팀은 전용 저장소에만 push. 메인의 league-shushu-sync 워크플로가 그 저장소의 GitHub 서버 push 시각(activity)으로 판정하고 허용 경로 파일만 가져온다. 켜려면 repo(owner/name)를 적고 enabled=true, 메인 Secrets에 SHUSHU_REPO_TOKEN(전용 저장소만, Contents 읽기·쓰기). 설정: docs/shushu-repo-setup.md"
   }

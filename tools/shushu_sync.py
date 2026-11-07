@@ -586,11 +586,11 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     if mk and live and "08:30" < hm < "11:40" and not taint and not ({"committed", "accepted"} & st):
         add("missing", rd, f"@codex 오늘({rd}) 지문 영수증이 없습니다. 08:30 전에 `submit/{rd}.sha256`을 push했다면 "
             "`from-league/sync-log.jsonl`에서 처리 결과를 확인해 주세요. 마감 뒤 지문은 인정되지 않습니다(소급 없음). 확인 결과를 `to-roro/`로 알려 주세요.")
-    if today.weekday() == 5 and hm >= "10:40":
+    if today.weekday() == 5 and hm >= "10:40" and live:
         wk = L.iso_week(today)
         add("review", wk, f"@codex 이번 주({wk}) 토요일 잠정 복기를 진행해 주세요. `from-league/league/imports/shushu/weekly-review-v2.1.md` 절차와 "
             "`from-league/update-plan.json`(잠정)을 쓰고, 개선안이 있으면 `to-roro/`로 요약(근거 pick_id 포함)을 보내 주세요. 최종 자격은 월요일 06:30 마감 뒤 확정됩니다.")
-    if today.weekday() == 0 and hm >= "06:35":
+    if today.weekday() == 0 and hm >= "06:35" and (today - timedelta(days=1)).isoformat() >= (cfg.get("season_start") or "9999"):   # 시즌 첫 주 마감부터
         wk = L.iso_week(today - timedelta(days=7))
         add("close", wk, f"@codex 주간 마감({wk})이 끝났습니다. `from-league/league/ledger/weekly_decisions.jsonl`과 `from-league/update-plan.json`으로 "
             "리그별 결과와 최종 업데이트 자격을 확인하고, 바뀐 점이나 승인 요청이 있으면 07:00까지 `to-roro/`로 보내 주세요.")
