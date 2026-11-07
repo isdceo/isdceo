@@ -57,6 +57,11 @@ const audit = () => {
       await p.waitForTimeout(3500);                         // 첫 방문 카드 돌리기 연출이 끝날 때까지
       await shot('1-첫화면');
       row.첫화면 = await p.evaluate(audit);
+      row.밀림 = await p.evaluate(async () => {            // 아이폰 사파리는 포커스 때 게임 틀을 옆으로 민 적이 있다(2026-11-07)
+        const g = document.querySelector('.game'); g.scrollLeft = 200; g.scrollTop = 200; window.scrollTo(200, 200);
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        return [g.scrollLeft, g.scrollTop, window.scrollX, window.scrollY].some((v) => v !== 0);
+      });
 
       await step('캐릭터 열기', async () => {
         await p.click('.plate >> nth=0', { timeout: 3000 });
@@ -104,6 +109,7 @@ const audit = () => {
   for (const r of rows) {
     const issues = [];
     if (r.오류.length) issues.push('JS오류: ' + r.오류.join(' / ').slice(0, 120));
+    if (r.밀림) { issues.push('게임 틀이 옆으로 밀림(스크롤 가능)'); bad++; }
     for (const k of ['첫화면', '공개', '메뉴', '결과쇼']) {
       const a = r[k]; if (!a) continue;
       if (a.hscroll) issues.push(`${k} 가로 스크롤`);

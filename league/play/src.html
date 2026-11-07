@@ -13,7 +13,8 @@ html,body{margin:0;height:100%;height:100dvh;overflow:hidden;overscroll-behavior
 html,body,.game,button,.who,.plate,.pair,.row{touch-action:pan-x pan-y}
 .game{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .sheet .body{-webkit-user-select:text;user-select:text}
-.game{position:fixed;inset:0;overflow:hidden}
+/* overflow:clip = 넘친 부분을 자르되 스크롤 상자가 아니게(사파리가 포커스 때 틀을 옆으로 밀지 못하게) */
+.game{position:fixed;inset:0;overflow:hidden;overflow:clip}
 .game::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:15;mix-blend-mode:soft-light;background:linear-gradient(180deg,rgba(255,190,110,.4),rgba(60,0,90,.3))}
 
 /* 배경: 흐릿한 카지노 홀 */
@@ -454,7 +455,9 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 <script src="data/table.js"></script>
 <script>
 (() => {
-    ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));   // 사파리 두 손가락 확대 막기
+    { const g0 = document.getElementById('game'); const unshift = () => { if (g0.scrollLeft || g0.scrollTop) { g0.scrollLeft = 0; g0.scrollTop = 0; } if (window.scrollX || window.scrollY) window.scrollTo(0, 0); };   // 틀이 밀리면 즉시 되돌림
+    g0.addEventListener('scroll', unshift, { passive: true }); window.addEventListener('scroll', unshift, { passive: true }); document.addEventListener('focusin', () => requestAnimationFrame(unshift)); window.addEventListener('resize', unshift); }
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));   // 사파리 두 손가락 확대 막기
   const T = window.TABLE, AV3D = Object.fromEntries(['ttukshim', 'alzza', 'balgul', 'keun', 'mirae', 'ppittak', 'dandan', 'dotbogi', 'ssuk', 'banjeon', 'pado', 'gyesan', 'nachim', 'sunpung'].map((k) => [k, `av/${k}.webp`]));
   const $ = (q) => document.querySelector(q), game = $('#game'), root = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -656,13 +659,13 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (t < 1) play(1, 1400, .3); else say(p, mk); } };
       set(0);
     });
-    refreshAct(); game.classList.add('zoomed'); $('#x').focus();
+    refreshAct(); game.classList.add('zoomed'); $('#x').focus({ preventScroll: true });
     setTimeout(() => { const c0 = cardsEl.querySelector('.big[tabindex="0"]'); if (game.classList.contains('zoomed') && c0 && c0._t() === 0) coach('squeeze', c0, '카드를 위로 밀어 올려 보세요', '한 번 누르면 천천히 열려요 · 빈 곳을 누르면 건너뛰기', true); }, reduce ? 100 : 700);
   }
   const shut = (quiet) => { if (!game.classList.contains('zoomed')) return; const nick = cur ? cur.nickname : openerNick; game.classList.remove('zoomed'); clearInterval(typing); cur = null; document.querySelectorAll('#close .react').forEach((x) => x.remove()); $('#hero').classList.remove('cheer', 'slump', 'shrug'); if (quiet) return;
     if (fromSheet) { const k = fromSheet; fromSheet = null; openSheet(k, nick, true); return; }
-    if (opener && opener.isConnected) { opener.focus(); return; }
-    const again = [...document.querySelectorAll('#lobby .who')].find((b) => b.getAttribute('aria-label') === `${nick} 카드 보기`) || document.querySelector('.dock button'); if (again) again.focus(); };
+    if (opener && opener.isConnected) { opener.focus({ preventScroll: true }); return; }
+    const again = [...document.querySelectorAll('#lobby .who')].find((b) => b.getAttribute('aria-label') === `${nick} 카드 보기`) || document.querySelector('.dock button'); if (again) again.focus({ preventScroll: true }); };
   $('#x').onclick = shut;
   $('#close').addEventListener('click', (e) => {   // 빈 곳을 누르면 열리는 중인 카드를 바로 끝까지(건너뛰기)
     if (e.target.closest('.big,button,.bubble')) return;
@@ -750,9 +753,9 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     sheetB.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => { sheetB.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b))); sheetB.querySelectorAll('[data-pane]').forEach((p) => p.hidden = p.dataset.pane !== b.dataset.tab); });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
     sheetB.querySelectorAll('.row[data-nick]').forEach((r) => { const go = () => { const a = active.find((x) => x.nickname === r.dataset.nick); if (a) open(a, 'picks'); }; r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
-    sheet.classList.add('on'); game.classList.add('sheeted'); sheetB.scrollTop = 0; requestAnimationFrame(() => { sheetB.scrollTop = 0; }); if (focusNick) { const r = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`); if (r) { r.focus(); return; } } $('#sheet-x').focus();
+    sheet.classList.add('on'); game.classList.add('sheeted'); sheetB.scrollTop = 0; requestAnimationFrame(() => { sheetB.scrollTop = 0; }); if (focusNick) { const r = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`); if (r) { r.focus({ preventScroll: true }); return; } } $('#sheet-x').focus({ preventScroll: true });
   };
-  function closeSheet(silent) { if (!game.classList.contains('sheeted')) return; sheet.classList.remove('on'); game.classList.remove('sheeted'); if (!silent && sheetOpener && sheetOpener.isConnected) sheetOpener.focus(); }
+  function closeSheet(silent) { if (!game.classList.contains('sheeted')) return; sheet.classList.remove('on'); game.classList.remove('sheeted'); if (!silent && sheetOpener && sheetOpener.isConnected) sheetOpener.focus({ preventScroll: true }); }
   document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); sfx('tap'); buzz(8); openSheet(b.dataset.open); }));
   $('#sheet-x').onclick = () => closeSheet(); $('#scrim').onclick = () => closeSheet();
   document.addEventListener('keydown', (e) => {
@@ -760,7 +763,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     if (e.key === 'Tab') {   // 창이 열려 있으면 그 안에서만 이동
       const box = game.classList.contains('elimming') ? $('#elim') : game.classList.contains('showing') ? $('#show') : game.classList.contains('sheeted') ? sheet : game.classList.contains('zoomed') ? $('#close') : null; if (!box) return;
       const f = [...box.querySelectorAll('button,[tabindex="0"]')].filter((x) => !x.closest('[hidden]') && x.offsetParent !== null); if (!f.length) return;
-      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus({ preventScroll: true }); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus({ preventScroll: true }); }
     }
   });
   // ── 라운드 결과 쇼: 가장 최근에 채점이 끝난 라운드의 카드를 한 장씩 뒤집는다 ──
@@ -786,7 +789,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     const both = teams.every((x) => x.avg != null), lead = both && teams[0].avg !== teams[1].avg ? (teams[0].avg > teams[1].avg ? teams[0] : teams[1]) : null;
     const bestA = best && active.concat(bench).find((a) => a.team === best.team && a.agent_id === best.agent_id);
     $('#show-sum').innerHTML = `${both ? (lead ? `이 라운드는 ${short(lead.tm)} 팀이 앞섰어요` : '이 라운드는 동률이에요') : '팀 평균'} — ${line}<small>${best ? `최고 카드: ${esc(bestA ? bestA.nickname : best.agent)} ${best.market === 'KR' ? '♦' : '♣'} ${esc(best.name || best.ticker)} ${pct(best.score)}%` : ''} · 종목 한 건당 평균, 모의 점수</small>`;
-    $('#show-sum').classList.add('on'); $('#show-skip').hidden = true; store('league.showSeen', showKey); refreshShowBtn(); $('#show-x').focus();
+    $('#show-sum').classList.add('on'); $('#show-skip').hidden = true; store('league.showSeen', showKey); refreshShowBtn(); $('#show-x').focus({ preventScroll: true });
   };
   const openShow = () => {
     if (!SR) return; showOpener = document.activeElement; showFrom = game.classList.contains('sheeted') ? 'record' : null; shut(true); closeSheet(true);
@@ -808,7 +811,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       }
     }
     $('#show-sum').classList.remove('on'); $('#show-sum').innerHTML = ''; $('#show-skip').hidden = false;
-    game.classList.add('showing'); $('#show-skip').focus();
+    game.classList.add('showing'); $('#show-skip').focus({ preventScroll: true });
     const cards = [...grid.querySelectorAll('.fc:not(.none)')];
     if (reduce) { showDone(); return; }
     const step = (fast ? 160 : 420);
@@ -819,7 +822,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     }, 250 + k * step)));
     showTimers.push(setTimeout(showDone, 250 + cards.length * step + 450));
   };
-  const closeShow = () => { if (!game.classList.contains('showing')) return; showTimers.forEach(clearTimeout); showTimers = []; game.classList.remove('showing'); if (store('league.showSeen') !== showKey && $('#show-sum').classList.contains('on')) store('league.showSeen', showKey); refreshShowBtn(); if (showFrom) { showFrom = null; openSheet('record', null, true); const b = sheetB.querySelector('[data-show]'); if (b) b.focus(); return; } (showOpener && showOpener.isConnected ? showOpener : showbtn).focus(); };
+  const closeShow = () => { if (!game.classList.contains('showing')) return; showTimers.forEach(clearTimeout); showTimers = []; game.classList.remove('showing'); if (store('league.showSeen') !== showKey && $('#show-sum').classList.contains('on')) store('league.showSeen', showKey); refreshShowBtn(); if (showFrom) { showFrom = null; openSheet('record', null, true); const b = sheetB.querySelector('[data-show]'); if (b) b.focus({ preventScroll: true }); return; } (showOpener && showOpener.isConnected ? showOpener : showbtn).focus({ preventScroll: true }); };
   showbtn.onclick = (e) => { e.stopPropagation(); openShow(); };
   $('#show-skip').onclick = showDone; $('#show-x').onclick = closeShow;
   window.__show = openShow;
@@ -857,9 +860,9 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     const card = (a, cls, cap) => `<div class="p ${cls}"><div class="im">${avHTML(a)}</div>${esc(a.nickname)}<small>${short(a.team)} 팀 · ${esc(a.label)} · ${cap}</small></div>`;
     $('#elim-duo').innerHTML = out.map((a) => card(a, 'out', '대기석으로')).join('') + (inn.length ? '<div class="arrow" aria-hidden="true">➜</div>' + inn.map((a) => card(a, 'in', '테이블 합류')).join('') : '');
     $('#elim-p').textContent = `이번 주 10명 통합 순위 꼴등은 대기석으로 가고${inn.length ? ', 대기 1순위가 자리를 이어받습니다' : ''}. 모의 예측 게임이며 실제 투자 성과가 아닙니다.`;
-    game.classList.add('elimming'); $('#elim-x').focus(); store('league.elim.' + elimWeek, 1); return true;
+    game.classList.add('elimming'); $('#elim-x').focus({ preventScroll: true }); store('league.elim.' + elimWeek, 1); return true;
   };
-  const closeElim = () => { if (!game.classList.contains('elimming')) return; game.classList.remove('elimming'); (document.querySelector('.dock button') || document.body).focus(); };
+  const closeElim = () => { if (!game.classList.contains('elimming')) return; game.classList.remove('elimming'); (document.querySelector('.dock button') || document.body).focus({ preventScroll: true }); };
   $('#elim-x').onclick = closeElim;
   if (elimWeek && !store('league.elim.' + elimWeek)) setTimeout(openElim, reduce ? 200 : 1600);
   window.__elim = openElim;
