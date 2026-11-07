@@ -327,7 +327,7 @@ def main():
         out = Path(a.out)
         out.mkdir(parents=True, exist_ok=True)
         for name, rows in build(logos=not a.no_logos).items():
-            (out / f"{name}.json").write_text(json.dumps({"rows": rows}, ensure_ascii=False, indent=1))
+            (out / f"{name}.json").write_text(json.dumps({"rows": rows}, ensure_ascii=False, separators=(",", ":")))   # 현황판 파일은 압축(줄바꿈·들여쓰기 없음)
             print(f"{name}: {len(rows)}행")
     if a.bundle:
         p = Path(a.bundle)

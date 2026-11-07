@@ -391,9 +391,9 @@
         <div class="grid big" data-draw="bigroad" data-source="team_daily"></div>
         <p class="rhead" data-draw="bigroad-note" data-source="team_daily"></p>
       </div>
-      <div class="rail"><h3 data-draw="title-claude">♠ 로로 팀 (Claude)</h3>
+      <div class="rail"><h3>♠ 로로 팀 (Claude) — 고른 종목 <span class="muted" data-draw="title-claude" data-source="picks">—</span></h3>
         <div class="hand" data-draw="hand-claude" data-source="agents picks logos"></div></div>
-      <div class="rail"><h3 data-draw="title-shushu">♥ 슈슈 팀 (Codex)</h3>
+      <div class="rail"><h3>♥ 슈슈 팀 (Codex) — 고른 종목 <span class="muted" data-draw="title-shushu" data-source="picks">—</span></h3>
         <div class="hand" data-draw="hand-shushu" data-source="agents picks logos"></div></div>
       <div class="rail"><h3>대기석 — 승인된 대기 후보</h3>
         <div class="benchrow" data-draw="hand-bench" data-source="agents"></div></div>
@@ -1005,12 +1005,12 @@
   const logoOf = (p) => { const d = dash.data('logos'); const r = d.status === 'ok' ? d.data.find((x) => x.market === p.market && x.ticker === p.ticker) : null; return r && r.logo ? r.logo : null; };
   const monoColor = (t) => { let h = 0; for (const ch of String(t)) h = (h * 31 + ch.charCodeAt(0)) % 360; return `hsl(${h} 45% 42%)`; };
   const agentOf = (p) => { const ag = dash.data('agents'); return ag.status === 'ok' ? ag.data.find((a) => a.team === p.team && a.agent_id === p.agent_id) : null; };
-  const titleFor = (team, label) => (el) => {
+  const titleFor = (team) => (el) => {                 // 팀 이름은 HTML에, 라운드 표시만 그린다
     const tr = teamRound(team);
-    el.textContent = tr.last ? `${label} — 고른 종목 (${tr.mode} ${fmtTime(tr.last)} 라운드)` : `${label} — 고른 종목`;
+    el.textContent = dash.data('picks').status !== 'ok' ? '—' : tr.last ? `(${tr.mode} ${fmtTime(tr.last)} 라운드)` : '';
   };
-  dash.draw('title-claude', titleFor('로로 팀 (Claude)', '♠ 로로 팀 (Claude)'));
-  dash.draw('title-shushu', titleFor('슈슈 팀 (Codex)', '♥ 슈슈 팀 (Codex)'));
+  dash.draw('title-claude', titleFor('로로 팀 (Claude)'));
+  dash.draw('title-shushu', titleFor('슈슈 팀 (Codex)'));
   const latestWeek = () => {
     const d = dash.data('standings');
     const ws = d.status === 'ok' ? [...new Set(d.data.map((r) => r.week))].sort() : [];

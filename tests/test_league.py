@@ -868,6 +868,21 @@ class LeagueBottom(unittest.TestCase):
         self.assertEqual((L._min_needed(10, w, "x"), L._min_needed(9, w, "x"), L._min_needed(45, w, "x")), (6, 6, 27))
 
 
+class DashboardSplit(unittest.TestCase):
+    def test_split_files_fit_and_keep_code(self):
+        """현황판은 세 파일로 올린다: 각 256KB 이하, 스타일·스크립트가 사본과 그대로 같음."""
+        import dashboard_split as DS
+        src = DS.SRC.read_text()
+        parts = DS.split(src)
+        self.assertEqual(set(parts), {"index.html", "style.css", "app.js"})
+        for name, body in parts.items():
+            self.assertLess(len(body.encode()), DS.LIMIT, name)
+        self.assertIn(parts["style.css"], src); self.assertIn(parts["app.js"], src)
+        self.assertTrue(parts["index.html"].startswith('<meta name="dash-one-writer">'))
+        self.assertIn('<script src="app.js"></script>', parts["index.html"])
+        self.assertNotIn("<script>", parts["index.html"]); self.assertNotIn("<style>", parts["index.html"])
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 
