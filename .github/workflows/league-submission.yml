@@ -19,7 +19,7 @@ concurrency:
 jobs:
   receipt:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
         with:
@@ -35,10 +35,10 @@ jobs:
         run: echo "created_at=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }} --jq .created_at)" >> "$GITHUB_OUTPUT"
       - name: Record receipt
         run: |
-          python3 tools/league.py receipt "$GITHUB_EVENT_PATH" \
-            --run-id "${{ github.run_id }}" \
-            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --run-created-at "${{ steps.run.outputs.created_at }}" | tee receipt.txt
+          # 체크아웃은 push 시점 커밋이라 다른 실행이 막 기록한 영수증(예: 직전 지문)이 없을 수 있다 → 최신 원장에서 판정
+          bash tools/receipt_retry.sh "${{ github.run_id }}" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            "${{ steps.run.outputs.created_at }}"
           echo "pushed_at(raw)=$(jq -r '.repository.pushed_at' "$GITHUB_EVENT_PATH") run_created_at=${{ steps.run.outputs.created_at }}" | tee -a receipt.txt
           { echo '### 제출 영수증'; echo '```'; cat receipt.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Verify ledgers
@@ -52,10 +52,10 @@ jobs:
           git config user.name "league-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           receipt() {
-            python3 tools/league.py receipt "$GITHUB_EVENT_PATH" --run-id "${{ github.run_id }}" \
-              --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-              --run-created-at "$RUN_CREATED_AT" | tee receipt.txt
-            python3 tools/league.py verify && python3 tools/league.py verify --dir league/sandbox
+            bash tools/receipt_retry.sh "${{ github.run_id }}" \
+              "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              "$RUN_CREATED_AT" || exit 1
+            python3 tools/league.py verify && python3 tools/league.py verify --dir league/sandbox || exit 1
           }
           stage() { for p in league/ledger league/sandbox; do [ -e "$p" ] && git add "$p"; done; }
           stage
@@ -72,8 +72,7 @@ jobs:
             else
               # 다른 제출 영수증과 겹침(해시 체인 원장은 합칠 수 없음) → 최신 원장 위에서 이 push를 다시 처리한다
               git rebase --abort || true
-              git reset -q --hard "origin/$GITHUB_REF_NAME"
-              receipt
+              receipt                                  # 최신 origin 으로 맞춘 뒤 다시 판정
               stage
               if git diff --cached --quiet; then echo "다시 처리했더니 기록할 것 없음(이미 반영됨)"; exit 0; fi
               git commit -q -m "league: submission receipt for ${GITHUB_SHA::7} (재처리)" -m "$(cat receipt.txt)"

@@ -700,6 +700,38 @@ class CommitReveal(Receipts):
         self.assertEqual((first[0]["status"], again), ("accepted", []))
         self.assertEqual(len(L.read_ledger(self.repo / "league", "picks")), 2)
 
+    def test_reveal_before_commitment_receipt_waits_not_late(self):
+        """4차 검수: 지문·원본을 연달아 push해 원본 판정이 지문 영수증보다 먼저 돌아도 '늦음'으로 굳지 않는다."""
+        import hashlib
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        sha = hashlib.sha256(body.encode()).hexdigest()
+        # 지문 push (아직 영수증 처리 전)
+        c_before = self.run("rev-parse", "HEAD")
+        p = self.repo / "league" / "imports" / "shushu"; p.mkdir(parents=True, exist_ok=True)
+        (p / f"{rd}.sha256").write_text(f"{sha}  {rd}.csv\n")
+        self.run("add", "."); self.run("commit", "-qm", "commit")
+        c_ev = {"before": c_before, "after": self.run("rev-parse", "HEAD"), "ref": "refs/heads/main", "pusher": {"name": "x"},
+                "repository": {"pushed_at": int(datetime.fromisoformat("2026-11-10T08:20:00+09:00").timestamp())}, "commits": []}
+        # 원본 push가 먼저 처리됨 → 대기 신호, 원장에는 아무것도 안 남음
+        r_before = c_ev["after"]
+        (p / f"{rd}.csv").write_text(body)
+        self.run("add", "."); self.run("commit", "-qm", "reveal")
+        r_ev = {"before": r_before, "after": self.run("rev-parse", "HEAD"), "ref": "refs/heads/main", "pusher": {"name": "x"},
+                "repository": {"pushed_at": int(datetime.fromisoformat("2026-11-10T08:31:00+09:00").timestamp())}, "commits": []}
+        with self.assertRaises(L.CommitmentPending):
+            L.process_push(r_ev, run_id="2", cwd=self.repo)
+        self.assertEqual(L.read_ledger(self.repo / "league", "submissions"), [])
+        # 지문 영수증이 기록된 뒤 다시 처리하면 접수
+        self.assertEqual(L.process_push(c_ev, run_id="1", cwd=self.repo)[0]["status"], "committed")
+        self.assertEqual(L.process_push(r_ev, run_id="2", cwd=self.repo)[0]["status"], "accepted")
+
+    def test_reveal_after_late_commitment_is_late_not_pending(self):
+        """지문 자체가 늦어 영수증이 late면 원본은 기다리지 않고 늦음."""
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        self.assertEqual(self._commit(rd, body, "2026-11-10T08:30:05+09:00")["status"], "late")
+        r = self._push_files({f"{rd}.csv": body}, "2026-11-10T08:40:00+09:00")[0]
+        self.assertEqual(r["status"], "late")
+
     def test_reveal_hash_mismatch_rejected_then_retry(self):
         rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
         self._commit(rd, body, "2026-11-10T08:20:00+09:00")

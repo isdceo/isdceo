@@ -1074,6 +1074,16 @@ def ledger_dir_for(team: str, cwd=ROOT) -> Path:
     팀별 연습 경로(예: league/imports/sandbox-claude/)를 쓰면 다른 연습 제출과 섞이지 않는다."""
     return Path(cwd) / "league" / ("sandbox" if team == "sandbox" or team.startswith("sandbox-") else "")
 
+class CommitmentPending(Exception):
+    """원본을 판정하려는데, 같은 라운드 지문 파일은 저장소에 있으나 지문 영수증이 아직 원장에 없다.
+    (지문과 원본을 연달아 push해 원본 작업이 먼저 돈 경우) 늦음으로 굳히지 않고 잠시 뒤 최신 원장에서 다시 처리한다."""
+
+def _commitment_file_pending(event, team, rd, d, cwd) -> bool:
+    path = f"league/imports/{team}/{rd}.sha256"
+    if subprocess.run(["git", "cat-file", "-e", f"{event['after']}:{path}"], cwd=cwd, capture_output=True).returncode:
+        return False                                   # 지문 파일 자체가 없음 → 정말 지문 없이 낸 것
+    return not any(s.get("kind") == "commitment" and s.get("path") == path for s in read_ledger(d, "submissions"))
+
 def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_at: str | None = None,
                  cwd=ROOT) -> list[dict]:
     pushed_ts = (event.get("repository") or {}).get("pushed_at")
@@ -1120,6 +1130,8 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                                                    f"지문과 같은 파일을 다시 push하면 됨 (공개 마감 {reveal_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST)"])
         elif cr and commitment and judged_at > reveal_deadline(date.fromisoformat(rd), cfg):
             rec.update(status="rejected", errors=[f"원본 공개 마감 {reveal_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
+        elif judged_at > deadline and cr and not commitment and _commitment_file_pending(event, team, rd, d, cwd):
+            raise CommitmentPending(f"{team} {rd}: 지문 파일은 있으나 지문 영수증이 아직 없음 — 잠시 뒤 다시 처리")
         elif judged_at > deadline and not (cr and commitment):
             why = " (마감 전 지문 제출 없음)" if cr else ""
             rec.update(status="late", errors=[f"마감 {cfg['lock_deadline']} KST 이후 push ({judged_at.isoformat(timespec='seconds')}){why}"])
@@ -1630,7 +1642,12 @@ def main():
         sys.exit(1 if errs else 0)
     elif a.cmd == "receipt":
         event = json.loads(Path(a.arg).read_text())
-        for r in process_push(event, a.run_id, a.run_url, a.run_created_at):
+        try:
+            rs = process_push(event, a.run_id, a.run_url, a.run_created_at)
+        except CommitmentPending as e:
+            print(f"대기: {e}")
+            sys.exit(75)                               # 워크플로가 최신 원장을 받아 다시 시도한다
+        for r in rs:
             print(f"{r['team']} {r['round_date']} {r['status']} push={r['pushed_at']} sha256={(r.get('csv_sha256') or r.get('committed_sha256') or '')[:12]} {'; '.join(r['errors'])}")
     elif a.cmd == "export":
         out = Path(a.out or (ROOT / "data" / ("league-public.js" if a.public else "league.js")))
