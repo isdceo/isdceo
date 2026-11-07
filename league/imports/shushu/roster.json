@@ -4,46 +4,76 @@
       "id": "s1",
       "label": "안전마진형",
       "style_ref": "벤저민 그레이엄의 공개된 투자 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "단단이",
       "tagline": "안전한 가격과 재무 여력을 꼼꼼히 확인",
-      "avatar": "dandan"
+      "avatar": "dandan",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     },
     {
       "id": "s2",
       "label": "사업품질형",
       "style_ref": "워런 버핏의 공개된 투자 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "알짜",
       "tagline": "좋은 사업 구조와 현금 창출력에 집중",
-      "avatar": "alzza"
+      "avatar": "alzza",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     },
     {
       "id": "s3",
       "label": "성장검증형",
       "style_ref": "피터 린치의 공개된 투자 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "돋보기",
       "tagline": "성장 이야기가 실적으로 이어지는지 확인",
-      "avatar": "dotbogi"
+      "avatar": "dotbogi",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     },
     {
       "id": "s4",
       "label": "성장지속형",
       "style_ref": "필립 피셔의 공개된 투자 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "쑥쑥이",
       "tagline": "오래 성장할 기업을 탐색",
-      "avatar": "ssuk"
+      "avatar": "ssuk",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     },
     {
       "id": "s5",
       "label": "위험역발상형",
       "style_ref": "하워드 막스의 공개된 투자 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "반전이",
       "tagline": "시장이 놓친 기회와 위험을 함께 점검",
-      "avatar": "banjeon"
+      "avatar": "banjeon",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     }
   ],
   "bench": [
@@ -51,19 +81,31 @@
       "id": "s6",
       "label": "거시사이클형",
       "style_ref": "레이 달리오의 공개된 거시·경제 사이클 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "나침반",
       "avatar": "nachim",
-      "tagline": "금리와 경기 흐름에서 기회를 찾는다"
+      "tagline": "금리와 경기 흐름에서 기회를 찾는다",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     },
     {
       "id": "s7",
       "label": "추세모멘텀형",
       "style_ref": "윌리엄 오닐의 공개된 가격·거래량 및 실적 모멘텀 원칙 참고",
-      "version": 1,
+      "version": 2,
       "nickname": "순풍",
       "avatar": "sunpung",
-      "tagline": "가격과 거래량의 추세를 살핀다"
+      "tagline": "가격과 거래량의 추세를 살핀다",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-09"
+        }
+      ]
     }
   ]
 }

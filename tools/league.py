@@ -1531,7 +1531,8 @@ def make_sample(d: Path, close_week: bool = True):
                     else:
                         kind = None
                         t = rnd.choice(sorted(x for x in uni[m] if (m, x) not in reserved))
-                    rec = make_pick(team, aid, 1, rd.isoformat(), m, t, uni[m][t],
+                    mem = next((x for x in roster[team] if x["id"] == aid), {})
+                    rec = make_pick(team, aid, version_for_round(mem, rd.isoformat()) or 1, rd.isoformat(), m, t, uni[m][t],
                                     f"{rd.isoformat()}T08:{rnd.randint(5, 29):02d}:00+09:00",
                                     f"[예시] {uni[m][t]} 선정 근거 요약", ["[예시] 실적 하회 위험", "[예시] 환율 변동"],
                                     [{"title": "예시 출처", "url": "https://example.com", "as_of": prev_session(m, rd, cfg).isoformat()}],
