@@ -868,6 +868,51 @@ class LeagueBottom(unittest.TestCase):
         self.assertEqual((L._min_needed(10, w, "x"), L._min_needed(9, w, "x"), L._min_needed(45, w, "x")), (6, 6, 27))
 
 
+class BoundaryCases(unittest.TestCase):
+    """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
+
+    def test_first_v1_and_bench_first_join_not_cooldown(self):
+        """시즌 최초 v1, 처음 합류한 대기 후보의 v1은 냉각이 아니다."""
+        t = MarketLeagues(); d = t._league(); t._fill(d)
+        L.weekly_close(d, "2026-W46")
+        cfg = L.load_config(d)
+        for rd in ("2026-11-16", "2026-11-17"):
+            L.append(d, "picks", L.make_pick("claude", "momentum", 1, rd, "KR", "005930", "005930", f"{rd}T08:00:00+09:00", "", [], [{"url": "x", "as_of": rd}], cfg))
+        plan = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W47")["agents"]}
+        self.assertNotEqual(plan[("claude", "momentum")]["status"], "cooldown")
+        plan46 = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W46")["agents"]}
+        self.assertFalse(any(r["status"] == "cooldown" for r in plan46.values()))
+
+    def test_remaining_league_csv_version_must_match(self):
+        """한 리그에서만 빠진 에이전트도 남은 리그 CSV 버전은 명단 버전과 같아야 한다."""
+        t = MarketLeagues(); d = t._league(); t._fill(d)
+        L.weekly_close(d, "2026-W46")                                  # burry 한국 리그 탈락, 미국은 계속
+        cfg = L.load_config(d)
+        mk = lambda v: L.make_pick("claude", "burry", v, "2026-11-16", "US", "AAPL", "AAPL", "2026-11-16T08:00:00+09:00", "", ["r"], [{"url": "x", "as_of": "2026-11-13"}], cfg)
+        self.assertEqual(L.validate_pick(mk(1), d, cfg, []), [])
+        self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk(2), d, cfg, [])))
+
+    def test_approval_after_0705_applies_next_round(self):
+        """07:05 이후 승인(from_round = 다음 라운드)이면 그날 라운드는 이전 버전으로 접수, 다음 라운드부터 새 버전."""
+        m = {"id": "lynch", "version": 2, "versions": [{"version": 2, "from_round": "2026-11-17"}]}
+        self.assertEqual(L.version_for_round(m, "2026-11-16"), 1)
+        self.assertEqual(L.version_for_round(m, "2026-11-17"), 2)
+        self.assertEqual(L.version_for_round({"id": "x", "version": 3}, "2026-11-16"), 3)
+        m3 = {"id": "x", "version": 3, "versions": [{"version": 2, "from_round": "2026-11-16"}, {"version": 3, "from_round": "2026-11-23"}]}
+        self.assertEqual([L.version_for_round(m3, r) for r in ("2026-11-13", "2026-11-16", "2026-11-23")], [1, 2, 3])
+        t = MarketLeagues(); d = t._league(); t._fill(d)
+        ro = json.loads((d / "agents" / "roster.json").read_text()) if (d / "agents" / "roster.json").exists() else json.loads((L.ROOT / "league" / "agents" / "roster.json").read_text())
+        for a in ro["claude"]:
+            if a["id"] == "lynch":
+                a.update(version=2, versions=[{"version": 2, "from_round": "2026-11-13"}])
+        (d / "agents").mkdir(parents=True, exist_ok=True); (d / "agents" / "roster.json").write_text(json.dumps(ro, ensure_ascii=False))
+        cfg = L.load_config(d)
+        mk = lambda rd, v: L.make_pick("claude", "lynch", v, rd, "US", "AAPL", "AAPL", f"{rd}T08:00:00+09:00", "", ["r"], [{"url": "x", "as_of": rd}], cfg)
+        self.assertEqual(L.validate_pick(mk("2026-11-12", 1), d, cfg, []), [])
+        self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk("2026-11-12", 2), d, cfg, [])))
+        self.assertEqual(L.validate_pick(mk("2026-11-13", 2), d, cfg, []), [])
+
+
 class Watch(unittest.TestCase):
     """규칙 v1.9 관망 카드: 비교 지수 수익률이 점수, 초과 0, 주 2회, 11/16부터."""
     def test_watch_scores_benchmark_and_limits(self):

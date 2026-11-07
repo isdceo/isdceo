@@ -845,6 +845,16 @@ def universe_for(d: Path, round_date: date) -> dict:
             return json.loads((base / "universe.json").read_text())
     return {}
 
+def version_for_round(m: dict, round_date: str) -> int | None:
+    """그 라운드에 써야 하는 지침 버전 (규칙 v2.1: 07:05 전 승인은 그날부터, 07:05 이후 승인은 다음 라운드부터).
+    명단 항목의 versions: [{"version": 2, "from_round": "YYYY-MM-DD"}] 가 있으면 그 라운드에 시작된 가장 높은 버전,
+    시작 전이면 그 아래 버전. 기록이 없으면 명단의 version."""
+    hist = sorted((int(x["version"]), x["from_round"]) for x in (m.get("versions") or []) if x.get("from_round"))
+    if not hist:
+        return int(m["version"]) if m.get("version") is not None else None
+    started = [v for v, fr in hist if fr <= round_date]
+    return max(started) if started else min(v for v, _ in hist) - 1 or 1
+
 def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[str]:
     errs = []
     uni = universe_for(d, date.fromisoformat(rec["round_date"]))
@@ -896,8 +906,9 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
                 errs.append(f"{rec['agent_id']}는 {ms.get('eliminated_week')}에 {lab} 리그에서 탈락 — 이 시장 제출 불가")
             if ms.get("joined_week") and ms["joined_week"] > wk:
                 errs.append(f"{rec['agent_id']}는 {ms['joined_week']}부터 {lab} 리그 참가")
-            if rec.get("agent_version") is not None and m.get("version") is not None and int(rec["agent_version"]) != int(m["version"]):
-                errs.append(f"{rec['agent_id']} 지침 버전 불일치: 제출 v{rec['agent_version']} / 승인 v{m['version']}")
+            need_v = version_for_round(m, rec["round_date"])
+            if rec.get("agent_version") is not None and need_v is not None and int(rec["agent_version"]) != need_v:
+                errs.append(f"{rec['agent_id']} 지침 버전 불일치: 제출 v{rec['agent_version']} / {rec['round_date']} 라운드 승인 v{need_v}")
     same = [p for p in existing if p["team"] == rec["team"] and p["round_date"] == rec["round_date"]]
     if any(p["agent_id"] == rec["agent_id"] and p["market"] == rec["market"] for p in same):
         errs.append(f"{rec['agent_id']}는 이 라운드 {rec['market']} 종목을 이미 추천함")
