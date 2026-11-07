@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-07T16:30:43+09:00",
+ "generated_at": "2026-11-07T17:16:30+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -72,6 +72,17 @@
    "pushed_at": "2026-11-05T11:18:21+09:00",
    "commit": "1222a49",
    "imported": 2
+  },
+  {
+   "key": "297c0d0|2026-11-07|sandbox-shushu",
+   "mode": "연습",
+   "team": "슈슈 팀 (Codex)",
+   "round": "2026-11-07",
+   "kind": "commitment",
+   "status": "rejected",
+   "pushed_at": "2026-11-07T17:06:12+09:00",
+   "commit": "297c0d0",
+   "imported": 0
   }
  ],
  "teams": [
@@ -89,11 +100,11 @@
    "key": "연습|슈슈 팀 (Codex)",
    "mode": "연습",
    "team": "슈슈 팀 (Codex)",
-   "round": "2026-11-06",
-   "status": "accepted",
-   "pushed_at": "2026-11-04T16:53:52+09:00",
-   "imported": 10,
-   "visible_picks": 10
+   "round": "2026-11-07",
+   "status": "rejected",
+   "pushed_at": "2026-11-07T17:06:12+09:00",
+   "imported": 0,
+   "visible_picks": 0
   }
  ],
  "standings": [],
