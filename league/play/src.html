@@ -1048,7 +1048,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       tbs.forEach((b, i) => { const base = b.onclick; b.onclick = () => { base(); tbs.forEach((x) => x.tabIndex = x === b ? 0 : -1); if (fsel) fsel.hidden = !['flow', 'rank'].includes(b.dataset.tab); store('league.recTab', b.dataset.tab); sheetB.scrollTop = 0; };
         b.onkeydown = (e) => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0, j = e.key === 'Home' ? 0 : e.key === 'End' ? tbs.length - 1 : d ? (i + d + tbs.length) % tbs.length : -1; if (j < 0) return; e.preventDefault(); const n = tbs[j]; n.onclick(); n.focus({ preventScroll: true }); }; });
       const keep = store('league.recTab'); const kb = keep && rtabs.querySelector(`[data-tab="${CSS.escape(String(keep))}"]`); if (kb) kb.onclick();
-      sheetB.querySelectorAll('[data-goto]').forEach((g) => g.onclick = () => rtabs.querySelector(`[data-tab="${g.dataset.goto}"]`)?.onclick());
+      sheetB.querySelectorAll('[data-goto]').forEach((g) => g.onclick = () => { const tb = rtabs.querySelector(`[data-tab="${g.dataset.goto}"]`); if (tb) { tb.onclick(); tb.focus({ preventScroll: true }); } });
     }
     if (fsel) fsel.querySelectorAll('button').forEach((b) => b.onclick = () => {
       if (b.dataset.fmkBtn) fsel.dataset.mk = b.dataset.fmkBtn; if (b.dataset.fmode) fsel.dataset.mode = b.dataset.fmode; store('league.recF', {mk: fsel.dataset.mk, mode: fsel.dataset.mode});
@@ -1069,7 +1069,9 @@ table.rec.wk td:first-child{width:44px;text-align:center}
         pane.querySelectorAll('.trow[data-hk]').forEach((x) => x.setAttribute('aria-pressed', String(on && x === r)));
         if (svg) { svg.classList.toggle('hl', on); svg.querySelectorAll('.ag').forEach((g) => { const hit = on && g.dataset.k === r.dataset.hk; if (g.classList.contains('on') && !hit) svg.insertBefore(g, svg.querySelector('.tline')); g.classList.toggle('on', hit); if (hit) svg.appendChild(g); }); }
         if (on && svg) { const bar = sheetB.querySelector('.rbar'), top = bar ? bar.getBoundingClientRect().bottom : sheetB.getBoundingClientRect().top, sr = svg.getBoundingClientRect();
-          if (sr.top < top) { const lim = r.getBoundingClientRect().bottom - sheetB.getBoundingClientRect().bottom + 4; sheetB.scrollBy({top: Math.max(sr.top - top - 8, lim), behavior: reduce ? 'auto' : 'smooth'}); } } };   // 누른 줄은 화면에 남긴다
+          const rr = r.getBoundingClientRect(), tc = svg.closest('.tcw'), cb = tc && getComputedStyle(tc).position === 'sticky' ? tc.getBoundingClientRect().bottom : top;
+          if (sr.top < top) { const lim = rr.bottom - sheetB.getBoundingClientRect().bottom + 4; sheetB.scrollBy({top: Math.max(sr.top - top - 8, lim), behavior: reduce ? 'auto' : 'smooth'}); }
+          else if (rr.top < cb) sheetB.scrollBy({top: rr.top - cb - 4, behavior: reduce ? 'auto' : 'smooth'}); } };   // 누른 줄은 화면에 남긴다
       r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
     sheetB.querySelectorAll('.rmain').forEach((b) => b.onclick = () => { const d = b.nextElementSibling, on = d.hidden; d.hidden = !on; b.setAttribute('aria-expanded', String(on)); });
     const saveRec = (el) => { if (key === 'record') saveRecState(el); };
