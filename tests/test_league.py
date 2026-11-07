@@ -1,4 +1,5 @@
 """AI 투자 리그 규칙 테스트.  실행: python3 -m unittest discover -s tests -v"""
+import hashlib
 import json, re, shutil, sys, tempfile, unittest
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -1466,6 +1467,39 @@ class AgentsV2(unittest.TestCase):
         mk = lambda v: L.make_pick("claude", "buffett", v, "2026-11-09", "KR", "005930", "005930", "2026-11-09T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-06"}], cfg)
         self.assertEqual(L.validate_pick(mk(2), d, cfg, []), [])
         self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk(1), d, cfg, [])))
+class ShushuV2(unittest.TestCase):
+    """슈슈 팀 시즌 전 v2(운영자 승인 2026-11-08): 지침 보관본·승인 원장·11/9 버전 검사."""
+    def roster(self):
+        r = json.loads((ROOT / "league/imports/shushu/roster.json").read_text())
+        return r["members"] + r["bench"]
+
+    def test_guideline_files_exist_and_match_approvals(self):
+        appr = [json.loads(l) for l in (ROOT / "league/ledger/approvals.jsonl").read_text().splitlines() if l.strip()]
+        for a in self.roster():
+            for v in {a.get("version", 1)} | {x["version"] for x in a.get("versions", [])}:
+                f = ROOT / f"league/imports/shushu/agents/{a['id']}/v{v}.md"
+                self.assertTrue(f.exists(), f)
+                if v > 1:
+                    rec = [x for x in appr if x.get("type") == "guideline" and x.get("team") == "shushu" and x.get("agent_id") == a["id"] and x.get("version") == v]
+                    self.assertTrue(rec, a["id"])
+                    self.assertEqual(rec[-1]["guideline_sha256"], hashlib.sha256(f.read_bytes()).hexdigest(), a["id"])
+
+    def test_versions_by_round(self):
+        for a in self.roster():
+            self.assertEqual((L.version_for_round(a, "2026-11-08"), L.version_for_round(a, "2026-11-09")), (1, 2), a["id"])
+
+    def test_real_roster_accepts_v2_csv_on_first_round(self):
+        d = Path(tempfile.mkdtemp()); (d / "ledger").mkdir(); (d / "agents").mkdir(); (d / "imports" / "shushu").mkdir(parents=True)
+        for f in ("config.json", "universe.json"):
+            shutil.copy(ROOT / "league" / f, d / f)
+        shutil.copy(ROOT / "league/agents/roster.json", d / "agents/roster.json")
+        shutil.copy(ROOT / "league/imports/shushu/roster.json", d / "imports/shushu/roster.json")
+        cfg = L.load_config(d)
+        mk = lambda v: L.make_pick("shushu", "s1", v, "2026-11-09", "KR", "005930", "005930", "2026-11-09T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-06"}], cfg)
+        self.assertEqual(L.validate_pick(mk(2), d, cfg, []), [])
+        self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk(1), d, cfg, [])))
+
+
 class SimultaneousReveal(unittest.TestCase):
     """운영자 요청(2026-11-07): 지문을 낸 팀이 모두 원본 접수될 때까지(또는 12:00) 그 라운드 종목은 어느 팀 것도 공개하지 않는다."""
     def setUp(self):

@@ -166,7 +166,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                   "agent_id": m["id"], "name": names[(team, m["id"])],
                                   "nickname": m.get("nickname") or "", "label": m.get("label") or m["id"],
                                   "tagline": m.get("tagline") or "", "avatar": m.get("avatar") or "", "status": status,
-                                  "version": m.get("version", 1), "joined_week": m.get("joined_week") or "",
+                                  "version": L.version_for_round(m, datetime.now(L.KST).date().isoformat()) or m.get("version", 1), "joined_week": m.get("joined_week") or "",
                                   "eliminated_week": m.get("eliminated_week") or "",
                                   "markets": mk_state, "events": events})
 
