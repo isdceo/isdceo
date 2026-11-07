@@ -66,6 +66,7 @@ def map_path(p: str):
 
 
 ACT_TYPES = {"push", "force_push", "branch_creation", "pr_merge", "merge_queue_merge"}
+DELETE_TYPES = {"branch_deletion"}     # 처리하지 않고 '마감 전에 지워진 push'를 가리는 데만 쓴다
 SETTLE = timedelta(minutes=2)          # activity 목록 반영 지연: 이보다 최근 push는 다음 실행에서 (순서 꼬임 방지)
 MAX_BYTES = 1_000_000
 SHA_LINE = re.compile(rb"^[0-9a-f]{64}(  \S{1,80})?\n?$")
@@ -84,8 +85,8 @@ def fetch_activity(repo: str, token: str) -> list[dict]:
             out += json.loads(r.read() or b"[]")
             nxt = re.search(r'<([^>]+)>;\s*rel="next"', r.headers.get("Link") or "")
             url = nxt.group(1) if nxt else None
-    out = [a for a in out if a.get("activity_type", "push") in ACT_TYPES and str(a.get("ref", "refs/heads/")).startswith("refs/heads/")
-           and a.get("after") and a["after"] != ZERO]
+    out = [a for a in out if str(a.get("ref", "refs/heads/")).startswith("refs/heads/") and (
+           a.get("activity_type") in DELETE_TYPES or (a.get("activity_type", "push") in ACT_TYPES and a.get("after") and a["after"] != ZERO))]
     return sorted(out, key=lambda a: (a["timestamp"], a["id"]))
 
 
@@ -183,10 +184,10 @@ MAX_TRIES = 3            # 받을 수 없음 등 일시 오류는 이만큼 실�
 TEAMS = ("shushu", "sandbox-shushu")
 
 
-def _pre_deadline_round(pushed: datetime, cfg: dict) -> str | None:
-    """push가 어느 라운드의 마감 전이었으면 그 라운드 날짜(지문·원본을 고를 여지가 있는 push)."""
+def _next_round(pushed: datetime, cfg: dict) -> date:
+    """push 시각보다 마감이 늦은 첫 라운드(전날 저녁·금요일 오후 push도 다음 라운드의 마감 전 push로 본다)."""
     R = _first_round_on_or_after(pushed.date(), cfg)
-    return R.isoformat() if pushed < L.lock_deadline(R, cfg) else None
+    return R if pushed < L.lock_deadline(R, cfg) else _first_round_on_or_after(R + timedelta(days=1), cfg)
 
 
 def tainted(recs: list[dict]) -> set[tuple[str, str]]:
@@ -244,10 +245,15 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     block = None
     # 1) 새 push
     main_ref = f"refs/heads/{base_branch}"
+    gone = [(a.get("ref"), _ts(a["timestamp"])) for a in activities if a.get("activity_type") in DELETE_TYPES | {"force_push"}]
     for i, act in enumerate(activities):
+        if act.get("activity_type") in DELETE_TYPES:
+            continue
         if act["id"] in done or _ts(act["timestamp"]) > now - SETTLE:
             continue
         pushed = _ts(act["timestamp"])
+        R = _next_round(pushed, cfg)
+        dl = L.lock_deadline(R, cfg)
         base = {"repo": repo, "activity_id": act["id"], "type": "push", "activity_type": act.get("activity_type", "push"),
                 "ref_hash": L.hashlib.sha256(str(act.get("ref")).encode()).hexdigest()[:12],
                 "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": (act.get("actor") or {}).get("login"),
@@ -261,18 +267,20 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             units, ignored, problems = _classify(ext, act, files, main)
         except Exception as e:  # noqa: BLE001  — 한 push의 문제로 동기화 전체가 멈추지 않게
             n = tries.get(("push_error", act["id"]), 0) + 1
-            final = n >= MAX_TRIES
-            L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "error",
+            # 마감 전에 같은 브랜치가 지워지거나 강제 push로 덮였으면 '대체됨': 선택이 마감 전에 끝났으므로 다시 처리하지 않는다
+            superseded = any(ref == act.get("ref") and pushed < t < dl for ref, t in gone)
+            final = superseded or n >= MAX_TRIES
+            L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
                                             "attempt": n, "error": str(e)[:300]})
-            out.append({**base, "status": "error" if final else "retry", "error": str(e)[:300], "receipts": [], "lines": []})
-            rr = _pre_deadline_round(pushed, cfg)
-            if rr and final:
-                # 마감 전 push를 끝내 받을 수 없음: 뒤의 지문·원본을 자동으로 인정하면 '골라 되살리기'가 가능해진다 → 그 라운드 운영자 확인
+            out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
+                        "receipts": [], "lines": []})
+            if final and not superseded and now >= dl:
+                # 마감이 지나도록 받을 수 없음: 뒤의 지문·원본을 자동으로 인정하면 '골라 되살리기'가 가능해진다 → 그 라운드 운영자 확인
                 for t_ in TEAMS:
-                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": rr, "activity_id": act["id"],
-                                                    "pushed_at": pushed.isoformat(), "reason": "마감 전 push를 받을 수 없음"})
+                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": R.isoformat(), "activity_id": act["id"],
+                                                    "s_after": act["after"], "pushed_at": pushed.isoformat(), "reason": "마감 전 push를 마감 뒤까지 받을 수 없음"})
                 recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
-            elif rr:
+            elif not final:
                 block = pushed                         # 순서를 지키려고 이 뒤의 push·보류 해제는 다음 실행으로 미룬다
                 break
             continue
@@ -335,7 +343,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                 u = g["ready"][0]
                 team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
                 rr = max(u["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())
-                if final and u["kind"] in ("reveal", "debate"):
+                if final and (u["kind"] in ("reveal", "debate") or g["release"].get("taint")):
                     # 보류한 원본을 끝내 꺼낼 수 없음: 같은 라운드의 다른 원본을 대신 인정하지 않는다
                     L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": rr, "activity_id": act["id"],
                                                     "pushed_at": pushed.isoformat(), "reason": "보류한 원본을 받을 수 없음"})
@@ -571,7 +579,11 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     if mk and live and "08:30" < hm < "11:40" and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 공개 마감 12:00 KST.")
-    if mk and live and "08:30" < hm < "11:40" and not ({"committed", "accepted"} & st):
+    taint = (("shushu", rd) in tainted(L.read_ledger(d, "external_pushes")))
+    if mk and live and "08:30" < hm < "11:40" and taint:
+        add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
+            f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **12:00 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
+    if mk and live and "08:30" < hm < "11:40" and not taint and not ({"committed", "accepted"} & st):
         add("missing", rd, f"@codex 오늘({rd}) 지문 영수증이 없습니다. 08:30 전에 `submit/{rd}.sha256`을 push했다면 "
             "`from-league/sync-log.jsonl`에서 처리 결과를 확인해 주세요. 마감 뒤 지문은 인정되지 않습니다(소급 없음). 확인 결과를 `to-roro/`로 알려 주세요.")
     if today.weekday() == 5 and hm >= "10:40":
@@ -685,12 +697,14 @@ def main_():
             print("새 push 없음")
         if any(not x["ok"] for r in res for x in r.get("lines", [])):
             sys.exit(3)
-    elif a.cmd == "untaint":                            # 운영자 확인 뒤에만 (원장에 남음)
-        if not (a.round and a.team and a.reason):
-            sys.exit("--round --team --reason 필요")
-        L.append(ROOT / "league", "external_pushes", {"repo": repo, "type": "untaint", "team": a.team, "round": a.round,
-                                                      "reason": a.reason, "at": datetime.now(L.KST).isoformat(timespec="seconds")})
-        print(f"{a.team} {a.round} 확인 대기 해제 — 다음 동기화부터 그 라운드 push를 처리")
+    elif a.cmd == "untaint":                            # 운영자 확인 뒤에만 (원장에 남음, 기본은 실전·연습 둘 다)
+        if not (a.round and a.reason):
+            sys.exit("--round --reason 필요 (reason에 운영자가 확인한 내용을 적는다)")
+        for t_ in ([a.team] if a.team else TEAMS):
+            L.append(ROOT / "league", "external_pushes", {"repo": repo, "type": "untaint", "team": t_, "round": a.round,
+                                                          "reason": a.reason, "approved_by": "operator",
+                                                          "at": datetime.now(L.KST).isoformat(timespec="seconds")})
+            print(f"{t_} {a.round} 확인 대기 해제 — 다음 동기화부터 그 라운드 push를 원래 push 시각으로 처리")
     elif a.cmd == "wake":
         tok = os.environ.get("SHUSHU_REPO_TOKEN")
         if not (repo and tok):

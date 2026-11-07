@@ -1158,6 +1158,51 @@ class ShushuRepoSync(unittest.TestCase):
             self.X._restore_held = real
         self.assertEqual([x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "accepted"], [])
 
+    def test_evening_push_hidden_then_restored_cannot_be_picked(self):
+        """4차 검수 G1: 전날 저녁 지문 둘을 숨겼다가 마감 뒤 하나만 되살려도 접수되지 않는다(예약이 밀린 경우)."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, "2026-11-09T20:00:00+09:00")
+        self.acts[-1]["after"] = "a" * 40
+        self.spush({f"submit/{rd}.sha256": f"{self.sh.sha256(b'x').hexdigest()}  {rd}.csv\n"}, "2026-11-09T20:01:00+09:00")
+        b_after = self.acts[-1]["after"]; self.acts[-1]["after"] = "b" * 40
+        for t in ("08:05", "08:25"):
+            self.assertEqual([r["status"] for r in self.sync(f"{rd}T{t}:00+09:00")], ["retry"])
+        self.acts[-1]["after"] = b_after                                       # 마감 뒤 b만 되살림
+        self.sync(f"{rd}T08:45:00+09:00"); self.sync(f"{rd}T08:55:00+09:00")
+        self.assertEqual([x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "committed"], [])
+
+    def test_failure_settled_before_deadline_does_not_taint(self):
+        """마감 전에 오류로 확정된 push는 다시 처리되지 않으니 고를 여지가 없다 → 확인 대기로 돌리지 않음."""
+        rd = "2026-11-10"
+        self.acts.append({"id": 77, "before": self.last, "after": "c" * 40, "timestamp": "2026-11-09T21:00:00Z",
+                          "activity_type": "push", "ref": "refs/heads/main", "actor": {"login": "x"}})       # 06:00 KST
+        for t in ("07:05", "07:35", "08:00"):
+            self.sync(f"{rd}T{t}:00+09:00")
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
+        out = self.sync(f"{rd}T08:30:00+09:00")
+        self.assertEqual(out[0]["receipts"][0]["status"], "committed")
+        self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
+
+    def test_branch_deleted_before_deadline_is_superseded(self):
+        """squash 병합 뒤 작업 브랜치를 지운 정상 흐름: 브랜치 push는 '대체됨', 병합 push로 판정, 확인 대기 없음."""
+        rd = "2026-11-10"
+        self.acts.append({"id": 80, "before": "0" * 40, "after": "d" * 40, "timestamp": "2026-11-09T23:20:00Z",
+                          "activity_type": "branch_creation", "ref": "refs/heads/codex/t", "actor": {"login": "c"}})
+        self.acts.append({"id": 81, "before": "d" * 40, "after": "0" * 40, "timestamp": "2026-11-09T23:24:00Z",
+                          "activity_type": "branch_deletion", "ref": "refs/heads/codex/t", "actor": {"login": "c"}})
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:23:00+09:00")       # 병합으로 main에 들어온 지문
+        self.acts[-1]["ref"] = "refs/heads/main"
+        out = self.sync(f"{rd}T08:40:00+09:00")
+        self.assertEqual(sorted(r["status"] for r in out), ["processed", "superseded"])
+        self.assertEqual([x["status"] for x in L.read_ledger(self.repo / "league", "submissions")], ["committed"])
+
+    def test_taint_wake_tells_to_reveal_anyway(self):
+        rd = "2026-11-10"
+        L.append(self.repo / "league", "external_pushes", {"repo": "o/shushu", "type": "taint", "team": "shushu", "round": rd, "reason": "t"})
+        posted = []
+        w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat(f"{rd}T08:41:00+09:00"), post=lambda b: posted.append(b) or "u")
+        self.assertEqual([x["kind"] for x in w], ["taint"]); self.assertIn("12:00 전에", posted[0])
+
     def test_mirror_push_not_recorded(self):
         """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""
         self.spush({"from-league/README.md": "copy"}, "2026-11-10T08:00:00+09:00")
