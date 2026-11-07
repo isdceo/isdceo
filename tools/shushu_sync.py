@@ -69,7 +69,7 @@ ACT_TYPES = {"push", "force_push", "branch_creation", "pr_merge", "merge_queue_m
 DELETE_TYPES = {"branch_deletion"}     # 기록만 받고 처리하지 않는다(판정 예외에 쓰지 않음)
 SETTLE = timedelta(minutes=2)          # activity 목록 반영 지연: 이보다 최근 push는 다음 실행에서 (순서 꼬임 방지)
 MAX_BYTES = 1_000_000
-SHA_LINE = re.compile(rb"^[0-9a-f]{64}(  \S{1,80})?\n?$")
+SHA_LINE = re.compile(rb"^[0-9a-fA-F]{64}(  \S{1,80})?\r?\n?$")      # 메인 경로와 같게 대문자·CRLF 허용
 
 
 def fetch_activity(repo: str, token: str) -> list[dict]:
@@ -303,7 +303,9 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                        "held": [], "ignored": 0, "problems": []})
     if block is not None:
         groups = [g for g in groups if g["pushed"] < block]
-    groups.sort(key=lambda g: (g["pushed"], str(g["act"]["id"])))
+    korder = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
+    # 같은 push에서 풀린 파일은 지문 → 원본 → 토론 → 대사 순(대사 검사가 접수된 종목을 볼 수 있게)
+    groups.sort(key=lambda g: (g["pushed"], str(g["act"]["id"]), min([korder.get(u["kind"], 9) for u in g["ready"]] or [9])))
     bad = tainted(recs)
     def _team_of(u):
         return "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
@@ -396,6 +398,8 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
     """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다."""
     if not units:
         return [], [], ""
+    order = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
+    units = sorted(units, key=lambda u: order.get(u["kind"], 9))
     notes, wrote = [], []
     for u in units:
         if u["kind"] in ("commitment", "reveal"):
@@ -602,14 +606,16 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     if mk and live and "08:30" < hm < "11:40" and taint:
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
             f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **12:00 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
-    if mk and live and "08:30" < hm < "11:40" and not taint and not ({"committed", "accepted"} & st):
+    if mk and live and "08:45" <= hm < "11:40" and not taint and not ({"committed", "accepted"} & st):   # 08:28~08:30 push는 2분 대기 뒤 처리되므로 08:45부터
         add("missing", rd, f"@codex 오늘({rd}) 지문 영수증이 없습니다. 08:30 전에 `submit/{rd}.sha256`을 push했다면 "
             "`from-league/sync-log.jsonl`에서 처리 결과를 확인해 주세요. 마감 뒤 지문은 인정되지 않습니다(소급 없음). 확인 결과를 `to-roro/`로 알려 주세요.")
     if today.weekday() == 5 and hm >= "10:40" and live:
         wk = L.iso_week(today)
         add("review", wk, f"@codex 이번 주({wk}) 토요일 잠정 복기를 진행해 주세요. `from-league/league/imports/shushu/weekly-review-v2.1.md` 절차와 "
             "`from-league/update-plan.json`(잠정)을 쓰고, 개선안이 있으면 `to-roro/`로 요약(근거 pick_id 포함)을 보내 주세요. 최종 자격은 월요일 06:30 마감 뒤 확정됩니다.")
-    if today.weekday() == 0 and hm >= "06:35" and (today - timedelta(days=1)).isoformat() >= (cfg.get("season_start") or "9999"):   # 시즌 첫 주 마감부터
+    closed_wk = L.iso_week(today - timedelta(days=7))
+    if today.weekday() == 0 and hm >= "06:35" and (today - timedelta(days=1)).isoformat() >= (cfg.get("season_start") or "9999") \
+            and any(x.get("week") == closed_wk for x in L.read_ledger(d, "weekly_decisions")):   # 마감 기록이 생긴 뒤에만
         wk = L.iso_week(today - timedelta(days=7))
         add("close", wk, f"@codex 주간 마감({wk})이 끝났습니다. `from-league/league/ledger/weekly_decisions.jsonl`과 `from-league/update-plan.json`으로 "
             "리그별 결과와 최종 업데이트 자격을 확인하고, 바뀐 점이나 승인 요청이 있으면 07:00까지 `to-roro/`로 보내 주세요.")

@@ -103,7 +103,8 @@
 2. 지문 파일을 만든다: `python3 tools/league.py commit league/imports/shushu/<날짜>.csv`
    - 같은 폴더에 `<날짜>.sha256`이 생긴다. 내용은 CSV **원본 바이트**의 sha256 한 줄이다.
    - 이후 CSV를 한 글자라도 바꾸면 지문과 맞지 않는다. 지문을 만든 뒤에는 CSV를 열어 저장하지 않는다(편집기가 줄바꿈을 바꿀 수 있음).
-3. **08:30 KST 전에 `.sha256` 파일만 push**한다. 영수증이 `committed`로 남는다. 이것이 정시 판정이다.
+3. **08:30 KST 전에 `.sha256` 파일만 push**한다. 영수증이 `committed`로 남는다. 이것이 정시 판정이다. (슈슈 팀 전용 저장소 경로는 예외: 비공개 저장소라 08:20까지 지문·원본·토론을 함께 push하면 원본은 마감까지 봉인됐다가 자동 접수된다 — `docs/codex-notices/2026-11-07-shushu-repo.md`)
+   - **지문을 push하기 전에 반드시 `import-csv --dry-run`이 통과해야 한다.** 지문은 한 번만 유효하고, CSV에 한 줄만 틀려도(예: 11/16 전 관망 행, 시장 누락) 그 라운드 팀 전체가 거부되며 고쳐 낼 수 없다.
 4. **08:30~12:00 KST에 원본 CSV(와 토론 기록)를 push**한다. 원본의 sha256이 지문과 같으면 `accepted`가 되고, 추천의 확정 시각은 지문 push 시각으로 기록된다.
    - 원본이 지문과 다르면 `rejected`다. 공개 마감(12:00) 전이면 **지문과 같은 원본**을 다시 push하면 된다. 지문 자체는 바꿀 수 없다.
    - 12:00이 지나도록 원본을 올리지 않으면 그날은 미제출이다.
@@ -269,8 +270,8 @@ round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,s
 - [ ] `locked_at`이 08:30 KST 이전이고 `+09:00`이 붙어 있다
 - [ ] `--dry-run` 검증을 통과했다
 - [ ] `python3 tools/league.py commit <CSV>`로 지문을 만든 뒤 CSV를 다시 저장하지 않았다
-- [ ] 08:30 KST 전에 **지문(`.sha256`)만 push**했고 영수증이 `committed`다 (커밋 시각이 아니라 push 시각으로 판정)
-- [ ] 08:30~12:00 KST에 원본 CSV와 토론 기록을 push했고 영수증이 `accepted`다
+- [ ] 08:30 KST 전에 **지문(`.sha256`)만 push**했고 영수증이 `committed`다 (커밋 시각이 아니라 push 시각으로 판정) — 슈슈 전용 저장소는 08:20까지 세 파일 함께(봉인)
+- [ ] 08:30~12:00 KST에 원본 CSV와 토론 기록을 push했고 영수증이 `accepted`다 — 슈슈 전용 저장소는 08:30 뒤 동기화가 자동 접수(`sealed`)
 
 ---
 

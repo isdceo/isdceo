@@ -85,7 +85,7 @@ jobs:
           python3 tools/league.py collect-due "$(TZ=Asia/Seoul date +%F)" --dir "${{ steps.t.outputs.target }}" | tee summary.txt
           if [ "${{ steps.t.outputs.target }}" = "league" ]; then
             python3 tools/league.py export --out data/league.js
-            python3 tools/dashboard_data.py --bundle league/public/results.json   # 두 팀 공유용 (마감 전 종목·원 가격 제외)
+            # 두 팀 공유 결과 묶음(results.json)은 여기서 만들지 않는다 — 아래에서 league-lines를 불러 갱신(같은 파일 충돌·대기열 취소 방지)
           fi
       - name: Weekly close
         if: steps.t.outputs.on == 'true' && steps.t.outputs.task == 'weekly'
@@ -106,6 +106,11 @@ jobs:
             sleep $((i * 5))
           done
           exit 1
+      - name: Refresh shared results bundle (league-lines)
+        if: steps.t.outputs.on == 'true' && steps.t.outputs.target == 'league' && (steps.t.outputs.task == 'collect' || steps.t.outputs.task == 'weekly')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run league-lines.yml --ref "$GITHUB_REF_NAME" || echo "::warning::league-lines 호출 실패 — 다음 제출·대사 때 갱신"
       - name: Send common data to 슈슈 repo right away
         if: steps.t.outputs.on == 'true' && steps.t.outputs.task == 'snapshot' && steps.t.outputs.target == 'league'
         env:

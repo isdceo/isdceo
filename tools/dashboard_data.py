@@ -175,11 +175,15 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
         scores = {s["pick_id"]: s for s in data["scores"]}
 
         for s in data["submissions"]:
-            out["receipts"].append({"key": s["commit"][:7] + "|" + s["round_date"] + "|" + s["team"],
-                                    "mode": mode, "team": label(s["team"]), "round": s["round_date"],
-                                    "kind": s.get("kind") or "csv",
+            kind = s.get("kind") or "csv"
+            out["receipts"].append({"key": s["commit"][:7] + "|" + s["round_date"] + "|" + s["team"] + "|" + kind,   # 한 커밋에 지문·원본이 함께 와도 고유
+                                    "mode": mode, "team": label(s["team"]), "round": s["round_date"], "kind": kind,
                                     "status": s["status"], "pushed_at": s["pushed_at"], "commit": s["commit"][:7],
-                                    "imported": s.get("imported", 0)})
+                                    "imported": s.get("imported", 0),
+                                    # 봉인(비공개 전용 저장소에 마감 전 보관) / 마감 전 공개 / 판정 근거(어느 저장소의 push 시각인가)
+                                    "sealed": bool(s.get("sealed")), "early_reveal": bool(s.get("early_reveal")),
+                                    "via": "슈슈 전용 저장소" if s.get("judged_by") == "shushu_repo.activity.timestamp" else "메인 저장소",
+                                    "source_commit": str((s.get("source") or {}).get("commit") or "")[:7]})
 
         lines = load_lines(d)
         cfg_w = L.load_config(d)

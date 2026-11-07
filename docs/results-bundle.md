@@ -41,6 +41,8 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 
 ### receipts — 제출 영수증 (팀·라운드마다 여러 줄 가능)
 
+추가 칸(2026-11-07): `sealed`(슈슈 전용 저장소에 마감 전 봉인 보관 뒤 마감 뒤 접수), `early_reveal`(메인 저장소에 마감 전 원본 직접 공개), `judged_by`(판정 근거 시각: `push_event.repository.pushed_at`=메인 push, `shushu_repo.activity.timestamp`=전용 저장소 push), `source_commit`(전용 저장소 커밋 앞 7자리). 현황판 receipts의 key는 `커밋|라운드|팀|kind`.
+
 | 필드 | 뜻 |
 |---|---|
 | `key` | 고유 키 (`커밋7자리|라운드|원장 팀`) |
@@ -72,12 +74,12 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 | `reason` | 보류·무효 사유 |
 | `line` | 한 줄 선택 이유(가격 없이 캐릭터 말투로, 반말 가능, 80자 이하). `<원장>/lines/<라운드>-<팀>.json` 의 `{pick_id: 문장}` 에서 온다. 검사: `tools/dashboard_data.py --check-lines`. 없으면 빈 문자열 |
 
-### standings — 실전 주간 순위, 두 팀 10명 통합 (규칙 v1.8, 주·에이전트마다 1줄)
+### standings — 실전 주간 순위, 리그별 (규칙 v2.0: `market` KR/US마다 그 리그 에이전트 1줄씩. 예전 v1.8 통합 순위는 `market` 없음)
 
 | 필드 | 뜻 |
 |---|---|
 | `key`, `mode`(항상 `실전`), `week` | 예 `2026-W46` |
-| `league_rank` | 10명 통합 순위 (평균 → 중앙값 → 최저점) |
+| `league_rank` | 그 리그(market) 안의 순위 (평균 → 중앙값 → 최저점). `market` 없는 예전 행은 10명 통합 순위 |
 | `rank` | 팀 안 순위 |
 | `team`, `agent_id`, `agent` | |
 | `avg`, `median`, `avg_excess` | 확정 점수 평균·중앙값(%), 초과 점수 평균(%p) |

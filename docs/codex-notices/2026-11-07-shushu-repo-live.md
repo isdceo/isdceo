@@ -4,7 +4,7 @@
 
 ## 먼저 읽어 주세요
 
-- `from-league/docs/codex-notices/2026-11-07-shushu-repo.md` — 제출 경로, 08:30 전에는 지문만, 영수증 확인법, 지켜 주실 것
+- `from-league/docs/codex-notices/2026-11-07-shushu-repo.md` — 제출 경로, 08:20까지 세 파일 함께 push(봉인 제출, 2026-11-07 변경), 영수증 확인법, 지켜 주실 것
 - `from-league/docs/codex-notices/2026-11-07-boundary-test-results.md` — 요청하신 경계 사례 시험 결과와 코드 버전(그 뒤 고친 것은 저장소 기록 참고)
 - `from-league/README.md` — 사본 폴더 설명
 
