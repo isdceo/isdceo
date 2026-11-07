@@ -1459,6 +1459,56 @@ class SimultaneousReveal(unittest.TestCase):
         self.assertEqual(self.shown(subs, "08:29:00"), [])
 
 
+class EveningRecheckFixes(unittest.TestCase):
+    """슈슈 재검수(2026-11-07 evening-release-recheck) 2·3번 회귀 시험."""
+    setUp = ShushuRepoSync.setUp
+    spush, sync, csv, _sha_line = ShushuRepoSync.spush, ShushuRepoSync.sync, ShushuRepoSync.csv, ShushuRepoSync._sha_line
+    set_wake_round = ShushuRepoSync.set_wake_round
+
+    def _practice_accept(self):
+        """연습 11/5(지문 방식 이전): 원본이 마감 뒤 반입돼 accepted."""
+        rd = "2026-11-05"
+        self.spush({f"practice/{rd}.csv": self.csv(rd)}, f"{rd}T08:00:00+09:00")
+        self.sync(f"{rd}T08:31:00+09:00")
+        subs = L.read_ledger(self.repo / "league" / "sandbox", "submissions")
+        self.assertEqual([x["status"] for x in subs], ["accepted"])
+        return rd
+
+    def test_bundle_receipt_keeps_source_commit_and_judged_by(self):
+        """export(public) → dashboard_data.build 전체 경로: 출처 커밋·판정 근거가 결과 묶음 영수증에 남는다."""
+        import dashboard_data as D
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:20:00+09:00")
+        self.sync(f"{rd}T08:31:00+09:00")
+        out = D.build(datetime.fromisoformat(f"{rd}T09:00:00+09:00"), base=self.repo / "league")
+        rs = [r for r in out["receipts"] if r["round"] == rd]
+        self.assertEqual({r["kind"] for r in rs}, {"commitment", "reveal"})
+        for r in rs:
+            self.assertEqual(r["source_commit"], self.acts[-1]["after"][:7])
+            self.assertEqual(r["judged_by"], "shushu_repo.activity.timestamp")
+        self.assertTrue([r for r in rs if r["kind"] == "reveal"][0]["sealed"])
+
+    def test_failed_lines_not_imported_and_good_lines_kept(self):
+        shutil.copytree(L.ROOT / "tools", self.repo / "tools")              # 동기화가 메인의 검사기를 부른다
+        rd = self._practice_accept()
+        good = {f"{rd}-sandbox-shushu-s1-KR": "튼튼해.", f"{rd}-sandbox-shushu-s1-US": "꾸준해."}
+        self.spush({f"practice-lines/{rd}-sandbox-shushu.json": json.dumps(good, ensure_ascii=False)}, f"{rd}T09:00:00+09:00")
+        self.sync(f"{rd}T09:05:00+09:00")
+        dst = self.repo / "league/sandbox/lines" / f"{rd}-sandbox-shushu.json"
+        self.assertEqual(json.loads(dst.read_text()), good)
+        bad = dict(good); bad[f"{rd}-sandbox-claude-buffett-KR"] = "남의 종목"
+        self.spush({f"practice-lines/{rd}-sandbox-shushu.json": json.dumps(bad, ensure_ascii=False)}, f"{rd}T09:10:00+09:00")
+        out = self.sync(f"{rd}T09:15:00+09:00")
+        self.assertIn("대사 검사 실패", out[0]["note"]); self.assertEqual(out[0]["lines"][0]["ok"], False)
+        self.assertEqual(json.loads(dst.read_text()), good)                    # 실패 파일은 반입 안 됨, 기존 대사 유지
+
+    def test_loader_ignores_other_team_lines(self):
+        import dashboard_data as D
+        d = Path(tempfile.mkdtemp()); (d / "lines").mkdir()
+        (d / "lines" / "2026-11-10-shushu.json").write_text(json.dumps({"2026-11-10-shushu-s1-KR": "내 대사", "2026-11-10-claude-buffett-KR": "남의 대사"}, ensure_ascii=False))
+        self.assertEqual(D.load_lines(d), {"2026-11-10-shushu-s1-KR": "내 대사"})
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 

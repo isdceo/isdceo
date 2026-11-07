@@ -400,7 +400,7 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
         return [], [], ""
     order = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
     units = sorted(units, key=lambda u: order.get(u["kind"], 9))
-    notes, wrote = [], []
+    notes, wrote, failed_lines = [], [], []
     for u in units:
         if u["kind"] in ("commitment", "reveal"):
             team = "sandbox-shushu" if u["dst"].startswith("league/imports/sandbox-") else "shushu"
@@ -422,12 +422,22 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
         p = main / u["dst"]
         p.parent.mkdir(parents=True, exist_ok=True)
         raw = git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext)
+        if u["kind"] == "lines":
+            # 대사는 임시 위치에서 먼저 검사하고, 통과한 파일만 확정 경로에 반입한다(실패 파일이 화면에 읽히지 않게)
+            import tempfile as _tf
+            tmpd = Path(_tf.mkdtemp())
+            (tmpd / Path(u["dst"]).name).write_bytes(raw)
+            if not _check_lines(main, u["dst"], path=tmpd / Path(u["dst"]).name):
+                notes.append(f"{u['file']}: 대사 검사 실패 — 반입하지 않음(기존 대사 유지)")
+                u["failed"] = True
+                failed_lines.append(u["dst"])
+                continue
         p.write_bytes(raw)                                                             # 바이트 그대로
         git("add", u["dst"], cwd=main)
         u["sha256"] = L.hashlib.sha256(raw).hexdigest()
         wrote.append(u)
     if not wrote or not git("status", "--porcelain", "--", *[u["dst"] for u in wrote], cwd=main):
-        return [], [], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
+        return [], [(d_, False) for d_ in failed_lines], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
     prev = git("rev-parse", "HEAD~0", cwd=main)
     git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
         "commit", "-q", "-m", f"league: shushu repo push {act['after'][:7]} ({pushed.isoformat(timespec='seconds')})",
@@ -443,14 +453,14 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
                               and pushed <= L.lock_deadline(date.fromisoformat(u["rd"]), _team_cfg(main, u["dst"]))],
              "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
     receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
-    lines = [(u["dst"], _check_lines(main, u["dst"])) for u in wrote if u["kind"] == "lines"]
+    lines = [(u["dst"], True) for u in wrote if u["kind"] == "lines"] + [(d_, False) for d_ in failed_lines]
     notes += [f"{u['dst']} sha256 {u['sha256']}" for u in wrote if u["kind"] in ("debate", "lines", "message")]   # 출처·해시 기록
     return receipts, lines, "; ".join(notes)
 
 
-def _check_lines(main: Path, dst: str) -> bool:
+def _check_lines(main: Path, dst: str, path: Path | None = None) -> bool:
     base = main / ("league/sandbox" if dst.startswith("league/sandbox/") else "league")
-    r = subprocess.run([sys.executable, str(main / "tools" / "dashboard_data.py"), "--check-lines", str(main / dst),
+    r = subprocess.run([sys.executable, str(main / "tools" / "dashboard_data.py"), "--check-lines", str(path or (main / dst)),
                         "--base", str(base)], cwd=main, capture_output=True, text=True)
     print(r.stdout.strip())
     return r.returncode == 0
