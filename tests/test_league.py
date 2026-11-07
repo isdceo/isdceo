@@ -1183,18 +1183,23 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(out[0]["receipts"][0]["status"], "committed")
         self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
 
-    def test_branch_deleted_before_deadline_is_superseded(self):
-        """squash 병합 뒤 작업 브랜치를 지운 정상 흐름: 브랜치 push는 '대체됨', 병합 push로 판정, 확인 대기 없음."""
+    def test_deleted_branch_kept_by_tag_cannot_be_picked(self):
+        """5차 검수 S1: 브랜치를 마감 전에 지우고 태그로 커밋을 살려 둔 뒤 마감 뒤 '받을 수 있음/없음'을 골라도
+        두 경우 모두 첫 지문만 인정되거나 확인 대기 — 뒤 지문 H2가 접수되는 길이 없다."""
         rd = "2026-11-10"
-        self.acts.append({"id": 80, "before": "0" * 40, "after": "d" * 40, "timestamp": "2026-11-09T23:20:00Z",
-                          "activity_type": "branch_creation", "ref": "refs/heads/codex/t", "actor": {"login": "c"}})
-        self.acts.append({"id": 81, "before": "d" * 40, "after": "0" * 40, "timestamp": "2026-11-09T23:24:00Z",
-                          "activity_type": "branch_deletion", "ref": "refs/heads/codex/t", "actor": {"login": "c"}})
-        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:23:00+09:00")       # 병합으로 main에 들어온 지문
-        self.acts[-1]["ref"] = "refs/heads/main"
-        out = self.sync(f"{rd}T08:40:00+09:00")
-        self.assertEqual(sorted(r["status"] for r in out), ["processed", "superseded"])
-        self.assertEqual([x["status"] for x in L.read_ledger(self.repo / "league", "submissions")], ["committed"])
+        for keep in (True, False):
+            self.setUp()
+            self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:29:00+09:00")
+            a_after = self.acts[-1]["after"]; self.acts[-1]["ref"] = "refs/heads/a"
+            self.acts.append({"id": 90, "before": a_after, "after": "0" * 40, "timestamp": "2026-11-09T23:29:30Z",
+                              "activity_type": "branch_deletion", "ref": "refs/heads/a", "actor": {"login": "c"}})
+            self.spush({f"submit/{rd}.sha256": f"{self.sh.sha256(b'h2').hexdigest()}  {rd}.csv\n"}, f"{rd}T08:29:20+09:00")
+            if not keep:
+                self.acts[0]["after"] = "e" * 40                                  # 태그를 지워 받을 수 없게 함
+            for t in ("08:40", "08:50", "09:00"):
+                self.sync(f"{rd}T{t}:00+09:00")
+            got = [x["committed_sha256"] for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "committed"]
+            self.assertNotIn(self.sh.sha256(b"h2").hexdigest(), got)
 
     def test_taint_wake_tells_to_reveal_anyway(self):
         rd = "2026-11-10"

@@ -66,7 +66,7 @@ def map_path(p: str):
 
 
 ACT_TYPES = {"push", "force_push", "branch_creation", "pr_merge", "merge_queue_merge"}
-DELETE_TYPES = {"branch_deletion"}     # 처리하지 않고 '마감 전에 지워진 push'를 가리는 데만 쓴다
+DELETE_TYPES = {"branch_deletion"}     # 기록만 받고 처리하지 않는다(판정 예외에 쓰지 않음)
 SETTLE = timedelta(minutes=2)          # activity 목록 반영 지연: 이보다 최근 push는 다음 실행에서 (순서 꼬임 방지)
 MAX_BYTES = 1_000_000
 SHA_LINE = re.compile(rb"^[0-9a-f]{64}(  \S{1,80})?\n?$")
@@ -245,7 +245,6 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     block = None
     # 1) 새 push
     main_ref = f"refs/heads/{base_branch}"
-    gone = [(a.get("ref"), _ts(a["timestamp"])) for a in activities if a.get("activity_type") in DELETE_TYPES | {"force_push"}]
     for i, act in enumerate(activities):
         if act.get("activity_type") in DELETE_TYPES:
             continue
@@ -267,9 +266,10 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             units, ignored, problems = _classify(ext, act, files, main)
         except Exception as e:  # noqa: BLE001  — 한 push의 문제로 동기화 전체가 멈추지 않게
             n = tries.get(("push_error", act["id"]), 0) + 1
-            # 마감 전에 같은 브랜치가 지워지거나 강제 push로 덮였으면 '대체됨': 선택이 마감 전에 끝났으므로 다시 처리하지 않는다
-            superseded = any(ref == act.get("ref") and pushed < t < dl for ref, t in gone)
-            final = superseded or n >= MAX_TRIES
+            # '마감 전에 지워졌으니 대체됨' 같은 예외는 두지 않는다: 태그 등 기록에 안 남는 ref로 커밋을 살려 두면
+            # 마감 뒤 '받을 수 있음/없음'을 골라 지문을 고를 수 있기 때문(5차 검수 S1). 받을 수 없음은 결코 유리해지지 않게 한다.
+            superseded = False
+            final = n >= MAX_TRIES
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
                                             "attempt": n, "error": str(e)[:300]})
             out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
