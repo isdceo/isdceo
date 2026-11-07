@@ -1498,6 +1498,7 @@ def make_sample(d: Path, close_week: bool = True):
     def put_ca(**kw):
         append(d, "corporate_actions", {"source": "SAMPLE", **kw})
     agents = {"claude": [a["id"] for a in roster["claude"]], "shushu": [a["id"] for a in roster["shushu"]]}
+    members = {(t, a_["id"]): a_ for t in ("claude", "shushu") for a_ in roster[t]}
     skill = {"buffett": .25, "lynch": .1, "dalio": 0, "wood": -.1, "burry": -.35, "s1": .2, "s2": 0, "s3": .05, "s4": -.2, "s5": .1}
     # 예외 사례 전용 종목 (다른 추천과 가격이 섞이지 않도록 무작위 선택에서 제외)
     # 예외 사례 전용 종목 (다른 추천과 가격이 섞이지 않도록 무작위 선택에서 제외). 키: (팀, 에이전트, 일, 시장)
@@ -1531,8 +1532,7 @@ def make_sample(d: Path, close_week: bool = True):
                     else:
                         kind = None
                         t = rnd.choice(sorted(x for x in uni[m] if (m, x) not in reserved))
-                    mem = next((x for x in roster[team] if x["id"] == aid), {})
-                    rec = make_pick(team, aid, version_for_round(mem, rd.isoformat()) or 1, rd.isoformat(), m, t, uni[m][t],
+                    rec = make_pick(team, aid, version_for_round(members[(team, aid)], rd.isoformat()) or 1, rd.isoformat(), m, t, uni[m][t],
                                     f"{rd.isoformat()}T08:{rnd.randint(5, 29):02d}:00+09:00",
                                     f"[예시] {uni[m][t]} 선정 근거 요약", ["[예시] 실적 하회 위험", "[예시] 환율 변동"],
                                     [{"title": "예시 출처", "url": "https://example.com", "as_of": prev_session(m, rd, cfg).isoformat()}],
