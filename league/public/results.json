@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-07T22:55:42+09:00",
+ "generated_at": "2026-11-07T23:14:24+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -19,6 +19,7 @@
    "imported": 1,
    "sealed": false,
    "early_reveal": false,
+   "judged_by": "push_event.repository.pushed_at",
    "via": "메인 저장소",
    "source_commit": ""
   },
@@ -34,6 +35,7 @@
    "imported": 0,
    "sealed": false,
    "early_reveal": false,
+   "judged_by": "push_event.repository.pushed_at",
    "via": "메인 저장소",
    "source_commit": ""
   },
@@ -49,6 +51,7 @@
    "imported": 10,
    "sealed": false,
    "early_reveal": false,
+   "judged_by": "push_event.repository.pushed_at",
    "via": "메인 저장소",
    "source_commit": ""
   },
@@ -64,6 +67,7 @@
    "imported": 10,
    "sealed": false,
    "early_reveal": false,
+   "judged_by": "push_event.repository.pushed_at",
    "via": "메인 저장소",
    "source_commit": ""
   },
@@ -79,6 +83,7 @@
    "imported": 0,
    "sealed": false,
    "early_reveal": false,
+   "judged_by": "push_event.repository.pushed_at",
    "via": "메인 저장소",
    "source_commit": ""
   },
@@ -94,6 +99,7 @@
    "imported": 2,
    "sealed": false,
    "early_reveal": true,
+   "judged_by": "push_event.repository.pushed_at",
    "via": "메인 저장소",
    "source_commit": ""
   },
@@ -109,8 +115,9 @@
    "imported": 0,
    "sealed": false,
    "early_reveal": false,
+   "judged_by": "shushu_repo.activity.timestamp",
    "via": "슈슈 전용 저장소",
-   "source_commit": ""
+   "source_commit": "49c75f2"
   }
  ],
  "teams": [
