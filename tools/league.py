@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks",
-           "weekly_decisions", "guidelines", "outages")
+           "weekly_decisions", "guidelines", "outages", "external_pushes")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -1105,6 +1105,8 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
     run_at = datetime.fromisoformat(run_created_at.replace("Z", "+00:00")).astimezone(KST) if run_created_at else None
     # 판정 시각: push 서버 시각. 없으면 워크플로 생성 시각(항상 push 이후라 보수적)
     judged_at, judged_src = (pushed_at, "push_event.repository.pushed_at") if pushed_at else (run_at, "workflow_run.created_at")
+    if pushed_at and event.get("judged_by"):         # 전용 제출 저장소에서 가져온 push: 그 저장소의 서버 push 기록 시각
+        judged_src = event["judged_by"]
     receipts = []
     for path in changed_submission_files(event, cwd):
         # 같은 push(커밋)·같은 파일의 영수증이 이미 있으면 다시 만들지 않는다(재실행·충돌 재처리 때 중복 방지)
@@ -1128,6 +1130,8 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                "csv_sha256": sha, "pushed_at": pushed_at.isoformat() if pushed_at else None,
                "run_id": str(run_id), "run_url": run_url, "run_created_at": run_at.isoformat() if run_at else None,
                "judged_by": judged_src, "deadline": deadline.isoformat(), "errors": [], "imported": 0}
+        if event.get("source"):
+            rec["source"] = event["source"]
         subs = [s for s in read_ledger(d, "submissions") if s["team"] == team and s["round_date"] == rd]
         prior = [s for s in subs if s["status"] == "accepted"]
         cr = commit_reveal_applies(rd, cfg)
@@ -1195,6 +1199,8 @@ def _process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, r
            "judged_at": judged_at.isoformat() if judged_at else None,
            "run_id": str(run_id), "run_url": run_url, "run_created_at": run_at.isoformat() if run_at else None,
            "judged_by": judged_src, "deadline": deadline.isoformat(), "errors": [], "imported": 0}
+    if event.get("source"):
+        rec["source"] = event["source"]
     subs = [s for s in read_ledger(d, "submissions") if s["team"] == team and s["round_date"] == rd]
     if not commit_reveal_applies(rd, cfg):
         rec.update(status="rejected", errors=["이 라운드는 지문 제출 대상이 아님 — CSV를 마감 전에 push"])

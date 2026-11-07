@@ -1,0 +1,96 @@
+# 슈슈 팀 전용 제출 저장소 연결 (B안). 설정: docs/shushu-repo-setup.md
+# - 전용 저장소의 push를 GitHub 서버 기록 시각(activity)으로 판정해 허용 경로 파일만 메인으로 가져오고 영수증을 남긴다.
+#   (메인 저장소로 들어온 뒤의 처리 시각은 판정에 쓰지 않으므로, 예약 실행이 몇 분 늦어도 정시 여부는 바뀌지 않는다)
+# - 마감(08:30) 전 원본·토론·대사가 든 push는 마감 뒤까지 메인에 들이지 않는다.
+# - 원 가격이 없는 결과 묶음·영수증·공지·검증 도구 사본을 전용 저장소 from-league/ 로 보낸다.
+# 전용 저장소에는 비밀값을 두지 않는다(쓰기 권한이 있으면 워크플로로 비밀값을 빼낼 수 있음). 토큰은 메인 Secrets 에만.
+name: league-shushu-sync
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 23 * * 0-4'   # 08:00–08:50 KST 월~금
+    - cron: '*/10 0 * * 1-5'    # 09:00–09:50 KST
+    - cron: '5 1-3 * * 1-5'     # 10:05·11:05·12:05 KST (채점 결과·한 줄 대사·공개 마감)
+    - cron: '5 9 * * 1-5'       # 18:05 KST (늦은 대사)
+    - cron: '50 1 * * 6'        # 토 10:50 KST (금요일분 채점 뒤 결과)
+    - cron: '40 21 * * 0'       # 월 06:40 KST (주간 마감 뒤 결과·update-plan)
+permissions:
+  contents: write
+concurrency:
+  group: league-ledger-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check switch and secret
+        id: gate
+        env:
+          TOKEN: ${{ secrets.SHUSHU_REPO_TOKEN }}
+        run: |
+          read -r ON REPO BR < <(python3 -c "import json;c=json.load(open('league/config.json')).get('shushu_repo') or {};print(str(c.get('enabled',False)).lower(), c.get('repo') or '-', c.get('branch') or 'main')")
+          if [ "$ON" != "true" ] || [ "$REPO" = "-" ]; then echo "shushu_repo 꺼짐 — 아무것도 안 함"; echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ -z "$TOKEN" ]; then echo "::error::SHUSHU_REPO_TOKEN 없음 — docs/shushu-repo-setup.md"; exit 1; fi
+          echo "go=true" >> "$GITHUB_OUTPUT"; echo "repo=$REPO" >> "$GITHUB_OUTPUT"; echo "branch=$BR" >> "$GITHUB_OUTPUT"
+      - if: steps.gate.outputs.go == 'true'
+        run: pip install -q -r requirements.txt
+      - name: Clone submission repo
+        if: steps.gate.outputs.go == 'true'
+        env:
+          TOKEN: ${{ secrets.SHUSHU_REPO_TOKEN }}
+        run: git clone -q --branch "${{ steps.gate.outputs.branch }}" "https://x-access-token:${TOKEN}@github.com/${{ steps.gate.outputs.repo }}.git" ext
+      - name: Pull submissions and record receipts
+        if: steps.gate.outputs.go == 'true'
+        env:
+          SHUSHU_REPO_TOKEN: ${{ secrets.SHUSHU_REPO_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git config user.name "league-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BR="$GITHUB_REF_NAME"
+          lines_fail=0
+          run_sync() {
+            python3 tools/shushu_sync.py pull --ext ext --run-id "${{ github.run_id }}" --run-url "$RUN_URL" | tee sync.txt
+            rc=${PIPESTATUS[0]}
+            if [ "$rc" = 3 ]; then lines_fail=1; elif [ "$rc" != 0 ]; then return 1; fi
+            python3 tools/dashboard_data.py --bundle league/public/results.json || return 1
+            python3 tools/league.py verify && python3 tools/league.py verify --dir league/sandbox || return 1
+            for p in league/ledger league/sandbox/ledger league/public; do [ -e "$p" ] && git add "$p"; done
+            git diff --cached --quiet || git commit -q -m "league: shushu repo sync receipts" -m "$(cat sync.txt)"
+          }
+          run_sync || exit 1
+          # 리베이스하지 않는다(영수증이 가리키는 커밋이 바뀌므로). 메인이 그사이 바뀌었으면 최신 메인에서 처음부터 다시 처리
+          for i in 1 2 3 4 5 6; do
+            [ "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$BR")" ] && break
+            git push -q origin "HEAD:$BR" && break
+            sleep $((i * 4))
+            git fetch -q origin "$BR" && git reset -q --hard "origin/$BR"
+            lines_fail=0; run_sync || exit 1
+            [ "$i" = 6 ] && { echo "::error::메인 push 실패(6회)"; exit 1; }
+          done
+          { echo '### 슈슈 저장소 동기화'; echo '```'; cat sync.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          [ "$lines_fail" = 0 ] || { echo "::error::한 줄 대사 검사 실패 — 위 출력 확인(묶음에서는 자동으로 걸러짐)"; exit 1; }
+      - name: Mirror price-free results to submission repo
+        if: always() && steps.gate.outputs.go == 'true'
+        run: |
+          BR="${{ steps.gate.outputs.branch }}"
+          cd ext
+          git config user.name "league-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for i in 1 2 3; do
+            git fetch -q origin "$BR" && git reset -q --hard "origin/$BR"
+            (cd .. && python3 tools/shushu_sync.py mirror --ext ext) || exit 1
+            git add -A from-league
+            git diff --cached --quiet && { echo "사본 변경 없음"; exit 0; }
+            git commit -q -m "from-league: 메인 리그 자료 사본 (${GITHUB_SHA::7})"
+            git push -q origin "HEAD:$BR" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

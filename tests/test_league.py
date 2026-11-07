@@ -1,6 +1,6 @@
 """AI 투자 리그 규칙 테스트.  실행: python3 -m unittest discover -s tests -v"""
 import json, re, shutil, sys, tempfile, unittest
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
@@ -881,6 +881,111 @@ class DashboardSplit(unittest.TestCase):
         self.assertTrue(parts["index.html"].startswith('<meta name="dash-one-writer">'))
         self.assertIn('<script src="app.js"></script>', parts["index.html"])
         self.assertNotIn("<script>", parts["index.html"]); self.assertNotIn("<style>", parts["index.html"])
+
+
+class ShushuRepoSync(unittest.TestCase):
+    """B안: 슈슈 전용 저장소 push를 그 저장소의 서버 push 시각으로 판정해 메인으로 가져온다."""
+    def setUp(self):
+        Receipts.setUp(self)                                   # 임시 메인 저장소 (Receipts 시험은 다시 돌리지 않음)
+        import subprocess, hashlib
+        self.sh = hashlib
+        base = Path(tempfile.mkdtemp())
+        self.bare, self.work, self.ext = base / "s.git", base / "work", base / "ext"
+        g = lambda cwd, *a: subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+        self.g = g
+        g(base, "init", "-q", "--bare", str(self.bare))
+        g(base, "clone", "-q", str(self.bare), str(self.work))
+        g(self.work, "config", "user.email", "s@s"); g(self.work, "config", "user.name", "s")
+        (self.work / "README.md").write_text("x"); g(self.work, "add", "."); g(self.work, "commit", "-qm", "init")
+        g(self.work, "push", "-q", "origin", "HEAD:main")
+        g(base, "clone", "-q", str(self.bare), str(self.ext))
+        self.acts, self.last = [], g(self.work, "rev-parse", "HEAD")
+        import shushu_sync as X
+        self.X = X
+
+    def spush(self, files: dict, at: str):
+        for name, text in files.items():
+            p = self.work / name; p.parent.mkdir(parents=True, exist_ok=True); p.write_text(text)
+        self.g(self.work, "add", "."); self.g(self.work, "commit", "-qm", "p"); self.g(self.work, "push", "-q", "origin", "HEAD:main")
+        after = self.g(self.work, "rev-parse", "HEAD")
+        utc = datetime.fromisoformat(at).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.acts.append({"id": len(self.acts) + 1, "before": self.last, "after": after, "timestamp": utc,
+                          "activity_type": "push", "actor": {"login": "shushu-bot"}})
+        self.last = after
+
+    def sync(self, now):
+        return self.X.pull(self.repo, self.ext, self.acts, "o/shushu", now=datetime.fromisoformat(now), run_id="9")
+
+    def csv(self, rd):
+        return CommitReveal._csv(self, rd, CommitReveal.ROWS)
+
+    def test_commit_then_reveal_judged_by_source_push_time(self):
+        rd = "2026-11-10"; body = self.csv(rd); h = self.sh.sha256(body.encode()).hexdigest()
+        self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n"}, f"{rd}T08:20:00+09:00")
+        self.spush({f"submit/{rd}.csv": body}, f"{rd}T08:40:00+09:00")
+        out = self.sync(f"{rd}T08:55:00+09:00")                # 동기화가 늦게 돌아도 판정은 전용 저장소 push 시각
+        self.assertEqual([r["receipts"][0]["status"] for r in out], ["committed", "accepted"])
+        subs = L.read_ledger(self.repo / "league", "submissions")
+        self.assertEqual(subs[0]["pushed_at"], f"{rd}T08:20:00+09:00")
+        self.assertEqual(subs[0]["judged_by"], "shushu_repo.activity.timestamp")
+        self.assertEqual(subs[1]["source"]["repo"], "o/shushu")
+        self.assertEqual((self.repo / "league/imports/shushu" / f"{rd}.csv").read_bytes(), body.encode())
+        self.assertEqual(self.sync(f"{rd}T09:00:00+09:00"), [])                       # 같은 push는 한 번만
+        self.assertEqual(len(L.read_ledger(self.repo / "league", "external_pushes")), 2)
+
+    def test_late_commitment_by_source_time(self):
+        rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
+        self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n"}, f"{rd}T08:30:05+09:00")
+        self.assertEqual(self.sync(f"{rd}T08:31:00+09:00")[0]["receipts"][0]["status"], "late")
+
+    def test_csv_before_deadline_held_out_of_main(self):
+        """마감 전 원본은 메인에 들이지 않는다(로로 팀 세션이 볼 수 없게). 마감 뒤 처리하면 마감 전 공개로 기록."""
+        rd = "2026-11-10"; body = self.csv(rd)
+        self.spush({f"submit/{rd}.csv": body}, f"{rd}T08:10:00+09:00")
+        out = self.sync(f"{rd}T08:15:00+09:00")
+        self.assertEqual(out[0]["status"], "held_until_deadline")
+        self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.csv").exists())
+        self.assertEqual(L.read_ledger(self.repo / "league", "external_pushes"), [])
+        r = self.sync(f"{rd}T08:35:00+09:00")[0]["receipts"][0]
+        self.assertEqual(r["status"], "accepted")
+        self.assertTrue(L.read_ledger(self.repo / "league", "submissions")[-1].get("early_reveal"))
+
+    def test_only_allowed_paths_copied(self):
+        rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
+        self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n", ".github/workflows/x.yml": "on: push",
+                    "league/ledger/scores.jsonl": "{}", "from-league/league/config.json": "{}"}, f"{rd}T08:20:00+09:00")
+        out = self.sync(f"{rd}T08:21:00+09:00")
+        self.assertEqual(sorted(out[0]["ignored"]), [".github/workflows/x.yml", "from-league/league/config.json", "league/ledger/scores.jsonl"])
+        self.assertFalse((self.repo / ".github").exists())
+        self.assertFalse((self.repo / "league/ledger/scores.jsonl").exists())
+
+    def test_branch_push_then_merge_counts_once(self):
+        """Codex 클라우드처럼 작업 브랜치에 지문을 push한 뒤 늦게 병합해도, 판정은 브랜치 push 시각 한 번뿐."""
+        rd = "2026-11-10"; h = self.sh.sha256(self.csv(rd).encode()).hexdigest()
+        self.spush({f"submit/{rd}.sha256": f"{h}  {rd}.csv\n"}, f"{rd}T08:22:00+09:00")
+        self.acts[-1]["ref"] = "refs/heads/codex/submit"
+        self.spush({"README.md": "merge"}, f"{rd}T08:45:00+09:00")       # 병합 push(같은 지문이 main에 들어옴)
+        self.acts[-1]["before"] = self.acts[0]["before"]                  # main 기준으로는 지문+README 변경
+        out = self.sync(f"{rd}T08:50:00+09:00")
+        self.assertEqual(out[0]["receipts"][0]["status"], "committed")
+        self.assertEqual(out[1]["receipts"], [])                         # 같은 내용 → 영수증 없음
+        self.assertEqual([s["status"] for s in L.read_ledger(self.repo / "league", "submissions")], ["committed"])
+
+    def test_mirror_push_not_recorded(self):
+        """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""
+        self.spush({"from-league/README.md": "copy"}, "2026-11-10T08:00:00+09:00")
+        self.assertEqual(self.sync("2026-11-10T08:05:00+09:00"), [])
+        self.assertEqual(L.read_ledger(self.repo / "league", "external_pushes"), [])
+
+    def test_mirror_has_no_prices(self):
+        """사본에는 원 가격이 든 원장(prices·scores·corporate_actions·picks)과 가격 포함 공통 자료가 없다."""
+        import tempfile as T
+        ext = Path(T.mkdtemp())
+        wrote = self.X.mirror(ROOT, ext, today=date(2026, 11, 7))
+        bad = [f for f in wrote if re.search(r"ledger/(prices|scores|corporate_actions|picks|price_checks|corrections)\.jsonl$|with-prices", f)]
+        self.assertEqual(bad, [])
+        self.assertTrue((ext / "from-league" / "receipts-shushu.jsonl").exists())
+        self.assertTrue((ext / "from-league" / "tools" / "league.py").exists())
 
 
 class BoundaryCases(unittest.TestCase):

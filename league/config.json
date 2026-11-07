@@ -110,7 +110,8 @@
     },
     "alphavantage": {
       "date": "2026-11-06",
-      "note": "GitHub Actions(실제 키)에서 2026-11-05 종가 수신 확인: KO 95.73 / APP 356.10 / BKNG 168.72 / BRK.B 572.33 / SPY 733.00, 오류 0건, 5종목 배당·분할 확인 기록. 공개 시험 키로 DIVIDENDS(ex_dividend_date·amount)·SPLITS 형식 확인. 배당락일 당일 배당이 실제로 기록되는지는 아직 미확인", "dividend_check_2026-11-07": "run 42323589916(세션 2026-11-06, 10:21 KST): JBHT 배당 0.45달러(ex 2026-11-06, 지급 11-20) 기록됨 → 배당락일 당일 배당이 다음 날 오전(10:30 채점 전)에 반영됨. AAPL은 checked만(배당 없음, 정상). FER은 배당 기록 없이 checked만 남음 — 회사 발표상 2026년 2차 flexible dividend 0.835유로(기준일 11-06, 현금/주식 선택형)인데 Alpha Vantage DIVIDENDS에 없음. 지금 코드는 Alpha Vantage 응답에 배당이 없으면 checked(확인 완료)를 남겨, 이런 종목은 보류되지 않고 배당 없이 채점됨(누락 위험). FER은 현재 리그 종목이 아니라 실제 영향은 없음"
+      "note": "GitHub Actions(실제 키)에서 2026-11-05 종가 수신 확인: KO 95.73 / APP 356.10 / BKNG 168.72 / BRK.B 572.33 / SPY 733.00, 오류 0건, 5종목 배당·분할 확인 기록. 공개 시험 키로 DIVIDENDS(ex_dividend_date·amount)·SPLITS 형식 확인. 배당락일 당일 배당이 실제로 기록되는지는 아직 미확인",
+      "dividend_check_2026-11-07": "run 42323589916(세션 2026-11-06, 10:21 KST): JBHT 배당 0.45달러(ex 2026-11-06, 지급 11-20) 기록됨 → 배당락일 당일 배당이 다음 날 오전(10:30 채점 전)에 반영됨. AAPL은 checked만(배당 없음, 정상). FER은 배당 기록 없이 checked만 남음 — 회사 발표상 2026년 2차 flexible dividend 0.835유로(기준일 11-06, 현금/주식 선택형)인데 Alpha Vantage DIVIDENDS에 없음. 지금 코드는 Alpha Vantage 응답에 배당이 없으면 checked(확인 완료)를 남겨, 이런 종목은 보류되지 않고 배당 없이 채점됨(누락 위험). FER은 현재 리그 종목이 아니라 실제 영향은 없음"
     }
   },
   "season_start": "2026-11-09",
@@ -119,5 +120,11 @@
     "from": "2026-11-09",
     "reveal_deadline": "12:00",
     "note": "마감(08:30) 전에는 CSV 원본의 sha256 지문(<날짜>.sha256)만 push하고, 원본 CSV는 08:30~12:00 KST에 push한다. 원본 해시가 지문과 같아야 접수. 마감 전 원본 push는 접수하되 early_reveal로 기록"
+  },
+  "shushu_repo": {
+    "enabled": false,
+    "repo": "",
+    "branch": "main",
+    "note": "B안(2026-11-07): 슈슈 팀은 전용 저장소에만 push. 메인의 league-shushu-sync 워크플로가 그 저장소의 GitHub 서버 push 시각(activity)으로 판정하고 허용 경로 파일만 가져온다. 켜려면 repo(owner/name)를 적고 enabled=true, 메인 Secrets에 SHUSHU_REPO_TOKEN(전용 저장소만, Contents 읽기·쓰기). 설정: docs/shushu-repo-setup.md"
   }
 }
