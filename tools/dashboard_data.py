@@ -50,7 +50,10 @@ def load_lines(d: Path) -> dict:
     마감 뒤 공개된 종목에만 붙는다(picks 가 이미 마감 전 종목을 뺀다). 가격처럼 보이는 문장·80자 초과는 버린다."""
     out = {}
     for f in sorted((d / "lines").glob("*.json")):
+        m = re.fullmatch(r"(\d{4}-\d{2}-\d{2})-([a-z-]+)\.json", f.name)
         for k, v in json.loads(f.read_text()).items():
+            if m and not str(k).startswith(f"{m.group(1)}-{m.group(2)}-"):
+                continue                      # 파일 이름의 라운드·팀 종목에만 붙인다(다른 팀 종목 대사는 버림)
             v = " ".join(str(v).split())
             if v and len(v) <= 80 and not PRICE_LIKE.search(v):
                 out[k] = v
@@ -186,8 +189,10 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                     "imported": s.get("imported", 0),
                                     # 봉인(비공개 전용 저장소에 마감 전 보관) / 마감 전 공개 / 판정 근거(어느 저장소의 push 시각인가)
                                     "sealed": bool(s.get("sealed")), "early_reveal": bool(s.get("early_reveal")),
+                                    "judged_by": s.get("judged_by") or "",
                                     "via": "슈슈 전용 저장소" if s.get("judged_by") == "shushu_repo.activity.timestamp" else "메인 저장소",
-                                    "source_commit": str((s.get("source") or {}).get("commit") or "")[:7]})
+                                    # 공개용 내보내기는 source.commit 을 source_commit 으로 평탄화한다 — 평탄화된 값을 먼저 쓴다
+                                    "source_commit": str(s.get("source_commit") or (s.get("source") or {}).get("commit") or "")[:7]})
 
         lines = load_lines(d)
         cfg_w = L.load_config(d)
@@ -321,7 +326,7 @@ def bundle(now: datetime | None = None, base: Path | None = None) -> dict:
     base = Path(base or LEAGUE)
     data = build(now, base=base)
     out = {"schema": BUNDLE_SCHEMA, "generated_at": now.isoformat(timespec="seconds"),
-           "rules": {"embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
+           "rules": {"embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
                      "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
                      "scores": "status가 final인 점수만 확정. provisional은 잠정, pending·held는 미채점"}}
     out.update({k: data[k] for k in BUNDLE_KEYS})

@@ -1466,6 +1466,135 @@ class AgentsV2(unittest.TestCase):
         mk = lambda v: L.make_pick("claude", "buffett", v, "2026-11-09", "KR", "005930", "005930", "2026-11-09T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-06"}], cfg)
         self.assertEqual(L.validate_pick(mk(2), d, cfg, []), [])
         self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk(1), d, cfg, [])))
+class SimultaneousReveal(unittest.TestCase):
+    """운영자 요청(2026-11-07): 지문을 낸 팀이 모두 원본 접수될 때까지(또는 12:00) 그 라운드 종목은 어느 팀 것도 공개하지 않는다."""
+    def setUp(self):
+        self.cfg = L.load_config(L.ROOT / "league")
+        mk = lambda team, rd: {"pick_id": f"{rd}-{team}-a-KR", "team": team, "round_date": rd}
+        self.picks = [mk("claude", "2026-11-10"), mk("shushu", "2026-11-10")]
+
+    def shown(self, subs, at):
+        return [p["team"] for p in L.embargo_picks(self.picks, self.cfg, datetime.fromisoformat(f"2026-11-10T{at}+09:00"), subs)[0]]
+
+    def test_wait_for_other_team(self):
+        rd = "2026-11-10"
+        subs = [{"team": "claude", "round_date": rd, "status": "committed"}, {"team": "shushu", "round_date": rd, "status": "committed"},
+                {"team": "claude", "round_date": rd, "status": "accepted"}]
+        self.assertEqual(self.shown(subs, "08:40:00"), [])                                    # 슈슈 원본 대기 → 둘 다 숨김
+        self.assertEqual(self.shown(subs + [{"team": "shushu", "round_date": rd, "status": "accepted"}], "08:41:00"), ["claude", "shushu"])
+        self.assertEqual(self.shown(subs, "12:00:00"), ["claude", "shushu"])                  # 공개 마감이 되면 공개
+
+    def test_team_without_commitment_does_not_block(self):
+        rd = "2026-11-10"
+        subs = [{"team": "claude", "round_date": rd, "status": "committed"}, {"team": "claude", "round_date": rd, "status": "accepted"},
+                {"team": "shushu", "round_date": rd, "status": "late"}]
+        self.assertEqual(self.shown(subs, "08:40:00"), ["claude", "shushu"])
+
+    def test_before_deadline_still_hidden(self):
+        rd = "2026-11-10"
+        subs = [{"team": t, "round_date": rd, "status": st} for t in ("claude", "shushu") for st in ("committed", "accepted")]
+        self.assertEqual(self.shown(subs, "08:29:00"), [])
+
+
+class EveningRecheckFixes(unittest.TestCase):
+    """슈슈 재검수(2026-11-07 evening-release-recheck) 2·3번 회귀 시험."""
+    setUp = ShushuRepoSync.setUp
+    spush, sync, csv, _sha_line = ShushuRepoSync.spush, ShushuRepoSync.sync, ShushuRepoSync.csv, ShushuRepoSync._sha_line
+    set_wake_round = ShushuRepoSync.set_wake_round
+
+    def _practice_accept(self):
+        """연습 11/5(지문 방식 이전): 원본이 마감 뒤 반입돼 accepted."""
+        rd = "2026-11-05"
+        self.spush({f"practice/{rd}.csv": self.csv(rd)}, f"{rd}T08:00:00+09:00")
+        self.sync(f"{rd}T08:31:00+09:00")
+        subs = L.read_ledger(self.repo / "league" / "sandbox", "submissions")
+        self.assertEqual([x["status"] for x in subs], ["accepted"])
+        return rd
+
+    def test_bundle_receipt_keeps_source_commit_and_judged_by(self):
+        """export(public) → dashboard_data.build 전체 경로: 출처 커밋·판정 근거가 결과 묶음 영수증에 남는다."""
+        import dashboard_data as D
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:20:00+09:00")
+        self.sync(f"{rd}T08:31:00+09:00")
+        out = D.build(datetime.fromisoformat(f"{rd}T09:00:00+09:00"), base=self.repo / "league")
+        rs = [r for r in out["receipts"] if r["round"] == rd]
+        self.assertEqual({r["kind"] for r in rs}, {"commitment", "reveal"})
+        for r in rs:
+            self.assertEqual(r["source_commit"], self.acts[-1]["after"][:7])
+            self.assertEqual(r["judged_by"], "shushu_repo.activity.timestamp")
+        self.assertTrue([r for r in rs if r["kind"] == "reveal"][0]["sealed"])
+
+    def test_failed_lines_not_imported_and_good_lines_kept(self):
+        shutil.copytree(L.ROOT / "tools", self.repo / "tools")              # 동기화가 메인의 검사기를 부른다
+        rd = self._practice_accept()
+        good = {f"{rd}-sandbox-shushu-s1-KR": "튼튼해.", f"{rd}-sandbox-shushu-s1-US": "꾸준해."}
+        self.spush({f"practice-lines/{rd}-sandbox-shushu.json": json.dumps(good, ensure_ascii=False)}, f"{rd}T09:00:00+09:00")
+        self.sync(f"{rd}T09:05:00+09:00")
+        dst = self.repo / "league/sandbox/lines" / f"{rd}-sandbox-shushu.json"
+        self.assertEqual(json.loads(dst.read_text()), good)
+        bad = dict(good); bad[f"{rd}-sandbox-claude-buffett-KR"] = "남의 종목"
+        self.spush({f"practice-lines/{rd}-sandbox-shushu.json": json.dumps(bad, ensure_ascii=False)}, f"{rd}T09:10:00+09:00")
+        out = self.sync(f"{rd}T09:15:00+09:00")
+        self.assertIn("대사 검사 실패", out[0]["note"]); self.assertEqual(out[0]["lines"][0]["ok"], False)
+        self.assertEqual(json.loads(dst.read_text()), good)                    # 실패 파일은 반입 안 됨, 기존 대사 유지
+
+    def test_loader_ignores_other_team_lines(self):
+        import dashboard_data as D
+        d = Path(tempfile.mkdtemp()); (d / "lines").mkdir()
+        (d / "lines" / "2026-11-10-shushu.json").write_text(json.dumps({"2026-11-10-shushu-s1-KR": "내 대사", "2026-11-10-claude-buffett-KR": "남의 대사"}, ensure_ascii=False))
+        self.assertEqual(D.load_lines(d), {"2026-11-10-shushu-s1-KR": "내 대사"})
+
+
+class AddCharacter(unittest.TestCase):
+    """대기 후보 자동 추가(운영자 상시 위임): 검사 → 명단·승인 원장·지침·캐릭터 그림 반영, 실패 시 반영 안 함."""
+    def setUp(self):
+        import add_character as AC
+        self.AC = AC
+        self.root = Path(tempfile.mkdtemp())
+        for rel in ("league/config.json", "league/universe.json", "league/agents/roster.json", "league/imports/shushu/roster.json",
+                    "docs/dashboard/operator-dashboard-page.html", "league/agents/avatars/README.md"):
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True); shutil.copy(L.ROOT / rel, self.root / rel)
+        shutil.copytree(L.ROOT / "league/agents/avatars/src", self.root / "league/agents/avatars/src",
+                        ignore=shutil.ignore_patterns("__pycache__", "extra.json", "defs.svg", "preview.html"))
+        (self.root / "league/ledger").mkdir(parents=True)
+        self.saved = (AC.ROOT, AC.SRC, AC.PAGE, AC.README)
+        AC.ROOT, AC.SRC = self.root, self.root / "league/agents/avatars/src"
+        AC.PAGE, AC.README = self.root / "docs/dashboard/operator-dashboard-page.html", self.root / "league/agents/avatars/README.md"
+
+    def tearDown(self):
+        self.AC.ROOT, self.AC.SRC, self.AC.PAGE, self.AC.README = self.saved
+
+    def spec(self, **kw):
+        sp = {"team": "shushu", "id": "s8", "nickname": "등대", "label": "배당성장형", "style_ref": "공개된 배당 성장 투자 원칙 참고",
+              "tagline": "꾸준히 늘어나는 배당을 본다", "guideline": "# 등대 지침\n배당 성장.",
+              "look": {"name": "deungdae", "skin": "tan", "hair": "short", "hairc": "#3a2a20", "hat": "cap", "hatc": "#1f6f8b",
+                       "brows": "up", "nose": "button", "mouth": "grin", "glasses": "round", "outfit": "#2f6f4f", "collar": "shirt"}}
+        sp.update(kw); return sp
+
+    def test_add_ok(self):
+        self.assertEqual(self.AC.apply(self.spec(), source="test"), [])
+        sh = json.loads((self.root / "league/imports/shushu/roster.json").read_text())
+        self.assertEqual(sh["bench"][-1]["id"], "s8")
+        ap = L.read_ledger(self.root / "league", "approvals")
+        self.assertEqual((ap[-1]["agent_id"], ap[-1]["decision"]), ("s8", "approved")); self.assertIn("상시 위임", ap[-1]["approved_by"])
+        self.assertIn('id="av-deungdae"', (self.root / "docs/dashboard/operator-dashboard-page.html").read_text())
+        self.assertTrue((self.root / "league/imports/shushu/agents/s8/v1.md").exists())
+        self.assertEqual(L.verify(self.root / "league"), [])
+
+    def test_rejects_bad_specs(self):
+        bad = [self.spec(id="s1"), self.spec(label="안전마진형"), self.spec(style_ref="그레이엄처럼"),
+               self.spec(tagline="005930만 산다"), self.spec(look={**self.spec()["look"], "name": "dandan"}),
+               self.spec(look={**self.spec()["look"], "hat": "crown"})]
+        for sp in bad:
+            self.assertTrue(self.AC.apply(sp, source="t"), sp)
+        self.assertEqual(json.loads((self.root / "league/imports/shushu/roster.json").read_text())["bench"][-1]["id"], "s7")
+
+    def test_message_parse(self):
+        sp = self.spec(); g = sp.pop("guideline")
+        md = "제안\n```json\n" + json.dumps(sp, ensure_ascii=False) + "\n```\n## 지침\n" + g + "\n"
+        out = self.AC.spec_from_message(md)
+        self.assertEqual((out["id"], out["guideline"].splitlines()[0]), ("s8", "# 등대 지침"))
 
 
 class BoundaryCases(unittest.TestCase):

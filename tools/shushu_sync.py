@@ -400,7 +400,7 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
         return [], [], ""
     order = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
     units = sorted(units, key=lambda u: order.get(u["kind"], 9))
-    notes, wrote = [], []
+    notes, wrote, failed_lines = [], [], []
     for u in units:
         if u["kind"] in ("commitment", "reveal"):
             team = "sandbox-shushu" if u["dst"].startswith("league/imports/sandbox-") else "shushu"
@@ -422,12 +422,22 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
         p = main / u["dst"]
         p.parent.mkdir(parents=True, exist_ok=True)
         raw = git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext)
+        if u["kind"] == "lines":
+            # 대사는 임시 위치에서 먼저 검사하고, 통과한 파일만 확정 경로에 반입한다(실패 파일이 화면에 읽히지 않게)
+            import tempfile as _tf
+            tmpd = Path(_tf.mkdtemp())
+            (tmpd / Path(u["dst"]).name).write_bytes(raw)
+            if not _check_lines(main, u["dst"], path=tmpd / Path(u["dst"]).name):
+                notes.append(f"{u['file']}: 대사 검사 실패 — 반입하지 않음(기존 대사 유지)")
+                u["failed"] = True
+                failed_lines.append(u["dst"])
+                continue
         p.write_bytes(raw)                                                             # 바이트 그대로
         git("add", u["dst"], cwd=main)
         u["sha256"] = L.hashlib.sha256(raw).hexdigest()
         wrote.append(u)
     if not wrote or not git("status", "--porcelain", "--", *[u["dst"] for u in wrote], cwd=main):
-        return [], [], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
+        return [], [(d_, False) for d_ in failed_lines], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
     prev = git("rev-parse", "HEAD~0", cwd=main)
     git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
         "commit", "-q", "-m", f"league: shushu repo push {act['after'][:7]} ({pushed.isoformat(timespec='seconds')})",
@@ -443,14 +453,14 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
                               and pushed <= L.lock_deadline(date.fromisoformat(u["rd"]), _team_cfg(main, u["dst"]))],
              "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
     receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
-    lines = [(u["dst"], _check_lines(main, u["dst"])) for u in wrote if u["kind"] == "lines"]
+    lines = [(u["dst"], True) for u in wrote if u["kind"] == "lines"] + [(d_, False) for d_ in failed_lines]
     notes += [f"{u['dst']} sha256 {u['sha256']}" for u in wrote if u["kind"] in ("debate", "lines", "message")]   # 출처·해시 기록
     return receipts, lines, "; ".join(notes)
 
 
-def _check_lines(main: Path, dst: str) -> bool:
+def _check_lines(main: Path, dst: str, path: Path | None = None) -> bool:
     base = main / ("league/sandbox" if dst.startswith("league/sandbox/") else "league")
-    r = subprocess.run([sys.executable, str(main / "tools" / "dashboard_data.py"), "--check-lines", str(main / dst),
+    r = subprocess.run([sys.executable, str(main / "tools" / "dashboard_data.py"), "--check-lines", str(path or (main / dst)),
                         "--base", str(base)], cwd=main, capture_output=True, text=True)
     print(r.stdout.strip())
     return r.returncode == 0
@@ -459,7 +469,7 @@ def _check_lines(main: Path, dst: str) -> bool:
 # ───────── 메인 → 전용 저장소 사본 (원 가격 없음, 허용 목록만) ─────────
 MIRROR_FILES = ["league/public/results.json", "league/agents/roster.json",
                 "league/imports/shushu/roster.json", "docs/codex-team-guide.md", "docs/results-bundle.md",
-                "requirements.txt", ".gitattributes"]
+                "requirements.txt", ".gitattributes", "docs/bench-addition.md"]
 MIRROR_GLOBS = ["docs/codex-notices/*.md", "league/universe/*.json", "tools/*.py",
                 "league/rounds/*/snapshot.json", "league/rounds/*/snapshot.json.sha256",
                 "league/sandbox/rounds/*/snapshot.json", "league/sandbox/rounds/*/snapshot.json.sha256",
@@ -620,6 +630,18 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
         wk = L.iso_week(today - timedelta(days=7))
         add("close", wk, f"@codex 주간 마감({wk})이 끝났습니다. `from-league/league/ledger/weekly_decisions.jsonl`과 `from-league/update-plan.json`으로 "
             "리그별 결과와 최종 업데이트 자격을 확인하고, 바뀐 점이나 승인 요청이 있으면 07:00까지 `to-roro/`로 보내 주세요.")
+    # 대기 후보 보충(운영자 상시 위임): 슈슈 팀 어느 리그든 승인된 대기 후보가 기준 이하이면 주마다 한 번 새 후보 요청
+    ba = cfg.get("bench_auto") or {}
+    if ba.get("enabled") and live and not (mk and "06:50" <= hm < "12:00"):
+        import add_character as AC
+        st_ = AC.need().get("shushu", {})
+        if st_.get("need"):
+            wkb = L.iso_week(today)
+            add("bench", wkb, "@codex 슈슈 팀 대기 후보가 부족합니다(리그별 남은 승인 후보: "
+                f"한국 {st_['available'].get('KR')}명, 미국 {st_['available'].get('US')}명). 새 후보 1~2명을 제안해 주세요. "
+                f"`to-roro/{rd}-bench-proposal.md`에 후보마다 ```json 블록(team·id·nickname·label·style_ref·tagline·look)과 `## 지침` 절(v1 지침 본문)을 넣어 push하면, "
+                "검사(`from-league/tools/add_character.py --dry-run`)를 통과한 안은 운영자 상시 위임으로 자동 등록됩니다. 기존 에이전트와 다른 투자 관점, 실존 인물 사칭·특정 종목 고정 금지. "
+                "형식: `from-league/docs/bench-addition.md`.")
     # 새 공지·회신 (메인 docs/codex-notices) — 내용 해시로 판단
     new = [p for p in _notes(main) if ("notice", p.name + ":" + L._sha(p)[:12]) not in sent]
     today_notices = sum(1 for w in L.read_ledger(d, "shushu_wakes") if w["kind"] == "notice" and w.get("url") != "seeded"

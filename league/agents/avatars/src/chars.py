@@ -168,6 +168,22 @@ CH["sunpung"] = dict(team="s", **sk("light"), hairc="#b5502a", brows="up", broww
 ORDER = ["ttukshim", "balgul", "keun", "mirae", "ppittak", "pado", "gyesan", "dandan", "alzza", "dotbogi", "ssuk", "banjeon", "nachim", "sunpung"]
 NAMES = {"ttukshim": "뚝심이", "balgul": "발굴왕", "keun": "큰그림", "mirae": "미래광", "ppittak": "삐딱이", "pado": "파도타기", "gyesan": "계산기",
          "dandan": "단단이", "alzza": "알짜", "dotbogi": "돋보기", "ssuk": "쑥쑥이", "banjeon": "반전이", "nachim": "나침반", "sunpung": "순풍"}
+# 자동 추가 캐릭터(tools/add_character.py): 정해진 선택지로만 만든 단순 캐릭터. 사람 얼굴을 본뜨지 않는다
+HAIR = {"none": "", "short": 'M33 54 Q28 22 62 18 Q96 22 92 52 Q86 34 62 32 Q40 34 33 54 Z',
+        "long": 'M30 70 Q24 22 62 16 Q100 22 94 70 Q92 46 86 38 Q62 30 38 38 Q32 46 30 70 Z',
+        "curly": 'M32 52 Q26 40 34 32 Q36 20 50 20 Q58 12 70 18 Q84 14 90 26 Q100 34 92 50 Q86 36 62 34 Q42 36 32 52 Z'}
+HAT = {"none": "", "cap": '<path d="M34 36 Q36 14 62 14 Q88 14 90 34 Q62 28 34 36 Z" fill="{c}" stroke="#1d1d22" stroke-width="2"/><path d="M84 32 Q102 32 108 38 Q96 40 86 38 Z" fill="{c}" stroke="#1d1d22" stroke-width="2"/>',
+       "beanie": '<path d="M32 40 Q32 12 62 12 Q92 12 92 40 Z" fill="{c}" stroke="#1d1d22" stroke-width="2"/><rect x="30" y="36" width="64" height="8" rx="3" fill="{c}" stroke="#1d1d22" stroke-width="1.8"/><circle cx="62" cy="10" r="5" fill="{c}" stroke="#1d1d22" stroke-width="1.6"/>'}
+_extra = pathlib.Path(__file__).parent / "extra.json"
+for e in (__import__("json").loads(_extra.read_text()) if _extra.exists() else []):
+    hp = HAIR[e.get("hair", "short")]
+    CH[e["name"]] = dict(team=e["team"], **sk(e["skin"]), hairc=e["hairc"], brows=e.get("brows", "up"), nose=e.get("nose", "button"),
+                         mouth=e.get("mouth", "grin"), glasses=e.get("glasses"), glassc="#1d1d22",
+                         eyes={"lr": 8.2, "rr": 7, "iris": e.get("iris", "#3a2a20")},
+                         outfit={"color": e["outfit"], "collar": e.get("collar", "shirt")},
+                         hair=(f'<path d="{hp}" fill="{e["hairc"]}" stroke="{O}" stroke-width="2"/>' if hp else ""),
+                         front=HAT[e.get("hat", "none")].replace("{c}", e.get("hatc", "#c0392b")))
+    ORDER.append(e["name"]); NAMES[e["name"]] = e["nickname"]
 COMMON = ('<radialGradient id="av-bgC" cx="35%" cy="25%" r="80%"><stop offset="0" stop-color="#f4c09a"/><stop offset=".55" stop-color="#d9784c"/><stop offset="1" stop-color="#7e3018"/></radialGradient>'
           '<radialGradient id="av-bgS" cx="35%" cy="25%" r="80%"><stop offset="0" stop-color="#bcd6f4"/><stop offset=".55" stop-color="#5a8fd6"/><stop offset="1" stop-color="#1b3a6e"/></radialGradient>'
           '<clipPath id="av-disc"><circle cx="60" cy="60" r="57"/></clipPath>')

@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "generated_at": "2026-11-07T21:05:26+09:00",
+ "generated_at": "2026-11-07T22:55:42+09:00",
  "rules": {
-  "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
+  "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
   "scores": "status가 final인 점수만 확정. provisional은 잠정, pending·held는 미채점"
  },
  "receipts": [
   {
-   "key": "2e99da5|2026-11-05|sandbox",
+   "key": "2e99da5|2026-11-05|sandbox|csv",
    "mode": "연습",
    "team": "sandbox",
    "round": "2026-11-05",
@@ -16,10 +16,14 @@
    "status": "accepted",
    "pushed_at": "2026-11-04T00:10:58+09:00",
    "commit": "2e99da5",
-   "imported": 1
+   "imported": 1,
+   "sealed": false,
+   "early_reveal": false,
+   "via": "메인 저장소",
+   "source_commit": ""
   },
   {
-   "key": "dd7e651|2026-11-05|sandbox",
+   "key": "dd7e651|2026-11-05|sandbox|csv",
    "mode": "연습",
    "team": "sandbox",
    "round": "2026-11-05",
@@ -27,10 +31,14 @@
    "status": "rejected",
    "pushed_at": "2026-11-04T00:11:28+09:00",
    "commit": "dd7e651",
-   "imported": 0
+   "imported": 0,
+   "sealed": false,
+   "early_reveal": false,
+   "via": "메인 저장소",
+   "source_commit": ""
   },
   {
-   "key": "3330048|2026-11-05|sandbox-claude",
+   "key": "3330048|2026-11-05|sandbox-claude|csv",
    "mode": "연습",
    "team": "로로 팀 (Claude)",
    "round": "2026-11-05",
@@ -38,10 +46,14 @@
    "status": "accepted",
    "pushed_at": "2026-11-04T15:52:00+09:00",
    "commit": "3330048",
-   "imported": 10
+   "imported": 10,
+   "sealed": false,
+   "early_reveal": false,
+   "via": "메인 저장소",
+   "source_commit": ""
   },
   {
-   "key": "bbc2d5c|2026-11-06|sandbox-shushu",
+   "key": "bbc2d5c|2026-11-06|sandbox-shushu|csv",
    "mode": "연습",
    "team": "슈슈 팀 (Codex)",
    "round": "2026-11-06",
@@ -49,10 +61,14 @@
    "status": "accepted",
    "pushed_at": "2026-11-04T16:53:52+09:00",
    "commit": "bbc2d5c",
-   "imported": 10
+   "imported": 10,
+   "sealed": false,
+   "early_reveal": false,
+   "via": "메인 저장소",
+   "source_commit": ""
   },
   {
-   "key": "877d631|2026-11-10|sandbox",
+   "key": "877d631|2026-11-10|sandbox|commitment",
    "mode": "연습",
    "team": "sandbox",
    "round": "2026-11-10",
@@ -60,10 +76,14 @@
    "status": "committed",
    "pushed_at": "2026-11-05T11:17:30+09:00",
    "commit": "877d631",
-   "imported": 0
+   "imported": 0,
+   "sealed": false,
+   "early_reveal": false,
+   "via": "메인 저장소",
+   "source_commit": ""
   },
   {
-   "key": "1222a49|2026-11-10|sandbox",
+   "key": "1222a49|2026-11-10|sandbox|reveal",
    "mode": "연습",
    "team": "sandbox",
    "round": "2026-11-10",
@@ -71,10 +91,14 @@
    "status": "accepted",
    "pushed_at": "2026-11-05T11:18:21+09:00",
    "commit": "1222a49",
-   "imported": 2
+   "imported": 2,
+   "sealed": false,
+   "early_reveal": true,
+   "via": "메인 저장소",
+   "source_commit": ""
   },
   {
-   "key": "297c0d0|2026-11-07|sandbox-shushu",
+   "key": "297c0d0|2026-11-07|sandbox-shushu|commitment",
    "mode": "연습",
    "team": "슈슈 팀 (Codex)",
    "round": "2026-11-07",
@@ -82,7 +106,11 @@
    "status": "rejected",
    "pushed_at": "2026-11-07T17:06:12+09:00",
    "commit": "297c0d0",
-   "imported": 0
+   "imported": 0,
+   "sealed": false,
+   "early_reveal": false,
+   "via": "슈슈 전용 저장소",
+   "source_commit": ""
   }
  ],
  "teams": [
