@@ -231,6 +231,7 @@ html,body,.game,button,.who,.plate,.pair,.row{touch-action:pan-x pan-y}
 .tabs button{flex:1;font-family:var(--disp);font-size:15px;padding:7px 0;border-radius:999px;border:2px dashed rgba(255,255,255,.35);background:radial-gradient(circle,#3a2a55 55%,#2a1d3c);color:#fff;cursor:pointer;box-shadow:0 3px 0 #120a1e}
 .tabs button[aria-selected="true"]{background:linear-gradient(180deg,#fff1b0,#e79a16);color:#3a1a00;border-color:#fff8d8}
 .beads{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-radius:12px;background:rgba(0,0,0,.25);min-height:46px;align-items:center}
+.bd{display:inline-flex;flex-direction:column;align-items:center;gap:2px}.bd small{font-size:12px;color:#cdc2e2}
 .bead{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--disp);font-size:14px;border:3px solid}
 .bead.c{border-color:#e0614f;color:#ffb4a6}.bead.s{border-color:#5b8fe0;color:#b9d2ff}.bead.t{border-color:#bbb;color:#ddd}
 table.rec{width:100%;border-collapse:collapse;font-size:13px}
@@ -303,6 +304,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .tchart.hl .ag{opacity:.25}.tchart.hl .tline{opacity:.45}
 .tchart.hl .ag.on{opacity:1}.tchart .ag.on path{stroke-width:3.2;opacity:1;stroke:#ffe27a}.tchart .ag.on circle{opacity:1;fill:#ffe27a}.tchart .ag.on .agl{display:block}
 .trow[aria-pressed="true"]{background:rgba(255,215,120,.12);border-radius:10px;box-shadow:inset 3px 0 0 #ffe27a}
+.tcw .tleg{justify-content:center}
 .trend .tleg{margin:2px 0 4px;font-size:13px;gap:6px 14px}
 .tcw{position:sticky;top:var(--rbh,96px);z-index:2;background:#1c1030;margin:0 -16px;padding:0 16px 4px;box-shadow:0 6px 8px -6px rgba(0,0,0,.6)}
 @media (max-height:600px){.tcw{position:static;box-shadow:none}}   /* 낮은 화면은 붙이지 않음 */
@@ -314,6 +316,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .tcw .tchart{max-height:min(210px,34vh)}
 @media (min-width:900px) and (min-height:700px){.tcw .tchart{max-height:190px}}   /* 데스크톱: 붙인 그래프 아래로 목록 4줄 이상 */
 @media (max-height:700px){.tcw .tchart{max-height:min(180px,34vh)}}
+@media (max-height:600px){.tcw .tchart{max-height:none}}   /* 붙이지 않는 낮은 화면은 글자가 작아지지 않게 제한 해제 */
 .rdet .st{display:flex;flex-wrap:wrap;gap:2px 10px}.rdet .st span{white-space:nowrap}
 .rdet .lp{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:baseline}
 .rhd{display:flex;gap:8px;padding:0 2px 4px;font-size:13px;color:#cbb88a;border-bottom:1px solid rgba(255,255,255,.12)}.rhd span:first-child{flex:1}.rhd span:not(:first-child){width:78px;text-align:right}.rhd::after{content:"";width:14px}
@@ -957,7 +960,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const days = [...new Set(rows.map((r) => r.date))].sort();
       const by = (d, team) => rows.find((r) => r.date === d && r.team === team && r.avg != null) || rows.find((r) => r.date === d && r.team === team);
       const live = days.filter((d) => by(d, C) && by(d, Sx) && by(d, C).mode === '실전' && by(d, C).avg != null && by(d, Sx).avg != null);
-      const beads = live.map((d) => { const a = by(d, C).avg, b = by(d, Sx).avg; const ra = Math.round(a * 100), rb = Math.round(b * 100), w = ra > rb ? 'c' : ra < rb ? 's' : 't'; const lbl = `${md(d)} ${{c: '로로 팀 승', s: '슈슈 팀 승', t: '무승부'}[w]} · 로로 ${pct(a)}% / 슈슈 ${pct(b)}%`; return `<span class="bead ${w}" role="img" aria-label="${lbl}" title="${lbl}">${{c: '로', s: '슈', t: '='}[w]}</span>`; }).join('');
+      const beads = live.map((d) => { const a = by(d, C).avg, b = by(d, Sx).avg; const ra = Math.round(a * 100), rb = Math.round(b * 100), w = ra > rb ? 'c' : ra < rb ? 's' : 't'; const lbl = `${md(d)} ${{c: '로로 팀 승', s: '슈슈 팀 승', t: '무승부'}[w]} · 로로 ${pct(a)}% / 슈슈 ${pct(b)}%`; return `<span class="bd"><span class="bead ${w}" role="img" aria-label="${lbl}" title="${lbl}">${{c: '로', s: '슈', t: '='}[w]}</span><small aria-hidden="true">${md(d).replace(/\(.\)$/, '')}</small></span>`; }).join('');
       const R2 = (v) => Math.round(v * 100), nC = live.filter((d) => R2(by(d, C).avg) > R2(by(d, Sx).avg)).length, nS = live.filter((d) => R2(by(d, C).avg) < R2(by(d, Sx).avg)).length;
       const st = (T.standings || []).slice().sort((x, y) => x.league_rank - y.league_rank);
       const cell = (r) => r && r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span> <span class="muted">${r.n}건</span>` : '<span class="no">—</span>';
@@ -1055,7 +1058,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     if (fsel) { const f = store('league.recF'); if (f && typeof f === 'object') { const mb = fsel.querySelector(`[data-fmode="${CSS.escape(String(f.mode))}"]`); if (mb) mb.onclick(); const kb2 = fsel.querySelector(`[data-fmk-btn="${CSS.escape(String(f.mk))}"]`); if (kb2) kb2.onclick(); } }
     const rb = sheetB.querySelector('.rbar'); if (rb) { const setH = () => sheetB.style.setProperty('--rbh', rb.offsetHeight + 'px'); setH(); if (window.ResizeObserver) new ResizeObserver(setH).observe(rb); }
     // 키보드로 이동한 줄이 위에 붙은 탭 줄·그래프 밑에 숨지 않게 내려 준다
-    if (!sheetB._fi) sheetB._fi = sheetB.addEventListener('focusin', (e) => { const el = e.target; if (!el || el === sheetB || el.closest('.rbar') || el.closest('.tcw')) return;
+    if (!sheetB._fi) sheetB._fi = sheetB.addEventListener('focusin', (e) => { const el = e.target; if (!el || el === sheetB || el.closest('.rbar') || el.closest('.tcw') || !el.matches(':focus-visible')) return;   // 키보드 포커스만(누를 때는 움직이지 않음)
       let cover = sheetB.getBoundingClientRect().top; const bar = sheetB.querySelector('.rbar'); if (bar) cover = Math.max(cover, bar.getBoundingClientRect().bottom);
       const pane = el.closest('[data-fp]'), tcw = pane && pane.querySelector('.tcw'); if (tcw && getComputedStyle(tcw).position === 'sticky') cover = Math.max(cover, tcw.getBoundingClientRect().bottom);
       const r = el.getBoundingClientRect(); if (r.top < cover + 4) sheetB.scrollBy({top: r.top - cover - 8}); }) || 1;
