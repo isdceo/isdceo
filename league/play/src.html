@@ -242,10 +242,14 @@ table.rec{width:100%;border-collapse:collapse;font-size:13px}
 @media (max-width:360px){.rank .pk small{display:none}.rank .av{width:32px;height:32px}.rank .row{gap:6px;padding-left:8px;padding-right:8px}}
 .sheet .rank .row{flex-wrap:nowrap}.sheet .rank .row .pk{flex:none;flex-basis:auto;flex-direction:column;align-items:flex-end;margin-left:0;gap:1px}
 .tag.dn{background:rgba(255,77,106,.2);color:#ff8fa3}
+.rsel{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.seg{display:inline-flex;border:1px solid rgba(255,215,120,.35);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:#e9dcc0;font:inherit;font-size:13px;padding:6px 12px;min-height:32px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#f3d27a,#c99a2e);color:#2a1a00;font-weight:700}
 table.rec th,table.rec td{padding:6px 8px;text-align:right;border-bottom:1px solid rgba(255,255,255,.1)}
 table.rec th:first-child,table.rec td:first-child{text-align:left}
 table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14px}
-.sheet [data-pane][hidden]{display:none!important}
+.sheet [data-pane][hidden],[data-rp][hidden]{display:none!important}
 .scrim{position:absolute;inset:0;z-index:24;display:none;background:rgba(5,0,12,.35)}
 .game.sheeted .scrim{display:block}
 
@@ -498,29 +502,36 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     return {KR: pool.find((p) => p.round_date === last && p.market === 'KR'), US: pool.find((p) => p.round_date === last && p.market === 'US'), last, mode: pool[0] && pool[0].mode}; };
   const pct = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
   // 에이전트 순위표: 두 팀 현역을 한 줄로. 확정 점수만, 종목당 평균 → 중앙값 → 최저점 순(주간 탈락 기준과 같은 순서)
-  const rankOf = (mode) => {
+  // 시장별 보기(통합·한국·미국)는 참고용이며 공식 탈락은 통합 주간 순위로 정한다(슈슈 팀 의견 2026-11-07)
+  const rankOf = (mode, mk) => {
     const med = (a) => { const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
-    const rows = active.map((a) => { const sc = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id && p.mode === mode && p.status === 'final' && p.score != null).map((p) => p.score);
-      const ex = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id && p.mode === mode && p.status === 'final' && p.score_excess != null).map((p) => p.score_excess);
-      return { a, n: sc.length, avg: sc.length ? sc.reduce((x, y) => x + y, 0) / sc.length : null, med: sc.length ? med(sc) : null, min: sc.length ? Math.min(...sc) : null, best: sc.length ? Math.max(...sc) : null,
+    const rows = active.map((a) => {
+      const mine = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id && p.mode === mode && (mk === 'ALL' || p.market === mk));
+      const fin = mine.filter((p) => p.status === 'final' && p.score != null);
+      const sc = fin.map((p) => p.score), ex = fin.filter((p) => p.score_excess != null).map((p) => p.score_excess);
+      return { a, n: sc.length, w: mine.filter((p) => p.watch).length, avg: sc.length ? sc.reduce((x, y) => x + y, 0) / sc.length : null,
+        med: sc.length ? med(sc) : null, min: sc.length ? Math.min(...sc) : null, best: sc.length ? Math.max(...sc) : null,
         ex: ex.length ? ex.reduce((x, y) => x + y, 0) / ex.length : null }; });
     const has = rows.filter((r) => r.n), none = rows.filter((r) => !r.n);
     has.sort((x, y) => y.avg - x.avg || y.med - x.med || y.min - x.min);
     let rk = 0; has.forEach((r, i) => { rk = i && r.avg === has[i - 1].avg && r.med === has[i - 1].med && r.min === has[i - 1].min ? rk : i + 1; r.rank = rk; });
     return has.concat(none);
   };
+  const MKS = [['ALL', '통합'], ['KR', '한국 ♦'], ['US', '미국 ♣']];
   const rankBoard = () => {
     const modes = ['실전', '연습'].filter((m) => T.picks.some((p) => p.mode === m && p.status === 'final'));
-    const first = modes[0] || '실전';
-    const medal = ['🥇', '🥈', '🥉'];
-    const pane = (m) => { const rs = rankOf(m); const last = rs.filter((r) => r.n).pop();
-      return `<div class="rows rank" data-pane="r${m}" ${m === first ? '' : 'hidden'}>${rs.map((r) => `<div class="row" data-nick="${esc(r.a.nickname)}" role="button" tabindex="0" style="cursor:pointer">
-        <b class="rk">${r.n ? (medal[r.rank - 1] || r.rank) : '—'}</b><span class="av">${avHTML(r.a)}</span>
-        <div class="who2"><b>${esc(r.a.nickname)}${r === last && rs.filter((x) => x.n).length > 1 ? ' <span class="tag dn">꼴등</span>' : ''}</b><small>${short(r.a.team)} · ${esc(r.a.label)}</small><small>${r.n ? `${r.n}건 · 최고 ${pct(r.best)}%` : '채점 전'}</small></div>
-        <div class="pk">${r.n ? `<span class="${r.avg >= 0 ? 'up' : 'dn'}" style="font-family:var(--disp);font-size:17px">${pct(r.avg)}%</span>${r.ex != null ? `<small class="muted">지수 대비 ${pct(r.ex)}%p</small>` : ''}` : '<span class="no">—</span>'}</div></div>`).join('')}</div>`; };
     if (!modes.length) return '<p class="muted">채점된 종목이 생기면 두 팀 10명 순위가 여기에 나옵니다.</p>';
-    return `<div class="tabs" role="tablist">${modes.map((m) => `<button role="tab" aria-selected="${m === first}" data-tab="r${m}">${m} 누적</button>`).join('')}</div>${modes.map(pane).join('')}
-      <p class="muted">확정 점수의 종목당 평균 순입니다(같으면 중앙값 → 최저점). 줄을 누르면 그 캐릭터의 카드를 볼 수 있습니다. 탈락은 아래 주간 순위로 정합니다.${modes.includes('연습') ? ' 연습은 두 팀 라운드 날짜가 달라 참고용입니다.' : ''}</p>`;
+    const medal = ['🥇', '🥈', '🥉'];
+    const pane = (m, mk) => { const rs = rankOf(m, mk); const scored = rs.filter((r) => r.n); const last = scored[scored.length - 1];
+      return `<div class="rows rank" data-rp="${m}|${mk}" ${m === modes[0] && mk === 'ALL' ? '' : 'hidden'}>${rs.map((r) => `<div class="row" data-nick="${esc(r.a.nickname)}" role="button" tabindex="0" style="cursor:pointer">
+        <b class="rk">${r.n ? (medal[r.rank - 1] || r.rank) : '—'}</b><span class="av">${avHTML(r.a)}</span>
+        <div class="who2"><b>${esc(r.a.nickname)}${r === last && scored.length > 1 ? ' <span class="tag dn">꼴등</span>' : ''}</b><small>${short(r.a.team)} · ${esc(r.a.label)}</small><small>확정 ${r.n}건${r.w ? ` · 관망 ${r.w}회` : ''}${r.n ? ` · 최고 ${pct(r.best)}%` : ''}</small></div>
+        <div class="pk">${r.n ? `<span class="${r.avg >= 0 ? 'up' : 'dn'}" style="font-family:var(--disp);font-size:17px">${pct(r.avg)}%</span>${r.ex != null ? `<small class="muted">지수 대비 ${pct(r.ex)}%p</small>` : ''}` : '<span class="no">—</span>'}</div></div>`).join('')}</div>`; };
+    return `<div class="rsel" data-mode="${modes[0]}" data-mk="ALL">
+        <div class="seg" role="group" aria-label="시장">${MKS.map(([k, t]) => `<button type="button" data-rmk="${k}" aria-pressed="${k === 'ALL'}">${t}</button>`).join('')}</div>
+        ${modes.length > 1 ? `<div class="seg" role="group" aria-label="구분">${modes.map((m) => `<button type="button" data-rmode="${m}" aria-pressed="${m === modes[0]}">${m}</button>`).join('')}</div>` : `<span class="muted">${modes[0]} 누적</span>`}</div>
+      ${modes.map((m) => MKS.map(([k]) => pane(m, k)).join('')).join('')}
+      <p class="muted">확정 점수의 종목당 평균 순입니다(같으면 중앙값 → 최저점). 한국·미국 순위는 참고용이고, 탈락은 아래 통합 주간 순위로 정합니다. 관망은 지수 수익률로 점수에 들어갑니다. 줄을 누르면 카드를 볼 수 있습니다.${modes.includes('연습') ? ' 연습은 두 팀 라운드 날짜가 달라 참고용입니다.' : ''}</p>`;
   };
   // 안 본 카드: 그 캐릭터의 최근 라운드를 이 기기에서 아직 다 열어 보지 않았으면 표시(기기에만 저장)
   const narrowPlate = () => innerWidth < 1000;   // 가로 휴대폰: 이름판이 좁아 '연습' 같은 머리말을 뺀다
@@ -787,6 +798,12 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     const sb = sheetB.querySelector('[data-show]'); if (sb) sb.onclick = () => window.__show();
     const fb = sheetB.querySelector('[data-fast]'); if (fb) fb.onclick = () => { fast = !fast; try { localStorage.setItem('league.fast', fast ? '1' : '0'); } catch (e) { /* 저장 안 됨 */ } fb.setAttribute('aria-pressed', String(fast)); fb.textContent = `연출 빠르게 ${fast ? '켜짐' : '꺼짐'}`; };
     sheetB.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => { sheetB.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b))); sheetB.querySelectorAll('[data-pane]').forEach((p) => p.hidden = p.dataset.pane !== b.dataset.tab); });
+    const rsel = sheetB.querySelector('.rsel');
+    if (rsel) rsel.querySelectorAll('button').forEach((b) => b.onclick = () => {
+      if (b.dataset.rmk) rsel.dataset.mk = b.dataset.rmk; if (b.dataset.rmode) rsel.dataset.mode = b.dataset.rmode;
+      rsel.querySelectorAll('[data-rmk]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.rmk === rsel.dataset.mk)));
+      rsel.querySelectorAll('[data-rmode]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.rmode === rsel.dataset.mode)));
+      sheetB.querySelectorAll('[data-rp]').forEach((p) => p.hidden = p.dataset.rp !== `${rsel.dataset.mode}|${rsel.dataset.mk}`); });
     if (focusNick) { const pane = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`)?.closest('[data-pane]'); const tb = pane && sheetB.querySelector(`.tabs button[data-tab="${pane.dataset.pane}"]`); if (tb) tb.click(); }
     sheetB.querySelectorAll('.row[data-nick]').forEach((r) => { const go = () => { const a = active.find((x) => x.nickname === r.dataset.nick); if (a) open(a, 'picks'); }; r.onclick = go; r.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
     sheet.classList.add('on'); game.classList.add('sheeted'); sheetB.scrollTop = 0; requestAnimationFrame(() => { sheetB.scrollTop = 0; }); if (focusNick) { const r = sheetB.querySelector(`.row[data-nick="${CSS.escape(focusNick)}"]`); if (r) { r.focus({ preventScroll: true }); return; } } $('#sheet-x').focus({ preventScroll: true });
