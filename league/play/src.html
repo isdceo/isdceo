@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#120a1c"><meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>AI 투자 리그</title>
@@ -9,7 +9,8 @@
 :root{--disp:"Do Hyeon",system-ui,sans-serif;--body:"Noto Sans KR",system-ui,sans-serif;--gold:#ffd77a;--ink:#fff7e6;--px:0;--py:0}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;background:#0d0716;color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-button,.who,.plate,.pair,.big,.row{touch-action:manipulation}
+/* 확대 막기: 아이폰 사파리에서 두 손가락·두 번 탭 확대가 되면 고정 화면이 옆으로 밀려 보인다. pan만 허용(확대 제외) */
+html,body,.game,button,.who,.plate,.pair,.row{touch-action:pan-x pan-y}
 .game{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .sheet .body{-webkit-user-select:text;user-select:text}
 .game{position:fixed;inset:0;overflow:hidden}
@@ -453,6 +454,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 <script src="data/table.js"></script>
 <script>
 (() => {
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));   // 사파리 두 손가락 확대 막기
   const T = window.TABLE, AV3D = Object.fromEntries(['ttukshim', 'alzza', 'balgul', 'keun', 'mirae', 'ppittak', 'dandan', 'dotbogi', 'ssuk', 'banjeon', 'pado', 'gyesan', 'nachim', 'sunpung'].map((k) => [k, `av/${k}.webp`]));
   const $ = (q) => document.querySelector(q), game = $('#game'), root = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
