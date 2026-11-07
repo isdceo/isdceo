@@ -563,10 +563,13 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
     return {v: xs.reduce((s, p) => s + p.score, 0) / xs.length, tag: pp.mode === '연습' ? '연습' : '최근'}; };
   // 선두·꼴등 빛: 리그가 나뉘면 리그마다 1위·꼴등(점수 있는 사람 중), 예전 통합 줄이면 전체에서
   const flags = (() => { const st = T.standings || [], wk = st.map((r) => r.week).sort().pop(), lead = new Set(), risk = new Set();
+    const why = {}, LB = {KR: '한국 리그', US: '미국 리그', ALL: '통합'};
     const groups = {}; st.filter((r) => r.week === wk && r.avg != null).forEach((r) => (groups[r.market || 'ALL'] = groups[r.market || 'ALL'] || []).push(r));
     Object.values(groups).forEach((rs) => { if (rs.length < 2) return; const hi = Math.min(...rs.map((r) => r.league_rank)), lo = Math.max(...rs.map((r) => r.league_rank));
-      rs.forEach((r) => { const k = `${r.team}|${r.agent_id}`; if (r.league_rank === hi) lead.add(k); else if (r.league_rank === lo) risk.add(k); }); });
-    return {lead, risk}; })();
+      rs.forEach((r) => { const k = `${r.team}|${r.agent_id}`, g = LB[r.market || 'ALL'];
+        if (r.league_rank === hi) { lead.add(k); (why[k] = why[k] || []).push(`${g} 1위`); } else if (r.league_rank === lo) { risk.add(k); (why[k] = why[k] || []).push(`${g} 꼴등`); } }); });
+    return {lead, risk, why}; })();
+  const flagWhy = (a) => (flags.why[`${a.team}|${a.agent_id}`] || []).join(' · ');
   const isLeadA = (a) => flags.lead.has(`${a.team}|${a.agent_id}`), isRiskA = (a) => !isLeadA(a) && flags.risk.has(`${a.team}|${a.agent_id}`);
   const sprite = (a, el) => {
     const fig = document.createElement('span'); fig.className = 'fig'; el.appendChild(fig);
@@ -592,6 +595,7 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
       const b = document.createElement('button'); b.className = 'who'; b.style.left = x + '%'; b.style.setProperty('--w', w + spec.unit); b.style.setProperty('--i', i + ti * 5); b.dataset.tier = ti;
       b.style.bottom = (off * off * 20) + '%'; b.style.zIndex = String(20 - Math.round(off * 10)); b.style.filter = `blur(${(off * (AV3D[a.avatar] ? .6 : 1.6)).toFixed(2)}px) brightness(${(1 - off * .3).toFixed(2)})`; if (off < .25) b.classList.add('front');
       if (isLeadA(a)) b.classList.add('lead'); else if (isRiskA(a)) b.classList.add('risk');
+      if (flagWhy(a)) b.title = `이번 주 ${flagWhy(a)}`;
       b.setAttribute('aria-label', `${a.nickname} 카드 보기`); b.innerHTML = '<span class="glow"></span>'; sprite(a, b); b.onclick = () => open(a); cast.appendChild(b);
       const pp = picksOf(a), pr = document.createElement('div'); pr.className = 'pair'; pr.style.setProperty('--k', i + ti * 5); if (spec.cw) pr.style.setProperty('--cw', spec.cw);
       pr.style.left = x + '%'; pr.style.top = (spec.cardTop - off * 4 + (i % 2) * 2.5) + '%';
