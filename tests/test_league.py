@@ -1245,6 +1245,103 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertTrue((ext / "from-league" / "tools" / "league.py").exists())
 
 
+class SealedSubmission(unittest.TestCase):
+    """슈슈 검수(2026-11-07 sealed-submission-review) 재시험: 봉인 판정은 파일마다(원래 push 시각 vs 그 파일 라운드 마감)."""
+    RD = "2026-11-10"
+    setUp = ShushuRepoSync.setUp
+    spush, sync, csv, _sha_line = ShushuRepoSync.spush, ShushuRepoSync.sync, ShushuRepoSync.csv, ShushuRepoSync._sha_line
+
+    def _sub(self, path_end, status="accepted"):
+        return [x for x in L.read_ledger(self.repo / "league", "submissions") + L.read_ledger(self.repo / "league" / "sandbox", "submissions")
+                if x["path"].endswith(path_end) and x["status"] == status]
+
+    def _one_push(self, at):
+        rd = self.RD
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"submit/{rd}.csv": self.csv(rd), f"submit/{rd}-debate.md": "토론"}, f"{rd}T{at}+09:00")
+
+    def test_first_sync_before_deadline(self):
+        self._one_push("08:18:00"); self.sync(f"{self.RD}T08:21:00+09:00"); self.sync(f"{self.RD}T08:31:00+09:00")
+        a = self._sub(f"{self.RD}.csv")[0]; self.assertTrue(a.get("sealed")); self.assertNotIn("early_reveal", a)
+
+    def test_first_sync_after_deadline(self):
+        """버그 재현 사례: 08:20 push가 2분 대기로 08:31 동기화에서 처음 발견돼도 봉인."""
+        self._one_push("08:20:00")
+        self.assertEqual(self.sync(f"{self.RD}T08:21:00+09:00"), [])                       # 2분 대기
+        self.sync(f"{self.RD}T08:31:00+09:00")
+        a = self._sub(f"{self.RD}.csv")[0]; self.assertTrue(a.get("sealed")); self.assertNotIn("early_reveal", a)
+
+    def test_first_sync_exactly_at_deadline(self):
+        self._one_push("08:20:00")
+        out = self.sync(f"{self.RD}T08:30:00+09:00")
+        self.assertEqual(len(out[0]["held_files"]), 2)                                     # 정각에는 아직 보류
+        self.sync(f"{self.RD}T08:31:00+09:00")
+        self.assertTrue(self._sub(f"{self.RD}.csv")[0].get("sealed"))
+
+    def test_separate_pushes_before_deadline(self):
+        rd = self.RD
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:10:00+09:00")
+        self.spush({f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:22:00+09:00")
+        self.sync(f"{rd}T08:40:00+09:00")
+        self.assertTrue(self._sub(f"{rd}.csv")[0].get("sealed"))
+
+    def test_mixed_rounds_flagged_per_file(self):
+        """한 push에 오늘(11/10) 원본과 연습 다음 날(11/11) 원본: 파일마다 자기 라운드 마감으로 판정."""
+        rd, nx = self.RD, "2026-11-11"
+        nbody = self.csv(nx).replace(f"{nx}T07:50:00", f"{rd}T08:00:00")                    # 다음 날 원본을 전날 확정
+        nsha = f"{self.sh.sha256(nbody.encode()).hexdigest()}  {nx}.csv\n"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"submit/{rd}.csv": self.csv(rd),
+                    f"practice/{nx}.sha256": nsha, f"practice/{nx}.csv": nbody}, f"{rd}T08:20:00+09:00")
+        self.sync(f"{rd}T08:31:00+09:00")
+        self.assertTrue(self._sub(f"shushu/{rd}.csv")[0].get("sealed"))
+        self.assertEqual(self._sub(f"sandbox-shushu/{nx}.csv"), [])                         # 11/11 원본은 아직 보류
+        self.sync(f"{nx}T08:31:00+09:00")
+        b = self._sub(f"sandbox-shushu/{nx}.csv")[0]; self.assertTrue(b.get("sealed")); self.assertNotIn("early_reveal", b)
+
+    def test_repeated_sync_no_duplicates(self):
+        self._one_push("08:15:00")
+        for t in ("08:20", "08:31", "08:40", "09:00"):
+            self.sync(f"{self.RD}T{t}:00+09:00")
+        self.assertEqual(len(self._sub(f"{self.RD}.csv")), 1)
+        self.assertEqual(len(self._sub(f"{self.RD}.sha256", "committed")), 1)
+
+    def test_post_deadline_reveal_is_neither_sealed_nor_early(self):
+        rd = self.RD
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:10:00+09:00")
+        self.spush({f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:40:00+09:00")
+        self.sync(f"{rd}T08:50:00+09:00")
+        a = self._sub(f"{rd}.csv")[0]; self.assertNotIn("sealed", a); self.assertNotIn("early_reveal", a)
+
+    def test_true_early_reveal_on_main_path_still_flagged(self):
+        """메인 저장소에 마감 전 원본을 바로 올린 경우(운영자 경로)는 여전히 '마감 전 공개'."""
+        rd = self.RD
+        r = CommitReveal._push_files(self, {f"{rd}.csv": self.csv(rd)}, f"{rd}T08:10:00+09:00")[0]
+        self.assertEqual(r["status"], "accepted"); self.assertTrue(r.get("early_reveal")); self.assertNotIn("sealed", r)
+
+    def test_debate_frozen_after_acceptance(self):
+        rd = self.RD
+        self._one_push("08:15:00"); self.sync(f"{rd}T08:20:00+09:00"); self.sync(f"{rd}T08:31:00+09:00")
+        dpath = self.repo / "league/imports/shushu" / f"{rd}-debate.md"
+        self.assertEqual(dpath.read_text(), "토론")
+        self.spush({f"submit/{rd}-debate.md": "고친 토론"}, f"{rd}T09:00:00+09:00")
+        out = self.sync(f"{rd}T09:05:00+09:00")
+        self.assertIn("덮어쓰지 않음", out[0]["note"]); self.assertEqual(dpath.read_text(), "토론")
+        self.spush({f"submit/{rd}-debate.md": "토론", "README.md": "x2"}, f"{rd}T09:10:00+09:00")   # 같은 내용 재전송
+        self.sync(f"{rd}T09:15:00+09:00"); self.assertEqual(dpath.read_text(), "토론")
+
+    def test_debate_before_csv_then_frozen(self):
+        """토론이 원본보다 먼저 처리되면 원본 접수 전까지는 갱신, 접수 뒤에는 고정."""
+        rd = self.RD
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:10:00+09:00")
+        self.spush({f"submit/{rd}-debate.md": "초안"}, f"{rd}T08:35:00+09:00")
+        self.sync(f"{rd}T08:40:00+09:00")
+        self.spush({f"submit/{rd}-debate.md": "최종", f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:45:00+09:00")
+        self.sync(f"{rd}T08:50:00+09:00")
+        dpath = self.repo / "league/imports/shushu" / f"{rd}-debate.md"
+        self.assertEqual(dpath.read_text(), "최종"); self.assertEqual(len(self._sub(f"{rd}.csv")), 1)
+        self.spush({f"submit/{rd}-debate.md": "나중"}, f"{rd}T09:30:00+09:00"); self.sync(f"{rd}T09:40:00+09:00")
+        self.assertEqual(dpath.read_text(), "최종")
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 

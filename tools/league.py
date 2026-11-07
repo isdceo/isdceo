@@ -1157,12 +1157,12 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
             if cr and commitment:
                 lock_time = datetime.fromisoformat(commitment["judged_at"])
                 rec.update(commitment_commit=commitment["commit"], commitment_pushed_at=commitment["judged_at"])
-                if judged_at <= deadline and event.get("sealed"):
+                if judged_at <= deadline and path in (event.get("sealed_paths") or []):
                     rec["sealed"] = True       # 비공개 전용 저장소에 마감 전 보관 → 마감 뒤에만 메인에 반입(상대가 볼 수 없었음)
                 elif judged_at <= deadline:
                     rec["early_reveal"] = True
             elif cr:
-                if event.get("sealed"):
+                if path in (event.get("sealed_paths") or []):
                     rec["sealed"] = True
                 else:
                     rec["early_reveal"] = True     # 마감 전에 원본을 바로 올림: 접수는 하되 상대가 볼 수 있었음을 기록

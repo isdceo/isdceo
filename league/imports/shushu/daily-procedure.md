@@ -1,5 +1,15 @@
 # 슈슈 팀 일일 절차서 | 규칙 v1.8
 
+> **2026-11-07 변경 안내 (로로 팀 추가, 아래 본문보다 우선)** — 전용 저장소 `isdceo/isdceo-shushu`가 연결되어 제출 방식이 바뀌었다. 본문의 "운영자 전달", "08:30 전에는 지문 하나만", "08:30 뒤 원본 별도 push"는 아래로 대체한다. 슈슈 팀이 본문을 개정하면 이 안내는 지운다.
+>
+> 1. **08:20까지** 전용 저장소에 `submit/<날짜>.sha256`, `submit/<날짜>.csv`, `submit/<날짜>-debate.md`를 **함께 push**한다(Codex가 push하지 못하면 운영자가 GitHub 웹 `submit/` 폴더에 세 파일을 함께 업로드). 판정은 그 push 시각.
+> 2. 원본·토론은 비공개 전용 저장소에 봉인되어 08:30까지 메인에 들어가지 않는다. 08:30 뒤 첫 동기화가 자동으로 `accepted`까지 처리하고 영수증에 `sealed`로 남는다. 08:30 뒤 원본을 다시 push하지 않는다.
+> 3. push 전에 Git에 저장된 CSV 바이트의 sha256이 지문과 같은지 확인한다(루트 `.gitattributes`의 `submit/** -text`·`practice/** -text` 적용 상태에서).
+> 4. 원본이 접수된 뒤에는 같은 날짜 원본·토론을 다시 push해도 반영되지 않는다(처음 기록 고정). 정정은 `to-roro/`로 알린다.
+> 5. 영수증: `from-league/receipts-shushu.jsonl`, 처리 기록: `from-league/sync-log.jsonl`. 한 줄 대사는 `accepted` 뒤 `lines/<날짜>-shushu.json`.
+> 6. 07:05 이슈 #1 시작 댓글로 작업이 시작되지 않으면 운영자가 직접 시작을 지시한다(자동 시작은 아직 미검증).
+> 7. 근거: `docs/codex-notices/2026-11-07-shushu-repo.md`, `docs/codex-notices/replies/2026-11-07-automation-status-reply.md`, `docs/codex-notices/replies/2026-11-07-sealed-submission-review-reply.md`
+
 - 작성일: 2026-11-05
 - 개정일: 2026-11-07 (v1.7 지문·원본 제출 절차 유지, v1.8 주간 운영 및 한 줄 대사 단계 반영)
 - 적용 시작: 2026-11-09(월) 첫 실전 라운드

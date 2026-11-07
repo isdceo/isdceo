@@ -320,10 +320,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         try:
             if g.get("release"):
                 _restore_held(ext, act, g["ready"])
-            # 마감 전에 비공개 전용 저장소에 올려 두고 마감 뒤 꺼낸 원본: '마감 전 공개'가 아니라 '봉인 보관'
-            sealed = bool(g.get("release")) and all(u["kind"] in ("reveal", "debate", "lines") for u in g["ready"]) \
-                and pushed < L.lock_deadline(date.fromisoformat(g["ready"][0]["rd"]), _team_cfg(main, g["ready"][0].get("dst") or ""))
-            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url, bad, sealed)
+            receipts, lines, note = _apply(main, ext, repo, act, pushed, g["ready"], run_id, run_url, bad)
         except L.CommitmentPending as e:
             _rollback(main, prev, snap, [u["dst"] for u in g["ready"] if u.get("dst")])   # 이 push만 되돌리고 다음 실행에서 다시
             out.append({"activity_id": act["id"], "status": "pending", "note": str(e), "receipts": [], "lines": []})
@@ -395,7 +392,7 @@ def _restore_held(ext: Path, act: dict, units: list[dict]):
 
 
 def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units: list[dict], run_id: str, run_url: str,
-           bad: set | None = None, sealed: bool = False):
+           bad: set | None = None):
     """파일을 바이트 그대로 메인에 쓰고 커밋한 뒤, 전용 저장소 push 시각으로 영수증을 판정한다."""
     if not units:
         return [], [], ""
@@ -411,10 +408,19 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
             if any(x.get("path") == u["dst"] and x.get("status") == want for x in subs):
                 notes.append(f"{u['file']}: 이미 {want} — 메인 파일을 덮어쓰지 않음(다시 낸 것은 인정되지 않음)")
                 continue
+        if u["kind"] == "debate" and (main / u["dst"]).exists():
+            # 원본이 접수된 라운드의 토론 기록은 처음 들어온 바이트로 고정(정정은 to-roro/ 메시지로 남긴다)
+            team = "sandbox-shushu" if u["dst"].startswith("league/imports/sandbox-") else "shushu"
+            csv_path = u["dst"].replace("-debate.md", ".csv")
+            if any(x.get("path") == csv_path and x.get("status") == "accepted" for x in L.read_ledger(L.ledger_dir_for(team, main), "submissions")):
+                notes.append(f"{u['file']}: 원본 접수 뒤의 토론 기록 변경 — 처음 기록을 유지하고 덮어쓰지 않음")
+                continue
         p = main / u["dst"]
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_bytes(git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext))       # 바이트 그대로
+        raw = git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext)
+        p.write_bytes(raw)                                                             # 바이트 그대로
         git("add", u["dst"], cwd=main)
+        u["sha256"] = L.hashlib.sha256(raw).hexdigest()
         wrote.append(u)
     if not wrote or not git("status", "--porcelain", "--", *[u["dst"] for u in wrote], cwd=main):
         return [], [], "; ".join(notes + ["메인과 같은 내용 — 변경 없음"] if wrote else notes)
@@ -426,10 +432,15 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
     event = {"before": prev, "after": after, "ref": "refs/heads/main", "commits": [],
              "pusher": {"name": f"{repo}:{(act.get('actor') or {}).get('login')}"},
              "repository": {"pushed_at": int(pushed.timestamp())},
-             "judged_by": "shushu_repo.activity.timestamp", "sealed": sealed,
+             "judged_by": "shushu_repo.activity.timestamp",
+             # 파일마다: 원래 push가 그 파일 라운드의 마감 전이면 '봉인'(비공개 저장소에 있었고 메인에는 마감 뒤에만 들어옴).
+             # 원본은 마감 전에는 늘 보류되므로 여기까지 왔다면 반입 시점은 마감 뒤다. 첫 발견이 마감 뒤인 경우도 같다.
+             "sealed_paths": [u["dst"] for u in wrote if u["kind"] == "reveal"
+                              and pushed <= L.lock_deadline(date.fromisoformat(u["rd"]), _team_cfg(main, u["dst"]))],
              "source": {"repo": repo, "commit": act["after"], "activity_id": act["id"]}}
     receipts = L.process_push(event, run_id=run_id, run_url=run_url, cwd=main)
     lines = [(u["dst"], _check_lines(main, u["dst"])) for u in wrote if u["kind"] == "lines"]
+    notes += [f"{u['dst']} sha256 {u['sha256']}" for u in wrote if u["kind"] in ("debate", "lines", "message")]   # 출처·해시 기록
     return receipts, lines, "; ".join(notes)
 
 
