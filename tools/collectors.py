@@ -42,6 +42,7 @@ class Quote:
     halted: bool = False
     dividends: list = field(default_factory=list)   # [{"ex_date","amount","currency"}]
     splits: list = field(default_factory=list)      # [{"ex_date","ratio"}]
+    ca_checked: bool = True                         # False면 배당·분할을 확인하지 않은 값(기업행동 기록 안 남김)
 
 
 class Provider:
@@ -161,7 +162,8 @@ class Tiingo(Provider):
 class AlphaVantage(Provider):
     """Alpha Vantage 무료 키 — 비수정 일봉(TIME_SERIES_DAILY) + 배당(DIVIDENDS, 배당락일·금액) + 분할(SPLITS).
     약관(alphavantage.co/terms_of_service): 개인·비상업 이용. 저장·파생 결과물 제한 조항 없음, 상업 활동으로 남에게 정보를 제공하는 것만 상업 이용.
-    무료 한도 하루 25회: 종목마다 일봉 1회(100일치라 기준·평가 세션을 함께 받음) + 배당 1회 → 미국 10종목 + SPY면 22회.
+    무료 한도 하루 25회: 종목마다 일봉 1회(100일치라 기준·평가 세션을 함께 받음) + 배당 1회, 비교 지수(SPY)는 일봉만 → 미국 10종목 + SPY면 21회.
+    기준 종가는 평가 종가와 같은 날 받는다(due_sessions defer_base) — 같은 종목을 이틀 연속 부르지 않게.
     분할은 전 거래일 대비 종가가 40% 넘게 움직였을 때만 SPLITS를 부른다(분할이 있으면 원 가격이 크게 바뀌므로).
     같은 실행 안에서는 응답을 다시 쓰고(세션이 둘이어도 호출 1회), 호출 사이에 AV_PACE_SEC(기본 13초)를 쉰다."""
     name = "alphavantage"
@@ -169,6 +171,7 @@ class AlphaVantage(Provider):
     supplies_corporate_actions = True
     BASE = "https://www.alphavantage.co/query"
     _cache: dict = {}                                   # (function, symbol) → 응답 (실행 동안 공유)
+    _last_call: float = 0.0                             # 마지막 호출 시각(모든 인스턴스 공유) — 세션마다 새 인스턴스여도 간격 유지
 
     def __init__(self):
         super().__init__()
@@ -177,14 +180,18 @@ class AlphaVantage(Provider):
             raise NotConfigured("ALPHAVANTAGE_API_KEY 환경변수 없음")
         self.pace = float(os.environ.get("AV_PACE_SEC", "13"))
         self.calls = 0
+        self.price_only: set = set()                    # 비교 지수(SPY) 등 가격만 쓰는 종목: 배당·분할 조회를 건너뛴다
 
     def _q(self, function: str, symbol: str):
         k = (function, symbol)
         if k in AlphaVantage._cache:
             return AlphaVantage._cache[k]
-        if self.calls and self.pace:
-            time.sleep(self.pace)
+        if self.pace and AlphaVantage._last_call:
+            wait = self.pace - (time.monotonic() - AlphaVantage._last_call)
+            if wait > 0:
+                time.sleep(wait)
         self.calls += 1
+        AlphaVantage._last_call = time.monotonic()
         q = urllib.parse.urlencode({"function": function, "symbol": symbol, "apikey": self.key})
         res = self._try_get(f"AlphaVantage {function} {symbol}", f"{self.BASE}?{q}")
         if isinstance(res, dict) and not ({"Time Series (Daily)", "data"} & set(res)):
@@ -205,6 +212,10 @@ class AlphaVantage(Provider):
             qt = Quote("US", t, s, close)
             prev = sorted(d_ for d_ in daily if d_ < s)
             pc = _num(daily[prev[-1]].get("4. close")) if prev else None
+            if t in self.price_only:                      # 가격만 쓰는 종목(비교 지수): 호출 절약, 기업행동 기록 없음
+                qt.ca_checked = False
+                out.append(qt)
+                continue
             divs = self._q("DIVIDENDS", sym)
             if divs is None:                              # 배당을 확인하지 못하면 이 종목은 기록하지 않는다(확인 없이 '확인됨'을 남기지 않게)
                 continue
@@ -353,7 +364,7 @@ def collect(d: Path, provider: Provider, market: str, tickers: list[str], sessio
         L.append(d, "prices", {"market": market, "ticker": t, "session": session.isoformat(), "close": q.close,
                                "basis": q.basis, "halted": q.halted, "source": provider.name, "status": role,
                                "fetched_at": now})
-        if provider.supplies_corporate_actions and role == "final":
+        if provider.supplies_corporate_actions and role == "final" and getattr(q, "ca_checked", True):
             why = dividend_mismatch(sum(float(x["amount"]) for x in q.dividends), (nq or {}).get(t)) if nq is not None else None
             if why:
                 # 배당이 맞는지 모르면 '확인 완료'를 남기지 않는다 → 채점 보류(0점 아님). 운영자가 확인 뒤 manual-dividend 로 기록
@@ -372,15 +383,19 @@ def collect(d: Path, provider: Provider, market: str, tickers: list[str], sessio
     return res
 
 
-def due_sessions(d: Path, today: date) -> dict:
+def due_sessions(d: Path, today: date, defer_base: set | None = None) -> dict:
     """채점·공통 자료에 필요한 (시장, 세션) → 종목 집합. 아직 확정 값이 없는 것만.
     - 추천의 기준·평가 세션 중 오늘 이전에 끝난 세션
     - 각 세션의 비교 지수(benchmarks)"""
     cfg = L.load_config(d)
     idx = L.price_index(d)
     need: dict[tuple, set] = {}
+    defer_base = defer_base or set()
     for p in L.read_ledger(d, "picks"):
-        for s_ in (p.get("base_session"), p.get("eval_session")):
+        ev = p.get("eval_session")
+        for s_ in (p.get("base_session"), ev):
+            if p["market"] in defer_base and s_ == p.get("base_session") and not (ev and date.fromisoformat(ev) < today):
+                continue                                # 호출 한도가 빠듯한 제공처: 기준 종가는 평가 종가와 같은 날 한 번에(일봉 1회로 둘 다 받음)
             if s_ and date.fromisoformat(s_) < today:
                 tk = need.setdefault((p["market"], s_), set())
                 if not L.is_watch(p, cfg):                 # 관망은 비교 지수만 있으면 된다(아래에서 추가)
@@ -435,7 +450,8 @@ def collect_due(d: Path, today: date) -> dict:
     cfg = L.load_config(d)
     provs = cfg.get("providers", {})
     report = {"today": today.isoformat(), "collected": [], "skipped": [], "scoring": []}
-    for (m, s_), tks in due_sessions(d, today).items():
+    defer = {m for m, v in provs.items() if (v or {}).get("final") == "alphavantage"}
+    for (m, s_), tks in due_sessions(d, today, defer).items():
         name = provs.get(m, {}).get("final")
         if not name:
             report["skipped"].append({"market": m, "session": s_, "reason": "config.providers 에 확정 제공처 없음"})
@@ -445,6 +461,9 @@ def collect_due(d: Path, today: date) -> dict:
         except NotConfigured as e:
             report["skipped"].append({"market": m, "session": s_, "provider": name, "reason": str(e)})
             continue
+        bench = cfg.get("benchmarks", {}).get(m)
+        if bench and hasattr(prov, "price_only"):
+            prov.price_only = {bench}                    # 비교 지수는 가격 수익률만 쓴다(배당 조회 불필요)
         r = collect(d, prov, m, tks, date.fromisoformat(s_), "final")
         report["collected"].append({"market": m, "session": s_, "provider": name, "recorded": r["recorded"],
                                     "failed": r["failed"], "provider_errors": r.get("provider_errors", []),

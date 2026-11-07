@@ -131,6 +131,40 @@ class AlphaVantageProvider(unittest.TestCase):
         self.assertTrue(r["warnings"] and not r["dividend_holds"])
         self.assertTrue(any(c["type"] == "checked" for c in L.read_ledger(d, "corporate_actions")))
 
+    def test_pacing_spans_instances_and_price_only_skips_dividends(self):
+        """세션마다 새 인스턴스를 만들어도 호출 간격을 지키고(초당 제한), 비교 지수는 배당을 부르지 않는다."""
+        import os
+        os.environ["ALPHAVANTAGE_API_KEY"] = "test-key"; os.environ["AV_PACE_SEC"] = "13"
+        C.AlphaVantage._cache.clear(); C.AlphaVantage._last_call = 0.0
+        slept, t = [], [1000.0]
+        real_sleep, real_mono = C.time.sleep, C.time.monotonic
+        C.time.sleep = lambda x: (slept.append(round(x, 1)), t.__setitem__(0, t[0] + x))
+        C.time.monotonic = lambda: t[0]
+        try:
+            calls = []
+            def mk():
+                p = C.AlphaVantage()
+                p._get = lambda url, headers=None: (calls.append(re.search(r"function=([A-Z_]+).*symbol=([A-Z-]+)", url).groups()),
+                                                     {"TIME_SERIES_DAILY": self.DAILY, "DIVIDENDS": self.DIVS}[calls[-1][0]])[1]
+                return p
+            a = mk(); a.price_only = {"SPY"}
+            a.fetch("US", ["SPY"], date(2026, 11, 16))                         # 일봉만
+            b = mk(); b.fetch("US", ["X"], date(2026, 11, 16))                 # 새 인스턴스: 그래도 13초 쉼
+            self.assertEqual(calls, [("TIME_SERIES_DAILY", "SPY"), ("TIME_SERIES_DAILY", "X"), ("DIVIDENDS", "X")])
+            self.assertEqual(slept, [13.0, 13.0])
+        finally:
+            C.time.sleep, C.time.monotonic = real_sleep, real_mono
+            C.AlphaVantage._last_call = 0.0
+
+    def test_deferred_base_session(self):
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "US", "AAPL")                          # 기준 11/9, 평가 11/10 (미국 장 마감 11/11 06:00 KST)
+        # 11/10 10:30: 평가 전이면 미국 기준 종가는 아직 받지 않는다(다음 날 평가와 함께)
+        self.assertNotIn(("US", "2026-11-09"), C.due_sessions(d, date(2026, 11, 10), {"US"}))
+        self.assertIn(("US", "2026-11-09"), C.due_sessions(d, date(2026, 11, 10)))   # 미루지 않으면 받음(예전 동작)
+        due = C.due_sessions(d, date(2026, 11, 11), {"US"})
+        self.assertIn("AAPL", due[("US", "2026-11-09")]); self.assertIn("AAPL", due[("US", "2026-11-10")])
+
     def test_nasdaq_rows_parsing(self):
         import io
         body = {"data": {"calendar": {"rows": [
