@@ -1441,14 +1441,31 @@ class LinesWithoutLedger(unittest.TestCase):
 
 
 class AgentsV2(unittest.TestCase):
-    def test_v2_guidelines_registered_from_first_round(self):
-        """지침 v2(하루 단위 렌즈·숫자 결론): 현재 파일 = 보관본, 명단 v2는 11/9 라운드부터, 11/6 연습은 v1."""
+    def test_current_guidelines_match_roster_version(self):
+        """현재 지침 파일 = 명단 버전의 보관본(다음 버전이 와도 그대로 유효)."""
         r = {a["id"]: a for a in json.loads((ROOT / "league/agents/roster.json").read_text())["claude"]}
         for aid in ("buffett", "lynch", "dalio", "wood", "burry"):
-            cur, arch = L.guideline_paths(aid, 2)
+            cur, arch = L.guideline_paths(aid, int(r[aid]["version"]))
             self.assertEqual(cur.read_text(), arch.read_text(), aid)
-            self.assertIn("리그 판단 규칙 (v2", cur.read_text()); self.assertIn("리그 하루 렌즈", cur.read_text())
+
+    def test_v2_guideline_content_and_rounds(self):
+        r = {a["id"]: a for a in json.loads((ROOT / "league/agents/roster.json").read_text())["claude"]}
+        for aid in ("buffett", "lynch", "dalio", "wood", "burry"):
+            txt = L.guideline_paths(aid, 2)[1].read_text()
+            self.assertIn("평가 세션 종가 = 라운드 당일 종가", txt); self.assertNotIn("내일 종가", txt)
+            self.assertIn("0~1 소수", txt)
             self.assertEqual((L.version_for_round(r[aid], "2026-11-06"), L.version_for_round(r[aid], "2026-11-09")), (1, 2))
+
+    def test_real_roster_accepts_v2_csv_on_first_round(self):
+        """실제 명단: 11/9 CSV는 agent_version 2만 통과, 1은 거부."""
+        d = Path(tempfile.mkdtemp()); (d / "ledger").mkdir(); (d / "agents").mkdir()
+        for f in ("config.json", "universe.json"):
+            shutil.copy(ROOT / "league" / f, d / f)
+        shutil.copy(ROOT / "league/agents/roster.json", d / "agents/roster.json")
+        cfg = L.load_config(d)
+        mk = lambda v: L.make_pick("claude", "buffett", v, "2026-11-09", "KR", "005930", "005930", "2026-11-09T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-06"}], cfg)
+        self.assertEqual(L.validate_pick(mk(2), d, cfg, []), [])
+        self.assertTrue(any("버전 불일치" in e for e in L.validate_pick(mk(1), d, cfg, [])))
 
 
 class BoundaryCases(unittest.TestCase):
