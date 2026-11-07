@@ -20,6 +20,7 @@ on:
     - cron: '40 21 * * 0'       # 월 06:40 KST (주간 마감 뒤 결과·update-plan)
 permissions:
   contents: write
+  actions: write          # 결과 묶음 갱신(league-lines)을 부르기 위해
 # 다른 원장 작업(league-daily·league-lines)과 같은 그룹을 쓰면 대기 중인 그쪽 실행이 취소될 수 있다 → 따로 둔다.
 # 메인 push가 겹치면 아래에서 최신 메인으로 처음부터 다시 처리한다.
 concurrency:
@@ -74,9 +75,8 @@ jobs:
             rc=$?
             cat sync.txt
             if [ "$rc" = 3 ]; then lines_fail=1; elif [ "$rc" != 0 ]; then return 1; fi
-            python3 tools/dashboard_data.py --bundle league/public/results.json || return 1
             python3 tools/league.py verify && python3 tools/league.py verify --dir league/sandbox || return 1
-            for p in league/ledger league/sandbox/ledger league/public; do [ -e "$p" ] && git add "$p"; done
+            for p in league/ledger league/sandbox/ledger; do [ -e "$p" ] && git add "$p"; done
             git diff --cached --quiet || git commit -q -m "league: shushu repo sync receipts" -m "$(cat sync.txt)"
           }
           run_sync || exit 1
@@ -93,6 +93,11 @@ jobs:
           [ "$pushed" = 1 ] || { echo "::error::메인 push 실패(6회) — 다음 실행에서 다시 처리됨"; exit 1; }
           { echo '### 슈슈 저장소 동기화'; echo '```'; cat sync.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           echo "lines_fail=$lines_fail" >> "$GITHUB_OUTPUT"
+          # 결과 묶음(results.json)은 여기서 만들지 않는다(league-daily·league-lines와 같은 파일로 부딪히지 않게).
+          # 이번 실행이 메인에 무엇을 기록했으면 공유 그룹의 league-lines를 불러 묶음을 갱신한다.
+          if [ "$(git rev-list --count "${GITHUB_SHA}..HEAD")" != "0" ] && grep -qE '\[(processed|released)\]' sync.txt; then
+            GH_TOKEN="${{ github.token }}" gh workflow run league-lines.yml --ref "$BR" || echo "::warning::league-lines 호출 실패 — 다음 묶음 갱신 때 반영"
+          fi
       - name: Mirror price-free results to submission repo
         id: mirror
         if: steps.pull.outcome == 'success'

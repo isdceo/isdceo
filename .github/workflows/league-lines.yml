@@ -3,6 +3,7 @@
 # 영수증·채점과 무관하다. 검사에 실패한 파일은 묶음 갱신 때도 자동으로 걸러지지만, 실패를 알리기 위해 이 작업을 실패로 끝낸다.
 name: league-lines
 on:
+  workflow_dispatch:                  # 슈슈 저장소 동기화(league-shushu-sync)가 기록한 뒤 부른다
   push:
     paths:
       - 'league/lines/*.json'

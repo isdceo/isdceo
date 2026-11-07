@@ -974,7 +974,7 @@ class ShushuRepoSync(unittest.TestCase):
     def test_message_to_roro_held_until_noon(self):
         """슈슈 → 로로 메시지는 push한 날 12:00 뒤에만 메인에 들어온다(로로 팀이 당일 종목 정보를 미리 보지 않게)."""
         self.spush({"to-roro/2026-11-10-question.md": "질문"}, "2026-11-10T08:10:00+09:00")
-        self.assertEqual(self.sync("2026-11-10T11:50:00+09:00")[0]["held_files"], ["to-roro/2026-11-10-question.md"])
+        self.assertEqual(len(self.sync("2026-11-10T11:50:00+09:00")[0]["held_files"]), 1)
         self.assertFalse((self.repo / "league/inbox/shushu/2026-11-10-question.md").exists())
         self.assertEqual(self.sync("2026-11-10T12:05:00+09:00")[0]["status"], "released")
         self.assertEqual((self.repo / "league/inbox/shushu/2026-11-10-question.md").read_text(), "질문")
@@ -1037,8 +1037,11 @@ class ShushuRepoSync(unittest.TestCase):
                           "activity_type": "push", "actor": {"login": "x"}})
         self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
         out = self.sync(f"{rd}T08:25:00+09:00")
-        self.assertEqual(sorted(r["status"] for r in out), ["error", "processed", "processed"])
+        self.assertEqual(sorted(r["status"] for r in out), ["processed", "processed", "retry"])
         self.assertEqual([x["status"] for r in out for x in r.get("receipts", [])], ["committed"])
+        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:35:00+09:00")], ["retry"])         # 일시 오류일 수 있어 다시 시도
+        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:45:00+09:00")], ["error"])         # 3번째에 확정
+        self.assertEqual(self.sync(f"{rd}T08:55:00+09:00"), [])
 
     def test_held_file_does_not_block_later_commitment(self):
         """다음 날 토론 파일이 보류돼도 뒤의 당일 지문은 바로 처리되고, 원본 공개 깨우기가 나간다."""
@@ -1053,7 +1056,9 @@ class ShushuRepoSync(unittest.TestCase):
 
     def test_message_in_round_window_waits_until_noon(self):
         self.spush({"to-roro/2026-11-09-note.md": "전날 저녁"}, "2026-11-09T20:00:00+09:00")
-        self.assertEqual(self.sync("2026-11-10T07:05:00+09:00")[0]["held_files"], ["to-roro/2026-11-09-note.md"])
+        held = self.sync("2026-11-10T07:05:00+09:00")[0]["held_files"]
+        self.assertEqual(len(held), 1); self.assertNotIn("note", held[0])                         # 보류 중에는 이름 대신 해시
+        self.assertNotIn("2026-11-09-note", (self.repo / "league/ledger/external_pushes.jsonl").read_text())
         self.assertFalse((self.repo / "league/inbox/shushu/2026-11-09-note.md").exists())
         self.assertEqual(self.sync("2026-11-10T12:05:00+09:00")[0]["status"], "released")
 
@@ -1088,6 +1093,30 @@ class ShushuRepoSync(unittest.TestCase):
         mk = self.X._marker({"kind": "round", "key": "2026-11-10"})
         w = self.X.wake(self.repo, "o/shushu", "t", now=now, post=lambda b: posted.append(b) or "u", existing=["앞 댓글 " + mk])
         self.assertEqual((posted, w[0]["url"]), ([], "already-posted"))
+
+    def test_pending_rollback_keeps_earlier_receipts(self):
+        """지문 대기로 한 push를 되돌려도, 같은 실행에서 앞서 처리한 push의 영수증은 남는다(원장 추적 중인 실제 상황)."""
+        rd = "2026-11-10"
+        (self.repo / "league/ledger/submissions.jsonl").write_text("")                     # 원장이 이미 추적되는 상태
+        (self.repo / "league/ledger/external_pushes.jsonl").write_text("")
+        self.run("add", "."); self.run("commit", "-qm", "ledgers")
+        self.spush({f"practice/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:10:00+09:00")
+        self.spush({f"submit/{rd}.csv": self.csv(rd)}, f"{rd}T08:40:00+09:00")
+        real = L.process_push
+        def fake(ev, **kw):
+            if any("submit/" in f or "imports/shushu/" in f for f in L.changed_submission_files(ev, kw["cwd"])):
+                raise L.CommitmentPending("대기")
+            return real(ev, **kw)
+        L.process_push = fake
+        try:
+            out = self.sync(f"{rd}T08:50:00+09:00")
+        finally:
+            L.process_push = real
+        self.assertEqual([r["status"] for r in out], ["processed", "pending"])
+        subs = L.read_ledger(self.repo / "league" / "sandbox", "submissions")
+        self.assertEqual([x["status"] for x in subs], ["committed"])                         # 앞 push 영수증 유지
+        self.assertFalse((self.repo / "league/imports/shushu" / f"{rd}.csv").exists())       # 대기한 push만 되돌림
+        self.assertEqual(L.verify(self.repo / "league"), [])
 
     def test_mirror_push_not_recorded(self):
         """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""
