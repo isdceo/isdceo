@@ -1429,6 +1429,36 @@ class LinesWithoutLedger(unittest.TestCase):
         self.assertNotRegex(json.dumps(rows), r'"(rationale|close|base_close|ticker|name)"')
 
 
+class SimultaneousReveal(unittest.TestCase):
+    """운영자 요청(2026-11-07): 지문을 낸 팀이 모두 원본 접수될 때까지(또는 12:00) 그 라운드 종목은 어느 팀 것도 공개하지 않는다."""
+    def setUp(self):
+        self.cfg = L.load_config(L.ROOT / "league")
+        mk = lambda team, rd: {"pick_id": f"{rd}-{team}-a-KR", "team": team, "round_date": rd}
+        self.picks = [mk("claude", "2026-11-10"), mk("shushu", "2026-11-10")]
+
+    def shown(self, subs, at):
+        return [p["team"] for p in L.embargo_picks(self.picks, self.cfg, datetime.fromisoformat(f"2026-11-10T{at}+09:00"), subs)[0]]
+
+    def test_wait_for_other_team(self):
+        rd = "2026-11-10"
+        subs = [{"team": "claude", "round_date": rd, "status": "committed"}, {"team": "shushu", "round_date": rd, "status": "committed"},
+                {"team": "claude", "round_date": rd, "status": "accepted"}]
+        self.assertEqual(self.shown(subs, "08:40:00"), [])                                    # 슈슈 원본 대기 → 둘 다 숨김
+        self.assertEqual(self.shown(subs + [{"team": "shushu", "round_date": rd, "status": "accepted"}], "08:41:00"), ["claude", "shushu"])
+        self.assertEqual(self.shown(subs, "12:00:00"), ["claude", "shushu"])                  # 공개 마감이 되면 공개
+
+    def test_team_without_commitment_does_not_block(self):
+        rd = "2026-11-10"
+        subs = [{"team": "claude", "round_date": rd, "status": "committed"}, {"team": "claude", "round_date": rd, "status": "accepted"},
+                {"team": "shushu", "round_date": rd, "status": "late"}]
+        self.assertEqual(self.shown(subs, "08:40:00"), ["claude", "shushu"])
+
+    def test_before_deadline_still_hidden(self):
+        rd = "2026-11-10"
+        subs = [{"team": t, "round_date": rd, "status": st} for t in ("claude", "shushu") for st in ("committed", "accepted")]
+        self.assertEqual(self.shown(subs, "08:29:00"), [])
+
+
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
 

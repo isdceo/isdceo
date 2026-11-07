@@ -321,7 +321,7 @@ def bundle(now: datetime | None = None, base: Path | None = None) -> dict:
     base = Path(base or LEAGUE)
     data = build(now, base=base)
     out = {"schema": BUNDLE_SCHEMA, "generated_at": now.isoformat(timespec="seconds"),
-           "rules": {"embargo": "각 라운드 마감(08:30 KST)이 지난 뒤에만 종목·점수를 싣는다",
+           "rules": {"embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
                      "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
                      "scores": "status가 final인 점수만 확정. provisional은 잠정, pending·held는 미채점"}}
     out.update({k: data[k] for k in BUNDLE_KEYS})

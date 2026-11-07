@@ -1296,12 +1296,27 @@ def _strip_prices(sc: dict) -> dict:
                            {"dividend_applied": bool(sc["adjustment"].get("dividend"))}
     return sc
 
-def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None) -> tuple[list[dict], dict]:
-    """마감(08:30 KST) 전 라운드의 추천은 내보내기에서 뺀다. 팀별로 몇 건이 가려졌는지만 남긴다."""
+def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None,
+                  subs: list[dict] | None = None) -> tuple[list[dict], dict]:
+    """마감(08:30 KST) 전 라운드의 추천은 내보내기에서 뺀다. 팀별로 몇 건이 가려졌는지만 남긴다.
+    동시 공개(지문 방식 라운드): 그 라운드에 지문을 낸(committed) 팀이 모두 원본 접수(accepted)될 때까지,
+    또는 원본 공개 마감(12:00)이 될 때까지 그 라운드의 종목은 어느 팀 것도 내보내지 않는다.
+    한 팀 카드만 먼저 화면에 뜨지 않게 하기 위해서다. 지문을 내지 않은 팀은 기다리지 않는다."""
     now = now or datetime.now(KST)
+    waiting = {}
+    if subs is not None:
+        for rd in {p["round_date"] for p in picks}:
+            day = date.fromisoformat(rd)
+            if not commit_reveal_applies(rd, cfg) or now >= reveal_deadline(day, cfg):
+                continue
+            mine = [s_ for s_ in subs if s_.get("round_date") == rd]
+            committed = {s_["team"] for s_ in mine if s_.get("status") == "committed"}
+            accepted = {s_["team"] for s_ in mine if s_.get("status") == "accepted"}
+            if committed - accepted:
+                waiting[rd] = sorted(committed - accepted)
     shown, hidden = [], {}
     for p in picks:
-        if now < lock_deadline(date.fromisoformat(p["round_date"]), cfg):
+        if now < lock_deadline(date.fromisoformat(p["round_date"]), cfg) or p["round_date"] in waiting:
             key = f'{p["team"]}|{p["round_date"]}'
             hidden[key] = hidden.get(key, 0) + 1
         else:
@@ -1314,7 +1329,7 @@ def export(d: Path, out: Path, public: bool = False, now: datetime | None = None
     if (d / "SAMPLE").exists():                     # 예시 원장: 실제 추천이 아니므로 가리지 않음
         picks, embargoed = read_ledger(d, "picks"), {}
     else:
-        picks, embargoed = embargo_picks(read_ledger(d, "picks"), cfg, now)
+        picks, embargoed = embargo_picks(read_ledger(d, "picks"), cfg, now, read_ledger(d, "submissions"))
     shown_ids = {p.get("pick_id") for p in picks}
     weeks = sorted({iso_week(date.fromisoformat(p["round_date"])) for p in picks})
     roster = load_roster(d)
