@@ -186,19 +186,29 @@ def write_log(path: Path, recs: list[dict]):
 
 
 PRICE_CLAIM = re.compile(r"(\d{1,2})/(\d{1,2})\s*(?:일\s*)?(?:종가|마감)\s*\(?\s*\$?\s*([\d,]+(?:\.\d+)?)")
+# "종가 219,500원(11/6)"처럼 날짜가 뒤에 오는 형태
+PRICE_CLAIM_AFTER = re.compile(r"(?:종가|마감)\s*\$?\s*([\d,]+(?:\.\d+)?)\s*(?:원|달러|포인트|pt)?\s*\(\s*(\d{1,2})/(\d{1,2})\s*\)")
 
 
 def check_csv(path: Path, log: Path, cfg: dict) -> list[str]:
     """근거의 'MM/DD 종가 숫자'를 기록과 대조하고, 출처 기준일이 라운드보다 늦지 않은지 본다. 경고 목록만 돌려준다."""
     recs = read_logs(log)
     closes = {(r["market"], r["ticker"], r["session"]): r["value"] for r in recs if r.get("kind") in ("close", "macro") and r.get("value") is not None}
+    by_day: dict = {}
+    for (m_, t_, s_), v_ in closes.items():
+        by_day.setdefault((m_, s_), []).append(v_)
+    bench = {"KR": "KOSPI", "US": "SPY"}
     warns = []
     with open(path, newline="", encoding="utf-8-sig") as f:
         for i, row in enumerate(csv.DictReader(f), 2):
             rd = date.fromisoformat(row["round_date"].strip())
             m, t, who = row["market"].strip().upper(), row["ticker"].strip(), f"{i}행 {row['agent_id']}-{row['market']}"
             bs = base_session(m, rd, cfg)
-            for mm, dd, num in PRICE_CLAIM.findall(row.get("rationale") or ""):
+            if t.upper() == "WATCH":                     # 관망은 비교 지수 기록과 대조
+                t = bench.get(m, t)
+            text = row.get("rationale") or ""
+            claims = PRICE_CLAIM.findall(text) + [(mm, dd, num) for num, mm, dd in PRICE_CLAIM_AFTER.findall(text)]
+            for mm, dd, num in claims:
                 try:
                     claim_d = date(rd.year if int(mm) <= rd.month else rd.year - 1, int(mm), int(dd))
                 except ValueError:
@@ -207,9 +217,12 @@ def check_csv(path: Path, log: Path, cfg: dict) -> list[str]:
                 if bs and claim_d != bs:
                     warns.append(f"{who}: 근거의 {mm}/{dd} 종가는 기준 세션({bs.isoformat()})이 아님")
                 ref = closes.get((m, t, claim_d.isoformat()))
+                same_day = by_day.get((m, claim_d.isoformat()), [])
+                if ref is None and any(abs(v / x - 1) <= 0.001 for x in same_day if x):
+                    continue                                  # 지수·다른 종목 종가 인용: 같은 날 기록과 일치
                 if ref is None:
                     warns.append(f"{who}: {mm}/{dd} 종가 {num}는 조사 기록에 없음 — 직접 확인 필요")
-                elif abs(v / ref - 1) > 0.001:                   # 종가는 정확히 같아야 함(반올림 여유 0.1%)
+                elif abs(v / ref - 1) > 0.001 and not any(abs(v / x - 1) <= 0.001 for x in same_day if x):                   # 종가는 정확히 같아야 함(반올림 여유 0.1%)
                     warns.append(f"{who}: {mm}/{dd} 종가 {num}가 조사 기록({ref:g})과 다름")
             for s in (row.get("sources") or "").split(";"):
                 parts = s.split("|")

@@ -54,5 +54,22 @@ class Research(unittest.TestCase):
         self.assertTrue(any("3행" in x and "늦음" in x for x in w))                        # 출처 기준일 > 라운드
 
 
+class CheckCsvMore(unittest.TestCase):
+    def test_watch_and_index_and_date_after(self):
+        d = Path(tempfile.mkdtemp())
+        log = d / "log.jsonl"
+        R.write_log(log, [R._rec("macro", "KR", "KOSPI", "2026-11-13", 2000.0, "u", b"x"),
+                          R._rec("close", "KR", "033780", "2026-11-13", 189900.0, "u", b"x")])
+        f = d / "x.csv"
+        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+                     "2026-11-16,buffett,1,KR,WATCH,관망,2026-11-16T08:10:00+09:00,\"11/13 종가 2,000 급락 뒤 방향 불확실\",,\n"
+                     "2026-11-16,lynch,1,KR,033780,KT&G,2026-11-16T08:10:00+09:00,\"KOSPI 11/13 종가 2,000에도 종가 190,700원(11/13)\",위험,\n",
+                     encoding="utf-8")
+        w = R.check_csv(f, log, CFG)
+        self.assertFalse(any(x.startswith("2행") for x in w), w)                         # 관망 → 지수 기록과 일치
+        self.assertFalse(any("3행" in x and "2,000" in x for x in w), w)                  # 지수 인용은 같은 날 기록과 일치
+        self.assertTrue(any("3행" in x and "190,700" in x and "다름" in x for x in w), w)  # 날짜가 뒤에 와도 대조
+
+
 if __name__ == "__main__":
     unittest.main()

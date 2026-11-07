@@ -934,6 +934,16 @@ class MarketLeagues(unittest.TestCase):
                      "rationale": "근거", "risks": ["위험"], "sources": [{"url": "https://e.com", "as_of": "2026-11-13"}]}], "2026-11-16", f)
         ok, bad = L.import_csv(d, f, "claude", dry_run=True)
         self.assertEqual(bad, [])
+        # 검수 지적(치명): W47 라운드 전체 CSV — burry(미국만)+momentum(한국만)+나머지 4명(두 시장) = 서로 다른 6명이어도 시장별 5명이라 통과
+        rows = []
+        for a in ("buffett", "lynch", "dalio", "wood"):
+            for m, t in (("KR", "005930"), ("US", "AAPL")):
+                rows.append({"agent_id": a, "agent_version": 1, "market": m, "ticker": t, "name": t, "locked_at": "2026-11-16T08:00:00+09:00",
+                             "rationale": "근거", "risks": ["위험"], "sources": [{"url": "https://e.com", "as_of": "2026-11-13"}]})
+        rows.append({**rows[1], "agent_id": "burry"}); rows.append({**rows[0], "agent_id": "momentum"})
+        f2 = d / "w47-full.csv"; L.make_csv(rows, "2026-11-16", f2)
+        ok, bad = L.import_csv(d, f2, "claude")
+        self.assertEqual((len(ok), bad), (10, []))
         # 다음 주 순위: 한국 리그에는 momentum, burry 없음 / 미국 리그에는 burry
         rows47 = {r["agent_id"]: r for r in L.weekly(d, "2026-W47", "claude", _rows_only=True)["ranking"]}
         self.assertFalse(rows47["burry"]["markets"]["KR"]["active"]); self.assertTrue(rows47["burry"]["markets"]["US"]["active"])
@@ -956,6 +966,9 @@ class MarketLeagues(unittest.TestCase):
         ro = L.load_roster(d)
         burry = next(a for a in ro["claude"] if a["id"] == "burry")
         self.assertEqual((burry["status"], burry["eliminated_week"]), ("eliminated", "2026-W47"))   # 두 리그 모두 탈락 → 완전 탈락
+        # 검수 지적(중간): 다른 주에 나뉘어 두 리그에서 빠져도 업데이트 계획은 out
+        plan = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W47")["agents"]}
+        self.assertEqual(plan[("claude", "burry")]["status"], "out")
         mom = next(a for a in ro["claude"] if a["id"] == "momentum")
         self.assertEqual((L.mstatus(mom, "KR")["status"], L.mstatus(mom, "US")["status"], L.mstatus(mom, "US")["joined_week"]), ("active", "active", "2026-W48"))
 

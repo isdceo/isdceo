@@ -618,6 +618,7 @@ def update_plan(d: Path, week: str) -> dict:
                 "top": bool(same(r)),                                   # 공동 1등도 모두 1등
                 "out": dec.get("eliminate_team") == r["team"] and dec.get("eliminate") == r["agent_id"]}
     picks = read_ledger(d, "picks")
+    roster = load_roster(d)
     rows = []
     for (team, aid), rk in sorted(ranks.items()):
         mine = [p for p in picks if p["team"] == team and p["agent_id"] == aid and p.get("agent_version") is not None]
@@ -626,7 +627,11 @@ def update_plan(d: Path, week: str) -> dict:
         v_week = iso_week(date.fromisoformat(first_cur)) if first_cur else None
         top = [mk for mk, x in rk.items() if x["top"]]
         outs = [mk for mk, x in rk.items() if x["out"]]
-        all_out = per_market and len(outs) == len(MARKETS) or (not per_market and outs)
+        # 완전 탈락은 명단 기준: 이번 주까지 두 리그 모두에서 빠졌으면(다른 주에 나뉘어 빠진 경우 포함) out
+        mem = next((a for a in roster.get(team, []) if a["id"] == aid), None)
+        gone = lambda mk: (mk in outs) or (mem is not None and mstatus(mem, mk).get("status") == "eliminated"
+                                          and (mstatus(mem, mk).get("eliminated_week") or "") <= week)
+        all_out = all(gone(mk) for mk in MARKETS) if per_market else bool(outs)
         if top:
             st, why = "frozen", f"{'·'.join({'KR': '한국', 'US': '미국', 'ALL': '통합'}[m] for m in top)} 리그 1등 — 이번 주 지침 동결"
         elif all_out:
@@ -891,8 +896,10 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
     same = [p for p in existing if p["team"] == rec["team"] and p["round_date"] == rec["round_date"]]
     if any(p["agent_id"] == rec["agent_id"] and p["market"] == rec["market"] for p in same):
         errs.append(f"{rec['agent_id']}는 이 라운드 {rec['market']} 종목을 이미 추천함")
-    if len({p["agent_id"] for p in same} | {rec["agent_id"]}) > cfg["agents_per_team"]:
-        errs.append(f"팀 인원 {cfg['agents_per_team']}명 초과")
+    # 인원은 시장(리그)별로 센다(v2.0): 한 리그에서만 빠진 에이전트와 그 리그에 합류한 후보가 같은 라운드에 함께 낼 수 있다
+    same_m = [p for p in same if p["market"] == rec["market"]]
+    if len({p["agent_id"] for p in same_m} | {rec["agent_id"]}) > cfg["agents_per_team"]:
+        errs.append(f"{rec['market']} 팀 인원 {cfg['agents_per_team']}명 초과")
     return errs
 
 def open_markets(round_date: date, cfg: dict) -> set[str]:
