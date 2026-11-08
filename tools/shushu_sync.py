@@ -750,11 +750,11 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
                 "같은 파일을 다시 push하거나 브랜치를 지우지 마세요. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다."
                 + (f" 지문만 냈다면 원본 `submit/{rd}.csv`·`submit/{rd}-debate.md`도 12:00 전에 push해 두세요." if late else ""))
     for x in xp:                                       # 재시도 대상이 아닌 오류로 확정된 push: 확정된 날 바로 알림(마감 전이면 다시 낼 수 있음)
-        if x.get("type", "push") == "push" and x.get("status") == "error" and not x.get("transient") \
+        if x.get("type", "push") in ("push", "release") and x.get("status") == "error" and not x.get("transient") \
                 and (str(x.get("at") or "")[:10] == rd or (not x.get("at") and _today(x))):
             rr = _next_round(datetime.fromisoformat(x["pushed_at"]), cfg) if x.get("pushed_at") else today
             past = now >= L.lock_deadline(rr, cfg)
-            add("failed", str(x["activity_id"]), f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')})를 처리하지 못했습니다: {str(x.get('error') or '')[:120]}. "
+            add("failed", str(x.get("held_id") or x["activity_id"]), f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')})를 처리하지 못했습니다: {str(x.get('error') or '')[:120]}. "
                 + (f"{rr} 라운드 마감(08:30) 전이면 같은 제출 파일을 새 커밋으로 다시 push해 주세요. " if not past else "그 라운드 마감이 지나 새 지문은 인정되지 않습니다. ")
                 + "그 push에 제출 파일이 없었다면 무시해도 됩니다. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다.")
     if mk and live and "08:30" < hm < "11:40" and taint:
