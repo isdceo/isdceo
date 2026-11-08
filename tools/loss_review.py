@@ -120,7 +120,14 @@ def due_bundle(bundle: Path, team: str, reviews: Path, mode: str = "실전") -> 
 
 _CUE_HEAD = re.compile(r"고점|저점|지지선|저항선|종가|주가|시가|고가|저가|가격|단가|매수가|매도가|목표\s*주?가|평단|기준가|현재가")
 _NP_RE = re.compile(r"(?<![\d.,%+\-−▲▼△▽A-Za-z])" + _NP + r"(?![\d.,]|\s*%|\s*(?!원|달러)[가-힣A-Za-z])")
-_HEAD_SKIP = re.compile(r"베타|민감도|탄력성|기여도|RSI|이격도|샤프|상관|회전율|가중치|모멘텀|ATR|MACD|대비|수\s*$|건수|횟수|개수|일수|표본|기간|거래일|이동평균|\((?!원|달러|\$|₩)[^)]*\)|%|률|비율|PER|PBR|총액|시가총액|배|수익비율|순자산|반응|흐름|영향|요인|기대|관계|변동성|순위|경쟁력|결정력")
+# 머리글이 지표·셈·기간·비율이면 가격 열이 아님. 괄호는 통화(원·천원·USD·$…)나 날짜(11/5)면 가격 열로 보고, 그 밖의 단위 괄호(%, 일, 회…)면 건너뜀
+_PAREN_PRICE = r"\(\s*(?:(?:단위\s*[:：]?\s*)?(?:천|만|백만)?\s*(?:원|달러|\$|US\$|₩|￦|USD|KRW)|\d{1,2}/\d{1,2})"
+_HEAD_SKIP = re.compile(r"베타|민감도|탄력성|기여도|RSI|이격도|샤프|상관|회전율|가중치|모멘텀|ATR|MACD|대비|수\s*$|건수|횟수|개수|일수|표본|기간|거래일|이동평균"
+                        r"|(?!" + _PAREN_PRICE + r")\([^)]*\)|%|률|비율|(?<![A-Za-z])(?:PER|PBR)(?![A-Za-z])|총액|시가총액|(?<![가-힣])배(?![가-힣])|배수|수익비율|순자산"
+                        r"|반응|흐름|영향|요인|기대|관계|변동성|순위|경쟁력|결정력")
+# 행 이름이 지표면 그 행은 가격 행이 아님(괄호 속 종목코드·티커·요일은 지우고 본다, 낱말 속 글자(GE Vernova의 EV)는 보지 않음)
+_ROW_SKIP = re.compile(r"(?<![A-Za-z])(?:PER|PBR|PSR|PCR|PEG|PFCR|EV|EPS|BPS|ROE|ROA|ROIC|RSI|MACD|ATR)(?![A-Za-z])|시총|시가총액|샤프|토빈|베타|상관|변동성|이격도"
+                       r"|거래일|기간|민감도|탄력성|기여도|회전율|가중치|모멘텀|비율|률|배수|점수|확률|%")
 
 
 def _table_prices(t: str) -> str | None:
@@ -130,11 +137,11 @@ def _table_prices(t: str) -> str | None:
     while i < len(rows):
         if rows[i].lstrip().startswith("|") and i + 1 < len(rows) and re.match(r"^\s*\|?\s*:?-{2,}", rows[i + 1]):
             head = [c.strip() for c in rows[i].strip().strip("|").split("|")]
-            cols = [k for k, c in enumerate(head) if _CUE_HEAD.search(c) and not _HEAD_SKIP.search(c)]
+            cols = [k for k, c in enumerate(head) if _CUE_HEAD.search(c) and not _HEAD_SKIP.search(re.sub(_PAREN_PRICE + r"[^)]*\)", "", c))]
             j = i + 2
             while j < len(rows) and rows[j].lstrip().startswith("|"):
                 cells = [c.strip() for c in rows[j].strip().strip("|").split("|")]
-                if cells and _HEAD_SKIP.search(cells[0]) or (cells and re.search(r"ROE|ROA|EV|EPS|PEG|PSR|PCR|PFCR|BPS|시총|샤프|토빈|베타|상관|변동성|이격도|RSI|거래일|기간|민감도|탄력성|기여도|회전율|가중치|모멘텀|ATR|MACD", cells[0])):
+                if cells and _ROW_SKIP.search(re.sub(r"\([^)]*\)", "", cells[0])):
                     j += 1
                     continue   # 행 이름이 비율·지표(PER·PBR·ROE…)면 가격 행이 아님
                 for k in cols:
@@ -199,7 +206,7 @@ def check(path: Path) -> list[str]:
         errs.append(f"'판정: <{' | '.join(VERDICTS)}>' 줄이 필요")
     tb = re.sub(r"^- 종목:.*$", "", re.sub(r"https?://\S+", "", t), flags=re.M)   # 머리글의 종목코드·출처 URL 숫자는 대조하지 않음
     for c in _known_closes(path):
-        unit = r"%|배|만|억|주(?![변가당요간])|개|명|척|건|곳|거래일" + ("" if "," in c else r"|일|대|년")
+        unit = r"%|배|만|억|조|주(?![변가당요간])|개|명|척|건|곳|거래일" + ("" if "," in c else r"|일|대|년")
         if re.search(r"(?<![\d.,\-/:])" + re.escape(c) + r"(?![\d]|[.,]\d|[\-/:T]\d|\s*(?:" + unit + r"))", tb):
             errs.append(f"원장에 기록된 이 종목의 종가와 같은 숫자 {c!r} — 원 가격 금지")
             break
