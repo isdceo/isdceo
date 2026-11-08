@@ -1343,6 +1343,18 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual([(x["status"], x["pushed_at"]) for x in sub], [("committed", f"{rd}T08:18:00+09:00")])
         self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
 
+    def test_server_error_on_one_commit_is_transient(self):
+        """재검수 M-1: 저장소엔 닿지만 그 커밋 받기가 서버 오류(5xx 등)로 실패하면 일시 오류 — 3회로 확정하지 않는다."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:18:00+09:00")
+        sha = self.acts[-1]["after"]; real_have = self.X._have
+        with unittest.mock.patch.object(self.X, "_fetch", return_value="error: RPC failed; HTTP 502 curl 22"), \
+                unittest.mock.patch.object(self.X, "_have", side_effect=lambda e, x: False if x == sha else real_have(e, x)):
+            for t in ("08:25", "08:35", "08:45", "09:00"):
+                self.assertEqual([r["status"] for r in self.sync(f"{rd}T{t}:00+09:00")], ["retry"])
+        self.assertEqual(self.sync(f"{rd}T10:05:00+09:00")[0]["receipts"][0]["status"], "committed")
+        self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
+
     def test_transient_failure_until_reveal_deadline_taints(self):
         """통신 오류가 공개 마감(12:00)까지 이어지면 그 라운드는 운영자 확인 대기."""
         rd = "2026-11-10"
