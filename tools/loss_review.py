@@ -69,7 +69,7 @@ MONEY = re.compile(
     + r"|" + _CUE + r"(?:(?:이)?라(?:고|는|던)?|이었던|이던|였던|인|으로|로|는|은|가|이|도|를|을)?" + _FILL + r"(?:\s+|\s*[(:：]\s*)" + r"(?![\d,.]+\s*(?:억|조))" + _NP + _RIGHT_F
     + r"|" + _CUE + r"(?:(?:이)?라(?:고|는|던)?|이었던|이던|였던|인|으로|로|는|은|가|이|도|를|을)?" + _FILL + r"(?:\s+|\s*[(:：]\s*)" + r"(?![\d,.]+\s*(?:억|조))" + _NPS + r"(?=\s*(?:을|를|이(?![가-힣])|가(?![가-힣])))"     # 단서와 숫자 사이에 짧은 낱말 1~3개
     + r"|" + _G + _N + r"\**(?:\s*\([^()\n]{1,12}\))?(?:\s*선?\s*(?:에서|에|으로|로)\s*(?:" + _DIR + r"?(?:장\s*)?마감|" + _DIR + r"출발|(?:거래|장)을?를?\s*(?:마쳤|마치|마감|끝냈|끝))|\s+마감)"
-    + r"|(?<![\d/:.\-~A-Za-z&가-힣])(?:\d{1,3}(?:,\d{3})+|\d{3,})(?:\.\d+)?\**\s*(?:에서|에|으로|로)\s*(?:출발|시작|끝났|끝냈|끝마|거래됐|거래되었|마쳤|마무리|(?:거래|장)을?를?\s*(?:시작|종료)|종료)"
+    + r"|(?<![\d/:.\-~A-Za-z&가-힣])(?:\d{1,3}(?:,\d{3})+|\d{3,}|\d{2}(?=\.\d{2}(?!\d)))(?:\.\d+)?\**\s*(?:에서|에|으로|로)\s*(?:출발|시작|끝났|끝냈|끝마|거래됐|거래되었|마쳤|마무리|(?:거래|장)을?를?\s*(?:시작|종료)|종료)"
     + r"|" + _G + _MV_NUM + r"\s*에서\s*(?:(?:출발|시작)해\s*)?" + _MV_GAP + r"(?:" + _DATE + r"\s+)?" + _MV_NUM
     + r"\s*(?:(?:으로|로|까지)\s*(?:\(\s*[+−-]?\d+(?:\.\d+)?%p?\s*\)\s*)?" + _MV_GAP + r"(?:(?:약|대략|무려|다시|더|또|크게|급격히|빠르게|단숨에|순식간에|곧바로|한꺼번에|[+−-]?\d+(?:\.\d+)?%p?(?:\s*(?:넘게|가까이|이상|가량|남짓|안팎))?)\s*){0,3}" + _MV_VERB + r"|(?:이|가)\s*(?:됐|되었))"
     + r"|" + _G + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\**\s*(?:→|->)\s*\**(?:" + _DATE + r"\s+)?" + _NP + r"(?<![억조])(?!\d|[.,]\d|\s*(?:%|억|조))"
@@ -98,6 +98,16 @@ _COMMOD_PRICE = re.compile(_COMMOD.pattern[:-4] + r"\s*(?:가격|단가)")
 _ATTACHED = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD_PRICE.pattern + r")(?:\s*(?:선물|근월물|현물|\d+(?:개월|년)물|\d+단))?(?:\s*(?:추정치|전망치|예상치|컨센서스|가이던스|전망|추정|예상|단가|가격|종가|고점|저점|상승률|증가율|하락률|성장률|고정거래가|현물가))?(?:\s*(?:하향|상향|조정))?\s*(?:\([^)]*\))?\s*(?:은|는|이|가|도|의|[:：=])?\s*(?:\([^)]*\))?"
                        r"(?:\s*(?:전년비|전월비|YoY|QoQ|전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?(?:\s*(?:" + _DATE + r"|[가-힣]{1,4}\s*만에|장중|한때))*\s*\(?\s*(?:[\d,.]+(?:\s*[천만억조])*(?:\s*(?:선|대))?\s*(?:→|->|에서|(?:으로|로)\s*(?:출발|시작)해)\s*(?:" + _DATE + r"\s*)?)*[\d,.]*$")
 _CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*(?:원|달러|USD(?![A-Za-z]))")
+
+
+def _row_head_div(t: str, pos: int) -> bool:
+    """pos가 표 줄 안이고 그 줄 첫 칸이 배당·DPS인가."""
+    ls = t.rfind("\n", 0, pos) + 1
+    line = t[ls:pos]
+    if "|" not in line:
+        return False
+    first = line.strip().strip("|").split("|")[0]
+    return bool(re.search(r"배당|DPS", first)) and line.strip().lstrip("|").count("|") >= 1
 
 
 def _col_head(t: str, pos: int) -> str:
@@ -143,8 +153,8 @@ def money_hit(t: str):
         elif re.search(r"원|달러|\$|USD", g) and not _MOVE.search(g) and not _CLOSE_VERB.search(g) and _DIV_ATT.search(t[max(ls, m.start() - 40):m.start()]) and not _PRICE_AFTER.match(t[m.end():m.end() + 12]) \
                 and not re.search(r"종가|주가|시가|고가|저가|목표|가격|단가|고점|저점", g):
             skip = True   # 주당 배당금(원·달러)은 가격이 아님
-        elif re.search(r"원|달러|\$|USD", g) and not _CUE_IN.search(g) and not _CLOSE_VERB.search(g) and re.search(r"배당|DPS", _col_head(t, m.start())):
-            skip = True   # 표의 배당·DPS 열 칸
+        elif re.search(r"원|달러|\$|USD", g) and not _CUE_IN.search(g) and not _CLOSE_VERB.search(g) and (re.search(r"배당|DPS", _col_head(t, m.start())) or _row_head_div(t, m.start())):
+            skip = True   # 표의 배당·DPS 열·행 칸
         elif re.search(r"원|달러|\$|USD", g) and not _CLOSE_VERB.search(g) and not _MOVE.search(g) and re.search(r"주당\s*$", t[max(ls, m.start() - 6):m.start()]) \
                 and re.match(r"(?:의|씩|을|를|으로|로)?\s*(?:(?:현금|분기|중간|결산|기말|특별|연간)\s*)*배당", t[m.end():m.end() + 14]):
             skip = True   # '주당 5,200원의 배당'·'주당 1,200원 배당' 
