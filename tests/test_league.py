@@ -2065,7 +2065,9 @@ class LossReview(unittest.TestCase):
                  "목표주가 컨센서스는 180만이다", "목표주가 컨센서스는 1,800,000이었다", "주가는 마이크론보다 먼저 1,144,000으로 밀렸다", "주가는 시간외에서 96.5였다",
                  "주가는 1,300,000 주변에서 횡보했다", "주가는 130만 내외였다", "주가는 182.5 인근에서 멈췄다", "주가는 1,300,000 박스권에 갇혔다",
                  "주가는 20일선 1,450,000을 깼다", "주가는 1,264,000쯤이었다", "주가가 126만일 때", "주가는 1,264,000인 상태였다",
-                 "종가 1,264,000보다 낮았다", "목표주가를 KB증권은 1,800,000으로 낮췄다", "NVDA 목표주가를 Citi가 220.5로 낮췄다")
+                 "종가 1,264,000보다 낮았다", "목표주가를 KB증권은 1,800,000으로 낮췄다", "NVDA 목표주가를 Citi가 220.5로 낮췄다",
+                 "- 주가: 1,180,000", "- 엔비디아 종가 180.25", "- 시가총액 860조, 주가 1,180,000", "종가(KRX)는 1,180,000이었다",
+                 "주가(종가)는 1,180,000으로 밀렸다", "종가(11/5 기준)는 1,180,000이었다", "지지선으로 본 1,200,000 아래로 내려갔다", "고점으로 본 1,800,000을 넘지 못했다")
     MONEY_OK = ("+327.9%", "3분기", "1.6배", "2026년", "3원칙", "2원화", "종가 기준 -2.1%", "지수 대비 -4.18%p", "10원인", "2026-11-05 원장 기록", "v2 원장",
                 "Q3 원가 부담", "종가 2026-11-04 기준", "주가 -24.3%", "고점 대비 -52.3%", "종가 2.10% 상승", "주가 2024년 고점 이후", "고점 2021년 11월",
                 "주가 2.15배 올랐다", "종가 2026.11.04 기준", "고점 2026-11", "저점 1000일선", "고점 1,000일", "저점 3개월 전", "주가 1위", "고점 3주 전",
@@ -2105,7 +2107,9 @@ class LossReview(unittest.TestCase):
                 "주가는 자사주 1조로 방어하지 못했다", "가격 대비 성능은 2.5로 높았다", "이날 주가가 내린 종목이 1,200을 넘었다",
                 "주가가 하락한 종목 수는 812였다", "가격이 오른 품목이 1,200을 넘었다", "주가는 200일선 아래였다",
                 "가격 인상 뒤 구독자는 2,300만으로 줄었다", "가격 인하 뒤 출하량은 1,200만으로 늘었다", "고점 이후 공매도 잔고는 1,500만으로 늘었다",
-                "가격 인상 뒤 이탈자는 120만이었다", "주가 급등 뒤 소액주주가 150만으로 늘었다", "주가는 B200 출하 지연에 밀렸다")
+                "가격 인상 뒤 이탈자는 120만이었다", "주가 급등 뒤 소액주주가 150만으로 늘었다", "주가는 B200 출하 지연에 밀렸다",
+                "주가 기준 PER은 7.4였다", "11/4 종가 기준 PER은 8.2, PBR은 1.3이었다", "고점 PER 25.3, 저점 PER 6.1이었다", "주가는 선행 PER 7.4에서 멈추지 않았다",
+                "종가 기준 PEG는 1.25였다", "주가는 RSI 28.5까지 내려가 과매도였다", "종가 기준 Forward PER은 7.4였다", "- 저점 이후 기간: 112", "종가(-4.2%)는 낮았다")
 
     def test_money_regex_no_backtracking_on_asterisks(self):
         import time
@@ -2142,10 +2146,11 @@ class LossReview(unittest.TestCase):
             t0 = time.time(); self.LR.MONEY.search(adv); self.assertLess(time.time() - t0, 3)
 
     def test_money_regex_catches_particles_and_spares_words(self):
-        for s in self.MONEY_BAD:
-            self.assertIsNotNone(self.LR.MONEY.search(s), s)
-        for s in self.MONEY_OK:
-            self.assertIsNone(self.LR.MONEY.search(s), s)
+        for tail in ("", "\n다음 줄", "\n"):   # 줄 끝에 놓인 가격(글머리표 목록)도 잡혀야 한다
+            for s in self.MONEY_BAD:
+                self.assertIsNotNone(self.LR.MONEY.search(s + tail), repr(s + tail))
+            for s in self.MONEY_OK:
+                self.assertIsNone(self.LR.MONEY.search(s + tail), repr(s + tail))
 
     def test_failed_review_file_is_due_again_and_corrected_score_excluded(self):
         row = self.LR.due(self.d)[0]
