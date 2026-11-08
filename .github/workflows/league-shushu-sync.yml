@@ -137,7 +137,7 @@ jobs:
           done
           exit 1
       - name: Wake 슈슈 team (@codex comments)
-        if: steps.pull.outcome == 'success'
+        if: always() && steps.pull.outcome == 'success'   # 사본·기록 단계가 실패해도 깨우기는 보낸다
         env:
           SHUSHU_REPO_TOKEN: ${{ secrets.SHUSHU_REPO_TOKEN }}
         run: |
