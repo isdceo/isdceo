@@ -128,6 +128,21 @@ def _col_head(t: str, pos: int) -> str:
     return ""
 
 
+_MID = re.compile(r"[\d,.]+\s*(?:포인트|p|bp)?\s*(?:을|를|까지|으로|로|이|가)?\s*(?!에서|출발|시작)[가-힣]{1,5}(?:\s*(?:뒤|후|다가))?\s*,?\s*$|[\d,.]+\s*(?:포인트|p|bp)?\s*(?:을|를|까지|으로|로|이|가)?\s*(?!에서|출발|시작)[가-힣]{1,5}(?:\s*(?:뒤|후|다가))?\s*,?\s*(?=[\d,.])")
+_SUBJ_PART = re.compile(r"[가-힣A-Za-z0-9)](?:은|는|이|가)\s")
+
+
+def _attached_ok(t: str, ls: int, start: int) -> bool:
+    """숫자 바로 앞이 지표·셈 주어에 붙어 있나. 지표 중간절('환율 1,450 돌파 뒤')을 건너뛴 경우엔 그 앞에 다른 주어(종목)가 없어야 한다."""
+    w = max(ls, start - 60)
+    a = _ATTACHED.search(t[w:start])
+    if not a:
+        return False
+    if _MID.search(a.group(0)) and _SUBJ_PART.search(t[ls:w + a.start()]):
+        return False   # 'SK하이닉스는 환율 1,450 돌파 뒤 1,393,000에 마감' — 주어는 종목
+    return True
+
+
 def money_hit(t: str):
     """MONEY 매치 가운데 문맥 거름을 통과한 첫 매치(없으면 None)."""
     pos = 0
@@ -140,7 +155,7 @@ def money_hit(t: str):
         ls = max([w] + [x.end() for x in _SENT_END.finditer(t, w, m.start())])
         before = t[max(ls, m.start() - 14):m.start()]
         skip = False
-        if not _CUE_IN.search(g) and (_MOVE.search(g) or _CLOSE_VERB.search(g) or re.fullmatch(r"[\d.]+\s*만\s*(?:선|대).*", g)) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
+        if not _CUE_IN.search(g) and (_MOVE.search(g) or _CLOSE_VERB.search(g) or re.fullmatch(r"[\d.]+\s*만\s*(?:선|대).*", g)) and _attached_ok(t, ls, m.start()):
             skip = True
         elif re.fullmatch(r"[\d,.]+\s*(?:고점|저점|종가|최고가|최저가)", g) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
             skip = True
