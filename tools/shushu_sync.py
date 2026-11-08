@@ -6,6 +6,9 @@
            그 push 시각으로 영수증을 판정한다. 마감(08:30) 전 원본·토론·대사가 든 push는 마감까지 보류한다
            (메인 저장소에 마감 전 종목이 들어오지 않게). 같은 push는 한 번만 처리한다(원장 external_pushes).
   mirror : 원 가격이 없는 결과 묶음·영수증·공지·검증 도구 사본을 전용 저장소의 from-league/ 에 넣는다.
+  note-mirror --sha <커밋> : 같은 실행에서 전용 저장소에 push한 사본 커밋을 원장에 남긴다(type mirror_commit, 다음 pull이 건너뜀)
+  wake   : 슈슈 팀 채널 이슈에 깨우기 댓글(@codex)을 단다.
+  untaint --round <날짜> --reason <확인 내용> : 운영자 확인 뒤 확인 대기 라운드를 푼다.
 
 전용 저장소 경로 → 메인 경로
   submit/<날짜>.sha256 | .csv | -debate.md     → league/imports/shushu/
