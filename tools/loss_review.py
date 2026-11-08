@@ -81,7 +81,7 @@ _COMMOD_PRICE = re.compile(_COMMOD.pattern[:-4] + r"\s*가격")
 # 이동 매치는 셈·지표 주어나 품목 가격이 숫자 바로 앞에 붙어 있을 때만 버린다('배당 기대에 1,264,000에서…'처럼 원인을 말하는 낱말은 거르지 않음)
 _ATTACHED = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD_PRICE.pattern + r")(?:\s*(?:선물|근월물|현물|\d+(?:개월|년)물))?(?:\s*(?:추정치|전망치|예상치|컨센서스|가이던스|전망|추정|예상|단가))?(?:\s*(?:하향|상향|조정))?\s*(?:\([^)]*\))?\s*(?:은|는|이|가|도|의)?\s*(?:\([^)]*\))?"
                        r"(?:\s*(?:전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?\s*\(?\s*(?:[\d,.]+\s*(?:→|->|에서)\s*)*[\d,.]*$")
-_CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*원")
+_CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*(?:원|달러|USD(?![A-Za-z]))")
 
 
 def money_hit(t: str):
@@ -100,7 +100,7 @@ def money_hit(t: str):
         elif g.startswith(("가격", "단가")) and (_COMMOD.search(t[max(ls, m.start() - 30):m.start()]) or _PER_UNIT.search(g)):
             skip = True
         elif not _CUE_IN.search(g) and _CO_AMT.search(g):
-            skip = True   # 회사 금액(억·조 + 원)은 허용(운영자 결정 2026-11-08). 주당 금액·종가와 원 단위 가격(126만 원)은 계속 막는다
+            skip = True   # 회사 금액(억·조 + 원·달러)은 허용(운영자 결정 2026-11-08). 주당 금액·종가와 원 단위 가격(126만 원)은 계속 막는다
         elif g.startswith("주당") and re.match(r"주당\s*(?:배당|순이익|순자산|이익|현금흐름|매출)", g):
             skip = True
         if not skip:
