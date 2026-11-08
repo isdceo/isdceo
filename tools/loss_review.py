@@ -71,16 +71,16 @@ MONEY = re.compile(
 
 # 경험칙 뒤 거름: 문맥상 가격이 아닌 매치(셈·지표 주어의 'A에서 B로', 품목 가격, 주당 지표)는 버리고 그 다음부터 다시 찾는다
 _MOVE = re.compile(r"에서|→|->")
-_SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|배당금?|베타|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
-                   r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI)(?![A-Za-z])|컨센서스|인덱스|국채|유가|브렌트")
-_COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|WTI|브렌트유?|유가|가스|전력|운임|선물)(?:\s+[A-Za-z0-9가-힣]{1,8}){0,2}\s*$")
+_SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|배당금?|베타|브렌트유?|두바이유|원유|구리|수익률|실업률|가동률|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
+                   r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI|CPI|PPI|PCE|PMI|GDP|LME|EBITDA)(?![A-Za-z])|컨센서스|인덱스|국채|유가|브렌트")
+_COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|WTI|브렌트유?|두바이유|유가|가스|전력|운임|선물)(?:\s*\([^)\n]{0,20}\)|\s+(?:현물|고정거래|계약|선물|근월물|평균|범용|서버용|모바일|PC용|\d+\s*[GT]b|DDR\d\w*|LPDDR\d\w*|플래시)){0,3}\s*$")
 _PER_UNIT = re.compile(r"(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당")
 _CUE_IN = re.compile(_CUE)
 _CLOSE_VERB = re.compile(r"마감|마쳤|마치|끝냈|끝났|출발|시작|종료|거래됐|거래되었|마무리")
 _COMMOD_PRICE = re.compile(_COMMOD.pattern[:-4] + r"\s*가격")
 # 이동 매치는 셈·지표 주어나 품목 가격이 숫자 바로 앞에 붙어 있을 때만 버린다('배당 기대에 1,264,000에서…'처럼 원인을 말하는 낱말은 거르지 않음)
-_ATTACHED = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD_PRICE.pattern + r")(?:\s*(?:추정치|전망치|예상치|컨센서스|가이던스|전망|추정|예상|단가))?\s*(?:\([^)]*\))?\s*(?:은|는|이|가|도|의)?\s*(?:\([^)]*\))?"
-                       r"(?:\s*(?:전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?\s*(?:[\d,.]+\s*(?:→|->|에서)\s*)*[\d,.]*$")
+_ATTACHED = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD_PRICE.pattern + r")(?:\s*(?:선물|근월물|현물|\d+(?:개월|년)물))?(?:\s*(?:추정치|전망치|예상치|컨센서스|가이던스|전망|추정|예상|단가))?(?:\s*(?:하향|상향|조정))?\s*(?:\([^)]*\))?\s*(?:은|는|이|가|도|의)?\s*(?:\([^)]*\))?"
+                       r"(?:\s*(?:전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?\s*\(?\s*(?:[\d,.]+\s*(?:→|->|에서)\s*)*[\d,.]*$")
 _CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*원")
 
 
@@ -97,7 +97,7 @@ def money_hit(t: str):
         skip = False
         if not _CUE_IN.search(g) and (_MOVE.search(g) or _CLOSE_VERB.search(g)) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
             skip = True
-        elif g.startswith(("가격", "단가")) and (_COMMOD.search(t[max(ls, m.start() - 12):m.start()]) or _PER_UNIT.search(g)):
+        elif g.startswith(("가격", "단가")) and (_COMMOD.search(t[max(ls, m.start() - 30):m.start()]) or _PER_UNIT.search(g)):
             skip = True
         elif not _CUE_IN.search(g) and _CO_AMT.search(g):
             skip = True   # 회사 금액(억·조 + 원)은 허용(운영자 결정 2026-11-08). 주당 금액·종가와 원 단위 가격(126만 원)은 계속 막는다
@@ -213,16 +213,20 @@ def _skip_row(label: str) -> bool:
     return bool(re.search(r"거래일|기간", lb)) and not _ROW_TIME.search(lb)   # '기준 거래일'·'평가 기간 끝'은 시점 행이라 본다
 
 
+_TBL_SEP = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+
+
 def _table_prices(t: str) -> str | None:
     """세로형 마크다운 표: 가격 열(_price_col) 아래의 가격 꼴 숫자를 원 가격으로 본다. 지표 행(_skip_row)과 억·조 금액 칸은 건너뛴다."""
     rows = [l for l in t.splitlines()]
     i = 0
     while i < len(rows):
-        if rows[i].lstrip().startswith("|") and i + 1 < len(rows) and re.match(r"^\s*\|?\s*:?-+\s*:?\|", rows[i + 1]):
+        if "|" in rows[i] and i + 1 < len(rows) and _TBL_SEP.match(rows[i + 1]):     # 맨 앞 '|'가 없는 GFM 표도
+            lead = rows[i].lstrip().startswith("|")
             head = [c.strip() for c in rows[i].strip().strip("|").split("|")]
             cols = [k for k, c in enumerate(head) if _price_col(c)]
             j = i + 2
-            while j < len(rows) and rows[j].lstrip().startswith("|"):
+            while j < len(rows) and (rows[j].lstrip().startswith("|") if lead else ("|" in rows[j] and rows[j].strip())):
                 cells = [c.strip() for c in rows[j].strip().strip("|").split("|")]
                 if cells and _skip_row(cells[0]):
                     j += 1
@@ -257,7 +261,7 @@ def _known_closes(path: Path) -> list[str]:
                         out.add(f"{c:,.0f}")
                     if c >= 10000:
                         out.add(f"{c:.0f}")
-                    out |= {f"{c:,.2f}", f"{c:.2f}"}   # 180.00 같은 소수 둘째 자리 표기
+                    out |= {f"{c:,.2f}", f"{c:.2f}", f"{c:,.1f}", f"{c:.1f}"}   # 180.00 · 1,396,000.0 같은 소수 표기
                     if c >= 10000:   # 만 단위 표기: 126.4만, 126만 4천, 126만4천
                         a, r = divmod(int(c), 10000)
                         out.add(f"{c / 10000:.4f}".rstrip("0").rstrip(".") + "만")
@@ -304,6 +308,8 @@ def check(path: Path) -> list[str]:
     vs = re.findall(r"^판정:[ \t]*(.*?)[ \t]*$", t, re.M)
     if len(vs) != 1:
         errs.append(f"'판정:' 줄은 정확히 하나 — 지금 {len(vs)}개")
+    elif not re.search(r"^판정:", _section(t, "## 3. 판정"), re.M):
+        errs.append("'판정:' 줄은 3절(## 3. 판정) 안에 둔다")
     elif vs[0] not in VERDICTS:
         errs.append(f"판정 줄에는 판정 이름 하나만: <{' | '.join(VERDICTS)}> (이유·부정 표현은 다음 줄에) — 지금 {vs[0]!r}")
     tb = re.sub(r"^- 종목:.*$", "", re.sub(r"https?://\S+", "", t), flags=re.M)   # 머리글의 종목코드·출처 URL 숫자는 대조하지 않음
@@ -321,11 +327,13 @@ def check(path: Path) -> list[str]:
     if mm:
         errs.append(f"원 가격·금액 표현 금지: {mm.group(0)!r} (수익률 %·지수 대비 %p만)")
     s2 = t[t.find("## 2."):t.find("## 3.")] if "## 2." in t and "## 3." in t else ""
-    if s2 and "출처 확인 못함" not in s2:
-        if not _URL.search(s2):
+    if s2:
+        url_lines = [x for x in s2.splitlines() if _URL.search(x)]
+        if not url_lines and "출처 확인 못함" not in s2:
             errs.append("2절에 확인한 출처 URL(https://도메인/…)이 하나 이상 필요(못 찾았으면 '출처 확인 못함'과 이유를 적는다)")
-        elif not _STAMP.search(s2):
-            errs.append("2절 출처에 확보 시각(YYYY-MM-DDTHH:MM(:SS)+09:00)이 필요")
+        nostamp = [x for x in url_lines if not _STAMP.search(x)]
+        if nostamp:
+            errs.append(f"2절 출처마다 확보 시각(YYYY-MM-DDTHH:MM(:SS)+09:00)이 필요 — 시각 없는 출처 줄 {len(nostamp)}개")
     s5 = _section(t, "## 5. 다음에 바꿀 점")
     fr = next((x for x in _FIXED_RULE.finditer(s5) if not _HABIT.search(x.group(0))), None)
     if fr:
@@ -337,11 +345,11 @@ _URL = re.compile(r"https?://[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?:[/?#]\S*)?")
 _STAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:~\d{2}(?::\d{2})?)?\+09:00")
 # 경험칙: '항상·영구·절대·무조건·앞으로 계속 … 제외/빼/넣/편입/사지 않/피한' (형식 검사일 뿐 — 의미 검수는 주간 복기가 한다)
 _FX_ALWAYS = r"(?:항상|영구히?|절대|무조건|앞으로)"
-_FX_TARGET = r"(?:종목|업종|섹터|티커|테마|[가-힣]{1,6}(?<!매)주(?![가-힣])|[가-힣]{1,6}주(?=[는은를을도만]))"
+_FX_TARGET = r"(?:[가-힣A-Za-z&]{2,12}(?:은|는|을|를|도)(?![가-힣])|종목|업종|섹터|티커|테마|[가-힣]{1,6}(?<!매)주(?![가-힣])|[가-힣]{1,6}주(?=[는은를을도만]))"
 _FX_VERB = r"(?:제외|빼|뺀|뺄|넣|편입|사지\s*않|안\s*산|매수하지\s*않|피한|피하)"
 _FIXED_RULE = re.compile(_FX_ALWAYS + r"[^.\n]{0,25}?" + _FX_TARGET + r"[^.\n]{0,20}?" + _FX_VERB
                          + r"|" + _FX_TARGET + r"[^.\n]{0,20}?" + _FX_ALWAYS + r"[^.\n]{0,20}?" + _FX_VERB)
-_HABIT = re.compile(r"점검|체크리스트|항목|근거|논리|기준|확인|가정")
+_HABIT = re.compile(r"점검|체크리스트|항목|근거|논리|기준|확인|가정|일정|지표|데이터|자료|위험|변수|시나리오|(?<!무)조건|요인|비중|가중|후보군에서\s*빼지")
 
 
 def _layout(path: Path) -> str:
