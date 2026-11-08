@@ -103,21 +103,9 @@ def _kr_codes() -> dict:
     return _KR_CODES
 
 
-_DAE_RE = re.compile(r"(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*[천만](?:\s*" + _NUM + r"\s*천?)?\s*(?:여\s*)?대(?!비|\s*(?:초반|중반|후반))")
-# '만 대'가 대수라는 증거: 판매·생산 낱말이 숫자 바로 앞에 붙거나(판매 120만 대·판매량은 46만 대에서 …) '대' 바로 뒤에 판매 동사가 붙을 때(120만 대를 팔았다)만.
-_SALES = r"(?:판매|생산|출하|인도(?=량|\s*대수|했|된|분|\s*[:：])|공급|수출(?!주)|내수|등록|수주|증산|감산|연산|리콜(?:\s*대상)?)(?:량|실적|능력|\s*대수)?"
-_PERIOD = r"(?:(?:약|연간|월간|월|올해|모두|누적|(?:19|20)?\d{2}년|\d{1,2}(?:분기|월)|[1-4]Q|상반기|하반기)\s*)*"
-_DAE_TAIL = (r"\s*(?:은|는|이|가|도|을|를|:|\(|\|)?\s*" + _PERIOD +
-             r"(?:[\d,.]+\s*[천만](?:\s*[\d,]+\s*천?)?\s*(?:여\s*)?대(?:에서|→|->|~)\s*" + _PERIOD + r")?$")
-# 강한 증거: 판매·생산 낱말(또는 '판매 목표'·'연간 목표')이 숫자 바로 앞에 붙음
-_DAE_PRE = re.compile(r"(?:" + _SALES + r"(?:\s*(?:목표|계획|전망치|예상치|컨센서스))?|(?:연간|올해|월간)\s*(?:판매\s*|생산\s*)?(?:목표|계획))" + _DAE_TAIL)
-# 약한 증거: 제품·시설 낱말(낱말 시작) — 판매 동사·판매 낱말이 함께 있을 때만
-_DAE_WEAK = re.compile(r"(?<![가-힣])(?:공장|누적|전기차|자동차|스마트폰|로봇|드론|차량|PC)(?:의)?\s*" + _DAE_TAIL)
-_DAE_POST = re.compile(r"(?:를|가|도|씩)?\s*(?:팔았|팔린|팔아|팔렸|판매|생산|출하|인도(?!\s*(?:증시|시장|경제|루피))|공급했|수출했|넘게\s*팔|리콜)(?![가-힣]*\s*(?:부진|둔화|차질|우려|감소|쇼크|악화|소식))")
-_DAE_POST2 = re.compile(r"(?:로|까지)\s*(?:늘린|줄인|늘리|줄이|증산|감산)|\s*(?:판매\s*|생산\s*)?(?:목표|계획|생산능력|캐파|보급|규모의\s*리콜)")   # 판매 낱말·약한 증거와 함께일 때만
-_DAE_NO = re.compile(r"주가|종가|시가(?!총액)|목표가|목표주가|환율|지수|가격|시세|코스피|코스닥|나스닥|고점|저점|매수가|매도가|평단|증권가|증권사|애널리스트|리포트|투자의견|컨센서스|매수|매도|비중|단가|진입|분할")
-_DAE_MOVE = re.compile(r"밀렸|밀린|밀려|내려|내린|떨어|하락|상승|올랐|오른|반등|출발|마감|미끄러|주저앉|회복|이탈|횡보|머물|저항|지지|버티|초입|낮아|높아|하향|상향|무너|붕괴|추락|돌파|급락|빠졌|빠지|깨|후퇴|되돌|내줬|올려|낮춰|제시|시작|잡았")
-_SENT = re.compile(r"(?<!\d)[.!?](?!\d)|\n")
+# '만 대'(판매 대수 절대값)는 쓰지 않는다(운영자 결정 2026-11-08, 방법 A): 가격대(9만 대에서·18만대로)와 문장 꼴로 구분할 수 없다.
+# 판매 대수는 '3분기 판매 대수, 전년 동기 대비 +6%'처럼 대상 기간·비교 기준과 변화율로 쓰고, 절대 물량은 허용된 원자료에서 확인한다.
+_DAE_RE = re.compile(r"(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*[천만](?:\s*" + _NUM + r"\s*천?)?\s*(?:여\s*)?대(?!비)")
 
 
 def number_issues(t: str, limit: int = 3) -> list[str]:
@@ -136,27 +124,6 @@ def number_issues(t: str, limit: int = 3) -> list[str]:
         nm = codes.get(m.group(1))
         if nm and body[:m.start()].rstrip().endswith(nm):
             for k in range(m.start(1), m.end(1)):
-                masked[k] = " "
-    import bisect
-    bounds = [x.end() for x in _SENT.finditer(body)]                            # 문장 경계는 한 번만 계산(긴 글에서 제곱 시간 방지)
-    for m in _DAE_RE.finditer(body):                                            # '만 대': 판매 낱말이 붙어 있고, 문장에 가격 낱말·'대' 뒤 가격 움직임이 없을 때만 대수
-        k = bisect.bisect_right(bounds, m.start())
-        ls = bounds[k - 1] if k else 0
-        k2 = bisect.bisect_left(bounds, m.end() + 1)
-        le = bounds[k2] - 1 if k2 < len(bounds) else len(body)
-        sent, pre, post = body[ls:le], body[ls:m.start()], body[m.end():le]
-        has_sales = re.search(_SALES, sent)
-        weak = _DAE_WEAK.search(pre[-28:])
-        yearly = re.search(r"(?:연간|올해|월간)\s*$", pre)
-        exp = re.search(r"(?:예상치|전망치|예상)\s*(?:은|는|인|\()?\s*$", pre) and has_sales     # '인도량은 …, 예상치 47만 대'
-        pm = _DAE_PRE.search(pre[-32:])
-        strong = pm or _DAE_POST.match(post)
-        loose = ((re.match(r"\s*로\s*집계", post) and has_sales) or (_DAE_POST2.match(post) and (has_sales or weak or yearly))
-                 or (weak and has_sales) or exp)
-        near = pre[-(len(pm.group(0)) + 4):] if pm else pre[-6:]
-        price = _DAE_NO.search(near) if pm else _DAE_NO.search(sent)                     # 판매 낱말이 숫자 앞에 붙어 있을 때만 가격 낱말을 그 사이에서만 본다
-        if (strong or loose) and not price and not _DAE_MOVE.search(post[:12]):
-            for k in range(m.start(), m.end()):
                 masked[k] = " "
     for m in _ALLOW.finditer("".join(masked)):
         for k in range(m.start(), m.end()):
@@ -337,7 +304,8 @@ def check(path: Path) -> list[str]:
         errs.append(f"길이 {len(t)}자 — 600~6000자")
     bad = number_issues(t) if len(t) <= 6000 else []
     if bad:
-        errs.append("뜻을 확인할 수 없는 숫자(원 가격·지표 수준값·단위 없는 숫자 금지 — 수익률 %·%p, 억·조 금액, 날짜, 단위 붙은 개수로 쓴다): " + "; ".join(bad))
+        hint = " — 판매 대수는 '3분기 판매 대수, 전년 동기 대비 +6%'처럼 기간·비교 기준과 변화율로 쓴다(절대 물량은 원자료에서 확인)" if _DAE_RE.search(t) else ""
+        errs.append("뜻을 확인할 수 없는 숫자(원 가격·지표 수준값·단위 없는 숫자 금지 — 수익률 %·%p, 억·조 금액, 날짜, 단위 붙은 개수로 쓴다): " + "; ".join(bad) + hint)
     s2 = t[t.find("## 2."):t.find("## 3.")] if "## 2." in t and "## 3." in t else ""
     if s2:
         url_lines = [x for x in s2.splitlines() if _URL.search(x)]
