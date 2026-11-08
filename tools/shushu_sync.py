@@ -201,7 +201,13 @@ def _classify(ext: Path, act: dict, files: list[str], main: Path) -> tuple[list[
     return units, ignored, problems
 
 
-MAX_TRIES = 3            # 받을 수 없음 등 일시 오류는 이만큼 실행에서 다시 시도한 뒤에만 오류로 확정
+MAX_TRIES = 3            # 일시 오류가 이만큼 이어지면 슈슈 팀에 '처리 지연'을 알린다(재시도는 계속)
+
+
+def _retry_until(round_day, cfg) -> datetime:
+    """일시 오류(통신·서버·받기 실패) 재시도 끝: 그 라운드 원본 공개 마감(12:00). 횟수로 버리지 않는다(운영자 결정 2026-11-08).
+    판정은 언제 처리돼도 원래 push 시각이고 08:30 마감은 그대로다. 끝까지 처리하지 못하면 그 라운드를 운영자 확인 대기로 둔다."""
+    return L.reveal_deadline(round_day, cfg)
 TEAMS = ("shushu", "sandbox-shushu")
 
 
@@ -301,7 +307,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             # '마감 전에 지워졌으니 대체됨' 같은 예외는 두지 않는다: 태그 등 기록에 안 남는 ref로 커밋을 살려 두면
             # 마감 뒤 '받을 수 있음/없음'을 골라 지문을 고를 수 있기 때문(5차 검수 S1). 받을 수 없음은 결코 유리해지지 않게 한다.
             superseded = False
-            final = n >= MAX_TRIES
+            final = n >= MAX_TRIES and now >= _retry_until(R, cfg)   # 시간 기준: 공개 마감 전에는 계속 재시도(마감 전 확정·폐기 없음)
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
                                             "attempt": n, "error": str(e)[:300]})
             out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
@@ -364,7 +370,9 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             kind = "release_error" if g.get("release") else "push_error"
             key = g["release"]["held_id"] if g.get("release") else act["id"]
             n = tries.get((kind, key), 0) + 1
-            final = n >= MAX_TRIES
+            rday = date.fromisoformat(max(g["ready"][0]["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())) if g.get("release") \
+                else _next_round(pushed, cfg)
+            final = n >= MAX_TRIES and now >= _retry_until(rday, cfg)
             rec = {"repo": repo, "activity_id": act["id"], "status": "error", "attempt": n, "error": str(e)[:300],
                    "pushed_at": pushed.isoformat(), "run_id": str(run_id)}
             if g.get("release"):
@@ -376,6 +384,14 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             L.append(d, "external_pushes", rec)
             if final and not g.get("release") and g["held"]:
                 _write_held(d, repo, act, pushed, g["base"].get("actor"), g["held"])
+            if final and not g.get("release") and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
+                # 지문·원본이 든 push를 공개 마감까지 처리하지 못함: 다른 제출을 대신 인정하지 않고 운영자 확인 대기
+                for u in g["ready"]:
+                    if u["kind"] in ("commitment", "reveal"):
+                        team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
+                        L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"],
+                                                        "pushed_at": pushed.isoformat(), "reason": "지문·원본 push를 공개 마감까지 처리하지 못함"})
+                        bad.add((team, u["rd"]))
             out.append({**rec, "status": "error" if final else "retry", "receipts": [], "lines": []})
             if g.get("release"):
                 u = g["ready"][0]
@@ -669,11 +685,23 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     if mk and live and "08:30" < hm < "11:40" and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 공개 마감 12:00 KST.")
-    taint = (("shushu", rd) in tainted(L.read_ledger(d, "external_pushes")))
+    xp = L.read_ledger(d, "external_pushes")
+    taint = (("shushu", rd) in tainted(xp))
+    # 일시 오류로 재시도 중인 push(아직 처리 기록 없음): 3회 이어지면 바로 알린다(재시도는 공개 마감까지 계속)
+    done_ids = {x["activity_id"] for x in xp if x.get("type", "push") == "push"}
+    retrying = {}
+    for x in xp:
+        if x.get("type") == "push_error" and x["activity_id"] not in done_ids:
+            retrying[x["activity_id"]] = x
+    for aid, x in retrying.items():
+        if int(x.get("attempt") or 0) >= MAX_TRIES:
+            add("delay", str(aid), f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')}) 처리가 일시 오류로 늦어지고 있습니다"
+                f"({x.get('attempt')}회). 로로 쪽이 자동으로 계속 다시 시도하고, 처리되면 **원래 push 시각**으로 판정합니다(08:30 마감 기준 그대로). "
+                "같은 파일을 다시 push하거나 브랜치를 지우지 마세요. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다.")
     if mk and live and "08:30" < hm < "11:40" and taint:
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
             f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **12:00 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
-    if mk and live and "08:45" <= hm < "11:40" and not taint and not ({"committed", "accepted"} & st):   # 08:28~08:30 push는 2분 대기 뒤 처리되므로 08:45부터
+    if mk and live and "08:45" <= hm < "11:40" and not taint and not retrying and not ({"committed", "accepted"} & st):   # 재시도 중이면 '지문 없음' 대신 위 '처리 지연'으로   # 08:28~08:30 push는 2분 대기 뒤 처리되므로 08:45부터
         add("missing", rd, f"@codex 오늘({rd}) 지문 영수증이 없습니다. 08:30 전에 `submit/{rd}.sha256`을 push했다면 "
             "`from-league/sync-log.jsonl`에서 처리 결과를 확인해 주세요. 마감 뒤 지문은 인정되지 않습니다(소급 없음). 확인 결과를 `to-roro/`로 알려 주세요.")
     if today.weekday() == 5 and hm >= "10:40" and live:

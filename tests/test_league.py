@@ -1126,14 +1126,18 @@ class ShushuRepoSync(unittest.TestCase):
         # 마감 전 push를 받을 수 없으면: 순서를 지키려고 뒤의 push는 기다린다
         self.assertEqual(sorted(r["status"] for r in out), ["processed", "retry"])
         self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:35:00+09:00")], ["retry"])
-        # 3번째에 확정 → 그 라운드는 운영자 확인 대기, 뒤 지문은 자동 접수하지 않음(골라 되살리기 차단)
-        out3 = self.sync(f"{rd}T08:45:00+09:00")
+        # 운영자 결정(11/8): 횟수로 버리지 않고 공개 마감(12:00)까지 재시도. 3회째에는 '처리 지연' 깨우기
+        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:45:00+09:00")], ["retry"])
+        self.assertIn("delay", [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T08:50:00+09:00"))])
+        self.assertNotIn("missing", [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T08:50:00+09:00"))])
+        # 공개 마감까지 못 받으면 확정 → 그 라운드는 운영자 확인 대기, 뒤 지문은 자동 접수하지 않음(골라 되살리기 차단)
+        out3 = self.sync(f"{rd}T12:05:00+09:00")
         self.assertEqual([r["status"] for r in out3], ["error", "processed"])
         self.assertEqual(out3[1]["receipts"], []); self.assertEqual(len(out3[1]["held_files"]), 1)
         self.assertEqual(L.read_ledger(self.repo / "league", "submissions"), [])
         # 운영자 확인 뒤 해제하면 원래 push 시각(08:20)으로 판정
         L.append(self.repo / "league", "external_pushes", {"repo": "o/shushu", "type": "untaint", "team": "shushu", "round": rd, "reason": "확인"})
-        r = self.sync(f"{rd}T09:00:00+09:00")
+        r = self.sync(f"{rd}T12:10:00+09:00")
         self.assertEqual(r[0]["receipts"][0]["status"], "committed")
         self.assertEqual(L.read_ledger(self.repo / "league", "submissions")[0]["pushed_at"], f"{rd}T08:20:00+09:00")
 
@@ -1305,16 +1309,23 @@ class ShushuRepoSync(unittest.TestCase):
         self.sync(f"{rd}T08:45:00+09:00"); self.sync(f"{rd}T08:55:00+09:00")
         self.assertEqual([x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "committed"], [])
 
-    def test_failure_settled_before_deadline_does_not_taint(self):
-        """마감 전에 오류로 확정된 push는 다시 처리되지 않으니 고를 여지가 없다 → 확인 대기로 돌리지 않음."""
+    def test_transient_failure_retried_until_reveal_deadline_not_dropped(self):
+        """운영자 결정(2026-11-08): 일시 오류는 3회로 폐기하지 않고 공개 마감까지 재시도. 뒤 지문은 원래 push 시각으로 판정.
+        (예전: 마감 전 3회째에 오류로 확정·폐기)"""
         rd = "2026-11-10"
         self.acts.append({"id": 77, "before": self.last, "after": "c" * 40, "timestamp": "2026-11-09T21:00:00Z",
                           "activity_type": "push", "ref": "refs/heads/main", "actor": {"login": "x"}})       # 06:00 KST
         for t in ("07:05", "07:35", "08:00"):
             self.sync(f"{rd}T{t}:00+09:00")
+        ext = L.read_ledger(self.repo / "league", "external_pushes")
+        self.assertEqual([(x["type"], x["attempt"]) for x in ext], [("push_error", 1), ("push_error", 2), ("push_error", 3)])
         self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
-        out = self.sync(f"{rd}T08:30:00+09:00")
+        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:30:00+09:00")], ["retry"])       # 순서를 지키려고 뒤 지문은 기다림
+        # 그사이 받을 수 있게 되면(일시 오류 해소) 원래 시각 순서대로 처리 → 지문 committed(판정은 08:20 push 시각)
+        self.acts = [a for a in self.acts if a["id"] != 77]
+        out = self.sync(f"{rd}T09:10:00+09:00")
         self.assertEqual(out[0]["receipts"][0]["status"], "committed")
+        self.assertEqual(L.read_ledger(self.repo / "league", "submissions")[0]["pushed_at"], f"{rd}T08:20:00+09:00")
         self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
 
     def test_deleted_branch_kept_by_tag_cannot_be_picked(self):
@@ -1649,8 +1660,39 @@ class V2ReviewFixes(unittest.TestCase):
         import dashboard_data as D
         ver = lambda now: {(a["team"], a["agent_id"]): a["version"] for a in D.build(now)["agents"]}
         b, a = ver(datetime(2026, 11, 8, 12, 0, tzinfo=L.KST)), ver(datetime(2026, 11, 9, 9, 0, tzinfo=L.KST))
-        self.assertEqual([v for k, v in b.items() if k[1] in ("buffett", "s1")], [1, 1])
-        self.assertEqual([v for k, v in a.items() if k[1] in ("buffett", "s1")], [2, 2])
+        self.assertEqual([v for k, v in b.items() if k[1] in ("value", "s1")], [1, 1])
+        self.assertEqual([v for k, v in a.items() if k[1] in ("value", "s1")], [2, 2])
+
+
+class PublicAlias(unittest.TestCase):
+    """운영자 결정(2026-11-08): 공유 결과에는 실존 인물 이름이 없는 공개 별칭만. 원장·내부 ID는 그대로."""
+    REAL = ("buffett", "lynch", "dalio", "wood", "burry")
+
+    def test_bundle_and_site_have_no_real_names_and_stay_consistent(self):
+        import dashboard_data as D
+        b = D.bundle(datetime(2026, 11, 8, 20, 0, tzinfo=L.KST))
+        txt = json.dumps(b, ensure_ascii=False)
+        for n in self.REAL:
+            self.assertNotIn(n, txt)
+        ag = {(a["team"], a["agent_id"]) for a in b["agents"]}
+        for p in b["picks"]:
+            self.assertIn((p["team"], p["agent_id"]), ag)                      # 종목 ↔ 캐릭터 연결 유지
+            self.assertIn(f"-{p['agent_id']}-{p['market']}", p["pick_id"])     # pick_id 와 agent_id 가 같은 별칭
+        # 원장은 내부 ID 그대로(과거 성적 연결)
+        self.assertTrue(any(p["agent_id"] == "buffett" for p in L.read_ledger(L.ROOT / "league" / "sandbox", "picks")))
+        with tempfile.TemporaryDirectory() as tmp:
+            L.build_site(L.ROOT / "league", Path(tmp) / "site", now=datetime(2026, 11, 8, 20, 0, tzinfo=L.KST))
+            js = (Path(tmp) / "site" / "data" / "table.js").read_text()
+            for n in self.REAL:
+                self.assertNotIn(n, js)
+
+    def test_alias_map_is_stable_and_distinct(self):
+        cfg = L.load_config(L.ROOT / "league")
+        m = cfg["public_alias"]["claude"]
+        self.assertEqual(m, {"buffett": "value", "lynch": "garp", "dalio": "macro", "wood": "disrupt", "burry": "contra"})   # 바꾸면 과거 공개 기록과 끊긴다
+        ids = {a["id"] for k, v in L.load_roster(L.ROOT / "league").items() if isinstance(v, list) for a in v if isinstance(a, dict) and "id" in a}
+        self.assertFalse(set(m.values()) & ids)                                # 다른 에이전트 ID와 겹치지 않음
+        self.assertEqual(len(set(m.values())), len(m))
 
 
 class ShushuV2(unittest.TestCase):

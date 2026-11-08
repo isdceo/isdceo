@@ -297,6 +297,36 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
         out["logos"] = [{"key": f"{m}|{t}", "market": m, "ticker": t, "logo": LG.fetch_logo(m, t) or ""} for m, t in seen]
     out["calendar"] = calendar(now, base=base)
     out["notices"] = [{"file": f.name} for f in sorted((L.ROOT / "docs" / "codex-notices").glob("*.md"), reverse=True)]
+    return public_alias(out, L.load_config(base))
+
+
+def public_alias(out: dict, cfg: dict) -> dict:
+    """공유 결과에서만 내부 에이전트 ID를 공개 별칭으로 바꾼다(config public_alias, 운영자 결정 2026-11-08).
+    원장·내부 ID는 그대로라 과거 성적과의 연결이 끊기지 않고, 같은 묶음 안의 agent_id·pick_id·key가 함께 바뀌어 서로 맞는다."""
+    amap = {(team, i): a for team, m in (cfg.get("public_alias") or {}).items() for i, a in m.items()}
+    if not amap:
+        return out
+    teams_of = lambda t: {t, t.removeprefix("sandbox-")}
+    lab2team = {v: k for k, v in TEAM_LABEL.items()}
+    def team_key(x):
+        t = x.get("team")
+        return lab2team.get(t, t)
+    def alias_pid(pid: str) -> str:
+        m = re.fullmatch(r"(\d{4}-\d{2}-\d{2})-((?:sandbox-)?[a-z0-9]+)-([a-z0-9_]+)-(KR|US)", str(pid))
+        if not m:
+            return pid
+        a = amap.get((m.group(2).removeprefix("sandbox-"), m.group(3)))
+        return f"{m.group(1)}-{m.group(2)}-{a}-{m.group(4)}" if a else pid
+    for sec in ("picks", "agents", "standings"):
+        for x in out.get(sec, []):
+            t = team_key(x)
+            a = next((amap[(tt, x.get("agent_id"))] for tt in teams_of(str(t)) if (tt, x.get("agent_id")) in amap), None)
+            if a:
+                old = x["agent_id"]; x["agent_id"] = a
+                if isinstance(x.get("key"), str):
+                    x["key"] = "|".join(a if part == old else part for part in x["key"].split("|"))
+            if "pick_id" in x:
+                x["pick_id"] = alias_pid(x["pick_id"])
     return out
 
 

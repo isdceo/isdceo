@@ -133,5 +133,15 @@
     "enabled": true,
     "min_available": 1,
     "note": "운영자 상시 위임(2026-11-07): 어느 리그든 승인된 대기 후보가 이 수 이하이면 슈슈 팀에 새 후보를 자동 요청(이슈 @codex)하고, 받은 안이 tools/add_character.py 검사를 통과하면 명단·승인 원장·캐릭터 그림에 자동 반영. 로로 팀은 주간 복기 세션이 같은 도구로 추가."
-  }
+  },
+  "public_alias": {
+    "claude": {
+      "buffett": "value",
+      "lynch": "garp",
+      "dalio": "macro",
+      "wood": "disrupt",
+      "burry": "contra"
+    }
+  },
+  "public_alias_note": "공유 결과(results.json·게임 화면)에서만 쓰는 공개용 에이전트 별칭(운영자 결정 2026-11-08: 실존 인물 이름 제외). 원장·내부 ID는 그대로이며, 한 번 정한 별칭은 바꾸지 않는다(과거 성적 연결 유지)."
 }
