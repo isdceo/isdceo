@@ -912,6 +912,7 @@ html,body{background:var(--arena0)}
   // 구역 판 자리: 테이블 카드·이름판·팀 표찰과 겹치지 않는 빈 띠에만 둔다(없으면 숨김). 재검수: 카드를 가리면 안 됨
   const placeLanes = () => {
     const el = document.querySelector('#lobby .lanes'); if (!el) return;
+    if (document.querySelector('#lobby.intro')) { el.style.visibility = 'hidden'; return; }   // 첫 등장 연출 중에는 카드가 움직이므로 끝난 뒤 잰다
     el.style.display = ''; el.style.visibility = 'hidden'; el.style.top = '0px'; const h = el.getBoundingClientRect().height, H = innerHeight;   // 숨긴 상태에서도 높이를 제대로 잰다
     const rects = [...document.querySelectorAll('#lobby .pair, #lobby .plate, #lobby .teamtag')].map((x) => x.getBoundingClientRect());
     let lo, hi;
@@ -927,7 +928,7 @@ html,body{background:var(--arena0)}
   addEventListener('resize', () => requestAnimationFrame(placeLanes));
   const renderLobby = () => {
     const L = $('#lobby'); L.innerHTML = '';
-    requestAnimationFrame(() => requestAnimationFrame(placeLanes)); setTimeout(placeLanes, 2600);   // 배치가 끝난 뒤 재고, 등장 연출 뒤 다시 잰다(그 전엔 숨김)
+    requestAnimationFrame(() => requestAnimationFrame(placeLanes));   // 배치가 끝난 뒤 잰다(첫 등장 연출 중이면 그 연출이 끝날 때 잰다)
     if (PORTRAIT.matches) {
       const sTop = toMiddle(teamS), cBot = toMiddle(teamC);
       seats = [...sTop, ...cBot];
@@ -942,7 +943,7 @@ html,body{background:var(--arena0)}
     }
   };
   renderLobby();
-  if (!reduce) { $('#lobby').classList.add('intro'); const off = () => setTimeout(() => $('#lobby').classList.remove('intro'), 2400); (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(off)); }   // 처음 열 때만 딜링 등장
+  if (!reduce) { $('#lobby').classList.add('intro'); const off = () => setTimeout(() => { $('#lobby').classList.remove('intro'); requestAnimationFrame(() => requestAnimationFrame(placeLanes)); }, 2400); (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(off)); }   // 처음 열 때만 딜링 등장
   PORTRAIT.addEventListener('change', () => { seed = 7; renderLobby(); });
 
   const fzChip = (el, k, d, h) => { for (let j = 0; j < h; j++) { const c = document.createElement('div'); c.className = 'chip'; c.style.setProperty('--d', d + 'px'); c.style.setProperty('--c', chipSet[k][0]); c.style.setProperty('--e', chipSet[k][1]); c.style.top = (-j * d * .12) + 'px'; c.style.left = d / 2 + 'px'; c.innerHTML = '<i></i>'; el.appendChild(c); } el.style.width = d + 'px'; el.style.height = d * .42 + 'px'; };
