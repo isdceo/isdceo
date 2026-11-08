@@ -131,9 +131,13 @@ def number_issues(t: str, limit: int = 3) -> list[str]:
         if nm and body[:m.start()].rstrip().endswith(nm):
             for k in range(m.start(1), m.end(1)):
                 masked[k] = " "
+    import bisect
+    bounds = [x.end() for x in _SENT.finditer(body)]                            # 문장 경계는 한 번만 계산(긴 글에서 제곱 시간 방지)
     for m in _DAE_RE.finditer(body):                                            # '만 대': 판매 낱말이 붙어 있고, 문장에 가격 낱말·'대' 뒤 가격 움직임이 없을 때만 대수
-        ls = max([0] + [x.end() for x in _SENT.finditer(body, 0, m.start())])
-        le = next((x.start() for x in _SENT.finditer(body, m.end())), len(body))
+        k = bisect.bisect_right(bounds, m.start())
+        ls = bounds[k - 1] if k else 0
+        k2 = bisect.bisect_left(bounds, m.end() + 1)
+        le = bounds[k2] - 1 if k2 < len(bounds) else len(body)
         sent, pre, post = body[ls:le], body[ls:m.start()], body[m.end():le]
         ok = _DAE_PRE.search(pre[-24:]) or _DAE_POST.match(post) or (re.match(r"\s*로\s*집계", post) and re.search(_SALES, sent))
         if ok and not _DAE_NO.search(sent) and not _DAE_MOVE.search(post[:12]):
@@ -148,7 +152,8 @@ def number_issues(t: str, limit: int = 3) -> list[str]:
         fx = len(pf) == 6 and pf[:3] in _BAD_PFX and pf[3:] in _BAD_PFX                   # USDJPY 같은 통화쌍
         if pf.replace("&", "") in _INDEX_PFX and re.fullmatch(_IDX[:_IDX.index(")") + 1], num):
             continue                                                                   # S&P500·KOSPI200은 지수 이름
-        tick = pf in (_US_TICKERS or ()) and (len(num) >= 3 or "." in num)                # GS25 같은 상품명은 두 자리까지 둔다
+        tick = (pf in (_US_TICKERS or ()) and (len(num) >= 3 or "." in num)              # GS25·ARM64·USB4 같은 이름은 두 자리까지 둔다
+                and not (pf in ("RTX", "GTX") and re.fullmatch(r"[1-9]\d{3}", num)))    # RTX5090은 제품명
         if pf.replace("&", "") in _BAD_PFX or tick or fx:
             for k in range(m.start(2), m.end(2)):
                 masked[k] = body[k]
