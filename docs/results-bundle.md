@@ -19,7 +19,7 @@
 | 시점 | 무엇이 바뀌나 |
 |---|---|
 | 제출 push마다 (영수증 봇) | `receipts`, `teams` — 지문 `committed`, 원본 `accepted` 등. 08:30 이후 원본 공개 push 뒤에는 `picks`도 |
-| 평일 10:30 수집·채점 뒤 (자동화 켜진 뒤) | `picks`의 점수, `team_daily`, `team_weeks`, `standings` |
+| 평일 08:35 수집·채점 뒤(예비 10:30, 토요일 10:30) | `picks`의 점수, `team_daily`, `team_weeks`, `standings` |
 
 GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generated_at`으로 언제 만든 것인지 확인한다.
 
@@ -117,7 +117,7 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 | `markets` | `한국·미국` / `한국만 (미국 휴장)` / `미국만 (한국 휴장)` |
 | `deadline` | 지문 제출 마감 (08:30 KST) |
 | `reveal_until` | 원본 공개 마감 (12:00 KST) |
-| `score_at` | 채점 시각 (다음 날 10:30 KST, 금요일 라운드는 토요일) |
+| `score_at` | 채점 시각 (다음 날 08:35 KST, 금요일 라운드는 토요일 10:30) |
 
 둘 다 쉬는 날(예: 12/25, 1/1)은 줄이 없다. 기존 항목은 바뀌지 않았으므로 schema는 1 그대로다.
 

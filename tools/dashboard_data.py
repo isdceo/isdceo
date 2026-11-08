@@ -330,9 +330,16 @@ def public_alias(out: dict, cfg: dict) -> dict:
     return out
 
 
+def _score_at(dl):
+    """라운드 채점 예정 시각: 다음 날이 평일이면 08:35, 토요일이면 10:30(운영자 결정 2026-11-09)."""
+    nx = dl + timedelta(days=1)
+    return nx.replace(hour=8, minute=35) if nx.weekday() < 5 else nx.replace(hour=10, minute=30)
+
+
 def calendar(now: datetime, back: int = 14, ahead: int = 45, base: Path | None = None) -> list[dict]:
     """라운드가 열리는 날(한국·미국 중 하나라도 거래일)과 마감·채점 시각. 현황판 진행 표시용.
-    채점은 다음 날 10:30 KST 수집·채점(월~토)에서 한다: 평가 세션이 라운드 당일 종가이기 때문."""
+    채점은 다음 날 08:35 KST(평일, 토요일은 10:30) 수집·채점에서 한다: 평가 세션이 라운드 당일 종가이기 때문.
+    08:35에 덜 끝난 것은 10:30에 다시 확인한다."""
     cfg = L.load_config(Path(base or LEAGUE))
     rows, today = [], now.astimezone(L.KST).date()
     for i in range(-back, ahead + 1):
@@ -345,7 +352,7 @@ def calendar(now: datetime, back: int = 14, ahead: int = 45, base: Path | None =
                      "markets": "한국·미국" if kr and us else "한국만 (미국 휴장)" if kr else "미국만 (한국 휴장)",
                      "deadline": dl.isoformat(timespec="minutes"),
                      "reveal_until": dl.replace(hour=12, minute=0).isoformat(timespec="minutes"),
-                     "score_at": (dl + timedelta(days=1)).replace(hour=10, minute=30).isoformat(timespec="minutes")})
+                     "score_at": _score_at(dl).isoformat(timespec="minutes")})
     return rows
 
 
