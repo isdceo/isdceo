@@ -64,16 +64,16 @@ MONEY = re.compile(
     + r"|" + _CUE + r"(?:(?:이)?라(?:고|는|던)?|이었던|이던|였던|인|으로|로|는|은|가|이|도|를|을)?" + _FILL + r"(?:\s+|\s*[(:：]\s*)" + r"(?![\d,.]+\s*(?:억|조))" + _NPS + r"(?=\s*(?:을|를|이(?![가-힣])|가(?![가-힣])))"     # 단서와 숫자 사이에 짧은 낱말 1~3개
     + r"|" + _G + _N + r"\**(?:\s*\([^()\n]{1,12}\))?(?:\s*선?\s*(?:에서|에|으로|로)\s*(?:" + _DIR + r"?(?:장\s*)?마감|" + _DIR + r"출발|(?:거래|장)을?를?\s*(?:마쳤|마치|마감|끝냈|끝))|\s+마감)"
     + r"|(?<![\d/:.\-~A-Za-z&가-힣])(?:\d{1,3}(?:,\d{3})+|\d{3,})(?:\.\d+)?\**\s*(?:에|으로|로)\s*(?:출발|시작|끝났|끝냈|끝마|거래됐|거래되었|마쳤|마무리|(?:거래|장)을?를?\s*(?:시작|종료)|종료)"
-    + r"|" + _G + r"(?!\d{1,2}\.\d)" + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\s*에서\s*(?!\d{1,2}\.\d)" + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\s*(?:으로|로|까지)\s*(?:내렸|올랐|빠졌|밀렸|떨어졌|뛰었|급등|급락|하락|상승|반등|미끄러)"
-    + r"|" + _G + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\**\s*(?:→|->)\s*\**(?!\d{1,2}\.\d)" + _NP + r"(?<![억조])(?!\d|[.,]\d|\s*(?:%|억|조))"
+    + r"|" + _G + r"" + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\s*에서\s*" + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\s*(?:으로|로|까지)\s*(?:내렸|올랐|빠졌|밀렸|떨어졌|뛰었|급등|급락|하락|상승|반등|미끄러)"
+    + r"|" + _G + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\**\s*(?:→|->)\s*\**" + _NP + r"(?<![억조])(?!\d|[.,]\d|\s*(?:%|억|조))"
     + r"|" + _G + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))\s*(?:고점|저점|종가|최고가|최저가)", re.M)
 
 
 # 경험칙 뒤 거름: 문맥상 가격이 아닌 매치(셈·지표 주어의 'A에서 B로', 품목 가격, 주당 지표)는 버리고 그 다음부터 다시 찾는다
 _MOVE = re.compile(r"에서|→|->")
-_SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|배당금?|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
+_SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|배당금?|베타|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
                    r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI)(?![A-Za-z])|컨센서스|인덱스|국채|유가|브렌트")
-_COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|가스|전력|운임|선물)(?:\s+[A-Za-z0-9가-힣]{1,8}){0,2}\s*$")
+_COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|WTI|브렌트유?|유가|가스|전력|운임|선물)(?:\s+[A-Za-z0-9가-힣]{1,8}){0,2}\s*$")
 _PER_UNIT = re.compile(r"(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당")
 _CUE_IN = re.compile(_CUE)
 _CLOSE_VERB = re.compile(r"마감|마쳤|마치|끝냈|끝났|출발|시작|종료|거래됐|거래되었|마무리")
@@ -161,6 +161,9 @@ def due(d: Path) -> list[dict]:
 def due_bundle(bundle: Path, team: str, reviews: Path, mode: str = "실전") -> list[dict]:
     """공개 결과 묶음(results.json)만으로 마이너스 확정 종목을 찾는다(원장이 없는 슈슈 팀 안전 사본용).
     team은 묶음의 팀 이름 일부(예: '슈슈', '로로'). 관망·잠정·보류 제외, 복기 파일이 있으면 제외."""
+    kind = _layout(reviews / "0000-00-00" / "x-KR.md")
+    if (mode == "연습" and kind == "real") or (mode == "실전" and kind == "sandbox"):
+        raise SystemExit(f"--mode {mode}와 복기 폴더 {reviews}가 맞지 않음 — 실전은 <리그>/reviews/losses, 연습은 <리그>/sandbox/reviews/losses(또는 모드별 별도 폴더)")
     data = json.loads(bundle.read_text(encoding="utf-8"))
     out = []
     for p in data.get("picks", []):
@@ -271,9 +274,12 @@ def _known_closes(path: Path) -> list[str]:
 
 def check(path: Path) -> list[str]:
     errs = []
-    if not path.exists():
+    if not path.is_file():
         return [f"{path}: 파일 없음"]
-    t = path.read_text(encoding="utf-8")
+    try:
+        t = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        return [f"읽을 수 없는 파일(UTF-8 아님 등): {type(e).__name__}"]
     m = re.match(r"(\d{4}-\d{2}-\d{2})/([a-z0-9]+)-(KR|US)\.md$", "/".join(path.parts[-2:]))
     if not m:
         errs.append("경로는 reviews/losses/<라운드>/<에이전트>-<KR|US>.md")
@@ -289,8 +295,9 @@ def check(path: Path) -> list[str]:
         errs.append("절 순서가 다름")
     if m and t.startswith("# 손실 복기 — "):
         sb = first_id(path).startswith(f"{m.group(1)}-sandbox-")
-        under_sb = "sandbox" in path.resolve().parts
-        if sb and not under_sb and "reviews" in path.parts:
+        kind = _layout(path)
+        under_sb = kind == "sandbox"
+        if sb and kind == "real":
             errs.append("연습(sandbox-) 복기는 연습 폴더(league/sandbox/reviews/losses)에 둔다")
         elif under_sb and not sb:
             errs.append("연습 폴더의 복기는 첫 줄 pick_id가 '<라운드>-sandbox-<팀>-…'이어야 한다")
@@ -320,15 +327,26 @@ def check(path: Path) -> list[str]:
         elif not _STAMP.search(s2):
             errs.append("2절 출처에 확보 시각(YYYY-MM-DDTHH:MM(:SS)+09:00)이 필요")
     s5 = _section(t, "## 5. 다음에 바꿀 점")
-    if _FIXED_RULE.search(s5):
-        errs.append(f"5절에 특정 종목·업종을 고정으로 넣거나 빼는 규칙으로 보이는 표현: {_FIXED_RULE.search(s5).group(0)!r} — 판단 습관(점검 항목)으로 쓴다")
+    fr = next((x for x in _FIXED_RULE.finditer(s5) if not _HABIT.search(x.group(0))), None)
+    if fr:
+        errs.append(f"5절에 특정 종목·업종을 고정으로 넣거나 빼는 규칙으로 보이는 표현: {fr.group(0)!r} — 판단 습관(점검 항목)으로 쓴다")
     return errs
 
 
 _URL = re.compile(r"https?://[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?:[/?#]\S*)?")
 _STAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:~\d{2}(?::\d{2})?)?\+09:00")
 # 경험칙: '항상·영구·절대·무조건·앞으로 계속 … 제외/빼/넣/편입/사지 않/피한' (형식 검사일 뿐 — 의미 검수는 주간 복기가 한다)
-_FIXED_RULE = re.compile(r"(?:항상|영구히?|절대|무조건|앞으로\s*(?:계속|모두))[^.\n]{0,25}?(?:제외|빼|넣|편입|사지\s*않|매수하지\s*않|피한|피하)")
+_FIXED_RULE = re.compile(r"(?:항상|영구히?|절대|무조건|앞으로)[^.\n]{0,25}?(?:종목|업종|섹터|티커|테마|[가-힣]{1,6}(?<!매)주(?![가-힣])|[가-힣]{1,6}주(?=[는은를을도만]))[^.\n]{0,20}?"
+                         r"(?:제외|빼|뺀|뺄|넣|편입|사지\s*않|안\s*산|매수하지\s*않|피한|피하)")
+_HABIT = re.compile(r"점검|체크리스트|항목|근거|논리|기준|확인|가정")
+
+
+def _layout(path: Path) -> str:
+    """리그 표준 배치(<리그>/reviews/losses/<라운드>/<파일>)면 'sandbox'·'real', 아니면 'other'(별도 폴더 — 폴더 검사 안 함)."""
+    rp = path.resolve()
+    if len(rp.parents) > 3 and rp.parents[1].name == "losses" and rp.parents[2].name == "reviews":
+        return "sandbox" if rp.parents[3].name == "sandbox" else "real"
+    return "other"
 
 
 def listing(d: Path, week: str | None = None) -> list[dict]:
@@ -340,7 +358,10 @@ def listing(d: Path, week: str | None = None) -> list[dict]:
                 continue
         except ValueError:
             continue
-        t = f.read_text(encoding="utf-8")
+        try:
+            t = f.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            t = ""
         v = re.search(r"^판정:\s*(.+)$", t, re.M)
         out.append({"round_date": rd, "file": f.name, "path": str(f), "verdict": v.group(1).strip() if v else ""})
     return out
