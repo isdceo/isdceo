@@ -619,7 +619,7 @@ html,body{background:var(--arena0)}
 .sheet{background:linear-gradient(180deg,rgba(34,24,70,.97),rgba(12,9,30,.98));border-color:#9d8cff;box-shadow:0 0 0 4px rgba(30,20,70,.7),0 0 40px rgba(143,124,255,.25),0 24px 50px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.2)}
 .fastbtn{border-color:#b5a6ff;background:#221a4a}.fastbtn[aria-pressed="true"]{background:linear-gradient(180deg,#c9bcff,#7a5ce8);color:#120a30}
 @media (prefers-reduced-motion:reduce){.lane{box-shadow:none}}
-@media (orientation:portrait){.lanes{gap:6px}.lane{width:46vw;padding:.25em .3em .3em;border-radius:10px}.lane .lt{font-size:12px}.lane .lr{font-size:12.5px;gap:.2em}.lane .lr .t{font-size:10.5px}.lane small{display:none}}
+@media (orientation:portrait){.lanes{gap:6px}.lane{width:auto;max-width:47vw;padding:.25em .45em .3em;border-radius:10px}.lane .lt{font-size:12px;flex-wrap:wrap;row-gap:1px}.lane .lr{flex-basis:100%;justify-content:center;margin:0;font-size:12.5px;gap:.2em}.lane .lr .t{font-size:10.5px}.lane .lr .vs{font-size:9px}.lane small{display:none}}
 </style></head>
 <body>
 <div class="game" id="game">
