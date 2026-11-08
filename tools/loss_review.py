@@ -65,17 +65,21 @@ MONEY = re.compile(
     + r"|" + _G + _N + r"\**(?:\s*\([^()\n]{1,12}\))?(?:\s*선?\s*(?:에서|에|으로|로)\s*(?:" + _DIR + r"?(?:장\s*)?마감|" + _DIR + r"출발|(?:거래|장)을?를?\s*(?:마쳤|마치|마감|끝냈|끝))|\s+마감)"
     + r"|(?<![\d/:.\-~A-Za-z&가-힣])(?:\d{1,3}(?:,\d{3})+|\d{3,})(?:\.\d+)?\**\s*(?:에|으로|로)\s*(?:출발|시작|끝났|끝냈|끝마|거래됐|거래되었|마쳤|마무리|(?:거래|장)을?를?\s*(?:시작|종료)|종료)"
     + r"|" + _G + r"(?!\d{1,2}\.\d)" + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))\s*에서\s*(?!\d{1,2}\.\d)" + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))\s*(?:으로|로|까지)\s*(?:내렸|올랐|빠졌|밀렸|떨어졌|뛰었|급등|급락|하락|상승|반등|미끄러)"
-    + r"|" + _G + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))\**\s*(?:→|->)\s*\**(?!\d{1,2}\.\d)" + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))"
+    + r"|" + _G + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))\**\s*(?:→|->)\s*\**(?!\d{1,2}\.\d)" + _NP + r"(?<![천만억조])(?!\d|[.,]\d|\s*(?:%|억|조|만|천))"
     + r"|" + _G + _NP + r"(?<![천만억조])(?![\d.,]|\s*(?:%|억|조|만|천))\s*(?:고점|저점|종가|최고가|최저가)", re.M)
 
 
 # 경험칙 뒤 거름: 문맥상 가격이 아닌 매치(셈·지표 주어의 'A에서 B로', 품목 가격, 주당 지표)는 버리고 그 다음부터 다시 찾는다
 _MOVE = re.compile(r"에서|→|->")
 _SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|배당|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
-                   r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P)(?![A-Za-z])|컨센서스")
+                   r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI)(?![A-Za-z])|컨센서스|인덱스|국채|유가|브렌트")
 _COMMOD = re.compile(r"(?:D램|DRAM|낸드|NAND|메모리|HBM|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|가스|전력|운임)\s*$")
 _PER_UNIT = re.compile(r"(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당")
 _CUE_IN = re.compile(_CUE)
+_COMMOD_PRICE = re.compile(_COMMOD.pattern[:-4] + r"\s*가격")
+# 이동 매치는 셈·지표 주어나 품목 가격이 숫자 바로 앞에 붙어 있을 때만 버린다('배당 기대에 1,264,000에서…'처럼 원인을 말하는 낱말은 거르지 않음)
+_ATTACHED = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD_PRICE.pattern + r")\s*(?:\([^)]*\))?\s*(?:은|는|이|가|도|의)?\s*(?:\([^)]*\))?"
+                       r"(?:\s*(?:전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?\s*[\d,.]*$")
 _CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*원")
 
 
@@ -90,7 +94,7 @@ def money_hit(t: str):
         ls = max(t.rfind(c, 0, m.start()) for c in ".!?\n。") + 1
         before = t[max(ls, m.start() - 14):m.start()]
         skip = False
-        if _MOVE.search(g) and not _CUE_IN.search(g) and _SUBJ.search(before):
+        if _MOVE.search(g) and not _CUE_IN.search(g) and _ATTACHED.search(t[ls:m.start()]):
             skip = True
         elif g.startswith("가격") and (_COMMOD.search(t[max(ls, m.start() - 12):m.start()]) or _PER_UNIT.search(g)):
             skip = True
@@ -170,8 +174,8 @@ _ROW_TIME = re.compile(r"기준|평가|직전|시작|끝|마지막|당일|뒤|�
 
 
 def _price_col(h: str) -> bool:
-    if re.search(_UNIT_PAREN, h):
-        return False
+    if re.search(_UNIT_PAREN, h) or _PER_UNIT.search(h) or _COMMOD_PRICE.search(h):
+        return False   # 단위 괄호 열, 품목 가격 열(구리 가격(톤당), D램 가격)은 주가 열이 아님
     for frag in re.split(r"[/·(\[\]→,)]|\s+(?:와|및)\s+", h):
         if _CUE_HEAD.search(frag) and not _HEAD_SKIP.search(frag):
             return True
