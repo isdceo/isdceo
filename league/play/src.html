@@ -492,7 +492,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   .show .grid{grid-template-columns:1fr;gap:10px}
   .show .teamcol{grid-template-columns:repeat(3,1fr);gap:6px 6px;transform:none}
   .fc,.show.two .fc{width:clamp(50px,13.5vw,64px)}
-  .fc .fr .n{font-size:10.5px;white-space:normal;word-break:keep-all;line-height:1.05;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip;text-align:center}
+  .fc .fr .n{font-size:10px;white-space:nowrap;line-height:1.1;display:block;overflow:hidden;text-overflow:ellipsis;text-align:center;letter-spacing:-.02em}
   .show.two .fc .fr .v{font-size:12.5px}}
 @media (orientation:portrait) and (max-height:700px){.cards{height:33%}}
 @media (orientation:portrait) and (max-height:700px){.fc,.show.two .fc{width:clamp(44px,12vw,56px)}.show .teamcol{gap:4px 6px}.show .sub{display:none}.show .grid{gap:6px}}
@@ -897,7 +897,7 @@ html,body{background:var(--arena0)}
     return {rd, mode, mixed: !common, m: ['KR', 'US'].map((mk) => ({mk, s: avg(Sx, mk), c: avg(C, mk)}))};
   };
   const lanesEl = (top) => {
-    const D = laneData(), el = document.createElement('div'); el.className = 'lanes'; el.style.top = top;
+    const D = laneData(), el = document.createElement('div'); el.className = 'lanes'; el.style.top = top; el.style.visibility = 'hidden';   // 자리를 잰 뒤에만 보임
     const cell = (x) => x.v == null ? `<b class="no">${x.n ? '채점 전' : '—'}</b>` : `<b class="${sgn(x.v)}">${pct(x.v)}%</b>`;
     el.innerHTML = (D ? D.m : [{mk: 'KR', s: {n: 0, v: null}, c: {n: 0, v: null}}, {mk: 'US', s: {n: 0, v: null}, c: {n: 0, v: null}}]).map((x) => {
       const both = x.s.v != null && x.c.v != null && !(D && D.mixed), sw = both && x.s.v > x.c.v, cw = both && x.c.v > x.s.v;   // 다른 라운드끼리는 우세를 표시하지 않음
@@ -912,7 +912,7 @@ html,body{background:var(--arena0)}
   // 구역 판 자리: 테이블 카드·이름판·팀 표찰과 겹치지 않는 빈 띠에만 둔다(없으면 숨김). 재검수: 카드를 가리면 안 됨
   const placeLanes = () => {
     const el = document.querySelector('#lobby .lanes'); if (!el) return;
-    el.style.visibility = 'hidden'; el.style.top = '0px'; const h = el.getBoundingClientRect().height, H = innerHeight;
+    el.style.display = ''; el.style.visibility = 'hidden'; el.style.top = '0px'; const h = el.getBoundingClientRect().height, H = innerHeight;   // 숨긴 상태에서도 높이를 제대로 잰다
     const rects = [...document.querySelectorAll('#lobby .pair, #lobby .plate, #lobby .teamtag')].map((x) => x.getBoundingClientRect());
     let lo, hi;
     if (PORTRAIT.matches) {           // 위 팀 카드 아래 ~ 아래 팀 표찰 위
@@ -927,7 +927,7 @@ html,body{background:var(--arena0)}
   addEventListener('resize', () => requestAnimationFrame(placeLanes));
   const renderLobby = () => {
     const L = $('#lobby'); L.innerHTML = '';
-    requestAnimationFrame(placeLanes); setTimeout(placeLanes, 2600);   // 등장 연출이 끝난 뒤 다시 잰다
+    requestAnimationFrame(() => requestAnimationFrame(placeLanes)); setTimeout(placeLanes, 2600);   // 배치가 끝난 뒤 재고, 등장 연출 뒤 다시 잰다(그 전엔 숨김)
     if (PORTRAIT.matches) {
       const sTop = toMiddle(teamS), cBot = toMiddle(teamC);
       seats = [...sTop, ...cBot];
