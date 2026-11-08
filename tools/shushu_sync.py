@@ -98,27 +98,37 @@ def _have(ext: Path, sha: str) -> bool:
     return subprocess.run(["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=ext, capture_output=True).returncode == 0
 
 
-def _changed(ext: Path, before: str, after: str, prior_main: str | None = None, first: bool = False) -> list[str]:
-    for sha in (after, before, prior_main):
+def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = False) -> list[str]:
+    """prior_main: 이 push 전 기본 브랜치 push 결과(하나 또는 최신순 목록). 받을 수 있는 가장 최근 것을 기준으로 쓴다."""
+    mains = [prior_main] if isinstance(prior_main, str) else list(prior_main or [])
+    for sha in (after, before, *mains[:5]):
         if sha and sha != ZERO and not _have(ext, sha):
             subprocess.run(["git", "fetch", "-q", "origin", sha], cwd=ext, capture_output=True)
     if not _have(ext, after):
         raise RuntimeError(f"커밋 {after[:12]}를 받을 수 없음(브랜치 삭제·강제 push?)")
     base = before if before and before != ZERO and _have(ext, before) else None
-    if base is None and prior_main and prior_main != after and _have(ext, prior_main):
+    pm = next((m for m in mains if m and m != ZERO and _have(ext, m)), None)
+    if base is None and pm is None and not first:
+        # 기본 브랜치 기록을 하나도 받을 수 없으면 지금 받은 기본 브랜치 끝(복제본 HEAD)과 비교한다(기본 브랜치와 다른 파일만)
+        r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ext, capture_output=True, text=True)
+        pm = r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
+    if base is None and pm == after:
+        return []                                      # 기본 브랜치와 같은 커밋을 가리키는 새 브랜치 — 새 파일 없음
+    if base is None and pm:
         # 새 브랜치·강제 push: 이 push 전 마지막 기본 브랜치 상태와 갈라진 지점부터(오래된 기준의 브랜치가 옛 내용을 '수정'으로 보이지 않게)
-        r = subprocess.run(["git", "merge-base", prior_main, after], cwd=ext, capture_output=True, text=True)
+        r = subprocess.run(["git", "merge-base", pm, after], cwd=ext, capture_output=True, text=True)
         mb = r.stdout.strip() if r.returncode == 0 else ""
         if mb == after:
             return []                                  # 이미 기본 브랜치에 들어 있는 커밋 — 새 파일 없음
-        # 이력이 이어지지 않는 브랜치(orphan, 2026-11-08 슈슈 push에서 발생): 갈라진 지점이 없으므로
-        # '이 push 전 기본 브랜치 상태'와 직접 비교한다 — 기본 브랜치와 내용이 다른 파일만 이번에 보낸 것으로 본다
-        base = mb or prior_main
+        # 이력이 이어지지 않는 브랜치(orphan): 갈라진 지점이 없으면 '이 push 전 기본 브랜치 상태'와 직접 비교한다
+        base = mb or pm
     if base:
         return git("diff", "--no-renames", "--name-only", "--diff-filter=AMT", base, after, cwd=ext).splitlines()
     if first:                                          # 저장소의 맨 첫 push만 트리 전체
         return git("ls-tree", "-r", "--name-only", after, cwd=ext).splitlines()
-    raise RuntimeError("비교 기준(이전 커밋)을 정할 수 없음 — 트리 전체로 대신하지 않음")
+    why = (f"before={'0' if not before or before == ZERO else ('있음' if _have(ext, before) else '받을 수 없음')}, "
+           f"기본 브랜치 기록 {len(mains)}건{'(받을 수 있는 것 없음)' if mains else ''}")
+    raise RuntimeError(f"비교 기준(이전 커밋)을 정할 수 없음 — 트리 전체로 대신하지 않음 [{why}]")
 
 
 def _round_day(day: date, cfg: dict) -> bool:
@@ -260,7 +270,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                 "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": (act.get("actor") or {}).get("login"),
                 "run_id": str(run_id)}
         # 기준: before가 없거나 받을 수 없으면 '이 push 전 마지막 기본 브랜치 push'의 결과(서버 기록이라 결정적)
-        prior_main = next((a["after"] for a in reversed(activities[:i]) if a.get("ref", main_ref) == main_ref), None)
+        prior_main = [a["after"] for a in reversed(activities[:i]) if a.get("ref", main_ref) == main_ref and a.get("activity_type") not in DELETE_TYPES]
         try:
             files = _changed(ext, act.get("before"), act["after"], prior_main, first=(i == 0))
             if files and all(f.startswith(MIRROR_DIR + "/") for f in files):
