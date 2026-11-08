@@ -368,8 +368,8 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                     L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": rr, "activity_id": act["id"],
                                                     "pushed_at": pushed.isoformat(), "reason": "보류한 원본을 받을 수 없음"})
                     bad.add((team, rr))
-                elif not final:
-                    break                              # 순서를 지키려고 뒤의 처리는 다음 실행으로
+            if not final:
+                break                                  # 순서를 지키려고 뒤의 처리는 다음 실행으로(새 push 묶음의 일시 오류도 같음 — 운영자 승인 2026-11-08)
             continue
         summary = {"receipts": [{"path": r["path"], "status": r["status"], "errors": r["errors"]} for r in receipts],
                    "lines": [{"path": p_, "ok": ok} for p_, ok in lines]}

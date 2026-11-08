@@ -1104,6 +1104,25 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(out[-1]["files"], [f"submit/{rd}.sha256"])
         self.assertEqual(out[-1]["receipts"][0]["status"], "committed")
 
+    def test_transient_error_holds_later_pushes(self):
+        """운영자 승인(2026-11-08): 새 push가 일시 오류로 재시도 중이면 뒤 push를 먼저 처리하지 않는다(먼저 낸 지문이 밀려 버려지지 않게)."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:10:00+09:00")
+        self.spush({"to-roro/2026-11-10-note.md": "메모"}, f"{rd}T08:14:00+09:00")
+        real = self.X._apply
+        calls = []
+        def boom(main, ext, repo, act, *a, **k):
+            calls.append(act["id"])
+            if len(calls) == 1:
+                raise RuntimeError("일시 오류")
+            return real(main, ext, repo, act, *a, **k)
+        with unittest.mock.patch.object(self.X, "_apply", boom):
+            out = self.sync(f"{rd}T08:20:00+09:00")
+        self.assertEqual([o["status"] for o in out], ["retry"])          # 뒤 push는 이번 실행에서 처리하지 않음
+        self.assertEqual(len(calls), 1)
+        out = self.sync(f"{rd}T08:25:00+09:00")
+        self.assertEqual(out[0]["receipts"][0]["status"], "committed")    # 다음 실행에서 원래 순서대로
+
     def test_head_fallback_never_judges_merged_branch_as_empty(self):
         """주간 점검(2026-11-08): 기본 브랜치 기록을 못 받아 HEAD로 비교할 때 이미 병합된 브랜치를 '파일 없음'으로 넘기지 않는다."""
         sys.path.insert(0, str(ROOT / "tools")); import shushu_sync as X
