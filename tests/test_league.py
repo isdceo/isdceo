@@ -1,6 +1,7 @@
 """AI 투자 리그 규칙 테스트.  실행: python3 -m unittest discover -s tests -v"""
 import hashlib
 import json, re, shutil, sys, tempfile, unittest
+import unittest.mock
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -2049,7 +2050,8 @@ class LossReview(unittest.TestCase):
         t = "| 항목 | 11/4 종가 기준 | 11/5 종가 기준 |\n|---|---|---|\n| P/E | 25.3 | 23.1 |\n| P/B | 3.2 | 3.0 |\n| 선행 P/E | 21.5 | 20.2 |\n| FCF yield | 3.1 | 3.3 |\n"
         self.assertIsNone(self.LR._table_prices(t))
 
-    MONEY_BAD = ("SK하이닉스는 1,264,000에서 1,144,000으로 빠졌다.", "엔비디아는 182.50에서 179.20으로 내렸다.", "주가가 1,980,000 고점에서 내려왔다.",
+    MONEY_BAD = ("98,500에서 92,100까지 밀렸다.", "98,500→92,100으로 하락", "98,500 → 92,100 (−6.5%)", "NVDA 182.5 → 171.2", "시장가 92,100", "가격대 92,000~95,000", "SK하이닉스 주식은 가격이 1,250,000이었다.", "지수가 밀리자 SK하이닉스는 1,264,000에서 1,144,000으로 빠졌다.",
+                 "SK하이닉스는 1,264,000에서 1,144,000으로 빠졌다.", "엔비디아는 182.50에서 179.20으로 내렸다.", "주가가 1,980,000 고점에서 내려왔다.",
                  "- 고점(2026년 3월) 2,920,000 대비 -52.3%.", "- 고점은 2024년 7월 2,920,000이었다.", "- 종가는 2026년 11월 5일 1,250,000이었다.", "- 52주 고점은 2026년 3월의 2,920,000이었다.", "- 고점은 3월의 2,920,000.", "1,250,000(-9.46%)에 마감했다.", "356.10(+31.04%)에 마감했다.", "종가(352,800)",
                  "1,393,000원에서", "45달러로", "120,000원이다", "1,400원선", "3조원대", "5만 원", "1천억원", "45 USD", "KRW 1,393,000", "￦1000", "$45", "12$", "45불",
                  "목표가 150,000", "종가 1,393,000", "종가는 1,393,000", "종가가 1393000", "종가: 1,393,000", "종가(1,393,000)", "종가 45.20", "주가 1,393,000",
@@ -2092,7 +2094,8 @@ class LossReview(unittest.TestCase):
                  "- 고점(약 2,650,000) 대비 -52.3%", "- 엔비디아 고점(약 212.19) 대비 -14%", "- 주가는 결국 126만 4천이 됐다",
                  "저점이라고 본 1,300,000 아래로 더 빠졌다", "지지선이라던 1,300,000이 깨졌다", "고점이라는 2,650,000에서 반 토막 났다", "저점이라 본 1,300,000 …",
                  "종가 – 1,264,000", "종가 ≒ 1,264,000")
-    MONEY_OK = ("금리가 3.5에서 3.25로 내렸다.", "매출이 1,200억에서 1,500억으로 올랐다.", "점유율이 35%에서 30%로 내렸다.", "PER이 15.2에서 12.1로 내렸다.", "52주 고점 대비 -30%", "000660 종가 기준",
+    MONEY_OK = ("출하량은 1,200에서 980으로 떨어졌다.", "인도량이 466,000에서 384,000으로 떨어졌다.", "재고는 1,500에서 2,100으로 상승했다.", "신규 가입자는 1,200에서 980으로 밀렸다.", "환율이 1,380에서 1,420으로 뛰었다.", "EPS 컨센서스는 5,200에서 4,800으로 내렸다.", "DPS는 1,200에서 1,500으로 올랐다.", "D램 가격은 3.20에서 2.90으로 내렸다.", "구리 가격은 톤당 9,800까지 올랐다.", "주당 배당금은 1,444로 동결됐다.", "출하량 1,200→980으로 줄었다.",
+                "금리가 3.5에서 3.25로 내렸다.", "매출이 1,200억에서 1,500억으로 올랐다.", "점유율이 35%에서 30%로 내렸다.", "PER이 15.2에서 12.1로 내렸다.", "52주 고점 대비 -30%", "000660 종가 기준",
                 "종가는 105560.KS 일봉 기준으로 봤다.", "주가(207940)는 약세였다.", "종가 기준 000660.KQ 차트", "주가는 2026년 들어 30% 올랐다", "고점은 2024년 7월이었다",
                 "+327.9%", "3분기", "1.6배", "2026년", "3원칙", "2원화", "종가 기준 -2.1%", "지수 대비 -4.18%p", "10원인", "2026-11-05 원장 기록", "v2 원장",
                 "Q3 원가 부담", "종가 2026-11-04 기준", "주가 -24.3%", "고점 대비 -52.3%", "종가 2.10% 상승", "주가 2024년 고점 이후", "고점 2021년 11월",
@@ -2191,9 +2194,9 @@ class LossReview(unittest.TestCase):
     def test_money_regex_catches_particles_and_spares_words(self):
         for tail in ("", "\n다음 줄", "\n"):   # 줄 끝에 놓인 가격(글머리표 목록)도 잡혀야 한다
             for s in self.MONEY_BAD:
-                self.assertIsNotNone(self.LR.MONEY.search(s + tail), repr(s + tail))
+                self.assertIsNotNone(self.LR.money_hit(s + tail), repr(s + tail))
             for s in self.MONEY_OK:
-                self.assertIsNone(self.LR.MONEY.search(s + tail), repr(s + tail))
+                self.assertIsNone(self.LR.money_hit(s + tail), repr(s + tail))
 
     def test_failed_review_file_is_due_again_and_corrected_score_excluded(self):
         row = self.LR.due(self.d)[0]
@@ -2215,6 +2218,13 @@ class LossReview(unittest.TestCase):
         c = self.LR._known_closes(f)[0]
         f.write_text(self._valid(row["pick_id"]).replace("## 3. 판정", f"참고로 그날 숫자는 {c} 근처였다\n## 3. 판정"))
         self.assertTrue(any("원장에 기록된" in e for e in self.LR.check(f)))
+
+    def test_known_close_man_unit_and_two_decimal_forms(self):
+        tmp = Path(tempfile.mkdtemp())
+        with unittest.mock.patch.object(self.LR.L, "read_ledger", side_effect=lambda d, n: [{"round_date": "x", "agent_id": "a", "market": "KR", "ticker": "T"}] if n == "picks" else [{"market": "KR", "ticker": "T", "close": 1264000}, {"market": "KR", "ticker": "T", "close": 180}]):
+            ks = self.LR._known_closes(tmp / "a" / "b" / "c" / "x" / "a-KR.md")
+        for v in ("126.4만", "126만 4천", "1,264,000", "180.00"):
+            self.assertIn(v, ks)
 
     def test_known_close_does_not_collide_with_dates_and_catches_unit_like_suffixes(self):
         row = self.LR.due(self.d)[0]
