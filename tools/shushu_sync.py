@@ -259,6 +259,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     cfg = L.load_config(d)
     recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
     done = {x["activity_id"] for x in recs if x.get("type", "push") == "push"}
+    mirror_shas = {x["s_after"] for x in recs if x.get("type") == "mirror_commit"}   # 같은 실행에서 기록한 사본 커밋(받을 수 없어도 건너뜀)
     released = {x["held_id"] for x in recs if x.get("type") == "release"}
     tries = {}
     for x in recs:
@@ -271,7 +272,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     for i, act in enumerate(activities):
         if act.get("activity_type") in DELETE_TYPES:
             continue
-        if act["id"] in done or _ts(act["timestamp"]) > now - SETTLE:
+        if act["id"] in done or _ts(act["timestamp"]) > now - SETTLE or act.get("after") in mirror_shas:
             continue
         pushed = _ts(act["timestamp"])
         R = _next_round(pushed, cfg)
@@ -767,13 +768,14 @@ def wake(main: Path, repo: str, token: str, now: datetime | None = None, post=No
 
 def main_():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["pull", "mirror", "wake", "untaint"])
+    ap.add_argument("cmd", choices=["pull", "mirror", "wake", "untaint", "note-mirror"])
     ap.add_argument("--round"); ap.add_argument("--team"); ap.add_argument("--reason")
     ap.add_argument("--ext", required=True, help="전용 저장소 체크아웃 폴더")
     ap.add_argument("--repo", help="owner/name (기본: config shushu_repo.repo)")
     ap.add_argument("--branch")
     ap.add_argument("--run-id", default="")
     ap.add_argument("--run-url", default="")
+    ap.add_argument("--sha", help="note-mirror: 이번 실행이 전용 저장소에 push한 사본 커밋")
     a = ap.parse_args()
     cfg = (L.load_config(ROOT / "league").get("shushu_repo") or {})
     repo, branch = a.repo or cfg.get("repo"), a.branch or cfg.get("branch", "main")
@@ -797,6 +799,14 @@ def main_():
             print("새 push 없음")
         if any(not x["ok"] for r in res for x in r.get("lines", [])):
             sys.exit(3)
+    elif a.cmd == "note-mirror":                       # 사본 커밋을 같은 실행에서 기록: 다음 pull이 받을 수 없어도 오류·확인 대기로 보지 않게
+        if not (a.sha and re.fullmatch(r"[0-9a-f]{40}", a.sha)):
+            sys.exit("--sha <40자리 커밋> 필요")
+        recs = L.read_ledger(ROOT / "league", "external_pushes")
+        if not any(x.get("type") == "mirror_commit" and x.get("s_after") == a.sha for x in recs):
+            L.append(ROOT / "league", "external_pushes", {"repo": repo, "type": "mirror_commit", "status": "mirror", "s_after": a.sha,
+                                                          "at": datetime.now(L.KST).isoformat(timespec="seconds")})
+        print(f"사본 커밋 기록 {a.sha[:7]}")
     elif a.cmd == "untaint":                            # 운영자 확인 뒤에만 (원장에 남음, 기본은 실전·연습 둘 다)
         if not (a.round and a.reason):
             sys.exit("--round --reason 필요 (reason에 운영자가 확인한 내용을 적는다)")

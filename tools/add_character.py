@@ -53,6 +53,14 @@ def _tickerish(blob: str) -> bool:
     return any(w in _UNIV and w not in ok for w in re.findall(r"(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])", blob)) or not _UNIV and bool(TICKERISH.search(blob))
 
 
+def guideline_issue(gl: str) -> str | None:
+    """지침 본문 검사: 6자리 종목 코드만 본다(특정 종목 고정 금지). 영문 약어(KR·PEG·IR 등)는 지침에 흔해 티커 대조를 하지 않고,
+    실존 인물 표현 검사도 하지 않는다(면책 문구 '본인 추천이 아님'이 걸림). 전체 검수 재검 B-A·D-1."""
+    if re.search(r"(?<![\d,.])\d{6}(?![\d,.])", gl):
+        return "지침에 6자리 종목 코드 금지(특정 종목 고정 금지)"
+    return None
+
+
 REAL_PERSON_CLAIM = re.compile(r"(본인|직접|실제로) .*(추천|발언)|사진|초상|닮은")
 
 
@@ -121,10 +129,8 @@ def validate(spec: dict) -> list[str]:
     gl = (spec.get("guideline") or "").strip()
     if not gl:                                   # 두 팀 모두 v1 지침 본문 필요(docs/bench-addition.md)
         errs.append("지침 본문(guideline, 슈슈 메시지는 '## 지침' 절)이 필요")
-    elif _tickerish(gl):
-        errs.append("지침에 종목 코드처럼 보이는 표현 금지(특정 종목 고정 금지)")
-    elif REAL_PERSON_CLAIM.search(gl):
-        errs.append("지침에 실존 인물의 얼굴·발언처럼 보이는 표현 금지")
+    elif guideline_issue(gl):
+        errs.append(guideline_issue(gl))
     return errs
 
 

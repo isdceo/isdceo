@@ -115,7 +115,7 @@ jobs:
             git add -A from-league
             git diff --cached --quiet && { echo "사본 변경 없음"; exit 0; }
             git commit -q -m "from-league: 메인 리그 자료 사본 (${GITHUB_SHA::7})"
-            git push -q origin "HEAD:$BR" && exit 0
+            git push -q origin "HEAD:$BR" && { git rev-parse HEAD > "$RUNNER_TEMP/mirror_sha"; exit 0; }
             sleep $((i * 5))
           done
           exit 1
@@ -128,6 +128,8 @@ jobs:
           BR="$GITHUB_REF_NAME"
           for i in 1 2 3 4; do
             git fetch -q origin "$BR" && git reset -q --hard "origin/$BR"
+            # 이번 실행이 push한 사본 커밋을 메인 원장에 남긴다(다음 pull이 그 커밋을 받을 수 없어도 오류로 보지 않게)
+            if [ -s "$RUNNER_TEMP/mirror_sha" ]; then python3 tools/shushu_sync.py note-mirror --ext ext --sha "$(cat "$RUNNER_TEMP/mirror_sha")" || true; fi
             python3 tools/shushu_sync.py wake --ext ext > wake.txt; rc=$?; cat wake.txt
             [ "$rc" = 0 ] || { echo "::error::깨우기 실패 — 토큰의 Issues 쓰기 권한과 채널 이슈를 확인"; exit 1; }
             git add league/ledger

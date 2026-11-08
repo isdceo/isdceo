@@ -439,11 +439,16 @@ def kr_corporate_actions_due(d: Path, today: date) -> list[dict]:
         return [{"skipped": True, "reason": str(e)}]
     cfg = L.load_config(d)
     cas = L.corporate_actions(d)
+    idx = L.price_index(d)
+    lim = int((cfg.get("weekly") or {}).get("halt_void_after_sessions", 5))
     todo = {}
     for p in L.read_ledger(d, "picks"):
         if p["market"] != "KR" or not p.get("eval_session") or L.is_watch(p, cfg):
             continue
         b, e = date.fromisoformat(p["base_session"]), date.fromisoformat(p["eval_session"])
+        k = 0                                   # 평가일 거래정지: 채점과 같은 '재개 후 첫 세션'까지 확인 구간을 늘린다(재검수 A)
+        while (idx.get(("KR", p["ticker"], e.isoformat())) or {}).get("halted") and k < lim:
+            e, k = L.next_session("KR", e, cfg), k + 1
         if e >= today or L.ca_for(cas, "KR", p["ticker"], b, e, cfg)[0]:
             continue
         todo[(p["ticker"], b, e)] = True

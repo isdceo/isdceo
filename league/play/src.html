@@ -525,6 +525,100 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   .chipbtn{width:clamp(40px,6.6vw,58px)}.dock{gap:6px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ══ 무대 테마 (2026-11-08): 카지노 홀 → 어두운 보라·남색 무대. 슈슈 팀 디자인(로비·카드 확대·기록판) 색감과
+   수집형 카드 대전 장르의 원리(위·아래 두 진영, 가운데 '구역' 대결, 카드 모서리 정보)만 참고했다. 특정 게임의 그림·틀은 옮기지 않음 ══ */
+:root{--arena0:#0b0a1f;--arena1:#1a1238;--arena2:#2b1a52;--rim:#8f7cff;--rimC:#ff9a4d;--rimS:#58b8ff;--glass:rgba(22,16,48,.86);--glass2:rgba(40,28,80,.9);--up:#4fe08f;--dn:#ff6b6b;--eq:#ffd56a;--na:#a49cbf}
+html,body{background:var(--arena0)}
+.game::after{mix-blend-mode:normal;background:linear-gradient(180deg,rgba(90,60,200,.08),rgba(0,0,0,0) 40%,rgba(20,0,40,.25))}
+.room .wall,.room .wall[style]{background:
+  radial-gradient(55% 40% at 50% 0%,rgba(150,110,255,.45),transparent 70%),
+  radial-gradient(40% 55% at 0% 60%,rgba(70,90,255,.28),transparent 70%),
+  radial-gradient(40% 55% at 100% 45%,rgba(190,70,255,.25),transparent 70%),
+  linear-gradient(180deg,#221544 0%,#160f33 45%,#0e0b24 75%,#0a081a 100%)!important}
+.room .wall::after{content:"";position:absolute;inset:0;opacity:.55;background-image:
+  radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 33% 9%,#cfd8ff,transparent),radial-gradient(1.4px 1.4px at 71% 14%,#fff,transparent),
+  radial-gradient(1px 1px at 88% 30%,#d9ccff,transparent),radial-gradient(1.2px 1.2px at 6% 44%,#fff,transparent),radial-gradient(1px 1px at 52% 27%,#fff,transparent),
+  radial-gradient(1.3px 1.3px at 94% 61%,#cfe3ff,transparent),radial-gradient(1px 1px at 22% 66%,#fff,transparent)}
+.room .slot,.room .lamp{display:none!important}
+.room .bk{opacity:.35}
+/* 무대 바닥: 녹색 펠트·나무 테두리 대신 금속 테두리와 어두운 유리 바닥 */
+.rail,.close .rail2{background:linear-gradient(180deg,#b9a8ff 0%,#5a48b8 22%,#2a1f63 62%,#120d2e 100%)!important;
+  box-shadow:inset 0 3px 2px rgba(230,220,255,.55),inset 0 -8px 12px rgba(0,0,0,.6),0 0 22px rgba(143,124,255,.35),0 12px 22px rgba(0,0,0,.6)!important}
+.rail::after{background:linear-gradient(90deg,rgba(255,255,255,0),rgba(220,210,255,.55),rgba(255,255,255,0))}
+.felt,.close .felt2{background:
+  radial-gradient(30% 40% at 50% 18%,rgba(160,130,255,.28),transparent 70%),
+  repeating-linear-gradient(60deg,rgba(150,130,255,.07) 0 1px,transparent 1px 22px),
+  repeating-linear-gradient(-60deg,rgba(150,130,255,.07) 0 1px,transparent 1px 22px),
+  radial-gradient(70% 100% at 50% 0%,#2e2268 0%,#1b1445 50%,#0e0a26 100%)!important}
+.felt::before,.close .felt2::before{opacity:.12}
+.print .arc{border-color:rgba(160,140,255,.55);box-shadow:0 -2px 14px rgba(140,120,255,.25)}
+.print .mid,.tier .print .mid{color:rgba(225,218,255,.85)!important}
+.chips,.close .fz{display:none!important}
+/* 테이블 위 작은 카드: 어두운 카드 뒷면 + 보라 테두리(시장 문양) */
+.mini{background:radial-gradient(circle at 50% 40%,#3a2d7a,#1a1440 70%);border:1.5px solid #b5a6ff;color:#d9d0ff;
+  box-shadow:0 0 8px rgba(143,124,255,.5),0 8px 10px rgba(0,0,0,.5)}
+.mini.none{background:rgba(255,255,255,.05);border:1.5px dashed rgba(200,190,255,.35)}
+/* 이름판: 금빛 명패 → 어두운 유리 명패, 위쪽에 팀 색 띠 */
+.plate{color:#f3efff;background:linear-gradient(180deg,rgba(52,38,104,.95),rgba(20,15,48,.95));
+  box-shadow:inset 0 2px 0 var(--tc),0 0 0 1px rgba(180,165,255,.45),0 6px 12px rgba(0,0,0,.6)}
+.plate.c{--tc:var(--rimC)}.plate.s{--tc:var(--rimS)}
+.plate .up{color:var(--up)}.plate .dn{color:var(--dn)}.plate .no{color:var(--na)}
+.plate.lead{box-shadow:inset 0 2px 0 var(--tc),0 0 0 1px rgba(180,165,255,.45),0 0 14px 3px rgba(79,224,143,.75)}
+.plate.risk{box-shadow:inset 0 2px 0 var(--tc),0 0 0 1px rgba(180,165,255,.45),0 0 14px 3px rgba(255,107,107,.75)}
+@media (orientation:portrait) and (max-width:400px){.plate.c,.plate.s{box-shadow:inset 0 2px 0 var(--tc),0 0 0 1px rgba(180,165,255,.45),0 4px 8px rgba(0,0,0,.6)}
+  .plate.c.lead,.plate.s.lead{box-shadow:inset 0 2px 0 var(--tc),0 0 12px 3px rgba(79,224,143,.75)}.plate.c.risk,.plate.s.risk{box-shadow:inset 0 2px 0 var(--tc),0 0 12px 3px rgba(255,107,107,.75)}}
+.teamtag{background:linear-gradient(180deg,rgba(60,44,120,.85),rgba(22,16,50,.85));border:1.5px solid rgba(190,175,255,.55)}
+.teamtag.c{color:#ffc8a0;box-shadow:0 0 18px rgba(255,154,77,.35)}.teamtag.s{color:#b5dcff;box-shadow:0 0 18px rgba(88,184,255,.35)}
+/* 상단 띠 */
+.logo{color:#efeaff;text-shadow:0 2px 0 #2a1a60,0 0 16px rgba(160,130,255,.6)}
+.logo small{display:block;font-family:var(--body);font-size:.36em;letter-spacing:.32em;color:#b7abe6;text-shadow:none;margin-bottom:.1em}
+.timer{border:1.5px solid rgba(180,165,255,.7);background:linear-gradient(180deg,rgba(40,28,86,.9),rgba(16,12,40,.9));box-shadow:0 0 16px rgba(143,124,255,.35),inset 0 1px 0 rgba(255,255,255,.2)}
+.timer b{color:#d9ceff}
+/* 메뉴 버튼: 카지노 칩 → 육각 배지 */
+.chipbtn{border-radius:0;clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 70%,#fff 10%),color-mix(in srgb,var(--c) 55%,#0b0820) 70%)!important;box-shadow:none!important;
+  filter:drop-shadow(0 0 6px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+.chipbtn:active{transform:translateY(2px) scale(.96)}
+/* 가운데 구역 판: 시장(한국·미국)마다 두 팀 평균을 마주 세운다 */
+.lanes{position:absolute;z-index:8;left:50%;transform:translateX(-50%);display:flex;gap:clamp(6px,1.4vw,14px);pointer-events:none}
+.lane{pointer-events:auto;cursor:pointer;position:relative;width:clamp(150px,21vw,230px);padding:.35em .5em .4em;border-radius:12px;font-family:var(--disp);color:#efeaff;text-align:center;
+  background:linear-gradient(180deg,rgba(44,32,96,.92),rgba(14,10,36,.92));border:1.5px solid var(--lc);box-shadow:0 0 16px color-mix(in srgb,var(--lc) 55%,transparent),inset 0 1px 0 rgba(255,255,255,.2)}
+.lane.kr{--lc:#c79bff}.lane.us{--lc:#6fd0ff}
+.lane .lt{display:flex;justify-content:center;align-items:center;gap:.3em;font-size:clamp(12px,1.6vw,15px);letter-spacing:.04em}
+.lane .lt i{font-style:normal;font-size:1.25em;color:var(--lc)}
+.lane .lr{display:flex;justify-content:center;align-items:center;gap:.28em;font-size:clamp(12px,1.55vw,15px);margin-top:.15em;white-space:nowrap}
+.lane .lr span{white-space:nowrap}.lane .lr .t{font-family:var(--body);font-size:.78em;color:#c9c0ea}
+.lane .lr b{font-weight:400;padding:0 .3em;border-radius:6px}
+.lane .lr b.win{background:rgba(79,224,143,.16);box-shadow:0 0 0 1px rgba(79,224,143,.6)}
+.lane .lr .vs{font-size:.7em;color:#9d93c6}
+.lane .up{color:var(--up)}.lane .dn{color:var(--dn)}.lane .eq{color:var(--eq)}.lane .no{color:var(--na)}
+.lane small{display:block;font-family:var(--body);font-size:clamp(10px,1.2vw,11px);color:#b2a9d6;margin-top:.1em}
+.lane:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.game.zoomed .lanes,.game.sheeted .lanes{filter:blur(6px) brightness(.5);pointer-events:none}
+.game.zoomed .lanes .lane{pointer-events:none}
+/* 쪼이기 카드: 밝은 종이 카드 → 테두리 있는 어두운 카드. 왼쪽 위 시장 문양, 오른쪽 위 점수 보석(다 젖힌 뒤) */
+.big .face{background:radial-gradient(90% 60% at 50% 25%,#3b2e80,#1c1546 70%,#120d30);border:2px solid var(--fc,#b5a6ff);color:#f3efff;
+  box-shadow:inset 0 0 0 3px rgba(10,6,30,.9),inset 0 0 0 4px rgba(200,190,255,.35),0 18px 22px rgba(0,0,0,.55)}
+.big.kr{--fc:#c79bff}.big.us{--fc:#6fd0ff}
+.big .mk{color:var(--fc)!important;text-shadow:0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
+.big .mk.tl{left:5%;top:4%;width:2.1em;padding:.2em 0;border-radius:50%;background:rgba(10,6,30,.75);border:1.5px solid var(--fc);font-size:clamp(11px,1.6vw,16px)}
+.big .sc{left:auto;right:-6%;top:-5%;min-width:3.6em;padding:.35em .45em;border-radius:14px;font-size:clamp(13px,2.1vw,22px);z-index:4;
+  background:linear-gradient(180deg,#2e2270,#120d30);border:2px solid currentColor;box-shadow:0 0 14px currentColor,0 4px 8px rgba(0,0,0,.5);text-shadow:0 1px 0 #000}
+.big .nm{top:auto;bottom:16%;padding:.2em .2em;background:linear-gradient(90deg,transparent,rgba(10,6,30,.85) 15% 85%,transparent);color:#fff}
+.big .wsub{top:auto;bottom:8%;color:#c9bfff}
+.big .lg{box-shadow:0 0 0 2px rgba(255,255,255,.25),0 0 18px color-mix(in srgb,var(--fc) 60%,transparent)}
+.big .back{background:repeating-linear-gradient(45deg,rgba(180,165,255,.18) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(180,165,255,.18) 0 2px,transparent 2px 9px),
+  radial-gradient(circle at 50% 45%,#4a3a9a,#1a1244 72%)!important;border:3px solid var(--fc,#b5a6ff)!important;color:var(--fc,#d9ceff)!important;text-shadow:0 0 14px currentColor!important}
+.big .flap{background:linear-gradient(90deg,rgba(0,0,0,.2),transparent 20% 80%,rgba(0,0,0,.2)),linear-gradient(0deg,#4a3a9a 0%,#2b2068 55%,#1a1244 100%)!important;border:1px solid var(--fc,#b5a6ff)!important}
+.bubble{background:#f6f3ff;border-color:#2a1d66;color:#1d1640}.bubble::before{border-right-color:#2a1d66}.bubble b{color:#5a3fc0}
+.x{border-color:#b5a6ff;background:rgba(20,14,48,.9)}
+.act{color:#fff;background:linear-gradient(180deg,#a28bff 0%,#6b4fe0 50%,#4a32b0 100%);box-shadow:0 4px 0 #2a1a78,0 8px 14px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.45)}
+.hint{background:rgba(16,12,40,.75)}
+.sheet{background:linear-gradient(180deg,rgba(34,24,70,.97),rgba(12,9,30,.98));border-color:#9d8cff;box-shadow:0 0 0 4px rgba(30,20,70,.7),0 0 40px rgba(143,124,255,.25),0 24px 50px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.2)}
+.fastbtn{border-color:#b5a6ff;background:#221a4a}.fastbtn[aria-pressed="true"]{background:linear-gradient(180deg,#c9bcff,#7a5ce8);color:#120a30}
+@media (prefers-reduced-motion:reduce){.lane{box-shadow:none}}
+@media (orientation:portrait){.lanes{gap:6px}.lane{width:46vw;padding:.25em .3em .3em;border-radius:10px}.lane .lt{font-size:12px}.lane .lr{font-size:12.5px;gap:.2em}.lane .lr .t{font-size:10.5px}.lane small{display:none}}
 </style></head>
 <body>
 <div class="game" id="game">
@@ -532,7 +626,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   <div class="lobby" id="lobby"></div>
   <div class="vign"></div>
   <button type="button" class="showbtn" id="showbtn" hidden></button>
-  <div class="hud"><div class="logo">AI 투자 리그</div><button class="timer" id="timer" data-open="progress">다음 마감까지 <b>—</b></button></div>
+  <div class="hud"><div class="logo"><small>SHUSHU × RORO</small>AI 투자 리그</div><button class="timer" id="timer" data-open="progress">다음 마감까지 <b>—</b></button></div>
   <nav class="dock" aria-label="메뉴">
     <button class="btn chipbtn" data-open="progress" style="--c:#c8262f;--e:#6a0f14">진행</button>
     <button class="btn chipbtn" data-open="record" style="--c:#1f8a4c;--e:#0b4a26">기록판</button>
@@ -787,6 +881,30 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   const lastRound = () => { const now = new Date(); return [...(T.calendar || [])].reverse().find((r) => new Date(r.deadline) <= now); };
   const md = (d) => { const [y, m, dd] = d.split('-').map(Number), w = new Date(Date.UTC(y, m - 1, dd)).getUTCDay(); return `${m}/${dd}(${'일월화수목금토'[w]})`; };   // 한국 날짜 그대로(보는 기기 시간대와 무관)
   const midText = () => { const nr = nextRound(); if (!nr) return '시즌 일정 확인 중'; return nr.date >= SEASON ? (new Date() < new Date(SEASON + 'T08:30:00+09:00') ? '실전 전 · 11/9 첫 라운드' : `실전 · ${md(nr.date)} 라운드`) : `연습 · ${md(nr.date)} 라운드`; };
+  // ── 가운데 구역 판: 가장 최근 공개 라운드의 시장별 팀 평균(확정 점수만)을 마주 세운다 ──
+  const laneData = () => {
+    const live = T.picks.filter((p) => p.mode === '실전'), pool = live.length ? live : T.picks;
+    // 두 팀이 함께 낸 가장 최근 라운드(없으면 가장 최근 라운드)
+    const both = [...new Set(pool.map((p) => p.round_date))].filter((d) => pool.some((p) => p.round_date === d && p.team === C) && pool.some((p) => p.round_date === d && p.team === Sx)).sort();
+    const common = both.pop(), last = (tm) => common || pool.filter((p) => p.team === tm).map((p) => p.round_date).sort().pop();
+    const rd = common || pool.map((p) => p.round_date).sort().pop(); if (!rd) return null;   // 함께 낸 라운드가 없으면(연습) 팀마다 자기 최근 라운드
+    const mode = pool[0].mode, avg = (tm, mk) => { const xs = pool.filter((p) => p.round_date === last(tm) && p.team === tm && p.market === mk);
+      const f = xs.filter((p) => p.status === 'final' && p.score != null); return {n: xs.length, f: f.length, v: f.length ? f.reduce((x, p) => x + p.score, 0) / f.length : null}; };
+    return {rd, mode, mixed: !common, m: ['KR', 'US'].map((mk) => ({mk, s: avg(Sx, mk), c: avg(C, mk)}))};
+  };
+  const lanesEl = (top) => {
+    const D = laneData(), el = document.createElement('div'); el.className = 'lanes'; el.style.top = top;
+    const cell = (x) => x.v == null ? `<b class="no">${x.n ? '채점 전' : '—'}</b>` : `<b class="${sgn(x.v)}">${pct(x.v)}%</b>`;
+    el.innerHTML = (D ? D.m : [{mk: 'KR', s: {n: 0, v: null}, c: {n: 0, v: null}}, {mk: 'US', s: {n: 0, v: null}, c: {n: 0, v: null}}]).map((x) => {
+      const both = x.s.v != null && x.c.v != null && !(D && D.mixed), sw = both && x.s.v > x.c.v, cw = both && x.c.v > x.s.v;   // 다른 라운드끼리는 우세를 표시하지 않음
+      const lead = D && D.mixed ? '팀별 최근 라운드(비교 아님)' : !both ? (x.s.n && x.c.n ? '채점 대기' : x.s.n || x.c.n ? '한 팀만 기록 있음' : '라운드 기록 없음') : sw ? '슈슈 팀 우세' : cw ? '로로 팀 우세' : '동률';
+      return `<button type="button" class="lane ${x.mk.toLowerCase()}" data-open="picks" aria-label="${x.mk === 'KR' ? '한국' : '미국'} 구역 ${D ? D.mode + ' ' + md(D.rd) : ''} ${lead}">
+        <span class="lt"><i>${x.mk === 'KR' ? '♦' : '♣'}</i>${x.mk === 'KR' ? '한국 구역' : '미국 구역'}</span>
+        <span class="lr"><span class="t">슈슈</span>${cell(x.s).replace('<b class="', `<b class="${sw ? 'win ' : ''}`)}<span class="vs">vs</span><span class="t">로로</span>${cell(x.c).replace('<b class="', `<b class="${cw ? 'win ' : ''}`)}</span>
+        <small>${D ? (D.mixed ? `${D.mode} · 팀별 최근 라운드` : `${D.mode} ${md(D.rd)} · ${lead}`) : lead}</small></button>`; }).join('');
+    el.querySelectorAll('.lane').forEach((b) => { b.onclick = () => openSheet('picks'); });
+    return el;
+  };
   const renderLobby = () => {
     const L = $('#lobby'); L.innerHTML = '';
     if (PORTRAIT.matches) {
@@ -794,10 +912,12 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       seats = [...sTop, ...cBot];
       L.appendChild(tier({top: 'max(8%, 84px)', h: '41%', seats: sTop, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '78%', cardTop: 70, cw: '22px', pf: '12px', tags: [['s', '슈슈 팀 ♥', '50%', '2%']], chips: [[14, 40, 22, 4, 3], [86, 44, 22, 5, 1]]}, 0));
       L.appendChild(tier({top: '38%', h: '55%', seats: cBot, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '86%', cardTop: 70, cw: '22px', pf: '12px', mid: midText(), tags: [['c', '♠ 로로 팀', '50%', '20%']], chips: [[12, 44, 22, 5, 0], [88, 40, 22, 3, 2], [22, 96, 80, 4, 2, true], [80, 98, 90, 4, 1, true]]}, 1));
+      L.appendChild(lanesEl('42.6%'));
     } else {
       seats = [...toCenterRight(teamC), ...toCenterLeft(teamS)];
       L.appendChild(tier({top: '0', h: '100%', seats, x0: 5, xw: 80, w0: 19, w1: 5, unit: 'vw', cardTop: 73, mid: midText(), tags: [['c', '♠ 로로 팀', '25%', '21%'], ['s', '슈슈 팀 ♥', '66%', '21%']],
         chips: [[31, 34, 30, 6, 0], [34, 40, 30, 4, 1], [64, 34, 30, 7, 3], [67, 42, 30, 3, 2], [38, 46, 28, 5, 4], [23, 92, 120, 4, 2, true], [31, 102, 130, 3, 0, true], [70, 94, 130, 5, 1, true], [77, 104, 140, 3, 3, true]]}, 0));
+      L.appendChild(lanesEl('77%'));
     }
   };
   renderLobby();
@@ -859,11 +979,11 @@ table.rec.wk td:first-child{width:44px;text-align:center}
     $('#name2').innerHTML = `${esc(a.nickname)}<small>${short(a.team)} 팀 · ${esc(a.label)}</small>`;
     bubble.classList.remove('on'); cardsEl.innerHTML = ''; cardsEl._reacted = false; document.querySelectorAll('#close .react').forEach((x) => x.remove());
     ['KR', 'US'].forEach((mk) => {
-      const p = pp[mk]; const slot = document.createElement('div'); slot.className = 'slot2'; const c = document.createElement('div'); c.className = 'big'; const hint = document.createElement('div'); hint.className = 'hint';
+      const p = pp[mk]; const slot = document.createElement('div'); slot.className = 'slot2'; const c = document.createElement('div'); c.className = 'big ' + mk.toLowerCase(); const hint = document.createElement('div'); hint.className = 'hint';
       slot.append(c, hint); cardsEl.appendChild(slot);
       if (!p) { const ms = (a.markets || {})[mk]; c.innerHTML = '<div class="back" style="opacity:.3"></div>'; hint.textContent = ms === '탈락' ? `${mk === 'KR' ? '한국' : '미국'} 리그 탈락` : ms === '미참가' ? `${mk === 'KR' ? '한국' : '미국'} 리그 미참가` : '이번 라운드 없음'; return; }
       const sc = p.score == null ? (p.status === 'held' ? '보류' : p.status === 'void' ? '무효' : '채점 전') : pct(p.score) + '%' + (p.status !== 'final' ? ' 잠정' : '');
-      const col = p.score == null ? '#6b6253' : p.status !== 'final' ? '#a8650b' : p.score >= 0 ? '#1f7a45' : '#b3261e';
+      const col = p.score == null ? '#a49cbf' : p.status !== 'final' ? '#ffc35a' : p.score >= 0 ? '#4fe08f' : '#ff6b6b';   // 어두운 카드 위에서 읽히는 색
       const corner = `${mk}<br>${mk === 'KR' ? '♦' : '♣'}`;
       c.setAttribute('tabindex', '0'); c.setAttribute('role', 'button'); c.setAttribute('aria-label', `${mk} 카드 쪼이기`);
       c._p = p;

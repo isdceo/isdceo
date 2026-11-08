@@ -243,7 +243,7 @@ round_date,agent_id,market,ticker,name,locked_at,rationale,risks,sources
 | 작업 | 실행 수단 | LLM | 시각 (KST) |
 |---|---|---|---|
 | 공통 자료 수집 → snapshot 커밋 | GitHub Actions (cron) | ✗ | 평일 07:00 |
-| 토론 → 추천 확정 → 커밋·푸시 | **Claude Code 예약 작업** (매번 새 세션, `/league-round` 스킬) | ✓ | 평일 07:05 (같은 예약 세션) → 08:30 전 지문 완료 |
+| 토론 → 추천 확정 → 커밋·푸시 | **Claude Code 예약 작업** (같은 예약 세션, `/league-round` 스킬) | ✓ | 평일 07:05 → 08:30 전 지문 완료 |
 | 종가 수집 · 채점 · 잠정→확정 | GitHub Actions | ✗ | 평일 07:00 (전날 평가분), 18:00 (한국 당일분) |
 | 주간 집계 · 교체 판정 | GitHub Actions | ✗ | 월 06:30 |
 | 주간 복기 · 개선안 PR | Claude Code 예약 작업 | ✓ | 토 10:00 |

@@ -1000,7 +1000,14 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
             bad.append({"line": i, "pick": {"agent_id": (row.get("agent_id") or "").strip(), "round_date": (row.get("round_date") or "").strip()},
                         "errors": [f"행 형식 오류: {type(e).__name__} {e}"]})
     # 파일 단위 검사: 에이전트마다 그날 열린 시장(KR·US)에서 각 1종목 필수
-    rows = [r for r in ok + [b["pick"] for b in bad] if r.get("agent_id") and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(r.get("round_date") or ""))]
+    def _real_day(x):
+        try:
+            date.fromisoformat(str(x))
+            return bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(x)))
+        except ValueError:
+            return False
+    broken = {b["pick"].get("agent_id") for b in bad if not b["pick"].get("market")}     # 깨진 행이 있는 에이전트는 '종목 누락'을 겹쳐 적지 않음
+    rows = [r for r in ok + [b["pick"] for b in bad] if r.get("agent_id") and _real_day(r.get("round_date")) and r.get("agent_id") not in broken]
     team_roster = {a["id"]: a for a in load_roster(d).get(team, [])}
     for (agent, rd) in sorted({(r["agent_id"], r["round_date"]) for r in rows}):
         need = open_markets(date.fromisoformat(rd), cfg)
@@ -1139,6 +1146,15 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
     for path in changed_submission_files(event, cwd):
         # 같은 push(커밋)·같은 파일의 영수증이 이미 있으면 다시 만들지 않는다(재실행·충돌 재처리 때 중복 방지)
         m_ = (COMMIT_RE.match(path) or SUBMISSION_RE.match(path))
+        try:
+            date.fromisoformat(m_.group(2))
+        except ValueError:                           # 2026-11-31 같은 없는 날짜: 처리 전체를 멈추지 않고 그 파일만 반려(재검수 A)
+            if not any(x.get("path") == path and x.get("commit") == event["after"] for x in read_ledger(ledger_dir_for(m_.group(1), cwd), "submissions")):
+                receipts.append(append(ledger_dir_for(m_.group(1), cwd), "submissions", {
+                    "team": m_.group(1), "round_date": m_.group(2), "path": path, "commit": event["after"], "ref": event.get("ref"),
+                    "pushed_at": pushed_at.isoformat() if pushed_at else None, "run_id": str(run_id), "run_url": run_url,
+                    "status": "rejected", "errors": [f"파일 이름의 날짜가 없는 날짜임: {m_.group(2)}"], "imported": 0}))
+            continue
         if m_ and any(x.get("path") == path and x.get("commit") == event["after"]
                       for x in read_ledger(ledger_dir_for(m_.group(1), cwd), "submissions")):
             continue
@@ -1212,8 +1228,8 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                     for r in ok:
                         append(d, "picks", {**r, "submission": meta})
                     rec.update(status="accepted", imported=len(ok))
-            except (KeyError, ValueError, TypeError, AttributeError, UnicodeError, csv.Error) as e:
-                rec.update(status="rejected", errors=[f"처리 오류: {type(e).__name__} {e}"])   # 깨진 파일 하나가 영수증 처리 전체를 멈추지 않게
+            except (UnicodeError, csv.Error) as e:   # 파일 자체가 깨짐(인코딩·CSV 문법). 행 형식 오류는 import_csv가 행별로 반려한다.
+                rec.update(status="rejected", errors=[f"파일 형식 오류: {type(e).__name__} {e}"])   # 코드·설정 오류는 여기서 반려로 굳히지 않고 재시도로 둔다
             finally:
                 tmp.unlink(missing_ok=True)
         receipts.append(append(d, "submissions", rec))
@@ -1332,7 +1348,7 @@ def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None,
     동시 공개(지문 방식 라운드): 그 라운드에 지문을 낸(committed) 팀이 모두 원본 접수(accepted)될 때까지,
     또는 원본 공개 마감(12:00)이 될 때까지 그 라운드의 종목은 어느 팀 것도 내보내지 않는다.
     한 팀 카드만 먼저 화면에 뜨지 않게 하기 위해서다. 영수증이 아직 없는 팀(지문 동기화 지연)도 기다리고,
-    끝내 아무것도 내지 않으면 12:00에 공개된다. 늦음·반려로 결론이 난 팀은 기다리지 않는다."""
+    끝내 아무것도 내지 않으면 12:00에 공개된다. 지문이 늦음(late)으로 결론 난 팀은 기다리지 않는다(마감 전 반려된 지문은 다시 낼 수 있어 기다린다)."""
     now = now or datetime.now(KST)
     waiting = {}
     if subs is not None:
@@ -1343,10 +1359,10 @@ def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None,
             mine = [s_ for s_ in subs if s_.get("round_date") == rd]
             committed = {s_["team"] for s_ in mine if s_.get("status") == "committed"}
             accepted = {s_["team"] for s_ in mine if s_.get("status") == "accepted"}
-            # 영수증이 아직 하나도 없는 팀(지문 동기화가 늦은 팀)도 기다린다. 늦음·반려처럼 이미 결론이 난 팀은 기다리지 않는다.
+            # 영수증이 아직 하나도 없는 팀(지문 동기화가 늦은 팀)도 기다린다. 지문이 late로 결론 난 팀은 기다리지 않는다.
             sandbox = any(str(p.get("team", "")).startswith("sandbox-") for p in picks if p["round_date"] == rd)
             expected = {("sandbox-" if sandbox else "") + t for t in cfg.get("teams", {})}
-            seen = {s_["team"] for s_ in mine}
+            seen = {s_["team"] for s_ in mine if s_.get("status") in ("committed", "accepted", "late")}   # 마감 전 반려된 지문은 결론이 아님(다시 낼 수 있음)
             need = (committed - accepted) | ((expected - seen) if seen else set())
             if need:
                 waiting[rd] = sorted(need)

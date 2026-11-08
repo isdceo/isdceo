@@ -455,7 +455,32 @@ class FullReviewA(unittest.TestCase):
         self.assertIn("005930", due.get(("KR", "2026-11-11"), []))
 
     def test_ca_without_market_does_not_crash(self):
-        self.assertEqual(L.ca_for([{"type": "extreme_move_confirmed"}], "KR", "005930", date(2026, 11, 9), date(2026, 11, 10))[0], 0.0)
+        self.assertFalse(L.ca_for([{"type": "extreme_move_confirmed"}], "KR", "005930", date(2026, 11, 9), date(2026, 11, 10))[0])
+
+    def test_bad_date_filename_rejected_not_crash(self):
+        """재검수 A 낮음 1: 없는 날짜 파일 이름은 그 파일만 반려."""
+        import subprocess
+        d = Path(tempfile.mkdtemp())
+        g = lambda *a: subprocess.run(["git", *a], cwd=d, check=True, capture_output=True, text=True).stdout.strip()
+        g("init", "-q"); g("config", "user.email", "t@t"); g("config", "user.name", "t")
+        shutil.copytree(ROOT / "league", d / "league", ignore=shutil.ignore_patterns("ledger", "sandbox", "imports", "rounds", "reviews", "inbox"))
+        (d / "league" / "ledger").mkdir()
+        g("add", "-A"); g("commit", "-qm", "base"); before = g("rev-parse", "HEAD")
+        (d / "league" / "imports" / "shushu").mkdir(parents=True)
+        (d / "league" / "imports" / "shushu" / "2026-11-31.sha256").write_text("0" * 64 + "\n")
+        g("add", "-A"); g("commit", "-qm", "x"); after = g("rev-parse", "HEAD")
+        rs = L.process_push({"before": before, "after": after, "ref": "refs/heads/main", "repository": {"pushed_at": 1762731000}}, cwd=d)
+        self.assertEqual([(r["status"], r["round_date"]) for r in rs], [("rejected", "2026-11-31")])
+
+
+class GuidelineCheck(unittest.TestCase):
+    def test_existing_guidelines_pass(self):
+        """재검수 B-A·D-1: 지금 저장소의 지침(로로·슈슈, 보관본 포함)은 모두 대기 후보 지침 검사를 통과해야 한다."""
+        sys.path.insert(0, str(ROOT / "tools")); import add_character as A
+        fs = [*ROOT.glob(".claude/agents/*.md"), *ROOT.glob("league/agents/claude/*/v*.md"), *ROOT.glob("league/imports/shushu/agents/*/v*.md")]
+        self.assertTrue(fs)
+        self.assertEqual([str(f) for f in fs if A.guideline_issue(f.read_text())], [])
+        self.assertTrue(A.guideline_issue("항상 005930을 고른다"))
 
 
 class CsvImport(unittest.TestCase):
@@ -628,7 +653,8 @@ class DashboardData(unittest.TestCase):
     def test_line_price_filter_variants(self):
         """전체 검수 C-4: 만/천 원·불·USD·주당·단위 없는 소수 가격을 막고, 증가율·배수·순위는 통과."""
         import dashboard_data as D
-        for b in ("7만 원", "주가 24만 5천원에서 샀어", "245.51불이면 싸지", "USD 245에 들어간다", "주당 245.51 찍었어", "5$", "₩7만"):
+        for b in ("7만 원", "주가 24만 5천원에서 샀어", "245.51불이면 싸지", "USD 245에 들어간다", "주당 245.51 찍었어", "5$", "₩7만",
+                  "주가가 6만 언저리", "245,000선", "52주 고점 733", "245.5 수준", "245 dollars", "2,450엔"):
             self.assertTrue(D.PRICE_LIKE.search(b), b)
         for o in ("매출 12% 늘었어", "PER 3.25배면 싸지", "순위 1위", "증가율 1.25%야", "4.5%p 개선", "불닭이 84% 늘었어"):
             self.assertIsNone(D.PRICE_LIKE.search(o), o)
@@ -1343,6 +1369,15 @@ class ShushuRepoSync(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             S.mirror(self.repo, Path(tmp))
             self.assertEqual((Path(tmp) / "from-league" / "sync-log.jsonl").read_text(), "")
+
+    def test_unfetchable_mirror_commit_noted_in_same_run_is_skipped(self):
+        """재검수 B-B: 같은 실행에서 기록한 사본 커밋은 뒤에 받을 수 없게 돼도 오류·확인 대기로 보지 않는다."""
+        ghost = "ab" * 20
+        L.append(self.repo / "league", "external_pushes", {"repo": "o/shushu", "type": "mirror_commit", "status": "mirror", "s_after": ghost})
+        self.acts.append({"id": 99, "before": self.last, "after": ghost, "timestamp": "2026-11-09T23:00:00Z", "ref": "refs/heads/main",
+                          "activity_type": "force_push", "actor": {"login": "bot"}})
+        self.assertEqual(self.sync("2026-11-10T08:40:00+09:00"), [])
+        self.assertEqual([r["type"] for r in L.read_ledger(self.repo / "league", "external_pushes")], ["mirror_commit"])
 
     def test_mirror_has_no_prices(self):
         """사본에는 원 가격이 든 원장(prices·scores·corporate_actions·picks)과 가격 포함 공통 자료가 없다."""

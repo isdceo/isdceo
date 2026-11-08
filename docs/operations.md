@@ -9,7 +9,7 @@
 | (월) 06:30 | 주간 마감 (순위·탈락·교체 고정) | 자동 | `league/ledger/weekly_decisions.jsonl` |
 | 06:50 | 공통 자료 생성 (`league-daily`) | 자동 | `league/rounds/<날짜>/snapshot.json` 생성 커밋 |
 | 07:05–08:20 | 로로(Claude) 팀 라운드 (`/league-round <날짜> official`, 예약 세션) | 자동 | 진행 보고 |
-| 10분마다 | 슈슈 팀 전용 제출 저장소 동기화 (`docs/shushu-repo-setup.md`) | 자동 | `league/ledger/external_pushes.jsonl`, 동기화 커밋 |
+| 06:57·07:05·07:35, 08:00–09:50 10분마다, 10:05·11:05·12:05·18:05 | 슈슈 팀 전용 제출 저장소 동기화 (`docs/shushu-repo-setup.md`) | 자동 | `league/ledger/external_pushes.jsonl`, 동기화 커밋 |
 | **08:30** | **지문 마감** (`<날짜>.sha256`만, 영수증 `committed`) | – | 두 팀 지문 영수증이 `committed`인지 |
 | 08:30–**12:00** | 원본 공개 (CSV·토론 기록, 지문과 같은 파일이면 `accepted`) | 자동 | 두 팀 원본 영수증이 `accepted`인지 |
 | 08:35 · 11:35 | 현황판 갱신 | 자동 | 화면 확인 |
@@ -18,12 +18,13 @@
 | 11:23 | 손실 복기 (`/league-loss-review`) | 자동 (예약 세션) | `league/reviews/losses/` |
 | 12:40 · 19:10 | 슈슈 팀 메시지 확인·회신 | 자동 (예약 세션) | `docs/codex-notices/replies/` |
 
-일요일 14:43에 주간 복기(`/league-review`)가 돈다. 지침 개선안은 PR로 오며, 머지가 운영자 승인이다.
+토요일에 주간 복기(`/league-review`, W46은 11/14 14:00 예약)가 돈다. 지침 개선안은 PR로 오며, 머지가 운영자 승인이다. 일요일 14:43에는 주간 개선 점검(`docs/improvement-log.md`)이 돈다.
 
 ## 매주
 
 - **월 06:30 이후:** `league/ledger/weekly_decisions.jsonl` 확인. 탈락·교체가 있으면 두 팀에 알린다.
-- **일:** `/league-review` (14:43 예약 세션). PR이 오면 개선안을 검토해 머지(승인)하거나 닫는다.
+- **토:** `/league-review`. PR이 오면 개선안을 검토해 머지(승인)하거나 닫는다.
+- **일 14:43:** 주간 개선 점검 보고 확인(승인 대기 항목이 있으면 첫 줄).
 - **다음 주 초:** 복기 때 잠정이던 결과가 확정되면 복기 보완 문서가 추가됐는지 확인한다.
 
 ## 정기 점검
@@ -86,4 +87,4 @@ python3 tools/league.py outage 2026-11-10 --team shushu --agent s3 --reason "분
 - 설정: `league/config.json`의 `commit_reveal` (`from`, `reveal_deadline`). 연습 원장도 같은 설정을 쓴다.
 - 지문 파일 만들기: `python3 tools/league.py commit <CSV>`.
 - 마감 전 원본 push는 접수하되 `early_reveal: true`로 기록한다.
-- 동시 공개: 지문을 낸 팀(또는 아직 영수증이 없는 팀)의 원본이 모두 접수되거나 12:00이 지나야 그 라운드 종목이 어느 팀 것이든 화면·결과 묶음에 나온다. 늦음·반려로 결론 난 팀은 기다리지 않는다.
+- 동시 공개: 지문을 낸 팀(또는 아직 영수증이 없는 팀)의 원본이 모두 접수되거나 12:00이 지나야 그 라운드 종목이 어느 팀 것이든 화면·결과 묶음에 나온다. 지문 자체가 늦음(`late`)으로 결론 난 팀은 기다리지 않는다(마감 전 반려된 지문은 다시 낼 수 있으므로 기다린다).
