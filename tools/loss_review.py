@@ -76,6 +76,7 @@ _SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|
 _COMMOD = re.compile(r"(?:D램|DRAM|낸드|NAND|메모리|HBM|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|가스|전력|운임)\s*$")
 _PER_UNIT = re.compile(r"(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당")
 _CUE_IN = re.compile(_CUE)
+_CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*원")
 
 
 def money_hit(t: str):
@@ -93,6 +94,8 @@ def money_hit(t: str):
             skip = True
         elif g.startswith("가격") and (_COMMOD.search(t[max(ls, m.start() - 12):m.start()]) or _PER_UNIT.search(g)):
             skip = True
+        elif not _CUE_IN.search(g) and _CO_AMT.search(g):
+            skip = True   # 회사 금액(억·조 + 원)은 허용(운영자 결정 2026-11-08). 주당 금액·종가와 원 단위 가격(126만 원)은 계속 막는다
         elif g.startswith("주당") and re.match(r"주당\s*(?:배당|순이익|순자산|이익|현금흐름|매출)", g):
             skip = True
         if not skip:
