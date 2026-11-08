@@ -436,6 +436,28 @@ class Weekly(unittest.TestCase):
         self.assertTrue(any("동점" in r for r in w["decision"]["hold_reasons"]))
 
 
+class FullReviewA(unittest.TestCase):
+    """전체 검수(2026-11-08) A 영역 회귀 시험."""
+    def test_kr_ex_date_when_record_date_is_holiday(self):
+        import dart
+        cfg = L.load_config(ROOT / "league")
+        self.assertEqual(dart.kr_ex_date(date(2026, 12, 31), cfg), date(2026, 12, 29))   # 12/31 휴장 → 마지막 거래일 12/30의 직전
+        self.assertEqual(dart.kr_ex_date(date(2026, 11, 13), cfg), date(2026, 11, 12))   # 평일 기준일은 직전 거래일
+
+    def test_halted_eval_session_collects_next_sessions(self):
+        import collectors as C
+        d = new_league()
+        pick(d, "buffett", "2026-11-10", "KR", "005930")
+        price(d, "KR", "005930", "2026-11-09", 100000)
+        L.append(d, "prices", {"market": "KR", "ticker": "005930", "session": "2026-11-10", "close": None, "basis": "unadjusted",
+                               "halted": True, "status": "final"})
+        due = C.due_sessions(d, date(2026, 11, 12))
+        self.assertIn("005930", due.get(("KR", "2026-11-11"), []))
+
+    def test_ca_without_market_does_not_crash(self):
+        self.assertEqual(L.ca_for([{"type": "extreme_move_confirmed"}], "KR", "005930", date(2026, 11, 9), date(2026, 11, 10))[0], 0.0)
+
+
 class CsvImport(unittest.TestCase):
     H = "round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
 
@@ -453,6 +475,17 @@ class CsvImport(unittest.TestCase):
         ps = L.read_ledger(d, "picks")
         self.assertEqual([(p["market"], p["base_session"], p["eval_session"]) for p in ps],
                          [("KR", "2026-11-09", "2026-11-10"), ("US", "2026-11-09", "2026-11-10")])
+
+    def test_broken_rows_rejected_not_crash(self):
+        """전체 검수 A-1·B-3: 날짜 없는 locked_at, 없는 시장, 빠진 열은 예외 대신 반려 사유로."""
+        d, ok, bad = self.run_csv("2026-11-10,s1,1,KR,005930,삼성전자,08:00,근거,위험,https://x|2026-11-09\n"
+                                  "2026-11-10,s1,1,JP,7203,Toyota,2026-11-10T08:10:00+09:00,근거,위험,https://x|2026-11-09\n")
+        self.assertEqual(ok, [])
+        self.assertTrue(bad)
+        d = new_league(); f = d / "in.csv"
+        f.write_text("round_date,agent_id,ticker\n2026-11-10,s1,005930\n")
+        ok, bad = L.import_csv(d, f, "shushu")
+        self.assertEqual(ok, []); self.assertIn("필수 열 없음", bad[0]["errors"][0])
 
     def test_missing_market_rejected(self):
         d, ok, bad = self.run_csv(
@@ -591,6 +624,14 @@ class DashboardData(unittest.TestCase):
             self.assertEqual(D.load_lines(Path(tmp)), {"a": "불닭이 해외 매출 84%! 이익은 47% 늘었어요."})
         for v in D.load_lines(L.ROOT / "league" / "sandbox").values():
             self.assertIsNone(D.PRICE_LIKE.search(v))
+
+    def test_line_price_filter_variants(self):
+        """전체 검수 C-4: 만/천 원·불·USD·주당·단위 없는 소수 가격을 막고, 증가율·배수·순위는 통과."""
+        import dashboard_data as D
+        for b in ("7만 원", "주가 24만 5천원에서 샀어", "245.51불이면 싸지", "USD 245에 들어간다", "주당 245.51 찍었어", "5$", "₩7만"):
+            self.assertTrue(D.PRICE_LIKE.search(b), b)
+        for o in ("매출 12% 늘었어", "PER 3.25배면 싸지", "순위 1위", "증가율 1.25%야", "4.5%p 개선", "불닭이 84% 늘었어"):
+            self.assertIsNone(D.PRICE_LIKE.search(o), o)
 
     def test_check_lines(self):
         """한 줄 이유 검사: 마감 전·다른 팀 종목·가격 표현·빠진 종목을 잡고, 정상 파일은 통과."""
@@ -1290,10 +1331,18 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(sub["commitment_pushed_at"], f"{rd}T08:15:00+09:00")
 
     def test_mirror_push_not_recorded(self):
-        """메인이 보낸 사본(from-league/) push는 기록하지 않는다 — 기록하면 사본·기록이 매 실행 되풀이된다."""
+        """메인이 보낸 사본(from-league/) push는 처리하지 않고 'mirror'로 한 번만 기록한다(전체 검수 B-1: 나중에 강제 push로
+        받을 수 없게 돼도 마감 전 push 오류로 라운드를 묶지 않게). 그 기록은 사본에 싣지 않아 사본·기록이 되풀이되지 않는다."""
         self.spush({"from-league/README.md": "copy"}, "2026-11-10T08:00:00+09:00")
         self.assertEqual(self.sync("2026-11-10T08:05:00+09:00"), [])
-        self.assertEqual(L.read_ledger(self.repo / "league", "external_pushes"), [])
+        recs = L.read_ledger(self.repo / "league", "external_pushes")
+        self.assertEqual([(r["type"], r["status"]) for r in recs], [("push", "mirror")])
+        self.assertEqual(self.sync("2026-11-10T08:15:00+09:00"), [])
+        self.assertEqual(len(L.read_ledger(self.repo / "league", "external_pushes")), 1)          # 다시 비교·기록하지 않음
+        import shushu_sync as S, tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            S.mirror(self.repo, Path(tmp))
+            self.assertEqual((Path(tmp) / "from-league" / "sync-log.jsonl").read_text(), "")
 
     def test_mirror_has_no_prices(self):
         """사본에는 원 가격이 든 원장(prices·scores·corporate_actions·picks)과 가격 포함 공통 자료가 없다."""
@@ -1625,6 +1674,15 @@ class SimultaneousReveal(unittest.TestCase):
         subs = [{"team": "claude", "round_date": rd, "status": "committed"}, {"team": "claude", "round_date": rd, "status": "accepted"},
                 {"team": "shushu", "round_date": rd, "status": "late"}]
         self.assertEqual(self.shown(subs, "08:40:00"), ["claude", "shushu"])
+
+    def test_team_with_no_receipt_yet_blocks(self):
+        """전체 검수 C-1: 상대 팀 지문 영수증이 아직 동기화되지 않았으면(영수증 0건) 기다린다."""
+        rd = "2026-11-10"
+        subs = [{"team": "claude", "round_date": rd, "status": "committed"}, {"team": "claude", "round_date": rd, "status": "accepted"}]
+        self.assertEqual(self.shown(subs, "08:35:00"), [])
+        self.assertEqual(self.shown(subs, "12:00:00"), ["claude", "shushu"])
+        self.assertEqual(self.shown(subs + [{"team": "shushu", "round_date": rd, "status": "committed"},
+                                            {"team": "shushu", "round_date": rd, "status": "accepted"}], "08:50:00"), ["claude", "shushu"])
 
     def test_before_deadline_still_hidden(self):
         rd = "2026-11-10"

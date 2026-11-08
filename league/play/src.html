@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#120a1c"><meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>AI 투자 리그</title>
@@ -599,7 +599,9 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   const toCenterRight = (xs) => [...xs].sort((x, y) => has3d(x) - has3d(y));   // 오른쪽 끝이 가운데에 가까울 때
   const toCenterLeft = (xs) => [...xs].sort((x, y) => has3d(y) - has3d(x));
   const toMiddle = (xs) => { const o = [...xs].sort((x, y) => has3d(y) - has3d(x)), r = new Array(o.length), idx = [2, 1, 3, 0, 4]; o.forEach((a, k) => (r[idx[k] ?? k] = a)); return r.filter(Boolean); };
-  const picksOf = (a) => { const mine = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id); const live = mine.filter((p) => p.mode === '실전'); const pool = live.length ? live : mine; const last = pool.map((p) => p.round_date).sort().pop();
+  const picksOf = (a) => { const mine = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id); const live = mine.filter((p) => p.mode === '실전');
+    // 실전이 시작되면(공개된 실전 종목이 하나라도 있으면) 연습 기록으로 대신 채우지 않고, 가장 최근 실전 라운드만 보여 준다(미제출이면 빈칸)
+    const gl = T.picks.filter((p) => p.mode === '실전').map((p) => p.round_date).sort().pop(); const pool = gl ? live.filter((p) => p.round_date === gl) : mine; const last = gl || pool.map((p) => p.round_date).sort().pop();
     return {KR: pool.find((p) => p.round_date === last && p.market === 'KR'), US: pool.find((p) => p.round_date === last && p.market === 'US'), last, mode: pool[0] && pool[0].mode}; };
   const sgn = (v) => { const r = Math.round(v * 100) / 100; return r > 0 ? 'up' : r < 0 ? 'dn' : 'eq'; };   // 색도 표시값(반올림) 기준: 0.00%는 보합 금색
   const pct = (v) => { const r = Math.round(v * 100) / 100; return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toFixed(2); };   // 반올림 뒤 0이면 부호 없이
@@ -631,8 +633,8 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   const weekBoard = (st) => {
     if (!st.length) return '<p class="muted">첫 주간 순위는 11/9 주부터 나옵니다.</p>';
     const wk = st.map((r) => r.week).sort().pop(), cur = st.filter((r) => r.week === wk);
-    const tbl = (rows) => { rows = rows.slice().sort((x, y) => x.league_rank - y.league_rank); const rks = rows.map((r) => r.league_rank), lo = Math.max(...rks);
-      return `<table class="rec wk"><tr><th>순위</th><th>에이전트</th><th>평균</th><th>확정</th></tr>${rows.map((r, i, arr) => `<tr><td class="rkc">${tieTxt(r.league_rank, rks)}</td><td>${esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id)} ${tchip(r.team)}${r.out ? ' <span class="tag dn">탈락</span>' : arr.length > 1 && r.league_rank === lo && lo > 1 && !r.closed ? ' <span class="tag dn">꼴등</span>' : ''}</td><td>${r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>` : '—'}</td><td>${r.scored}/${r.expected}${r.watch ? ` <span class="muted">관망 ${r.watch}</span>` : ''}</td></tr>`).join('')}</table>`; };
+    const tbl = (rows) => { rows = rows.slice().sort((x, y) => (x.avg == null) - (y.avg == null) || x.league_rank - y.league_rank); const rks = rows.map((r) => r.league_rank), sc = rows.filter((r) => r.avg != null).map((r) => r.league_rank), lo = sc.length ? Math.max(...sc) : 0;   // 꼴등은 평균이 있는 줄에서만(요약·로비와 같은 기준)
+      return `<table class="rec wk"><tr><th>순위</th><th>에이전트</th><th>평균</th><th>확정</th></tr>${rows.map((r, i, arr) => `<tr><td class="rkc">${r.avg == null ? '—' : tieTxt(r.league_rank, rks)}</td><td>${esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id)} ${tchip(r.team)}${r.out ? ' <span class="tag dn">탈락</span>' : r.avg != null && sc.length > 1 && r.league_rank === lo && lo > 1 && !r.closed ? ' <span class="tag dn">꼴등</span>' : ''}</td><td>${r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>` : '<span class="muted">미채점</span>'}</td><td>${r.scored}/${r.expected}${r.watch ? ` <span class="muted">관망 ${r.watch}</span>` : ''}</td></tr>`).join('')}</table>`; };
     if (!cur.some((r) => r.market)) return `<p class="muted">${wkTxt(wk)}</p>${tbl(cur)}`;
     return [['KR', '♦ 한국 리그'], ['US', '♣ 미국 리그']].map(([mk, t]) => { const rows = cur.filter((r) => r.market === mk); return rows.length ? `<div data-fmk="${mk}"><p class="lg"><b>${t}</b> <span class="muted">${wkTxt(wk)}</span></p>${tbl(rows)}</div>` : ''; }).join('');
   };
@@ -701,7 +703,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   // 에이전트 순위: 한 줄 목록(순위·얼굴·애칭·팀·평균). 줄을 누르면 세부와 '카드 보기'가 펼쳐진다
   let rid = 0;
   // 종목 한 칸: ♦/♣ 종목명 점수(마감 지난 공개 종목만 — 결과 묶음이 준 것만 씀)
-  const pickTxt = (p) => { const s = p.score == null ? `<span class="no">${p.status === 'held' ? '보류' : '채점 전'}</span>` : `<span class="${sgn(p.score)}">${pct(p.score)}%${p.status !== 'final' ? ' 잠정' : ''}</span>`;
+  const pickTxt = (p) => { const s = p.score == null ? `<span class="no">${p.status === 'held' ? '보류' : p.status === 'void' ? '무효' : '채점 전'}</span>` : `<span class="${sgn(p.score)}">${pct(p.score)}%${p.status !== 'final' ? ' 잠정' : ''}</span>`;
     return `<span class="ptag">${p.market === 'KR' ? '♦' : '♣'} <em>${p.watch ? '관망(지수)' : esc(p.name || p.ticker)}</em> ${s}</span>`; };
   const lastPicks = (a, mode, mk) => { const mine = T.picks.filter((p) => p.team === a.team && p.agent_id === a.agent_id && p.mode === mode && (mk === 'ALL' || p.market === mk)); const d = mine.map((p) => p.round_date).sort().pop();
     return d ? {d, ps: mine.filter((p) => p.round_date === d).sort((x, y) => (x.market > y.market ? 1 : -1))} : null; };
@@ -860,7 +862,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const p = pp[mk]; const slot = document.createElement('div'); slot.className = 'slot2'; const c = document.createElement('div'); c.className = 'big'; const hint = document.createElement('div'); hint.className = 'hint';
       slot.append(c, hint); cardsEl.appendChild(slot);
       if (!p) { const ms = (a.markets || {})[mk]; c.innerHTML = '<div class="back" style="opacity:.3"></div>'; hint.textContent = ms === '탈락' ? `${mk === 'KR' ? '한국' : '미국'} 리그 탈락` : ms === '미참가' ? `${mk === 'KR' ? '한국' : '미국'} 리그 미참가` : '이번 라운드 없음'; return; }
-      const sc = p.score == null ? (p.status === 'held' ? '보류' : '채점 전') : pct(p.score) + '%' + (p.status !== 'final' ? ' 잠정' : '');
+      const sc = p.score == null ? (p.status === 'held' ? '보류' : p.status === 'void' ? '무효' : '채점 전') : pct(p.score) + '%' + (p.status !== 'final' ? ' 잠정' : '');
       const col = p.score == null ? '#6b6253' : p.status !== 'final' ? '#a8650b' : p.score >= 0 ? '#1f7a45' : '#b3261e';
       const corner = `${mk}<br>${mk === 'KR' ? '♦' : '♣'}`;
       c.setAttribute('tabindex', '0'); c.setAttribute('role', 'button'); c.setAttribute('aria-label', `${mk} 카드 쪼이기`);
@@ -941,12 +943,13 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       let stage = 0, of = lr;           // 0 지문 제출, 1 원본 공개, 2 장 마감·채점 대기, 3 채점
       if (lr) { if (now < new Date(lr.reveal_until)) stage = 1; else if (now < new Date(lr.score_at)) stage = 2; else { stage = 0; of = nr; } } else of = nr;
       const steps = [['지문 제출', '~ 08:30'], ['원본 공개', '08:30 ~ 12:00'], ['장 마감 대기', '미국 장 마감 뒤 수집'], ['채점', '다음 날 10:30']];
-      const teams = (T.teams || []).filter((r) => r.team === C || r.team === Sx);
+      const ST = {accepted: '접수', committed: '지문 접수', rejected: '반려', late: '마감 지남'};
+      const teams0 = (T.teams || []).filter((r) => r.team === C || r.team === Sx), teams = teams0.some((r) => r.mode === '실전') ? teams0.filter((r) => r.mode === '실전') : teams0;   // 실전 줄이 생기면 연습 줄은 숨김
       const up = (T.calendar || []).filter((r) => new Date(r.deadline) > now).slice(0, 6);
       return `<div class="big-count"><span>${nr ? `${nr.date >= SEASON ? '실전' : '연습'} ${md(nr.date)} 라운드 마감까지` : '다음 라운드'}</span><b>${nr ? left(new Date(nr.deadline) - now) : '확인 중'}</b><span class="muted">${nr ? `${md(nr.date)} 08:30 KST · ${esc(nr.markets)}` : ''}</span></div>
         <h3>${of ? `${md(of.date)} 라운드 단계` : '라운드 단계'}</h3>
         <div class="steps">${steps.map(([b, s], k) => `<div class="step ${k < stage ? 'done' : k === stage ? 'now' : ''}"><b>${b}</b>${s}</div>`).join('')}</div>
-        <h3>팀 제출 현황</h3><div class="rows">${teams.map((r) => `<div class="row"><div class="who2"><b>${short(r.team)} 팀</b><small>${r.mode} ${md(r.round)} 라운드</small></div><span class="tag">${r.status === 'accepted' ? `접수 · ${r.visible_picks}종목 공개` : esc(r.status)}</span></div>`).join('') || '<p class="muted">아직 제출 기록이 없습니다.</p>'}</div>
+        <h3>팀 제출 현황</h3><div class="rows">${teams.map((r) => `<div class="row"><div class="who2"><b>${short(r.team)} 팀</b><small>${r.mode} ${md(r.round)} 라운드</small></div><span class="tag">${r.status === 'accepted' ? `접수 · ${r.visible_picks}종목 공개` : esc(ST[r.status] || r.status)}</span></div>`).join('') || '<p class="muted">아직 제출 기록이 없습니다.</p>'}</div>
         <h3>다가오는 라운드</h3><div class="rows">${up.map((r) => `<div class="row"><div class="who2"><b>${md(r.date)}</b><small>마감 08:30 · 채점 ${md(r.score_at.slice(0, 10))} 10:30</small></div><span class="tag">${r.date >= SEASON ? '실전' : '연습'} · ${esc(r.markets)}</span></div>`).join('')}</div>
         <p class="muted">한국·미국 거래일 달력 기준입니다. 한쪽 시장이 쉬면 남은 시장만, 둘 다 쉬면 라운드가 없습니다.</p>`; }},
     record: {t: '기록판', c: '#1f8a4c', html: () => {
@@ -954,7 +957,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       const rows = (T.team_daily || []).filter((r) => r.team === C || r.team === Sx).slice();
       [...new Set(T.picks.filter((p) => p.team === C || p.team === Sx).map((p) => `${p.round_date}|${p.mode}|${p.team}`))].forEach((k) => { const [d, mo, tm] = k.split('|');
         if (rows.some((r) => r.date === d && r.team === tm && r.mode === mo && r.avg != null)) return;
-        const xs = T.picks.filter((p) => p.round_date === d && p.mode === mo && p.team === tm); if (xs.some((p) => p.status !== 'final' && p.status !== 'held')) return;
+        const xs = T.picks.filter((p) => p.round_date === d && p.mode === mo && p.team === tm); if (xs.some((p) => p.status !== 'final' && p.status !== 'held' && p.status !== 'void')) return;
         const f = xs.filter((p) => p.status === 'final' && p.score != null); if (!f.length) return;
         rows.push({date: d, team: tm, mode: mo, avg: f.reduce((s, p) => s + p.score, 0) / f.length, n: f.length}); });
       const days = [...new Set(rows.map((r) => r.date))].sort();
@@ -1009,7 +1012,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
           ${help('점수는 하루 수익률(배당 포함, %)입니다. 팀 비교는 종목 한 건당 평균으로 합니다. 최근 라운드가 위에 오고, 줄을 누르면 그 라운드 종목이 펼쳐집니다. 마감이 지난 종목만 보입니다.')}</div>`; }},
     picks: {t: '고른 종목 · 대기석', c: '#2a62c6', html: () => {
       const row = (a) => { const pp = picksOf(a); const one = (mk) => { const p = pp[mk]; if (!p) return `<span class="tag ${mk.toLowerCase()}">${mk === 'KR' ? '♦' : '♣'} —</span>`;
-          const s = p.score == null ? `<span class="no">${p.status === 'held' ? '보류' : '채점 전'}</span>` : `<span class="${sgn(p.score)}">${pct(p.score)}%${p.status !== 'final' ? ' 잠정' : ''}</span>`;
+          const s = p.score == null ? `<span class="no">${p.status === 'held' ? '보류' : p.status === 'void' ? '무효' : '채점 전'}</span>` : `<span class="${sgn(p.score)}">${pct(p.score)}%${p.status !== 'final' ? ' 잠정' : ''}</span>`;
           return `<span class="tag ${mk.toLowerCase()}">${mk === 'KR' ? '♦' : '♣'} ${esc(p.name || p.ticker)} ${s}</span>`; };
         return `<div class="row" data-nick="${esc(a.nickname)}" role="button" tabindex="0" style="cursor:pointer"><span class="av">${avHTML(a)}</span><div class="who2"><b>${esc(a.nickname)}</b><small>${esc(a.label)}${pp.last ? ` · ${pp.mode} ${md(pp.last)}` : ''}</small></div><div class="pk">${one('KR')}${one('US')}</div></div>`; };
       return `<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="c">로로 팀</button><button role="tab" aria-selected="false" data-tab="s">슈슈 팀</button><button role="tab" aria-selected="false" data-tab="b">대기석</button></div>
@@ -1034,6 +1037,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   const saveRecState = (el) => { const all = [...sheetB.querySelectorAll('.rmain')], foc = [...sheetB.querySelectorAll(REC_FOCUS)];
     recState = {scroll: sheetB.scrollTop, exp: all.map((x) => x.getAttribute('aria-expanded') === 'true'), focus: foc.indexOf(el)}; };
   const openSheet = (key, focusNick, keepOpener) => {
+    document.querySelectorAll('.coach').forEach((x) => x.remove());   // 첫 방문 안내가 창 위에 남지 않게
     const s = SHEETS[key]; if (!s) return;
     if (!game.classList.contains('sheeted') && !keepOpener) sheetOpener = document.activeElement;
     shut(true);
@@ -1135,7 +1139,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
       for (const a of ags) {
         const cell = ['KR', 'US'].map((mk) => { const p = SR.picks.find((x) => x.team === a.team && x.agent_id === a.agent_id && x.market === mk);
           if (!p) return `<div class="fc none"><div class="in"><div class="bk"></div></div></div>`;
-          const fin = p.status === 'final' && p.score != null, txt = fin ? pct(p.score) + '%' : p.status === 'held' ? '보류' : '채점 전';
+          const fin = p.status === 'final' && p.score != null, txt = fin ? pct(p.score) + '%' : p.status === 'held' ? '보류' : p.status === 'void' ? '무효' : '채점 전';
           const col = !fin ? '#6b6253' : p.score >= 0 ? '#1f7a45' : '#b3261e';
           return `<div class="fc" data-id="${esc(p.pick_id)}" data-s="${fin ? p.score : ''}"><div class="in"><div class="bk">${mk === 'KR' ? '♦' : '♣'}</div><div class="fr"><span class="m ${mk === 'KR' ? 'r' : ''}">${mk} ${mk === 'KR' ? '♦' : '♣'}</span><span class="n" title="${esc(p.name || p.ticker)}">${esc(p.watch ? '관망' : mk === 'US' && p.ticker ? p.ticker : (p.name || p.ticker))}</span><span class="v" data-t="${txt}" style="color:${col}">${fin ? '' : txt}</span></div></div></div>`; }).join('');
         col.insertAdjacentHTML('beforeend', `<div class="ag"><span class="who3"><i>${avHTML(a)}</i>${esc(a.nickname)}</span><div class="pair2">${cell}</div></div>`);

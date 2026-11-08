@@ -141,7 +141,7 @@ def corporate_actions(d: Path) -> list[dict]:
 def ca_for(cas: list[dict], m: str, t: str, after: date, upto: date, cfg: dict | None = None):
     """(after, upto] 구간의 배당 합계·분할 비율·확인 여부.
     확인 여부: 구간 안의 모든 '거래일'이 어떤 checked 기록의 [from, to] 범위에 들어가야 한다 (주말·휴장일은 볼 필요 없음)."""
-    mine = [c for c in cas if c["market"] == m and c["ticker"] == t]
+    mine = [c for c in cas if c.get("market") == m and c.get("ticker") == t]
     ranges = [(date.fromisoformat(c["from"]), date.fromisoformat(c["to"])) for c in mine if c["type"] == "checked"]
     sessions, x = [], after
     while True:
@@ -375,13 +375,15 @@ def _min_needed(expected: int, w: dict, fixed_key: str) -> int:
         return max(1, math.ceil(expected * w["min_scored_ratio"])) if expected else 0
     return w[fixed_key]
 
-def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -> dict:
+def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False, only_ids: set | None = None) -> dict:
+    """only_ids: 공개 화면용. 주어지면 그 pick_id만 센다(마감 전·동시 공개 대기 라운드의 제출·관망 수가 새지 않게)."""
     cfg = load_config(d)
     w = cfg["weekly"]
     roster = load_roster(d)
     members = [a for a in roster.get(team, []) if any(active_in(a, mk, week) for mk in MARKETS)]
     scores = latest_scores(d)
-    picks = [p for p in read_ledger(d, "picks") if p["team"] == team and iso_week(date.fromisoformat(p["round_date"])) == week]
+    picks = [p for p in read_ledger(d, "picks") if p["team"] == team and iso_week(date.fromisoformat(p["round_date"])) == week
+             and (only_ids is None or p["pick_id"] in only_ids)]
     # 이 주의 기대 제출 수 = 라운드별 열린 시장 수 (에이전트 합류 이후)
     y, wk = map(int, week.split("-W"))
     week_days = [date.fromisocalendar(y, wk, i) for i in range(1, 6)]
@@ -433,7 +435,7 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False) -
     if w.get("mode") == "per_market_bottom1":
         decision = {"mode": "per_market_bottom1", "markets": {}}
         for mk in MARKETS:
-            dec = weekly_market_league(d, week, mk)["decision"]
+            dec = weekly_market_league(d, week, mk, only_ids=only_ids)["decision"]
             mine = dec.get("eliminate_team") == team
             decision["markets"][mk] = {"eliminate": dec["eliminate"] if mine else None, "replacement": dec["replacement"] if mine else None,
                                        "hold_reasons": dec["hold_reasons"], "notes": dec.get("notes", []) if mine else [],
@@ -543,7 +545,7 @@ def weekly_league(d: Path, week: str) -> dict:
                         hold_reasons=closed[0].get("hold_reasons", []), closed_at=closed[0].get("closed_at"))
     return {"week": week, "mode": "combined_bottom1", "ranking": rows, "teams": teams, "decision": decision}
 
-def weekly_market_league(d: Path, week: str, mk: str) -> dict:
+def weekly_market_league(d: Path, week: str, mk: str, only_ids: set | None = None) -> dict:
     """v2.0 리그별 순위: 그 시장에서 뛴 두 팀 에이전트를 한 줄로 세우고 꼴등 1명을 그 시장에서만 뺀다.
     보류: 팀마다 그 시장 확정 채점 < 그 팀 그 시장 기대 제출의 min_scored_ratio, 꼴등 확정 < 자기 기대의 비율, 꼴등 동점."""
     cfg = load_config(d)
@@ -552,7 +554,7 @@ def weekly_market_league(d: Path, week: str, mk: str) -> dict:
     key = lambda r: (nz(r["avg"]), nz(r["median"]), nz(r["min"]))
     rows, teams = [], {}
     for team in cfg["teams"]:
-        t = [r for r in weekly(d, week, team, _rows_only=True)["ranking"] if r["markets"][mk]["active"]]
+        t = [r for r in weekly(d, week, team, _rows_only=True, only_ids=only_ids)["ranking"] if r["markets"][mk]["active"]]
         if not t:
             continue
         mr = [{"agent_id": r["agent_id"], "label": r["label"], "version": r["version"], "team": team, "market": mk,
@@ -961,43 +963,51 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
     ok, bad = [], []
     existing = read_ledger(d, "picks")
     with open(path, newline="", encoding="utf-8-sig") as f:
-        for i, row in enumerate(csv.DictReader(f), 2):
-            srcs = [dict(zip(("url", "as_of", "retrieved_at"), s.split("|"))) for s in (row.get("sources") or "").split(";") if s.strip()]
-            ver = (row.get("agent_version") or "").strip()
-            rec = make_pick(team, row["agent_id"].strip(), int(ver) if ver.isdigit() else None, row["round_date"].strip(), row["market"].strip().upper(),
-                            row["ticker"].strip(), row.get("name", "").strip(), row["locked_at"].strip(),
-                            row.get("rationale", ""), [r.strip() for r in (row.get("risks") or "").split("|") if r.strip()],
-                            srcs, cfg)
-            if is_watch(rec, cfg):
-                rec["ticker"] = (cfg.get("watch") or {}).get("ticker", "WATCH")
-                rec["name"] = (cfg.get("watch") or {}).get("name", "관망")
-            errs = validate_pick(rec, d, cfg, existing + ok)
-            if not srcs and not is_watch(rec, cfg):
-                errs.append("데이터 출처(sources) 없음")
-            for sx in srcs:
-                if sx.get("retrieved_at"):
-                    try:
-                        ra = datetime.fromisoformat(sx["retrieved_at"])
-                        if ra.tzinfo is None or ra > lock_deadline(date.fromisoformat(rec["round_date"]), cfg):
-                            errs.append(f"출처 확보 시각이 마감 이후이거나 시간대 없음: {sx['retrieved_at']}")
-                    except ValueError:
-                        errs.append(f"출처 확보 시각 형식 오류: {sx['retrieved_at']}")
-            if not (row.get("rationale") or "").strip():
-                errs.append("선정 근거(rationale) 없음")
-            if not rec["risks"] and not is_watch(rec, cfg):      # 관망은 위험 요인 선택
-                errs.append("위험 요인(risks) 없음")
-            if not ver.isdigit():
-                errs.append("agent_version 없음 (정수)")
-            (bad if errs else ok).append({"line": i, "pick": rec, "errors": errs} if errs else rec)
+        reader = csv.DictReader(f)
+        miss = [c for c in ("round_date", "agent_id", "agent_version", "market", "ticker", "locked_at") if c not in (reader.fieldnames or [])]
+        if miss:
+            return [], [{"line": 1, "pick": {}, "errors": [f"필수 열 없음: {', '.join(miss)}"]}]
+        for i, row in enumerate(reader, 2):
+          try:
+              srcs = [dict(zip(("url", "as_of", "retrieved_at"), s.split("|"))) for s in (row.get("sources") or "").split(";") if s.strip()]
+              ver = (row.get("agent_version") or "").strip()
+              rec = make_pick(team, row["agent_id"].strip(), int(ver) if ver.isdigit() else None, row["round_date"].strip(), row["market"].strip().upper(),
+                              row["ticker"].strip(), row.get("name", "").strip(), row["locked_at"].strip(),
+                              row.get("rationale", ""), [r.strip() for r in (row.get("risks") or "").split("|") if r.strip()],
+                              srcs, cfg)
+              if is_watch(rec, cfg):
+                  rec["ticker"] = (cfg.get("watch") or {}).get("ticker", "WATCH")
+                  rec["name"] = (cfg.get("watch") or {}).get("name", "관망")
+              errs = validate_pick(rec, d, cfg, existing + ok)
+              if not srcs and not is_watch(rec, cfg):
+                  errs.append("데이터 출처(sources) 없음")
+              for sx in srcs:
+                  if sx.get("retrieved_at"):
+                      try:
+                          ra = datetime.fromisoformat(sx["retrieved_at"])
+                          if ra.tzinfo is None or ra > lock_deadline(date.fromisoformat(rec["round_date"]), cfg):
+                              errs.append(f"출처 확보 시각이 마감 이후이거나 시간대 없음: {sx['retrieved_at']}")
+                      except ValueError:
+                          errs.append(f"출처 확보 시각 형식 오류: {sx['retrieved_at']}")
+              if not (row.get("rationale") or "").strip():
+                  errs.append("선정 근거(rationale) 없음")
+              if not rec["risks"] and not is_watch(rec, cfg):      # 관망은 위험 요인 선택
+                  errs.append("위험 요인(risks) 없음")
+              if not ver.isdigit():
+                  errs.append("agent_version 없음 (정수)")
+              (bad if errs else ok).append({"line": i, "pick": rec, "errors": errs} if errs else rec)
+          except (KeyError, ValueError, TypeError, AttributeError) as e:   # 형식이 깨진 행: 처리 전체를 멈추지 않고 이 행만 반려
+            bad.append({"line": i, "pick": {"agent_id": (row.get("agent_id") or "").strip(), "round_date": (row.get("round_date") or "").strip()},
+                        "errors": [f"행 형식 오류: {type(e).__name__} {e}"]})
     # 파일 단위 검사: 에이전트마다 그날 열린 시장(KR·US)에서 각 1종목 필수
-    rows = ok + [b["pick"] for b in bad]
+    rows = [r for r in ok + [b["pick"] for b in bad] if r.get("agent_id") and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(r.get("round_date") or ""))]
     team_roster = {a["id"]: a for a in load_roster(d).get(team, [])}
     for (agent, rd) in sorted({(r["agent_id"], r["round_date"]) for r in rows}):
         need = open_markets(date.fromisoformat(rd), cfg)
         if agent in team_roster:                    # v2.0: 그 리그에서 뛰는 시장만 필수
             wk = iso_week(date.fromisoformat(rd))
             need = {mk for mk in need if active_in(team_roster[agent], mk, wk) and (mstatus(team_roster[agent], mk).get("status") == "active")}
-        have = {r["market"] for r in rows if r["agent_id"] == agent and r["round_date"] == rd}
+        have = {r.get("market") for r in rows if r["agent_id"] == agent and r["round_date"] == rd}
         if need - have:
             bad.append({"line": 0, "pick": {"agent_id": agent, "round_date": rd},
                         "errors": [f"{agent}: {rd}에 열린 시장 {'·'.join(sorted(need))} 중 {'·'.join(sorted(need - have))} 종목 누락"]})
@@ -1017,7 +1027,9 @@ def make_csv(picks: list[dict], round_date: str, out: Path) -> Path:
         w = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
         w.writerow(CSV_COLUMNS)
         for p in sorted(picks, key=lambda x: (x["agent_id"], x["market"])):
-            srcs = ";".join("|".join(x for x in (s_["url"], s_["as_of"], s_.get("retrieved_at")) if x) for s_ in p["sources"])
+            # 기준일이 비면 "확인 못함"으로 채운다(빈 칸을 빼면 확보 시각이 기준일 자리로 밀린다)
+            srcs = ";".join("|".join([s_["url"], str(s_.get("as_of") or "").strip() or "확인 못함"] + ([s_["retrieved_at"]] if s_.get("retrieved_at") else []))
+                            for s_ in p["sources"])
             w.writerow([round_date, p["agent_id"], p["agent_version"], p["market"], str(p["ticker"]), p["name"],
                         p["locked_at"], " ".join(str(p["rationale"]).split()), " | ".join(p["risks"]), srcs])
     return out
@@ -1200,6 +1212,8 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                     for r in ok:
                         append(d, "picks", {**r, "submission": meta})
                     rec.update(status="accepted", imported=len(ok))
+            except (KeyError, ValueError, TypeError, AttributeError, UnicodeError, csv.Error) as e:
+                rec.update(status="rejected", errors=[f"처리 오류: {type(e).__name__} {e}"])   # 깨진 파일 하나가 영수증 처리 전체를 멈추지 않게
             finally:
                 tmp.unlink(missing_ok=True)
         receipts.append(append(d, "submissions", rec))
@@ -1317,7 +1331,8 @@ def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None,
     """마감(08:30 KST) 전 라운드의 추천은 내보내기에서 뺀다. 팀별로 몇 건이 가려졌는지만 남긴다.
     동시 공개(지문 방식 라운드): 그 라운드에 지문을 낸(committed) 팀이 모두 원본 접수(accepted)될 때까지,
     또는 원본 공개 마감(12:00)이 될 때까지 그 라운드의 종목은 어느 팀 것도 내보내지 않는다.
-    한 팀 카드만 먼저 화면에 뜨지 않게 하기 위해서다. 지문을 내지 않은 팀은 기다리지 않는다."""
+    한 팀 카드만 먼저 화면에 뜨지 않게 하기 위해서다. 영수증이 아직 없는 팀(지문 동기화 지연)도 기다리고,
+    끝내 아무것도 내지 않으면 12:00에 공개된다. 늦음·반려로 결론이 난 팀은 기다리지 않는다."""
     now = now or datetime.now(KST)
     waiting = {}
     if subs is not None:
@@ -1328,8 +1343,13 @@ def embargo_picks(picks: list[dict], cfg: dict, now: datetime | None = None,
             mine = [s_ for s_ in subs if s_.get("round_date") == rd]
             committed = {s_["team"] for s_ in mine if s_.get("status") == "committed"}
             accepted = {s_["team"] for s_ in mine if s_.get("status") == "accepted"}
-            if committed - accepted:
-                waiting[rd] = sorted(committed - accepted)
+            # 영수증이 아직 하나도 없는 팀(지문 동기화가 늦은 팀)도 기다린다. 늦음·반려처럼 이미 결론이 난 팀은 기다리지 않는다.
+            sandbox = any(str(p.get("team", "")).startswith("sandbox-") for p in picks if p["round_date"] == rd)
+            expected = {("sandbox-" if sandbox else "") + t for t in cfg.get("teams", {})}
+            seen = {s_["team"] for s_ in mine}
+            need = (committed - accepted) | ((expected - seen) if seen else set())
+            if need:
+                waiting[rd] = sorted(need)
     shown, hidden = [], {}
     for p in picks:
         if now < lock_deadline(date.fromisoformat(p["round_date"]), cfg) or p["round_date"] in waiting:
@@ -1352,7 +1372,7 @@ def export(d: Path, out: Path, public: bool = False, now: datetime | None = None
     data = {"generated": now.isoformat(timespec="seconds"), "config": cfg, "roster": roster,
             "picks": picks, "embargoed": embargoed,
             "scores": [x for x in latest_scores(d).values() if x.get("pick_id") in shown_ids], "corrections": read_ledger(d, "corrections"),
-            "weekly": {team: {wk: weekly(d, wk, team) for wk in weeks} for team in cfg["teams"]},
+            "weekly": {team: {wk: weekly(d, wk, team, only_ids=shown_ids) for wk in weeks} for team in cfg["teams"]},
             "league": ({wk: weekly_league(d, wk) for wk in weeks} if cfg.get("weekly", {}).get("mode") == "combined_bottom1" else {}),
             "teams": team_summary(d), "submissions": read_ledger(d, "submissions"),
             "approvals": read_ledger(d, "approvals"),

@@ -41,7 +41,9 @@ def _load(d: Path, now: datetime) -> dict:
         tmp.unlink(missing_ok=True)
 
 
-PRICE_LIKE = re.compile(r"[$₩]\s*\d|\d[\d,.]*\s*(원|달러|만원|억원|조원)|종가|목표주가")
+# 한 줄 대사의 가격 표현 차단(전체 검수 C-4): 통화 기호·단위 앞뒤, 만/천 원, 불, USD/KRW, 주당 N, 단위 없는 소수 둘째 자리
+PRICE_LIKE = re.compile(r"[$₩]\s*\d|\d\s*[$₩]|\d[\d,.]*\s*(원|달러|불|[만천억조]\s*원)|\b(USD|KRW)\s*\d|\d\s*(USD|KRW)\b"
+                        r"|주당\s*\d|\d+\.\d{2}(?![\d.])(?!\s*(%|％|배|bp|x\b))|종가|목표주가|주가\s*\d")
 
 
 def load_lines(d: Path) -> dict:
@@ -221,7 +223,7 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
             for wk in weeks:
                 tot = {}
                 for mk in L.MARKETS:
-                    lg = L.weekly_market_league(d, wk, mk)
+                    lg = L.weekly_market_league(d, wk, mk, only_ids={p["pick_id"] for p in data["picks"]})   # 공개된 종목만 센다
                     dec = lg["decision"]
                     for r in lg["ranking"]:
                         out["standings"].append({"key": f"{mode}|{wk}|{mk}|{r['team']}|{r['agent_id']}", "mode": mode, "week": wk,

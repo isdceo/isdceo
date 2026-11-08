@@ -119,7 +119,13 @@ class KRXOpenAPI(Provider):
         for r in rows:
             code = str(r.get("ISU_CD", "")).strip()[-6:]
             if code in want:
-                out.append(Quote("KR", code, _ymd(r.get("BAS_DD")), _num(r.get("TDD_CLSPRC"))))
+                qt = Quote("KR", code, _ymd(r.get("BAS_DD")), _num(r.get("TDD_CLSPRC")))
+                # 거래정지로 보이는 행(거래량 0, 시가·고가·저가 0): 직전 종가가 그대로 와도 그날 종가로 쓰지 않는다(규칙: 재개 후 첫 종가)
+                # 미검증 가설 — KRX 실제 정지 종목 응답으로 확인할 것(전체 검수 A-5)
+                if _num(r.get("ACC_TRDVOL")) == 0 and all(not _num(r.get(k)) for k in ("TDD_OPNPRC", "TDD_HGPRC", "TDD_LWPRC")) \
+                        and r.get("ACC_TRDVOL") not in (None, ""):
+                    qt.halted = True
+                out.append(qt)
         if "KOSPI" in want:
             res = self._try_get("KOSPI 시리즈 일별시세정보", f"{self.BASE}/idx/kospi_dd_trd?basDd={d}", {"AUTH_KEY": self.key})
             for r in (res or {}).get("OutBlock_1", []):
@@ -223,7 +229,7 @@ class AlphaVantage(Provider):
                 if r.get("ex_dividend_date") == s and _num(r.get("amount")):
                     qt.dividends.append({"ex_date": s, "amount": _num(r["amount"]), "currency": "USD",
                                          "pay_date": r.get("payment_date")})
-            if close and pc and not (0.6 < close / pc < 1.4):
+            if close and pc and abs(close / pc - 1) > 0.15:          # 5:4(−20%)·4:3(−25%) 분할도 잡도록 낮춤
                 sp = self._q("SPLITS", sym)
                 if sp is None:                            # 분할 여부를 확인하지 못하면 기록하지 않는다
                     continue
@@ -400,6 +406,18 @@ def due_sessions(d: Path, today: date, defer_base: set | None = None) -> dict:
                 tk = need.setdefault((p["market"], s_), set())
                 if not L.is_watch(p, cfg):                 # 관망은 비교 지수만 있으면 된다(아래에서 추가)
                     tk.add(p["ticker"])
+    # 평가일 거래정지 종목: 재개 후 첫 종가를 찾도록 다음 세션들도 모은다(무효 기준 세션 수까지)
+    lim = int((cfg.get("weekly") or {}).get("halt_void_after_sessions", 5))
+    for p in L.read_ledger(d, "picks"):
+        ev = p.get("eval_session")
+        if not ev or L.is_watch(p, cfg):
+            continue
+        s_, k = date.fromisoformat(ev), 0
+        while (idx.get((p["market"], p["ticker"], s_.isoformat())) or {}).get("halted") and k < lim:
+            s_, k = L.next_session(p["market"], s_, cfg), k + 1
+            if s_ >= today:
+                break
+            need.setdefault((p["market"], s_.isoformat()), set()).add(p["ticker"])
     for (m, s_), tks in list(need.items()):
         b = cfg.get("benchmarks", {}).get(m)
         if b:

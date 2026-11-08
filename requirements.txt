@@ -1,2 +1,2 @@
-exchange_calendars>=4.5
+exchange_calendars==4.13.2   # 휴장일 판정이 실행마다 바뀌지 않게 고정. 올릴 때는 일정(schedule) 결과를 확인
 Pillow>=10.0

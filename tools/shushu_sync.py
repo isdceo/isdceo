@@ -189,7 +189,7 @@ def _classify(ext: Path, act: dict, files: list[str], main: Path) -> tuple[list[
         t = subprocess.run(["git", "cat-file", "-t", spec], cwd=ext, capture_output=True, text=True).stdout.strip()
         size = int(subprocess.run(["git", "cat-file", "-s", spec], cwd=ext, capture_output=True, text=True).stdout.strip() or 0) if t == "blob" else 0
         if t != "blob" or size > MAX_BYTES:
-            problems.append(f"{f}: 일반 파일이 아니거나 {MAX_BYTES:,}바이트 초과 — 무시")
+            problems.append(f"{_name({'file': f, 'kind': kind})}: 일반 파일이 아니거나 {MAX_BYTES:,}바이트 초과 — 무시")   # 메시지 주제는 해시로
             continue
         if kind == "commitment" and not SHA_LINE.match(git_bytes("show", spec, cwd=ext)):
             problems.append(f"{f}: 지문 파일은 64자리 sha256(+ 두 칸 + 파일 이름) 한 줄만 — 무시")
@@ -212,6 +212,11 @@ def tainted(recs: list[dict]) -> set[tuple[str, str]]:
     """(팀, 라운드): 마감 전 push 중 끝내 받을 수 없는 것이 있어 자동 접수하지 않는 라운드(운영자 확인 대기)."""
     t = {(x["team"], x["round"]) for x in recs if x.get("type") == "taint"}
     return t - {(x["team"], x["round"]) for x in recs if x.get("type") == "untaint"}
+
+
+def _aid(x) -> tuple:
+    """활동 id 정렬 키: 숫자 id는 숫자 순서(자릿수가 달라도), 그 밖은 문자열 순서."""
+    return (0, int(x), "") if str(x).isdigit() else (1, 0, str(x))
 
 
 def _name(u: dict) -> str:
@@ -280,7 +285,12 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         try:
             files = _changed(ext, act.get("before"), act["after"], prior_main, first=(i == 0))
             if files and all(f.startswith(MIRROR_DIR + "/") for f in files):
-                continue                               # 메인이 보낸 사본 push — 기록하지 않음
+                # 메인이 보낸 사본 push: 처음 확인했을 때 기록해 두고 다시 비교하지 않는다
+                # (뒤에 강제 push로 그 커밋을 받을 수 없게 돼도 '받을 수 없는 마감 전 push'로 라운드를 묶지 않게 — 전체 검수 B-1)
+                L.append(d, "external_pushes", {**base, "status": "mirror", "files": [], "held_files": [], "ignored_count": len(files),
+                                                "problems": [], "receipts": [], "lines": []})
+                done.add(act["id"])
+                continue
             units, ignored, problems = _classify(ext, act, files, main)
         except Exception as e:  # noqa: BLE001  — 한 push의 문제로 동기화 전체가 멈추지 않게
             n = tries.get(("push_error", act["id"]), 0) + 1
@@ -323,7 +333,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         groups = [g for g in groups if g["pushed"] < block]
     korder = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
     # 같은 push에서 풀린 파일은 지문 → 원본 → 토론 → 대사 순(대사 검사가 접수된 종목을 볼 수 있게)
-    groups.sort(key=lambda g: (g["pushed"], str(g["act"]["id"]), min([korder.get(u["kind"], 9) for u in g["ready"]] or [9])))
+    groups.sort(key=lambda g: (g["pushed"], _aid(g["act"]["id"]), min([korder.get(u["kind"], 9) for u in g["ready"]] or [9])))
     bad = tainted(recs)
     def _team_of(u):
         return "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
@@ -357,7 +367,11 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                 rec.update(type="release" if final else "release_error", held_id=key)
             else:
                 rec.update({**g["base"], "type": "push" if final else "push_error", "status": "error", "attempt": n, "error": str(e)[:300]})
+                if final:
+                    rec["held_files"] = [_name(u) for u in g["held"]]
             L.append(d, "external_pushes", rec)
+            if final and not g.get("release") and g["held"]:
+                _write_held(d, repo, act, pushed, g["base"].get("actor"), g["held"])
             out.append({**rec, "status": "error" if final else "retry", "receipts": [], "lines": []})
             if g.get("release"):
                 u = g["ready"][0]
@@ -383,17 +397,22 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
         rec = {**g["base"], "status": "processed", "files": [u["file"] for u in g["ready"]],
                "held_files": [_name(u) for u in g["held"]], "ignored_count": g["ignored"], "problems": g["problems"], "note": note, **summary}
         L.append(d, "external_pushes", rec)
-        for k, u in enumerate(g["held"]):
-            h = {"repo": repo, "activity_id": act["id"], "type": "held", "held_id": f"{act['id']}#{k}", "rd": u["rd"], "kind": u["kind"],
-                 "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": rec["actor"],
-                 "until": u["until"].isoformat() if u["until"] else None, "taint": bool(u.get("taint"))}
-            if u["kind"] == "message":                 # 메시지 이름은 보류 중 원장에 남기지 않는다(해시만)
-                h["file_hash"] = L.hashlib.sha256(u["file"].encode()).hexdigest()
-            else:
-                h.update(file=u["file"], dst=u["dst"])
-            L.append(d, "external_pushes", h)
+        _write_held(d, repo, act, pushed, rec["actor"], g["held"])
         out.append(rec)
     return out
+
+
+def _write_held(d: Path, repo: str, act: dict, pushed: datetime, actor, held: list[dict]):
+    """보류 파일 기록. 같은 push의 즉시 처리분이 끝내 실패해도 보류 파일(봉인 원본·토론·대사·메시지)은 남긴다(전체 검수 B-2)."""
+    for k, u in enumerate(held):
+        h = {"repo": repo, "activity_id": act["id"], "type": "held", "held_id": f"{act['id']}#{k}", "rd": u["rd"], "kind": u["kind"],
+             "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": actor,
+             "until": u["until"].isoformat() if u["until"] else None, "taint": bool(u.get("taint"))}
+        if u["kind"] == "message":                 # 메시지 이름은 보류 중 원장에 남기지 않는다(해시만)
+            h["file_hash"] = L.hashlib.sha256(u["file"].encode()).hexdigest()
+        else:
+            h.update(file=u["file"], dst=u["dst"])
+        L.append(d, "external_pushes", h)
 
 
 def _restore_held(ext: Path, act: dict, units: list[dict]):
@@ -582,7 +601,8 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
     (dst / "receipts-shushu.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in subs))
     import dashboard_data as DD                            # 대사 검사용 접수 종목 목록(원장 전체 대신)
     (dst / "shushu-picks.json").write_text(json.dumps(DD.picks_index(main / "league"), ensure_ascii=False, indent=1) + "\n")
-    sync = L.read_ledger(main / "league", "external_pushes")
+    # 사본 push 기록(status mirror)은 사본에 싣지 않는다: 실으면 그 기록 때문에 사본이 또 바뀌어 push·기록이 끝없이 되풀이된다
+    sync = [r for r in L.read_ledger(main / "league", "external_pushes") if r.get("status") != "mirror"]
     (dst / "sync-log.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in sync))
     plans = {}
     for wk in sorted({L.iso_week(today), L.iso_week(today - timedelta(days=7))}):
@@ -672,7 +692,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             add("bench", wkb, "@codex 슈슈 팀 대기 후보가 부족합니다(리그별 남은 승인 후보: "
                 f"한국 {st_['available'].get('KR')}명, 미국 {st_['available'].get('US')}명). 새 후보 1~2명을 제안해 주세요. "
                 f"후보마다 파일 하나(`to-roro/{rd}-bench-<id>.md`)에 ```json 블록 하나(team·id·nickname·label·style_ref·tagline·look)와 `## 지침` 절(v1 지침 본문)을 넣어 push하면, "
-                "검사(`from-league/tools/add_character.py --dry-run`)를 통과한 안은 운영자 상시 위임으로 자동 등록됩니다. 기존 에이전트와 다른 투자 관점, 실존 인물 사칭·특정 종목 고정 금지. "
+                "검사(`python3 from-league/tools/add_character.py from-message to-roro/<파일> --dry-run`)를 통과한 안은 운영자 상시 위임으로 자동 등록됩니다. 기존 에이전트와 다른 투자 관점, 실존 인물 사칭·특정 종목 고정 금지. "
                 "형식: `from-league/docs/bench-addition.md`.")
     # 새 공지·회신 (메인 docs/codex-notices) — 내용 해시로 판단
     new = [p for p in _notes(main) if ("notice", p.name + ":" + L._sha(p)[:12]) not in sent]

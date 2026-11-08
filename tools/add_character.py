@@ -2,7 +2,7 @@
 
   python3 tools/add_character.py need                     → 팀·리그별 남은 대기 후보 수와 보충 필요 여부
   python3 tools/add_character.py from-message <md>        → 슈슈 메시지(to-roro/<날짜>-bench-<id>.md, 후보 하나)의 ```json 블록과 '## 지침' 절로 추가
-  python3 tools/add_character.py add <spec.json>          → 사양 파일로 추가 (로로 팀 후보는 지침 .md 경로를 함께)
+  python3 tools/add_character.py add <spec.json>          → 사양 파일로 추가 (지침 본문은 사양의 "guideline" 칸에)
   공통 옵션: --dry-run (검사만)
 
 사양(JSON):
@@ -118,8 +118,13 @@ def validate(spec: dict) -> list[str]:
     for k in ("hairc", "outfit", "hatc"):
         if k in lk and not HEX.match(str(lk[k])):
             errs.append(f"look.{k}: #rrggbb")
-    if team == "claude" and not (spec.get("guideline") or "").strip():
-        errs.append("로로 팀 후보는 지침 본문(guideline)이 필요")
+    gl = (spec.get("guideline") or "").strip()
+    if not gl:                                   # 두 팀 모두 v1 지침 본문 필요(docs/bench-addition.md)
+        errs.append("지침 본문(guideline, 슈슈 메시지는 '## 지침' 절)이 필요")
+    elif _tickerish(gl):
+        errs.append("지침에 종목 코드처럼 보이는 표현 금지(특정 종목 고정 금지)")
+    elif REAL_PERSON_CLAIM.search(gl):
+        errs.append("지침에 실존 인물의 얼굴·발언처럼 보이는 표현 금지")
     return errs
 
 

@@ -15,7 +15,19 @@ API = "https://api.cloudflare.com/client/v4/accounts/{acct}/pages/projects/{proj
 PATHS = ("/", "/data/table.js", "/av/")
 
 
-def status(url: str, auth: str | None = None) -> int:
+def status(url: str, auth: str | None = None, tries: int = 3) -> int:
+    """HTTP 상태. 네트워크 오류(0)·5xx는 잠시 뒤 다시 확인한다(일시 오류로 정상 배포를 되돌리지 않게)."""
+    code = 0
+    for k in range(tries):
+        code = _status_once(url, auth)
+        if code and code < 500:
+            return code
+        if k + 1 < tries:
+            time.sleep(5)
+    return code
+
+
+def _status_once(url: str, auth: str | None = None) -> int:
     req = urllib.request.Request(url, headers={"User-Agent": "league-deploy-guard/0.1"})
     if auth:
         import base64

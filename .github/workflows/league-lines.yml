@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
       - name: Latest branch state
         if: github.event_name == 'workflow_run'
@@ -38,7 +38,9 @@ jobs:
         if: github.event_name == 'push'
         run: |
           fail=0
-          for f in $(git diff --name-only HEAD~1 HEAD -- 'league/lines/*.json' 'league/sandbox/lines/*.json'); do
+          # push 묶음 전체(여러 커밋)의 대사 파일을 검사한다. 이전 커밋을 모르면 직전 커밋과 비교
+          before="${{ github.event.before }}"; git cat-file -e "$before^{commit}" 2>/dev/null || before=HEAD~1
+          for f in $(git diff --name-only "$before" HEAD -- 'league/lines/*.json' 'league/sandbox/lines/*.json'); do
             [ -e "$f" ] || continue
             base=league; case "$f" in league/sandbox/*) base=league/sandbox;; esac
             echo "== $f"; python3 tools/dashboard_data.py --check-lines "$f" --base "$base" || fail=1

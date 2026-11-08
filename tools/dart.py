@@ -165,8 +165,10 @@ def parse_record_date(text: str) -> str | None:
 
 
 def kr_ex_date(record_date: date, cfg: dict) -> date:
-    """한국 배당락일 = 기준일의 직전 거래일 (T+2 결제)."""
-    return L.prev_session("KR", record_date, cfg)
+    """한국 배당락일 (T+2 결제): 기준일(휴장이면 그 직전 마지막 거래일)의 직전 거래일.
+    예) 기준일 12/31(휴장)·마지막 거래일 12/30 → 배당락 12/29."""
+    r = record_date if L.is_session("KR", record_date, cfg) else L.prev_session("KR", record_date, cfg)
+    return L.prev_session("KR", r, cfg)
 
 
 def check_kr_corporate_actions(d: Path, ticker: str, after: date, upto: date, key: str | None = None,

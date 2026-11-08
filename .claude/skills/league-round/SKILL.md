@@ -7,7 +7,7 @@ argument-hint: "[라운드 날짜 YYYY-MM-DD] [official|sandbox]  (기본: 오�
 # Claude 팀 라운드 진행
 
 너는 **Claude 팀 진행자**다. 종목을 직접 고르지 않는다. 에이전트들이 규칙대로 분석하고 확정하도록 운영하고, 결과를 정확히 제출한다.
-규칙 원문: `docs/ai-league-proposal.md`, `docs/codex-team-guide.md` (두 팀 동일 규칙, v1.7).
+규칙 원문: `docs/ai-league-proposal.md`, `docs/codex-team-guide.md` (두 팀 동일 규칙, 운영 기준 v1.7 · 리그 규칙 v2.0 · 지침 업데이트 규칙 v2.1).
 보고와 기록은 모두 한국어로 쓴다.
 
 인자: `$ARGUMENTS`
@@ -70,11 +70,12 @@ sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 
 ## 0단계 — 준비 (07:00–07:05)
 
 1. 현재 시각(KST)과 라운드 날짜를 확인하고 `timing.json`에 "준비" 시작을 적는다.
+   - 현재 브랜치가 기본 브랜치 `claude/web-vs-desktop-differences-ir8pm0`인지 확인한다(`git rev-parse --abbrev-ref HEAD`). 다르면 `git checkout claude/web-vs-desktop-differences-ir8pm0 && git pull origin claude/web-vs-desktop-differences-ir8pm0`. 다른 브랜치에 낸 제출은 영수증이 나오지 않고 채점에도 들어가지 않는다.
    - 날짜가 오늘이고 이미 08:10을 넘었으면 진행하지 말고 "시간 부족 — 미제출"로 보고한다.
 2. `python3 tools/league.py schedule <날짜> --to <날짜>`로 열린 시장, 기준·평가 세션을 확인한다.
    - 두 시장 모두 휴장이면 라운드가 없다고 보고하고 끝낸다.
-3. 공통 자료를 확인한다: `league/rounds/<날짜>/snapshot.json`과 `.sha256`.
-   - 없으면 `python3 tools/league.py snapshot <날짜>`(가격 제외판)로 만들고, 해시를 확인한다. 직접 만들었으면 종목 정보가 없는 공통 자료이므로 **곧바로** `snapshot.json`·`.sha256` 두 파일만 커밋해 push한다(`league: snapshot <날짜> (round session)`). 나중에 06:50 작업이 같은 경로를 올려 08:20 pull이 막히는 것을 막는다. push가 거절되면 `git pull --rebase --autostash` 뒤, 원격에 이미 같은 파일이 있으면 그 원격 파일을 쓴다(해시를 다시 확인해 에이전트에게 알린 값과 다르면 바로 다시 알린다).
+3. 공통 자료를 확인한다: `league/rounds/<날짜>/snapshot.json`과 `snapshot.json.sha256`.
+   - 없으면 `python3 tools/league.py snapshot <날짜>`(가격 제외판)로 만들고, 해시를 확인한다. 직접 만들었으면 종목 정보가 없는 공통 자료이므로 **곧바로** `snapshot.json`·`snapshot.json.sha256` 두 파일만 커밋해 push한다(`league: snapshot <날짜> (round session)`). 나중에 06:50 작업이 같은 경로를 올려 08:20 pull이 막히는 것을 막는다. push가 거절되면 `git pull --rebase --autostash` 뒤, 원격에 이미 같은 파일이 있으면 그 원격 파일을 쓴다(해시를 다시 확인해 에이전트에게 알린 값과 다르면 바로 다시 알린다).
    - **가격 포함판(`--variant with-prices`)은 사용자가 사용권 확인을 알려준 뒤에만** 쓴다.
    - `disclosures`(DART 최근 14일 공시)의 상태와 건수를 확인한다. `not_configured`나 오류면 에이전트에게 "공통 자료 공시 없음"이라고 알린다.
    - 참고: KRX 전일 종가는 **08:00 KST 전후**에 공개된다(2026-11-05 확인). 07:00대에는 KRX에서 전일 종가를 받을 수 없으므로, 에이전트가 가격이 필요하면 공개 웹 자료에서 찾고 출처를 남긴다.
@@ -82,9 +83,9 @@ sandbox 모드에서는 공통 자료·분석 기록도 `league/rounds/` 대신 
    - 결과가 `unapproved_edit` 또는 `missing`이면 **진행하지 않고** 운영자에게 보고한다(승인 안 된 지침 수정).
    - `new_version`은 승인(PR 머지)된 새 버전이다.
    - `not_yet`은 명단에 새 버전이 있지만 이 라운드 날짜에는 아직 적용 전이라는 뜻이다. 이때는 표시된 버전의 보관본(`league/agents/claude/<id>/v<버전>.md`)을 프롬프트에 붙이고 CSV `agent_version`도 그 버전으로 쓴다.
-5. 활성 멤버와 버전: 주간 마감 기록이 반영된 명단(`python3 tools/league.py export`의 roster)에서 **리그(시장)별 참가 상태**를 본다(v2.0). 한 리그에서만 빠진 에이전트는 남은 리그 종목만 내고, 대기 후보가 한 리그에만 합류했으면 그 리그 종목만 낸다. 각 에이전트에게 "이번 라운드 네가 낼 시장"을 프롬프트에 명시한다.
+5. 활성 멤버와 버전: 주간 마감 기록이 반영된 명단(`python3 tools/league.py export --out /tmp/league-roster.js`의 roster — `--out` 없이 돌리면 추적 중인 `data/league.js`를 덮어쓴다)에서 **리그(시장)별 참가 상태**를 본다(v2.0). 한 리그에서만 빠진 에이전트는 남은 리그 종목만 내고, 대기 후보가 한 리그에만 합류했으면 그 리그 종목만 낸다. 각 에이전트에게 "이번 라운드 네가 낼 시장"을 프롬프트에 명시한다.
    - **월요일이고 지난주에 실전 라운드가 있었으면**(첫 실전 주 2026-11-09은 해당 없음 — 마감할 지난주가 없다) `league/ledger/weekly_decisions.jsonl`에 지난주 한국(KR)·미국(US) 마감 기록이 있는지 먼저 확인한다. 명단은 이 기록으로만 정해진다(마감 전 계산값으로 바꾸지 않는다).
-     - 있으면 그 기록이 반영된 명단(`python3 tools/league.py export`의 roster)의 리그별 참가 상태로 진행한다.
+     - 있으면 그 기록이 반영된 명단(`python3 tools/league.py export --out /tmp/league-roster.js`의 roster)의 리그별 참가 상태로 진행한다.
      - 없으면 06:50 작업이 마감을 대신 기록한다. `git pull`을 07:20까지 몇 번 다시 해 본다. 그래도 없으면 진행하지 말고 운영자에게 "주간 마감 기록 없음"을 보고한다(옛 명단으로 내면 합류자 거부·탈락 리그 접수가 생긴다). 08:10까지 기록이 생기면 바로 이어서 진행한다.
 6. 대상 종목 목록: 라운드 날짜에 적용되는 판(`league/universe/<적용일>.json`).
 7. 일정표(지침 v2): 라운드 평가 구간 안의 **거시 일정**(한국 금통위·지표, 미국 CPI·FOMC·고용)과, 대상 종목 중 **구간 안 실적 발표·배당락**을 한 번 찾아 `league/rounds/<날짜>/claude/calendar.md`에 적고(출처·확인 시각 포함, 못 찾은 것은 "확인 못함") 1단계 프롬프트에 함께 넘긴다. 다섯 명이 같은 검색을 반복하지 않게 하고 판단 기준을 맞추기 위해서다. 08:30 전에는 커밋하지 않는다.
@@ -112,8 +113,8 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
 >   - 확보 시각은 출처마다 따로 재지 않아도 된다. 여러 자료를 받은 직후 `date -Iseconds`로 실제로 잰 시각 하나를 공통으로 적어도 된다(실제 확보 시각과 같거나 늦은 상한값). 받기 전 시각이나 추정 시각은 쓰지 않는다.
 > 자료 조회 도구 `tools/research.py`(공용, 슈슈 팀도 같음)를 먼저 쓴다. 명령마다 `--agent <id>`를 붙여라. 받은 값은 출처·확보 시각·응답 해시와 함께 네 기록 파일 `league/rounds/<날짜>/claude/research-<id>.jsonl`에 남는다. 다른 에이전트의 기록 파일은 열지 마라(연습은 `--dir league/sandbox`).
 >   - 기준 종가: `python3 tools/research.py close --round <날짜> --market KR --tickers <코드,...> --agent <id>` (미국은 `--market US`). **기준 세션 행만** 돌려준다.
->   - 지수·환율·금리: `python3 tools/research.py macro --round <날짜>` (KOSPI, SPY, 미 10년물, 원/달러)
->   - 한국 공시: `python3 tools/research.py dart --round <날짜> --ticker <코드>` (DART 키가 없는 곳에서는 not_configured)
+>   - 지수·환율·금리: `python3 tools/research.py macro --round <날짜> --agent <id>` (KOSPI, SPY, 미 10년물, 원/달러)
+>   - 한국 공시: `python3 tools/research.py dart --round <날짜> --agent <id> --ticker <코드>` (DART 키가 없는 곳에서는 not_configured)
 >   - 근거에 쓰는 가격은 이 도구 값과 같아야 하고, 날짜를 붙인다(예: "11/06 종가"). 그 전날 종가·장중 값을 기준 종가처럼 쓰지 않는다.
 >   - 도구가 "기준일 행 없음"이나 "조회 실패"를 내면 다른 사이트로 메우지 말고 "기준 종가 확인 못함"이라고 쓴다.
 >   - 네이버 일별 시세는 쓰지 않는다: 개별 종목 종가가 넥스트레이드 시간외를 합친 통합 가격이라 KRX 정규장 종가와 다르다(2026-11-07 대조, 최대 3.4% 차이).
@@ -160,19 +161,19 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
    - official: `python3 tools/league.py import-csv <CSV> --team claude --dry-run`
    - sandbox: `python3 tools/league.py import-csv <CSV> --team sandbox-claude --dir league/sandbox --dry-run`
    - 오류가 있으면 형식 오류만 해당 에이전트에게 고치게 하고 다시 검증한다. 08:20이 지나면 오류 없는 상태로 지문을 낼 수 있는지 판단해 사용자에게 알린다.
-   - 조사 기록 대조(경고만, 제출을 막지 않음): `python3 tools/research.py check-csv <CSV>` — 근거의 "MM/DD 종가 숫자"가 조사 기록과 다르거나, 기준 세션이 아닌 날의 종가이거나, 출처 기준일이 라운드보다 늦으면 경고. 경고가 있으면 해당 에이전트에게 확인을 요청하고(형식·숫자 정정만), 08:20을 넘기지 않는다.
+   - 조사 기록 대조(경고만, 제출을 막지 않음): `python3 tools/research.py check-csv <CSV>` (sandbox는 `--dir league/sandbox`) — 근거의 "MM/DD 종가 숫자"가 조사 기록과 다르거나, 기준 세션이 아닌 날의 종가이거나, 출처 기준일이 라운드보다 늦으면 경고. 경고가 있으면 해당 에이전트에게 확인을 요청하고(형식·숫자 정정만), 08:20을 넘기지 않는다.
 4. 지문을 만든다: `python3 tools/league.py commit <CSV>` → 같은 폴더에 `<날짜>.sha256`. **이후 CSV를 건드리지 않는다.**
 5. 지문만 커밋하고 push한다.
    ```
-   git pull --rebase --autostash           # 영수증 봇 커밋 받기 (상대 팀 당일 파일은 열지 않음)
+   git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0   # 영수증 봇 커밋 받기 (상대 팀 당일 파일은 열지 않음)
    git add <제출 폴더>/<날짜>.sha256         # 이 파일 하나만
    git commit -m "league: claude <날짜> commitment"
-   git push
+   git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0   # 기본 브랜치에 낸 제출만 영수증이 나온다
    ```
    - `git status`로 CSV·rounds 폴더가 **커밋에 들어가지 않았는지** 확인한다(추적 안 된 상태로 남아 있어야 함).
-   - pull이 `league/rounds/<날짜>/snapshot.json`(또는 `.sha256`) 때문에 막히면(06:50 작업이 늦게 같은 파일을 올린 경우) `git diff --no-index <로컬 파일> <(git show origin/<브랜치>:<경로>)`로 비교해 같으면 로컬 두 파일만 지우고 다시 pull한다. 다르면 원격 파일을 기준으로 하되 지문 push가 먼저이고, 해시 차이는 보고에 적는다.
+   - pull이 `league/rounds/<날짜>/snapshot.json`(또는 `snapshot.json.sha256`) 때문에 막히면(06:50 작업이 늦게 같은 파일을 올린 경우) `git diff --no-index <로컬 파일> <(git show origin/<브랜치>:<경로>)`로 비교해 같으면 로컬 두 파일만 지우고 다시 pull한다. 다르면 원격 파일을 기준으로 하되 지문 push가 먼저이고, 해시 차이는 보고에 적는다.
    - 그 밖에 추적 안 된 파일·수정 때문에 막히면 `git stash -u`로 잠시 치우고 pull한 뒤 `git stash pop`한다. 이때도 지문 커밋에는 `.sha256` 하나만 넣는다.
-   - push가 거절되면(non-fast-forward, 다른 봇 커밋과 겹침) `git pull --rebase --autostash` 뒤 다시 push한다.
+   - push가 거절되면(non-fast-forward, 다른 봇 커밋과 겹침) `git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0` 뒤 `git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0`한다.
 6. `timing.json`에 "지문 push" 시각을 적는다.
 
 ## 4단계 — 지문 영수증 (08:20–08:30)
@@ -189,7 +190,7 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
 2. 토론 기록 `<제출 폴더>/<날짜>-debate.md`를 쓴다. 내용은 1·2단계 요약, 변경 내역, 각 r1/r2 파일 경로다.
 3. CSV가 지문과 같은지 확인한다: `sha256sum <CSV>`의 값이 `.sha256` 첫 단어와 같아야 한다. 다르면 push하지 말고 사용자에게 보고한다.
 4. official이면 지침 기록을 남긴다: `python3 tools/league.py guideline-check <날짜>`(dry-run 없이 — 승인된 새 버전이 이 날짜를 적용 시작일로 `league/ledger/guidelines.jsonl`에 기록된다). 연습(sandbox)은 기록하지 않는다. 여기서 `unapproved_edit`/`missing`이 나와도(그사이 pull로 들어온 변경) 원본 공개는 멈추지 않는다 — 그날 종목은 0단계에서 확인한 버전으로 이미 확정됐다. 보고 첫 줄에 적는다.
-5. `timing.json`을 마무리하고, CSV·토론 기록·`league/rounds/<날짜>/claude/` 폴더(official이면 `league/ledger/guidelines.jsonl` 포함)를 커밋해 push한다. 거절되면 `git pull --rebase --autostash` 뒤 다시 push한다.
+5. `timing.json`을 마무리하고, CSV·토론 기록·`league/rounds/<날짜>/claude/` 폴더(official이면 `league/ledger/guidelines.jsonl` 포함)를 커밋해 push한다. 거절되면 `git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0` 뒤 `git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0`한다.
 6. 영수증이 `accepted`인지 확인한다. `rejected`(해시 불일치)면 사유를 보고한다. 12:00 전이라면 **지문과 같은 원본**으로만 다시 push할 수 있다.
 
 ## 6단계 — 한 줄 이유 (원본 영수증 accepted 뒤, 12:00 전)
@@ -206,7 +207,7 @@ Agent 도구로 활성 멤버 5명을 **한 메시지에서 동시에** 실행�
    - 수익을 약속하는 말("무조건 오른다")은 쓰지 않는다.
    - 상대 팀(슈슈) 종목에는 쓰지 않는다.
 3. 검사: `python3 tools/dashboard_data.py --check-lines <파일>` (sandbox는 `--base league/sandbox`를 붙인다). "통과"가 나와야 한다.
-4. 커밋해 push한다(거절되면 `git pull --rebase --autostash` 뒤 다시 push). 다음 결과 묶음 갱신(`results.json`) 때 `picks[].line`으로 들어가 게임 화면에 나온다.
+4. 커밋해 push한다(거절되면 `git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0` 뒤 `git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0`). 다음 결과 묶음 갱신(`results.json`) 때 `picks[].line`으로 들어가 게임 화면에 나온다.
 5. 늦어도 문제는 없다(점수·순위와 무관). 12:00을 넘기면 보고에 적고, 그날 안에 쓴다.
 
 ## 보고 (사용자에게)
