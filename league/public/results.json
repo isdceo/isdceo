@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-08T18:26:48+09:00",
+ "generated_at": "2026-11-08T20:20:27+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -173,22 +173,22 @@
    "mode": "연습",
    "team": "슈슈 팀 (Codex)",
    "date": "2026-11-06",
-   "sum": -21.31,
-   "cumulative": -21.31,
-   "n": 8,
-   "avg": -2.66,
-   "cum_avg": -2.66,
-   "cum_n": 8
+   "sum": -21.81,
+   "cumulative": -21.81,
+   "n": 10,
+   "avg": -2.18,
+   "cum_avg": -2.18,
+   "cum_n": 10
   }
  ],
  "team_weeks": [],
  "picks": [
   {
-   "pick_id": "2026-11-05-sandbox-claude-buffett-KR",
+   "pick_id": "2026-11-05-sandbox-claude-value-KR",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "buffett",
+   "agent_id": "value",
    "agent": "뚝심이 · 가치형",
    "market": "KR",
    "ticker": "033780",
@@ -202,11 +202,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-buffett-US",
+   "pick_id": "2026-11-05-sandbox-claude-value-US",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "buffett",
+   "agent_id": "value",
    "agent": "뚝심이 · 가치형",
    "market": "US",
    "ticker": "KO",
@@ -220,11 +220,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-burry-KR",
+   "pick_id": "2026-11-05-sandbox-claude-contra-KR",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "burry",
+   "agent_id": "contra",
    "agent": "삐딱이 · 역발상형",
    "market": "KR",
    "ticker": "033780",
@@ -238,11 +238,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-burry-US",
+   "pick_id": "2026-11-05-sandbox-claude-contra-US",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "burry",
+   "agent_id": "contra",
    "agent": "삐딱이 · 역발상형",
    "market": "US",
    "ticker": "BRK.B",
@@ -256,11 +256,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-dalio-KR",
+   "pick_id": "2026-11-05-sandbox-claude-macro-KR",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "dalio",
+   "agent_id": "macro",
    "agent": "큰그림 · 거시형",
    "market": "KR",
    "ticker": "033780",
@@ -274,11 +274,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-dalio-US",
+   "pick_id": "2026-11-05-sandbox-claude-macro-US",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "dalio",
+   "agent_id": "macro",
    "agent": "큰그림 · 거시형",
    "market": "US",
    "ticker": "BRK.B",
@@ -292,11 +292,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-lynch-KR",
+   "pick_id": "2026-11-05-sandbox-claude-garp-KR",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "lynch",
+   "agent_id": "garp",
    "agent": "발굴왕 · 성장형(GARP)",
    "market": "KR",
    "ticker": "003230",
@@ -310,11 +310,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-lynch-US",
+   "pick_id": "2026-11-05-sandbox-claude-garp-US",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "lynch",
+   "agent_id": "garp",
    "agent": "발굴왕 · 성장형(GARP)",
    "market": "US",
    "ticker": "BKNG",
@@ -328,11 +328,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-wood-KR",
+   "pick_id": "2026-11-05-sandbox-claude-disrupt-KR",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "wood",
+   "agent_id": "disrupt",
    "agent": "미래광 · 혁신형",
    "market": "KR",
    "ticker": "000660",
@@ -346,11 +346,11 @@
    "watch": false
   },
   {
-   "pick_id": "2026-11-05-sandbox-claude-wood-US",
+   "pick_id": "2026-11-05-sandbox-claude-disrupt-US",
    "mode": "연습",
    "round_date": "2026-11-05",
    "team": "로로 팀 (Claude)",
-   "agent_id": "wood",
+   "agent_id": "disrupt",
    "agent": "미래광 · 혁신형",
    "market": "US",
    "ticker": "APP",
@@ -391,11 +391,11 @@
    "market": "US",
    "ticker": "BRK.B",
    "name": "Berkshire Hathaway",
-   "status": "held",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
-   "reason": "평가 종가 미확인",
+   "status": "final",
+   "score": -0.25,
+   "score_price_only": -0.25,
+   "score_excess": -0.56,
+   "reason": "",
    "line": "보험 뒤에 현금 더미가 산처럼 쌓여 있어. 안전마진은 결국 현금이야.",
    "watch": false
   },
@@ -535,11 +535,11 @@
    "market": "US",
    "ticker": "BRK.B",
    "name": "Berkshire Hathaway",
-   "status": "held",
-   "score": null,
-   "score_price_only": null,
-   "score_excess": null,
-   "reason": "평가 종가 미확인",
+   "status": "final",
+   "score": -0.25,
+   "score_price_only": -0.25,
+   "score_excess": -0.56,
+   "reason": "",
    "line": "싸게 파는 건 못 찾았어. 근데 현금이 든든하잖아. 오늘은 얌전히 수비할게.",
    "watch": false
   }
@@ -548,7 +548,7 @@
   {
    "key": "로로 팀 (Claude)|뚝심이 · 가치형",
    "team": "로로 팀 (Claude)",
-   "agent_id": "buffett",
+   "agent_id": "value",
    "name": "뚝심이 · 가치형",
    "nickname": "뚝심이",
    "label": "가치형",
@@ -567,7 +567,7 @@
   {
    "key": "로로 팀 (Claude)|발굴왕 · 성장형(GARP)",
    "team": "로로 팀 (Claude)",
-   "agent_id": "lynch",
+   "agent_id": "garp",
    "name": "발굴왕 · 성장형(GARP)",
    "nickname": "발굴왕",
    "label": "성장형(GARP)",
@@ -586,7 +586,7 @@
   {
    "key": "로로 팀 (Claude)|큰그림 · 거시형",
    "team": "로로 팀 (Claude)",
-   "agent_id": "dalio",
+   "agent_id": "macro",
    "name": "큰그림 · 거시형",
    "nickname": "큰그림",
    "label": "거시형",
@@ -605,7 +605,7 @@
   {
    "key": "로로 팀 (Claude)|미래광 · 혁신형",
    "team": "로로 팀 (Claude)",
-   "agent_id": "wood",
+   "agent_id": "disrupt",
    "name": "미래광 · 혁신형",
    "nickname": "미래광",
    "label": "혁신형",
@@ -624,7 +624,7 @@
   {
    "key": "로로 팀 (Claude)|삐딱이 · 역발상형",
    "team": "로로 팀 (Claude)",
-   "agent_id": "burry",
+   "agent_id": "contra",
    "name": "삐딱이 · 역발상형",
    "nickname": "삐딱이",
    "label": "역발상형",

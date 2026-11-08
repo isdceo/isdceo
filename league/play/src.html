@@ -913,7 +913,7 @@ html,body{background:var(--arena0)}
   const placeLanes = () => {
     const el = document.querySelector('#lobby .lanes'); if (!el) return;
     if (document.querySelector('#lobby.intro')) { el.style.visibility = 'hidden'; return; }   // 첫 등장 연출 중에는 카드가 움직이므로 끝난 뒤 잰다
-    el.style.display = ''; el.style.visibility = 'hidden'; el.style.top = '0px'; const h = el.getBoundingClientRect().height, H = innerHeight;   // 숨긴 상태에서도 높이를 제대로 잰다
+    el.style.display = ''; el.style.visibility = 'hidden'; el.style.top = '0px'; const h = el.getBoundingClientRect().height, H = document.documentElement.clientHeight;   // 확대 중 innerHeight(보이는 영역)에 흔들리지 않게   // 숨긴 상태에서도 높이를 제대로 잰다
     const rects = [...document.querySelectorAll('#lobby .pair, #lobby .plate, #lobby .teamtag')].map((x) => x.getBoundingClientRect());
     let lo, hi;
     if (PORTRAIT.matches) {           // 위 팀 카드 아래 ~ 아래 팀 표찰 위
@@ -1042,6 +1042,7 @@ html,body{background:var(--arena0)}
       c.onpointerdown = (e) => { c._auto = false; buzz(8); sfx('tap'); cancelAnimationFrame(anim); drag = {y: e.clientY, t, h: c.getBoundingClientRect().height, moved: false}; c.setPointerCapture(e.pointerId); };
       c.onpointermove = (e) => { if (!drag) return; const dy = drag.y - e.clientY; if (Math.abs(dy) > 4) drag.moved = true; if (drag.moved) set(drag.t + dy / drag.h); };
       c.onpointerup = () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { if (t < 1) play(1, 1400, t < .3 ? .3 : null); else say(p, mk); } else if (t > .55) play(1, 260); };
+      c.onpointercancel = () => { if (!drag) return; const d = drag; drag = null; if (t < 1) set(d.t); };   // 두 손가락 확대 등으로 끌기가 취소되면 시작 상태로 되돌린다
       c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (t < 1) play(1, 1400, .3); else say(p, mk); } };
       set(0);
     });

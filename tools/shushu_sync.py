@@ -97,6 +97,24 @@ def _ts(iso: str) -> datetime:
     return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(L.KST)
 
 
+class TransientError(RuntimeError):
+    """통신·서버 오류(저장소에 닿지 못함): 시간 기준으로 다시 시도한다. 그 밖의 오류(커밋 없음·비교 기준 없음 등)는 3회 뒤 확정."""
+
+
+def _remote_ok(ext: Path) -> bool:
+    """전용 저장소에 지금 닿는가(커밋을 못 받은 이유가 통신 문제인지, 커밋이 없는 것인지 가른다)."""
+    try:
+        return subprocess.run(["git", "ls-remote", "--heads", "origin"], cwd=ext, capture_output=True, timeout=60).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def _missing(ext: Path, what: str):
+    if not _remote_ok(ext):
+        raise TransientError(f"전용 저장소에 연결하지 못함 — {what} 확인 못함(다시 시도)")
+    raise RuntimeError(f"{what}를 받을 수 없음(브랜치 삭제·강제 push?)")
+
+
 def _have(ext: Path, sha: str) -> bool:
     return subprocess.run(["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=ext, capture_output=True).returncode == 0
 
@@ -108,7 +126,7 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         if sha and sha != ZERO and not _have(ext, sha):
             subprocess.run(["git", "fetch", "-q", "origin", sha], cwd=ext, capture_output=True)
     if not _have(ext, after):
-        raise RuntimeError(f"커밋 {after[:12]}를 받을 수 없음(브랜치 삭제·강제 push?)")
+        _missing(ext, f"커밋 {after[:12]}")
     base = before if before and before != ZERO and _have(ext, before) else None
     pm = next((m for m in mains if m and m != ZERO and _have(ext, m)), None)
     from_head = False
@@ -307,9 +325,11 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             # '마감 전에 지워졌으니 대체됨' 같은 예외는 두지 않는다: 태그 등 기록에 안 남는 ref로 커밋을 살려 두면
             # 마감 뒤 '받을 수 있음/없음'을 골라 지문을 고를 수 있기 때문(5차 검수 S1). 받을 수 없음은 결코 유리해지지 않게 한다.
             superseded = False
-            final = n >= MAX_TRIES and now >= _retry_until(R, cfg)   # 시간 기준: 공개 마감 전에는 계속 재시도(마감 전 확정·폐기 없음)
+            transient = isinstance(e, TransientError)
+            # 통신·서버 오류: 그 라운드 공개 마감까지 시간 기준 재시도(운영자 결정 2026-11-08). 그 밖의 오류: 3회 뒤 확정하고 바로 알림
+            final = (now >= _retry_until(R, cfg)) if transient else (n >= MAX_TRIES)
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
-                                            "attempt": n, "error": str(e)[:300]})
+                                            "attempt": n, "error": str(e)[:300], "transient": transient})
             out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
                         "receipts": [], "lines": []})
             if final and not superseded and now >= dl:
@@ -370,11 +390,14 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             kind = "release_error" if g.get("release") else "push_error"
             key = g["release"]["held_id"] if g.get("release") else act["id"]
             n = tries.get((kind, key), 0) + 1
-            rday = date.fromisoformat(max(g["ready"][0]["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())) if g.get("release") \
-                else _next_round(pushed, cfg)
-            final = n >= MAX_TRIES and now >= _retry_until(rday, cfg)
+            transient = isinstance(e, TransientError)
+            rk = g["ready"][0]["kind"] if g["ready"] else None
+            # 재시도 끝: 지문·원본·토론은 그 라운드, 메시지·대사는 push 시각 기준 라운드(파일 이름 날짜로 늘어나지 않게)
+            rday = date.fromisoformat(max(g["ready"][0]["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())) \
+                if g.get("release") and rk in ("commitment", "reveal", "debate") else _next_round(pushed, cfg)
+            final = (now >= _retry_until(rday, cfg)) if transient else (n >= MAX_TRIES)
             rec = {"repo": repo, "activity_id": act["id"], "status": "error", "attempt": n, "error": str(e)[:300],
-                   "pushed_at": pushed.isoformat(), "run_id": str(run_id)}
+                   "pushed_at": pushed.isoformat(), "run_id": str(run_id), "transient": transient}
             if g.get("release"):
                 rec.update(type="release" if final else "release_error", held_id=key)
             else:
@@ -384,7 +407,8 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             L.append(d, "external_pushes", rec)
             if final and not g.get("release") and g["held"]:
                 _write_held(d, repo, act, pushed, g["base"].get("actor"), g["held"])
-            if final and not g.get("release") and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
+            if final and not g.get("release") and now >= L.lock_deadline(_next_round(pushed, cfg), cfg) \
+                    and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
                 # 지문·원본이 든 push를 공개 마감까지 처리하지 못함: 다른 제출을 대신 인정하지 않고 운영자 확인 대기
                 for u in g["ready"]:
                     if u["kind"] in ("commitment", "reveal"):
@@ -403,6 +427,8 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                                                     "pushed_at": pushed.isoformat(), "reason": "보류한 원본을 받을 수 없음"})
                     bad.add((team, rr))
             if not final:
+                if g.get("release") and rk in ("message", "lines"):
+                    continue                           # 메시지·대사 해제 실패는 순서와 무관 — 뒤 처리를 막지 않는다
                 break                                  # 순서를 지키려고 뒤의 처리는 다음 실행으로(새 push 묶음의 일시 오류도 같음 — 운영자 승인 2026-11-08)
             continue
         summary = {"receipts": [{"path": r["path"], "status": r["status"], "errors": r["errors"]} for r in receipts],
@@ -440,7 +466,7 @@ def _restore_held(ext: Path, act: dict, units: list[dict]):
     if not _have(ext, act["after"]):
         subprocess.run(["git", "fetch", "-q", "origin", act["after"]], cwd=ext, capture_output=True)
     if not _have(ext, act["after"]):
-        raise RuntimeError(f"보류한 파일의 커밋 {act['after'][:12]}를 받을 수 없음")
+        _missing(ext, f"보류한 파일의 커밋 {act['after'][:12]}")
     for u in units:
         if u.get("file") is None:
             names = git("ls-tree", "-r", "--name-only", act["after"], "--", "to-roro", cwd=ext).splitlines()
@@ -687,20 +713,38 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 공개 마감 12:00 KST.")
     xp = L.read_ledger(d, "external_pushes")
     taint = (("shushu", rd) in tainted(xp))
-    # 일시 오류로 재시도 중인 push(아직 처리 기록 없음): 3회 이어지면 바로 알린다(재시도는 공개 마감까지 계속)
+    # 오늘 라운드에 속한 push(직전 마감 뒤 ~ 오늘 마감 전)의 처리 상태. 다른 라운드의 오류로 오늘 깨우기를 바꾸지 않는다
     done_ids = {x["activity_id"] for x in xp if x.get("type", "push") == "push"}
+    released = {x.get("held_id") for x in xp if x.get("type") == "release"}
+    def _today(x):
+        try:
+            return _next_round(datetime.fromisoformat(x["pushed_at"]), cfg) == today
+        except (KeyError, ValueError, TypeError):
+            return False
     retrying = {}
     for x in xp:
-        if x.get("type") == "push_error" and x["activity_id"] not in done_ids:
+        if x.get("type") == "push_error" and x["activity_id"] not in done_ids and _today(x):
             retrying[x["activity_id"]] = x
+        elif x.get("type") == "release_error" and x.get("held_id") not in released and _today(x):
+            retrying[x.get("held_id")] = x
+    late = now > L.lock_deadline(today, cfg)
     for aid, x in retrying.items():
-        if int(x.get("attempt") or 0) >= MAX_TRIES:
-            add("delay", str(aid), f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')}) 처리가 일시 오류로 늦어지고 있습니다"
-                f"({x.get('attempt')}회). 로로 쪽이 자동으로 계속 다시 시도하고, 처리되면 **원래 push 시각**으로 판정합니다(08:30 마감 기준 그대로). "
-                "같은 파일을 다시 push하거나 브랜치를 지우지 마세요. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다.")
+        if int(x.get("attempt") or 0) >= MAX_TRIES and x.get("transient", True):
+            add("delay", f"{aid}|{rd}", f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')}) 처리가 통신·서버 오류로 늦어지고 있습니다"
+                f"({x.get('attempt')}회). 로로 쪽이 공개 마감(12:00)까지 자동으로 계속 다시 시도하고, 처리되면 **원래 push 시각**으로 판정합니다(08:30 마감 기준 그대로). "
+                "같은 파일을 다시 push하거나 브랜치를 지우지 마세요. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다."
+                + (f" 지문만 냈다면 원본 `submit/{rd}.csv`·`submit/{rd}-debate.md`도 12:00 전에 push해 두세요." if late else ""))
+    for x in xp:                                       # 재시도 대상이 아닌 오류로 확정된 push: 바로 알림(마감 전이면 다시 낼 수 있음)
+        if x.get("type", "push") == "push" and x.get("status") == "error" and _today(x) and not x.get("transient"):
+            add("failed", str(x["activity_id"]), f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')})를 처리하지 못했습니다: {str(x.get('error') or '')[:120]}. "
+                + ("마감(08:30) 전이면 같은 파일을 새 커밋으로 다시 push해 주세요. " if not late else "마감 뒤라 새 지문은 인정되지 않습니다. ")
+                + "처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다.")
     if mk and live and "08:30" < hm < "11:40" and taint:
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
             f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **12:00 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
+    elif mk and live and "11:40" <= hm < "21:00" and taint:     # 공개 마감까지 처리하지 못해 생긴 확인 대기(12:00 이후)
+        add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push를 공개 마감까지 처리하지 못함). 이미 push한 파일과 브랜치는 그대로 두세요. "
+            "운영자 확인이 끝나면 원래 push 시각으로 처리됩니다.")
     if mk and live and "08:45" <= hm < "11:40" and not taint and not retrying and not ({"committed", "accepted"} & st):   # 재시도 중이면 '지문 없음' 대신 위 '처리 지연'으로   # 08:28~08:30 push는 2분 대기 뒤 처리되므로 08:45부터
         add("missing", rd, f"@codex 오늘({rd}) 지문 영수증이 없습니다. 08:30 전에 `submit/{rd}.sha256`을 push했다면 "
             "`from-league/sync-log.jsonl`에서 처리 결과를 확인해 주세요. 마감 뒤 지문은 인정되지 않습니다(소급 없음). 확인 결과를 `to-roro/`로 알려 주세요.")

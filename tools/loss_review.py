@@ -199,13 +199,30 @@ def due(d: Path) -> list[dict]:
     return sorted(out, key=lambda x: (x["round_date"], x["agent_id"], x["market"]))
 
 
+def _load_bundle(bundle: Path) -> dict:
+    """결과 묶음을 읽고, 공개 별칭(config public_alias)을 내부 ID로 되돌린다 — 복기 파일 경로·첫 줄 pick_id는 내부 ID 기준."""
+    data = json.loads(Path(bundle).read_text(encoding="utf-8"))
+    try:
+        amap = (L.load_config(L.ROOT / "league").get("public_alias") or {})
+    except Exception:  # noqa: BLE001  — 설정이 없는 사본이면 그대로
+        amap = {}
+    rev = {(team, a): i for team, m in amap.items() for i, a in m.items()}
+    for p in data.get("picks", []):
+        m = re.fullmatch(r"(\d{4}-\d{2}-\d{2})-((?:sandbox-)?[a-z0-9]+)-([a-z0-9_]+)-(KR|US)", str(p.get("pick_id")))
+        if m and (m.group(2).removeprefix("sandbox-"), m.group(3)) in rev:
+            internal = rev[(m.group(2).removeprefix("sandbox-"), m.group(3))]
+            p["pick_id"] = f"{m.group(1)}-{m.group(2)}-{internal}-{m.group(4)}"
+            p["agent_id"] = internal
+    return data
+
+
 def due_bundle(bundle: Path, team: str, reviews: Path, mode: str = "실전") -> list[dict]:
     """공개 결과 묶음(results.json)만으로 마이너스 확정 종목을 찾는다(원장이 없는 슈슈 팀 안전 사본용).
     team은 묶음의 팀 이름 일부(예: '슈슈', '로로'). 관망·잠정·보류 제외, 복기 파일이 있으면 제외."""
     kind = _layout(reviews / "0000-00-00" / "x-KR.md")
     if (mode == "연습" and kind == "real") or (mode == "실전" and kind == "sandbox"):
         raise SystemExit(f"--mode {mode}와 복기 폴더 {reviews}가 맞지 않음 — 실전은 <리그>/reviews/losses, 연습은 <리그>/sandbox/reviews/losses(또는 모드별 별도 폴더)")
-    data = json.loads(bundle.read_text(encoding="utf-8"))
+    data = _load_bundle(bundle)
     out = []
     for p in data.get("picks", []):
         if team not in str(p.get("team", "")) or (mode and p.get("mode") != mode) or p.get("watch"):
@@ -390,7 +407,7 @@ def _weeks_back(week: str, n: int) -> set[str]:
 def _status_lookup(d: Path, bundle: Path | None, team: str | None, mode: str | None):
     """pick_id → (집계 여부, 사유). 최신 결과(원장 또는 결과 묶음)로 '지금도 확정 손실인가'를 다시 확인한다."""
     if bundle:
-        data = json.loads(Path(bundle).read_text(encoding="utf-8"))
+        data = _load_bundle(Path(bundle))
         picks = {p.get("pick_id"): p for p in data.get("picks", [])}
         def look(pid):
             p = picks.get(pid)

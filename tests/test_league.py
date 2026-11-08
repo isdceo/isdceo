@@ -10,6 +10,12 @@ import league as L  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# 시험이 만드는 임시 폴더를 한 실행 폴더 아래로 모으고 끝나면 지운다(예전에는 mkdtemp 폴더가 /tmp에 계속 쌓여 디스크를 채웠다)
+import atexit  # noqa: E402
+_RUN_TMP = tempfile.mkdtemp(prefix="league-tests-")
+tempfile.tempdir = _RUN_TMP
+atexit.register(shutil.rmtree, _RUN_TMP, True)
+
 
 def new_league():
     d = Path(tempfile.mkdtemp())
@@ -1126,18 +1132,14 @@ class ShushuRepoSync(unittest.TestCase):
         # 마감 전 push를 받을 수 없으면: 순서를 지키려고 뒤의 push는 기다린다
         self.assertEqual(sorted(r["status"] for r in out), ["processed", "retry"])
         self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:35:00+09:00")], ["retry"])
-        # 운영자 결정(11/8): 횟수로 버리지 않고 공개 마감(12:00)까지 재시도. 3회째에는 '처리 지연' 깨우기
-        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:45:00+09:00")], ["retry"])
-        self.assertIn("delay", [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T08:50:00+09:00"))])
-        self.assertNotIn("missing", [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T08:50:00+09:00"))])
-        # 공개 마감까지 못 받으면 확정 → 그 라운드는 운영자 확인 대기, 뒤 지문은 자동 접수하지 않음(골라 되살리기 차단)
-        out3 = self.sync(f"{rd}T12:05:00+09:00")
+        # 저장소에는 닿는데 커밋이 없음(통신 오류 아님) → 3번째에 확정 → 그 라운드는 운영자 확인 대기, 뒤 지문은 자동 접수하지 않음(골라 되살리기 차단)
+        out3 = self.sync(f"{rd}T08:45:00+09:00")
         self.assertEqual([r["status"] for r in out3], ["error", "processed"])
         self.assertEqual(out3[1]["receipts"], []); self.assertEqual(len(out3[1]["held_files"]), 1)
         self.assertEqual(L.read_ledger(self.repo / "league", "submissions"), [])
         # 운영자 확인 뒤 해제하면 원래 push 시각(08:20)으로 판정
         L.append(self.repo / "league", "external_pushes", {"repo": "o/shushu", "type": "untaint", "team": "shushu", "round": rd, "reason": "확인"})
-        r = self.sync(f"{rd}T12:10:00+09:00")
+        r = self.sync(f"{rd}T09:00:00+09:00")
         self.assertEqual(r[0]["receipts"][0]["status"], "committed")
         self.assertEqual(L.read_ledger(self.repo / "league", "submissions")[0]["pushed_at"], f"{rd}T08:20:00+09:00")
 
@@ -1309,24 +1311,49 @@ class ShushuRepoSync(unittest.TestCase):
         self.sync(f"{rd}T08:45:00+09:00"); self.sync(f"{rd}T08:55:00+09:00")
         self.assertEqual([x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "committed"], [])
 
-    def test_transient_failure_retried_until_reveal_deadline_not_dropped(self):
-        """운영자 결정(2026-11-08): 일시 오류는 3회로 폐기하지 않고 공개 마감까지 재시도. 뒤 지문은 원래 push 시각으로 판정.
-        (예전: 마감 전 3회째에 오류로 확정·폐기)"""
+    def test_failure_settled_before_deadline_does_not_taint(self):
+        """커밋이 없음(통신 오류 아님): 3회 뒤 확정. 마감 전에 확정된 push는 다시 처리되지 않으니 확인 대기로 돌리지 않고, 바로 '처리 실패'를 알린다."""
         rd = "2026-11-10"
         self.acts.append({"id": 77, "before": self.last, "after": "c" * 40, "timestamp": "2026-11-09T21:00:00Z",
                           "activity_type": "push", "ref": "refs/heads/main", "actor": {"login": "x"}})       # 06:00 KST
         for t in ("07:05", "07:35", "08:00"):
             self.sync(f"{rd}T{t}:00+09:00")
-        ext = L.read_ledger(self.repo / "league", "external_pushes")
-        self.assertEqual([(x["type"], x["attempt"]) for x in ext], [("push_error", 1), ("push_error", 2), ("push_error", 3)])
+        self.assertIn("failed", [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T08:05:00+09:00"))])
         self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
-        self.assertEqual([r["status"] for r in self.sync(f"{rd}T08:30:00+09:00")], ["retry"])       # 순서를 지키려고 뒤 지문은 기다림
-        # 그사이 받을 수 있게 되면(일시 오류 해소) 원래 시각 순서대로 처리 → 지문 committed(판정은 08:20 push 시각)
-        self.acts = [a for a in self.acts if a["id"] != 77]
-        out = self.sync(f"{rd}T09:10:00+09:00")
+        out = self.sync(f"{rd}T08:30:00+09:00")
         self.assertEqual(out[0]["receipts"][0]["status"], "committed")
-        self.assertEqual(L.read_ledger(self.repo / "league", "submissions")[0]["pushed_at"], f"{rd}T08:20:00+09:00")
         self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
+
+    def test_transient_failure_retried_until_reveal_deadline_not_dropped(self):
+        """운영자 결정(2026-11-08): 통신·서버 오류는 3회로 폐기하지 않고 공개 마감까지 재시도, 3회째 '처리 지연' 알림.
+        풀리면 원래 push 시각으로 판정(08:30 마감 그대로)."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:18:00+09:00")
+        sha = self.acts[-1]["after"]
+        real_have = self.X._have
+        with unittest.mock.patch.object(self.X, "_remote_ok", return_value=False), \
+                unittest.mock.patch.object(self.X, "_have", side_effect=lambda e, x: False if x == sha else real_have(e, x)):
+            for t in ("08:25", "08:35", "08:45", "09:00"):
+                self.assertEqual([r["status"] for r in self.sync(f"{rd}T{t}:00+09:00")], ["retry"])
+            ks = [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T09:05:00+09:00"))]
+            self.assertIn("delay", ks); self.assertNotIn("missing", ks); self.assertNotIn("failed", ks)
+        out = self.sync(f"{rd}T10:05:00+09:00")                                              # 통신 회복
+        self.assertEqual(out[0]["receipts"][0]["status"], "committed")
+        sub = L.read_ledger(self.repo / "league", "submissions")
+        self.assertEqual([(x["status"], x["pushed_at"]) for x in sub], [("committed", f"{rd}T08:18:00+09:00")])
+        self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
+
+    def test_transient_failure_until_reveal_deadline_taints(self):
+        """통신 오류가 공개 마감(12:00)까지 이어지면 그 라운드는 운영자 확인 대기."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:18:00+09:00")
+        sha = self.acts[-1]["after"]; real_have = self.X._have
+        with unittest.mock.patch.object(self.X, "_remote_ok", return_value=False), \
+                unittest.mock.patch.object(self.X, "_have", side_effect=lambda e, x: False if x == sha else real_have(e, x)):
+            for t in ("08:25", "08:35", "08:45", "11:05"):
+                self.sync(f"{rd}T{t}:00+09:00")
+            self.assertEqual([r["status"] for r in self.sync(f"{rd}T12:05:00+09:00")], ["error"])
+        self.assertIn(("shushu", rd), self.X.tainted(L.read_ledger(self.repo / "league", "external_pushes")))
 
     def test_deleted_branch_kept_by_tag_cannot_be_picked(self):
         """5차 검수 S1: 브랜치를 마감 전에 지우고 태그로 커밋을 살려 둔 뒤 마감 뒤 '받을 수 있음/없음'을 골라도
@@ -1685,6 +1712,17 @@ class PublicAlias(unittest.TestCase):
             js = (Path(tmp) / "site" / "data" / "table.js").read_text()
             for n in self.REAL:
                 self.assertNotIn(n, js)
+
+    def test_loss_review_bundle_maps_alias_back(self):
+        """별칭 묶음으로도 로로 복기 경로·pick_id가 내부 ID 기준으로 맞는다(원장 대조와 같은 대상)."""
+        import dashboard_data as D, loss_review as LR
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "results.json"
+            f.write_text(json.dumps(D.bundle(datetime(2026, 11, 8, 20, 0, tzinfo=L.KST)), ensure_ascii=False))
+            rv = L.ROOT / "league" / "sandbox" / "reviews" / "losses"
+            via_bundle = sorted(x["pick_id"] for x in LR.due_bundle(f, "로로", rv, "연습"))
+            via_ledger = sorted(x["pick_id"] for x in LR.due(L.ROOT / "league" / "sandbox"))
+            self.assertEqual(via_bundle, via_ledger)
 
     def test_alias_map_is_stable_and_distinct(self):
         cfg = L.load_config(L.ROOT / "league")
