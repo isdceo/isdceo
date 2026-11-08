@@ -43,7 +43,7 @@ _TAIL = r"(?:간|째|씩|여|가량|쯤|경|에서|에|으로|로|은|는|이|�
 _PRICEW = r"(?<!주가\s)(?<!종가\s)(?<!지수\s)(?<!코스피\s)(?<!코스닥\s)(?<!환율\s)(?<!가격\s)"
 _DT = (r"\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:~\d{2}(?::\d{2})?)?(?:[+-]\d{2}:\d{2}|Z)?)?|\d{4}-W\d{2}"
        r"|(?<![\d,.])(?:19|20)\d{2}\.\s?\d{1,2}\.\s?\d{1,2}\.?(?![\d,])|(?<![\d,.])(?:19|20)\d{2}/\d{1,2}/\d{1,2}" + _END +
-       r"|(?:19|20)\d{2}\s*(?:년도?|회계연도)(?:\s*\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?)?|(?<![\d,.])\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?"
+       r"|(?:19|20)\d{2}\s*(?:년도?|회계연도)(?:\s*\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?)?|(?<![\d,.])\d{1,2}\s*월(?:\s*\d{1,2}(?:\s*[~∼]\s*\d{1,2})?\s*일)?"
        r"|" + _PRICEW + r"(?<![\d,.])(?:19|20)\d{2}\s*[~∼–-]\s*(?:19|20)?\d{2}(?=\s*(?:년|회계연도))"
        r"|(?<![\d,.])\d{1,2}/\d{1,2}(?:/\d{2,4})?" + _END + r"|(?<![\d,.])\d{1,2}:\d{2}(?::\d{2})?" + _END + r"|[+-]\d{2}:\d{2}"
        r"|(?<![\d,.])(?:[01]?\d|2[0-4])\s*시(?![간장작점총가세초])(?:\s*(?:[0-5]?\d\s*분|반))?")
@@ -51,13 +51,13 @@ _AMT = (r"(?<!주당)(?<!주당\s)(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*(?:�
         r"(?:\s*(?:원|달러|USD|KRW|엔|유로|위안)(?:어치)?)?")
 _PCT = r"[+−-]?" + _NUM + r"(?:\.\d+)?(?:" + _RNG + r"[+−-]?" + _NUM + r"(?:\.\d+)?)?\s*(?:%p|%\s*포인트|%|퍼센트(?:\s*포인트)?|bps?(?![A-Za-z]))"
 # 개수·기간·배수 단위 — 숫자에 '붙여' 쓴 경우만. 낱말이 되는 조합(평가·주가·초과·회의·단가·편이·배당…)은 단위로 보지 않는다. '대'는 아래 판매 문맥에서만.
-_UNIT = (r"(?:명|개(?:사|국|월|년)?|건|곳|척|주(?:일|간|년|차)?(?!가|의|도|식|주|요|변|당|력|택)|거래일|년물|분기|반기|시간|분(?!석|야|할|위|명|배|산|쟁|기)"
+_UNIT = (r"(?:명|개(?:사|국|월|년)?|건|곳|척|주(?:일|간|년|차)?(?!가|도|식|주|요|변|당|력|택)|거래일|년물|분기|반기|시간|분(?!석|야|할|위|명|배|산|쟁|기)"
          r"|초(?!과|반|기|점|래|안)|배(?!당|럴|분|제|송|경|터|치|정|출|상|열)|회(?!의|복|사|계|장|피|수|담|전|생|귀|원)|번(?:째)?|가지|단(?!가|위|계|기|일|독|순|체|기|속|점)"
          r"|층(?!이)|세대|종목|기업|팀|쪽|편(?!이|입|성|중|차|의)|권(?!고|리|역|한|유)|나노|인치|톤|리터|평(?!가|균|년|소|면)|㎡|가구|TEU|nm)")
-_DAE = r"대(?=\s*$|\s*[,.)]|\s+(?:판매|생산|출하|인도|공급|수주|규모|분량|증산|감산|목표|계획|생산능력)|를\s*(?:팔|판매|생산|인도|공급|출하)|로\s*(?:(?!밀|떨|내렸|내려|하락|빠|올랐|상승|반등|급|회복|마감)[^.\n]){0,20}?(?:늘|줄|증가|감소|확대|축소)|에\s*(?:그쳤|못\s*미|달했|이르)|까지\s*(?:늘|확대|증산))"
+_DAE_OLD = r"대(?=\s*$|\s*[,.)]|\s+(?:판매|생산|출하|인도|공급|수주|규모|분량|증산|감산|목표|계획|생산능력)|를\s*(?:팔|판매|생산|인도|공급|출하)|로\s*(?:(?!밀|떨|내렸|내려|하락|빠|올랐|상승|반등|급|회복|마감)[^.\n]){0,20}?(?:늘|줄|증가|감소|확대|축소)|에\s*(?:그쳤|못\s*미|달했|이르)|까지\s*(?:늘|확대|증산))"
 _CNT = (r"(?<![\d,.$₩])(?:" + _NUM + r"(?:\.\d+)?(?:" + _RNG + _NUM + r"(?:\.\d+)?)?(?:여\s*)?)" + _UNIT + _TAIL
-        + r"|(?<![\d,.$₩])\d{1,3}(?:일(?:선|간|째)?|년(?:간|째|차)?)(?!\s*(?:때|땐|경우|것|가능성|듯|수|지|뿐|수록|텐|당시|무렵|시점|즈음|적))" + _TAIL
-        + r"|(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*[천만](?:\s*" + _NUM + r"\s*천?)?\s*(?:여\s*)?(?:명|개|건|곳|척|주(?!가|의|도)|장(?![가-힣])|권|편|가구|세대|톤|리터|평|배럴|계좌|TEU|" + _DAE + r")" + _TAIL)
+        + r"|(?<![\d,.$₩])\d{1,3}(?:일(?:선|간|째)?|년(?:간|째|차)?)(?!\s*(?:때|땐|경우|것|거|걸|게|건|리|줄|까지|가능성|듯|수(?![가-힣])|지(?![가-힣])|뿐|수록|텐|당시|무렵|시점|즈음|적))" + _TAIL
+        + r"|(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*[천만](?:\s*" + _NUM + r"\s*천?)?\s*(?:여\s*)?(?:명|개|건|곳|척|주(?!가|의|도)|장(?![가-힣])|권|편|가구|세대|톤|리터|평|배럴|계좌|TEU)" + _TAIL)
 _IDX = r"(?:500|400|600|200|150|100|50|40|30|225|300|1000|2000|3000)" + _END
 _INDEXN = r"(?:S&P|KOSPI|KOSDAQ|NASDAQ|Nasdaq|Russell|FTSE|Nikkei|Stoxx|STOXX|Dow(?:\s*Jones)?|DAX|CAC|KRX|KODEX|TIGER|ACE|RISE|SOL|코스피|코스닥|나스닥|러셀|닛케이|다우|유로스톡스)"
 _NOCUR = r"(?!\s*(?:달러|원|유로|엔|위안|불|\$|USD|KRW))"
@@ -65,14 +65,15 @@ _NAME = (r"(?<![A-Za-z])" + _INDEXN + r"[\s-]*" + _IDX
          + r"|(?<![A-Za-z])(?:iPhone|아이폰|Galaxy|갤럭시|Pixel)\s*\d{1,2}" + _END + _NOCUR
          + r"|(?<![A-Za-z])(?:RTX|GTX)\s*[1-9]\d{3}" + _END + _NOCUR + r"|(?<![A-Za-z])(?:보잉|Boeing)\s*7[0-8]7" + _END + _NOCUR
          + r"|(?<![A-Za-z])(?:에어버스|Airbus)\s*A?3\d0" + _END + _NOCUR + r"|(?<![A-Za-z])(?:Gemini|Llama|Windows)\s*\d{1,2}(?:\.\d)?" + _END + _NOCUR
-         + r"|(?<![\d,.])\d{1,4}(?=\s+(?:MAX|Pro|Ultra|Plus|ETF)(?![A-Za-z]))|(?<![A-Za-z0-9])3M(?![A-Za-z0-9])"
+         + r"|(?<![\d,.])\d{1,4}(?=\s+(?:MAX|Pro|Ultra|Plus)(?![A-Za-z]))|(?<![A-Za-z0-9])3M(?![A-Za-z0-9])|(?<![\d,.])13F(?:-HR)?(?![A-Za-z])|(?<![\d,.])(?:10|8)-[KQ](?![A-Za-z])"
          + r"|(?<![\d,.])\d{6}\.K[SQ](?![A-Za-z])"
          + r"|(?<![A-Za-z&])(?!" + _INDEXN + r")(?!(?:KRW|USD|W)\d)[A-Za-z]{1,8}(?<=[A-Za-z])\d{1,4}(?:\.\d)?" + _END + _NOCUR   # HBM3E·H100·Q3·v2·FY2026
-         + r"|(?<![\d,.$₩€¥£])\d{1,4}(?:\.\d)?(?=(?:nm|x|Gb|GB|TB|Tb|MB|Q|H|G|D|E|th|st|nd|rd)(?![A-Za-z]))")                             # 3nm·25x·16Gb·3Q·5G
+         + r"|(?<![\d,.$₩€¥£])(?:[1-4](?=Q)|[12](?=H)|(?:19|20)\d{2}(?=[EH]\d?)|[3-6](?=G)|\d{1,2}(?=D)|\d{1,2}(?:\.\d)?(?=x)|\d{1,2}(?=th|st|nd|rd)"
+         + r"|\d{1,4}(?:\.\d)?(?=nm|Gb|GB|TB|Tb|MB|GWh|MWh|GW|MW|kW|km|mm))(?=(?:Q|H\d?|E|G|D|x|th|st|nd|rd|nm|Gb|GB|TB|Tb|MB|GWh|MWh|GW|MW|kW|km|mm)(?![A-Za-z]))")                             # 3nm·25x·16Gb·3Q·5G
 _LNUM = r"[+−-]?\d{1,2}(?:\.\d+)?(?!\d|[,.]\d|\s*(?:[만천억조]|원|달러|\$))"
 _LABEL = (r"(?:베타|상관계수|상관|RSI|PER|PBR|PSR|EV/EBITDA|확률|가능성|p_beat|p\s*beat|샤프\s*지수|p\s*값|z\s*값)\s*(?:\((?:[^)\d\n]|\d{1,2}(?![\d,.])){0,40}\))?\s*(?:은|는|이|가|:|=|를|을)?\s*(?:약\s*)?"
           + _LNUM + r"(?:\s*(?:→|->|~)\s*" + _LNUM + r"|\s*에서\s*" + _LNUM + r"\s*(?:으로|로))*")
-_LABEL += r"|(?<![A-Za-z])PEG\s*(?:은|는|이|가|:|=)?\s*(?:약\s*)?\d(?:\.\d+)?(?:\s*[~→]\s*\d(?:\.\d+)?)?(?!\d|[,.]\d|\s*(?:원|달러|\$))"   # PEG는 10 미만만(티커 PEG의 주가와 구분)
+_LABEL += r"|(?<![A-Za-z])PEG\s*(?:은|는|이|가|:|=)?\s*(?:약\s*)?\d(?:\.\d+)?(?:\s*[~→]\s*\d(?:\.\d+)?)?(?!\d|[,.]\d|\s*(?:[만천억조]|원|달러|\$))"   # PEG는 10 미만만(티커 PEG의 주가와 구분)
 _LIST = r"^\s*(?:[-*]\s*)?\(?\d{1,2}[.)]\s|^#+\s*\d+(?:[.-]\d+)*\.?\s"
 _SMALL = (r"(?<![\d,.$₩€¥£])(?:10|\d)(?!\d|[,.]\d|\s*(?:[천만억조]|달러|원|센트|엔|유로|위안|불|파운드|USD|KRW|EUR|JPY|GBP))"
           r"|(?<![\d,.])\d{1,3}(?:위권?|등|차)(?![가-힣])")   # 작은 정수, 순위·차수(2위·20위권·1차)
@@ -80,21 +81,35 @@ _ALLOW = re.compile("|".join(f"(?:{x})" for x in (_DT, _AMT, _PCT, _NAME, _LABEL
 _KR_CODES = None
 
 
-def _kr_codes() -> set:
-    global _KR_CODES
+_US_TICKERS = None
+# 영문자에 붙은 숫자가 지표·통화·종목 티커의 수준값·가격일 수 있는 앞 글자(대소문자 무시)
+_BAD_PFX = {"SPX", "NDX", "SOX", "VIX", "DJIA", "DJI", "WTI", "BRENT", "DUBAI", "KRW", "USD", "EUR", "JPY", "GBP", "CNY", "CHF", "HKD", "AUD", "CAD", "W", "X",
+            "BTC", "ETH", "DXY", "KOSPI", "KOSDAQ", "NASDAQ", "SP", "RUSSELL", "NIKKEI", "FTSE", "STOXX", "DOW", "DAX", "CAC", "KRX", "PEG"}
+
+
+def _kr_codes() -> dict:
+    """대상 종목 목록의 한국 코드 → 종목명."""
+    global _KR_CODES, _US_TICKERS
     if _KR_CODES is None:
-        _KR_CODES = set()
+        _KR_CODES, _US_TICKERS = {}, set()
         for f in [L.ROOT / "league/universe.json", *sorted((L.ROOT / "league/universe").glob("*.json"))]:
             try:
-                _KR_CODES |= set((json.loads(f.read_text(encoding="utf-8")).get("KR") or {}).keys())
+                d = json.loads(f.read_text(encoding="utf-8"))
+                _KR_CODES.update({k: v for k, v in (d.get("KR") or {}).items() if isinstance(v, str)})
+                _US_TICKERS |= {k.upper() for k in (d.get("US") or {}) if len(k) >= 2}
             except (OSError, ValueError, AttributeError):
                 pass
     return _KR_CODES
 
 
+_DAE_RE = re.compile(r"(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*[천만](?:\s*" + _NUM + r"\s*천?)?\s*(?:여\s*)?대(?!비|\s*(?:초반|중반|후반|\())")
+_DAE_YES = re.compile(r"판매|생산|출하|인도|공급|수주|차량|대수|팔|증산|감산|생산능력|캐파|재고|수출|내수|등록|늘리|줄이|늘린|줄인")
+_DAE_NO = re.compile(r"주가|종가|시가|목표가|목표주가|환율|지수|가격|시세|코스피|코스닥|나스닥|고점|저점|매수가|매도가|평단")
+
+
 def number_issues(t: str, limit: int = 3) -> list[str]:
     """뜻을 확인하지 못한 숫자들(앞뒤 문맥과 함께). 첫 줄 pick_id와 URL은 보지 않는다."""
-    body = re.sub(r"https?://[^\s가-힣)\]]+", " ", t)                       # URL은 공백·한글·닫는 괄호 앞까지만 지운다
+    body = re.sub(r"https?://[A-Za-z0-9\-._~:/?#@!$&'*+=%]+", " ", t)             # URL은 URL 글자(쉼표·괄호 제외)까지만 지운다
     body = re.sub(r"\A# 손실 복기 — .*$", " ", body, flags=re.M)
     masked = list(body)
     codes = _kr_codes()
@@ -104,13 +119,28 @@ def number_issues(t: str, limit: int = 3) -> list[str]:
         if m and (not m.group(1)[0].isdigit() or m.group(1) in codes):
             for k in range(m.start(1), m.end(1)):
                 masked[k] = " "
-    for m in re.finditer(r"(?<!주가)(?<!종가)(?<!고점)(?<!저점)(?<!고가)(?<!저가)(?<!시가)(?<!목표가)(?<!가격)(?<!기준가)\(\s*([0-9A-Z]{6})\s*\)", body):   # 괄호 속 종목코드: 대상 목록에 있을 때만(목록이 없으면 막음)
-        if m.group(1) in codes:
+    for m in re.finditer(r"\(\s*([0-9A-Z]{6})\s*\)", body):                     # 괄호 속 종목코드: 바로 앞이 그 코드의 종목명일 때만
+        nm = codes.get(m.group(1))
+        if nm and body[:m.start()].rstrip().endswith(nm):
             for k in range(m.start(1), m.end(1)):
+                masked[k] = " "
+    for m in _DAE_RE.finditer(body):                                            # '만 대'는 앞 문맥에 판매·생산 낱말이 있고 가격 낱말이 없을 때만 대수
+        ls = max([0] + [x.end() for x in re.finditer(r"[.!?\n]", body[:m.start()])])
+        ctx = body[max(ls, m.start() - 30):m.start()]
+        after = re.split(r"[.!?\n,]", body[m.end():m.end() + 16])[0]
+        if (_DAE_YES.search(ctx) or _DAE_YES.search(after)) and not _DAE_NO.search(ctx) and not _DAE_NO.search(after):
+            for k in range(m.start(), m.end()):
                 masked[k] = " "
     for m in _ALLOW.finditer("".join(masked)):
         for k in range(m.start(), m.end()):
             masked[k] = " "
+    _kr_codes()
+    for m in re.finditer(r"(?<![A-Za-z&])(?<!\d{4}-)([A-Za-z&]{1,8})(\d[\d.]*)", body):     # 지표·통화·종목 티커에 붙은 숫자는 식별자로 보지 않는다
+        pf = m.group(1).upper()
+        fx = len(pf) == 6 and pf[:3] in _BAD_PFX and pf[3:] in _BAD_PFX                   # USDJPY 같은 통화쌍
+        if pf.replace("&", "") in _BAD_PFX or pf in (_US_TICKERS or ()) or fx:
+            for k in range(m.start(2), m.end(2)):
+                masked[k] = body[k]
     out, ms = [], "".join(masked)
     for m in re.finditer(r"\d[\d,]*(?:\.\d+)?", ms):
         a, b = m.start(), m.end()
