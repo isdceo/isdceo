@@ -72,19 +72,20 @@ MONEY = re.compile(
 
 # 경험칙 뒤 거름: 문맥상 가격이 아닌 매치(셈·지표 주어의 'A에서 B로', 품목 가격, 주당 지표)는 버리고 그 다음부터 다시 찾는다
 _MOVE = re.compile(r"에서|→|->")
-_SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|(?<![가-힣])배당금?|베타|RSI|비중|지분율|(?<![가-힣])[금은](?=\s*(?:선물|값|가격))|금값|천연가스|팔라듐|백금|이익률|마진|(?:원|달러|엔|유로|위안)\s*[·/]\s*(?:원|달러|엔|유로|위안)|\d+년물|근월물|현물가|고정가|계약가|브렌트유?|두바이유|원유|구리|수익률|실업률|가동률|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
-                   r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI|CPI|PPI|PCE|PMI|GDP|LME|EBITDA)(?![A-Za-z])|컨센서스|인덱스|국채|유가|브렌트")
-_COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣])금|(?<![가-힣])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|WTI|브렌트유?|두바이유|유가|(?<![가-힣A-Za-z])가스|(?<![가-힣A-Za-z])전력|운임|선물)(?:\s*\([^)\n]{0,20}\)|\s+(?:현물|고정거래|계약|선물|근월물|평균|범용|서버용|모바일|PC용|\d+\s*[GT]b|\d+단|DDR\d\w*|LPDDR\d\w*|플래시)){0,3}\s*$")
+_SUBJ = re.compile(r"량|(?<![가-힣])수(?![가-힣])|자\s*수|재고|판매|출하|인도|가입자|주문|수주|매출|이익|부채|(?<![가-힣])배당금?|베타|RSI|비중|지분율|(?<![가-힣A-Za-z0-9&])[금은](?=\s*(?:선물|값|가격))|(?<![가-힣A-Za-z0-9&])금값|천연가스|팔라듐|백금|이익률|마진|(?:원|달러|엔|유로|위안)\s*[·/]\s*(?:원|달러|엔|유로|위안)|\d+년물|근월물|현물가|고정가|계약가|브렌트유?|두바이유|원유|구리|수익률|실업률|가동률|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
+                   r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI|CPI|PPI|PCE|PMI|GDP|LME|EBITDA)(?![A-Za-z])|컨센서스|인덱스|국채|(?<![가-힣A-Za-z])유가|브렌트")
+_COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣A-Za-z0-9&])금|(?<![가-힣A-Za-z0-9&])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|WTI|브렌트유?|두바이유|(?<![가-힣A-Za-z])유가|(?<![가-힣A-Za-z])가스|(?<![가-힣A-Za-z])전력|운임|선물)(?:\s*\([^)\n]{0,20}\)|\s+(?:현물|고정거래|계약|선물|근월물|평균|범용|서버용|모바일|PC용|\d+\s*[GT]b|\d+단|DDR\d\w*|LPDDR\d\w*|플래시)){0,3}\s*$")
 _PER_UNIT = re.compile(r"(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당")
 _CUE_IN = re.compile(_CUE)
+_SENT_END = re.compile(r"[!?\n。]|\.(?!\d)")
 # 지표·품목 이름 바로 뒤의 단서(WTI 종가·환율 고점·금 선물 종가·EPS 컨센서스 고점)는 주가가 아님
-_IND_PRE = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD.pattern[:-4] + r")(?:\s*(?:선물|근월물|현물|컨센서스|추정치|금리))?\s*(?:\([^)\n]*\))?\s*(?:장중|52주)?\s*$")
+_IND_PRE = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD.pattern[:-4] + r")(?:\s*(?:선물|근월물|현물|컨센서스|추정치|금리))?\s*(?:\([^)\n]*\))?(?:\s*(?:은|는|이|가|도|의))?(?:\s*(?:장중|52주|한때))?\s*$")
 _CUE_START = re.compile(r"(?:종가|고점|저점|시가|고가|저가|최고가|최저가|가격|단가)")
 _CLOSE_VERB = re.compile(r"마감|마쳤|마치|끝냈|끝났|출발|시작|종료|거래됐|거래되었|마무리")
 _COMMOD_PRICE = re.compile(_COMMOD.pattern[:-4] + r"\s*(?:가격|단가)")
 # 이동 매치는 셈·지표 주어나 품목 가격이 숫자 바로 앞에 붙어 있을 때만 버린다('배당 기대에 1,264,000에서…'처럼 원인을 말하는 낱말은 거르지 않음)
 _ATTACHED = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD_PRICE.pattern + r")(?:\s*(?:선물|근월물|현물|\d+(?:개월|년)물|\d+단))?(?:\s*(?:추정치|전망치|예상치|컨센서스|가이던스|전망|추정|예상|단가|가격|종가|고점|저점))?(?:\s*(?:하향|상향|조정))?\s*(?:\([^)]*\))?\s*(?:은|는|이|가|도|의)?\s*(?:\([^)]*\))?"
-                       r"(?:\s*(?:전년비|전월비|YoY|QoQ|전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?\s*\(?\s*(?:[\d,.]+\s*(?:→|->|에서)\s*)*[\d,.]*$")
+                       r"(?:\s*(?:전년비|전월비|YoY|QoQ|전년|지난해|작년|같은|동기|분기|\d분기|연간|월간|전월|전분기|대비))*(?:\s*(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당)?(?:\s*(?:" + _DATE + r"|[가-힣]{1,4}\s*만에|장중|한때))*\s*\(?\s*(?:[\d,.]+\s*(?:→|->|에서|(?:으로|로)\s*(?:출발|시작)해)\s*(?:" + _DATE + r"\s*)?)*[\d,.]*$")
 _CO_AMT = re.compile(r"\d(?:\s*[천만])?\s*[억조](?:\s*[\d,.]*\s*[천만억])*\s*(?:원|달러|USD(?![A-Za-z]))")
 
 
@@ -96,10 +97,13 @@ def money_hit(t: str):
         if not m:
             return None
         g = m.group(0)
-        ls = max(t.rfind(c, 0, m.start()) for c in ".!?\n。") + 1
+        w = max(0, m.start() - 120)
+        ls = max([w] + [x.end() for x in _SENT_END.finditer(t, w, m.start())])
         before = t[max(ls, m.start() - 14):m.start()]
         skip = False
         if not _CUE_IN.search(g) and (_MOVE.search(g) or _CLOSE_VERB.search(g)) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
+            skip = True
+        elif re.fullmatch(r"[\d,.]+\s*(?:고점|저점|종가|최고가|최저가)", g) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
             skip = True
         elif _CUE_START.match(g) and _IND_PRE.search(t[max(ls, m.start() - 30):m.start()]):
             skip = True
@@ -190,7 +194,7 @@ def due_bundle(bundle: Path, team: str, reviews: Path, mode: str = "실전") -> 
     return sorted(out, key=lambda x: (x["round_date"], x["agent_id"], x["market"]))
 
 
-_CUE_HEAD = re.compile(r"고점|저점|지지선|저항선|종가|주가|시가|고가|저가|가격|단가|매수가|매도가|목표\s*주?가|평단|기준가|현재가")
+_CUE_HEAD = re.compile(r"(?<![A-Za-z])(?:Close|Adj\.?\s*Close|Price)(?![A-Za-z])|고점|저점|지지선|저항선|종가|주가|시가|고가|저가|가격|단가|매수가|매도가|목표\s*주?가|평단|기준가|현재가")
 _NP_RE = re.compile(r"(?<![\d.,%+\-−▲▼△▽A-Za-z])(?<![A-Za-z&]\s)(?<!나스닥 )(?<!코스피 )(?<!코스닥 )(?<!러셀 )(?<!다우 )(?<!보잉 )(?<!에어버스 )" + _NP + r"(?![\d.,]|\s*%|\s*(?!원|달러)[가-힣A-Za-z])")
 # 표 머리글: '/ · ( [ → , 와 및'으로 나눈 조각 가운데 '가격 단서만 있고 지표·셈·기간·비율 낱말이 없는' 조각이 하나라도 있으면 가격 열.
 # 단, 머리글에 단위 괄호((%)·(일)·(거래일)·(조원)…)가 붙으면 그 열은 지표·셈 열로 본다.
@@ -221,7 +225,7 @@ def _skip_row(label: str) -> bool:
     if re.search(_UNIT_PAREN, label):
         return True
     lb = re.sub(r"\([^)]*\)", "", label)
-    if _ROW_SKIP.search(lb) or _IND_PRE.search(lb.strip()):   # 행 이름 자체가 지표·품목(WTI·금 선물·D램 현물가·10년물·DPS)
+    if _ROW_SKIP.search(lb) or _IND_PRE.search(lb.strip()) or _COMMOD_PRICE.search(lb):   # 행 이름 자체가 지표·품목(WTI·금 선물·D램 현물가·10년물·DPS)
         return True
     return bool(re.search(r"거래일|기간", lb)) and not _ROW_TIME.search(lb)   # '기준 거래일'·'평가 기간 끝'은 시점 행이라 본다
 
@@ -372,7 +376,7 @@ def _is_fixed(text: str, x) -> bool:
     pre = text[max(0, st - 12):st]
     if re.search(r"(?:항목|목록|체크리스트|점검)(?:에|으로)\s", x.group(0)):
         return False
-    return not _HABIT.search(tgt) and not re.search(r"(?:없|있|낮|높|약한|강한|큰|작은|못한|않은|고른|본|산)는?\s*$", pre)
+    return not _HABIT.search(tgt) and not re.search(r"(?:없는|있는|낮은|높은|약한|강한|큰|작은|못한|않은|고른|본|산|인)\s*$", pre)
 
 
 def _layout(path: Path) -> str:
