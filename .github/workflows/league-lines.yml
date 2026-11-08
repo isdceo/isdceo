@@ -56,7 +56,7 @@ jobs:
             git commit -q -m "league: results bundle (한 줄 이유 반영) for ${GITHUB_SHA::7}"
             ok=0
             for i in 1 2 3; do
-              git fetch -q origin "$BR" && git rebase -q "origin/$BR" && git push -q origin "HEAD:$BR" && ok=1 && break
+              git fetch -q origin "$BR" && { git rebase -q "origin/$BR" || { git rebase --abort 2>/dev/null; false; }; } && git push -q origin "HEAD:$BR" && ok=1 && break
               sleep $((i * 5))
             done
             [ "$ok" = 1 ] || exit 1

@@ -108,17 +108,23 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         raise RuntimeError(f"커밋 {after[:12]}를 받을 수 없음(브랜치 삭제·강제 push?)")
     base = before if before and before != ZERO and _have(ext, before) else None
     pm = next((m for m in mains if m and m != ZERO and _have(ext, m)), None)
+    from_head = False
     if base is None and pm is None and not first:
         # 기본 브랜치 기록을 하나도 받을 수 없으면 지금 받은 기본 브랜치 끝(복제본 HEAD)과 비교한다(기본 브랜치와 다른 파일만)
         r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ext, capture_output=True, text=True)
         pm = r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
+        from_head = bool(pm)
     if base is None and pm == after:
+        if from_head:   # 이미 병합된 브랜치: 지금 기본 브랜치로는 이 push 시각의 파일을 알 수 없음 — '파일 없음'으로 넘기지 않고 재시도·확인 대기
+            raise RuntimeError("비교 기준 없음 — 이미 기본 브랜치에 병합된 브랜치 push(병합 시각으로 판정하지 않도록 확인 대기)")
         return []                                      # 기본 브랜치와 같은 커밋을 가리키는 새 브랜치 — 새 파일 없음
     if base is None and pm:
         # 새 브랜치·강제 push: 이 push 전 마지막 기본 브랜치 상태와 갈라진 지점부터(오래된 기준의 브랜치가 옛 내용을 '수정'으로 보이지 않게)
         r = subprocess.run(["git", "merge-base", pm, after], cwd=ext, capture_output=True, text=True)
         mb = r.stdout.strip() if r.returncode == 0 else ""
         if mb == after:
+            if from_head:
+                raise RuntimeError("비교 기준 없음 — 이미 기본 브랜치에 병합된 브랜치 push(병합 시각으로 판정하지 않도록 확인 대기)")
             return []                                  # 이미 기본 브랜치에 들어 있는 커밋 — 새 파일 없음
         # 이력이 이어지지 않는 브랜치(orphan): 갈라진 지점이 없으면 '이 push 전 기본 브랜치 상태'와 직접 비교한다
         base = mb or pm
@@ -665,7 +671,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             wkb = L.iso_week(today)
             add("bench", wkb, "@codex 슈슈 팀 대기 후보가 부족합니다(리그별 남은 승인 후보: "
                 f"한국 {st_['available'].get('KR')}명, 미국 {st_['available'].get('US')}명). 새 후보 1~2명을 제안해 주세요. "
-                f"`to-roro/{rd}-bench-proposal.md`에 후보마다 ```json 블록(team·id·nickname·label·style_ref·tagline·look)과 `## 지침` 절(v1 지침 본문)을 넣어 push하면, "
+                f"후보마다 파일 하나(`to-roro/{rd}-bench-<id>.md`)에 ```json 블록 하나(team·id·nickname·label·style_ref·tagline·look)와 `## 지침` 절(v1 지침 본문)을 넣어 push하면, "
                 "검사(`from-league/tools/add_character.py --dry-run`)를 통과한 안은 운영자 상시 위임으로 자동 등록됩니다. 기존 에이전트와 다른 투자 관점, 실존 인물 사칭·특정 종목 고정 금지. "
                 "형식: `from-league/docs/bench-addition.md`.")
     # 새 공지·회신 (메인 docs/codex-notices) — 내용 해시로 판단

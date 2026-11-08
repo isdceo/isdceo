@@ -1104,6 +1104,14 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(out[-1]["files"], [f"submit/{rd}.sha256"])
         self.assertEqual(out[-1]["receipts"][0]["status"], "committed")
 
+    def test_head_fallback_never_judges_merged_branch_as_empty(self):
+        """주간 점검(2026-11-08): 기본 브랜치 기록을 못 받아 HEAD로 비교할 때 이미 병합된 브랜치를 '파일 없음'으로 넘기지 않는다."""
+        sys.path.insert(0, str(ROOT / "tools")); import shushu_sync as X
+        self.g(self.ext, "checkout", "-q", "main")
+        tip = self.g(self.ext, "rev-parse", "HEAD")
+        with self.assertRaises(RuntimeError):
+            X._changed(self.ext, "0" * 40, tip, ["f" * 40])
+
     def test_orphan_branch_diffs_against_prior_main_tree(self):
         """이력이 이어지지 않는 새 브랜치(orphan) push도 막히지 않고, 기본 브랜치와 내용이 다른 파일만 본다(2026-11-08 동기화 오류)."""
         rd = "2026-11-10"
@@ -1723,6 +1731,16 @@ class AddCharacter(unittest.TestCase):
         out = self.AC.spec_from_message(md)
         self.assertEqual((out["id"], out["guideline"].splitlines()[0]), ("s8", "# 등대 지침"))
 
+    def test_message_with_two_candidates_rejected_and_common_acronyms_ok(self):
+        """주간 점검(2026-11-08): 한 파일에 후보 둘이면 둘째가 조용히 빠지고 지침에 섞이던 문제 — 거부. AI·PER 같은 약어는 종목 코드로 보지 않는다."""
+        sp = self.spec(); g = sp.pop("guideline")
+        blk = "```json\n" + json.dumps(sp, ensure_ascii=False) + "\n```\n## 지침\n" + g + "\n"
+        with self.assertRaises(SystemExit):
+            self.AC.spec_from_message(blk + blk.replace('"s8"', '"s9"'))
+        self.assertFalse(self.AC._tickerish("AI 인프라 성장형 · PER 낮은 가치주"))
+        self.assertTrue(self.AC._tickerish("NVDA 집중형"))
+        self.assertTrue(self.AC._tickerish("005930 장기 보유"))
+
 
 class BoundaryCases(unittest.TestCase):
     """슈슈 팀 확인 질문(v2.0·v2.1)의 경계 사례."""
@@ -1738,6 +1756,15 @@ class BoundaryCases(unittest.TestCase):
         self.assertNotEqual(plan[("claude", "momentum")]["status"], "cooldown")
         plan46 = {(r["team"], r["agent_id"]): r for r in L.update_plan(d, "2026-W46")["agents"]}
         self.assertFalse(any(r["status"] == "cooldown" for r in plan46.values()))
+
+    def test_later_new_version_does_not_turn_past_week_plan_into_cooldown(self):
+        """주간 점검(2026-11-08): W47의 v2 pick이 생겨도 W46 계획의 그 에이전트는 냉각으로 바뀌지 않는다."""
+        t = MarketLeagues(); d = t._league(); t._fill(d)
+        before = {(r["team"], r["agent_id"]): r["status"] for r in L.update_plan(d, "2026-W46")["agents"]}
+        cfg = L.load_config(d)
+        L.append(d, "picks", L.make_pick("claude", "wood", 2, "2026-11-16", "KR", "005930", "005930", "2026-11-16T08:00:00+09:00", "", [], [{"url": "x", "as_of": "2026-11-16"}], cfg))
+        after = {(r["team"], r["agent_id"]): r["status"] for r in L.update_plan(d, "2026-W46")["agents"]}
+        self.assertEqual(before.get(("claude", "wood")), after.get(("claude", "wood")))
 
     def test_remaining_league_csv_version_must_match(self):
         """한 리그에서만 빠진 에이전트도 남은 리그 CSV 버전은 명단 버전과 같아야 한다."""

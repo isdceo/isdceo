@@ -624,7 +624,8 @@ def update_plan(d: Path, week: str) -> dict:
     roster = load_roster(d)
     rows = []
     for (team, aid), rk in sorted(ranks.items()):
-        mine = [p for p in picks if p["team"] == team and p["agent_id"] == aid and p.get("agent_version") is not None]
+        mine = [p for p in picks if p["team"] == team and p["agent_id"] == aid and p.get("agent_version") is not None
+                and iso_week(date.fromisoformat(p["round_date"])) <= week]          # 그 주까지의 pick만(나중 새 버전이 지난 계획을 바꾸지 않게)
         cur_v = max((int(p["agent_version"]) for p in mine), default=1)
         first_cur = min((p["round_date"] for p in mine if int(p["agent_version"]) == cur_v), default=None)
         v_week = iso_week(date.fromisoformat(first_cur)) if first_cur else None
@@ -639,7 +640,7 @@ def update_plan(d: Path, week: str) -> dict:
             st, why = "frozen", f"{'·'.join({'KR': '한국', 'US': '미국', 'ALL': '통합'}[m] for m in top)} 리그 1등 — 이번 주 지침 동결"
         elif all_out:
             st, why = "out", "두 리그 모두 탈락 — 업데이트 없음"
-        elif cur_v > 1 and v_week and v_week >= week and int(gu.get("cooldown_weeks", 1)) > 0:
+        elif cur_v > 1 and v_week and v_week == week and int(gu.get("cooldown_weeks", 1)) > 0:
             st, why = "cooldown", f"v{cur_v}로 이번 주({v_week})부터 뜀 — 다음 마감까지 새 버전 표본을 모은다"
         else:
             st, why = "eligible", (f"같은 유형 판단 오류가 pick_id {gu.get('min_evidence_picks', 2)}건 이상일 때만 작게(최대 {gu.get('max_changes', 2)}곳) 업데이트"

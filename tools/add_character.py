@@ -1,7 +1,7 @@
 """대기 후보(새 캐릭터) 추가 — 운영자 상시 위임(2026-11-07)에 따라 검사를 통과하면 자동 반영.
 
   python3 tools/add_character.py need                     → 팀·리그별 남은 대기 후보 수와 보충 필요 여부
-  python3 tools/add_character.py from-message <md>        → 슈슈 메시지(to-roro/…bench-proposal.md)의 ```json 블록과 '## 지침' 절로 추가
+  python3 tools/add_character.py from-message <md>        → 슈슈 메시지(to-roro/<날짜>-bench-<id>.md, 후보 하나)의 ```json 블록과 '## 지침' 절로 추가
   python3 tools/add_character.py add <spec.json>          → 사양 파일로 추가 (로로 팀 후보는 지침 .md 경로를 함께)
   공통 옵션: --dry-run (검사만)
 
@@ -34,6 +34,25 @@ CHOICES = {"skin": {"light", "tan", "deep", "pale", "brown"}, "hair": {"none", "
            "glasses": {None, "round", "half", "square", "sun", "goggles", "loupe"}, "collar": {"shirt", "sailor", "hood"}}
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 TICKERISH = re.compile(r"(?<!\d)\d{6}(?!\d)|(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])")   # 한글이 붙어도 잡는다
+_UNIV = None
+
+
+def _tickerish(blob: str) -> bool:
+    """6자리 숫자 코드, 또는 대상 종목 목록에 있는 미국 티커(AI·PER 같은 흔한 약어는 허용)."""
+    global _UNIV
+    if re.search(r"(?<!\d)\d{6}(?!\d)", blob):
+        return True
+    if _UNIV is None:
+        _UNIV = set()
+        for f in [ROOT / "league/universe.json", *sorted((ROOT / "league/universe").glob("*.json"))]:
+            try:
+                _UNIV |= set((json.loads(f.read_text(encoding="utf-8")).get("US") or {}).keys())
+            except (OSError, ValueError, AttributeError):
+                pass
+    ok = {"AI", "PER", "PBR", "ROE", "EPS", "ETF", "GARP", "ESG", "IPO", "CEO", "EV"}
+    return any(w in _UNIV and w not in ok for w in re.findall(r"(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])", blob)) or not _UNIV and bool(TICKERISH.search(blob))
+
+
 REAL_PERSON_CLAIM = re.compile(r"(본인|직접|실제로) .*(추천|발언)|사진|초상|닮은")
 
 
@@ -78,7 +97,7 @@ def validate(spec: dict) -> list[str]:
     if "공개" not in str(spec.get("style_ref", "")):
         errs.append("style_ref는 '공개된 … 원칙 참고' 형식(실존 인물 사칭 금지)")
     blob = " ".join(str(spec.get(k, "")) for k in ("nickname", "label", "tagline"))
-    if TICKERISH.search(blob):
+    if _tickerish(blob):
         errs.append("애칭·스타일·소개에 종목 코드처럼 보이는 표현 금지(특정 종목 고정 금지)")
     if REAL_PERSON_CLAIM.search(blob + " " + str(spec.get("style_ref", ""))):
         errs.append("실존 인물의 얼굴·발언처럼 보이는 표현 금지")
@@ -153,9 +172,12 @@ def apply(spec: dict, source: str, dry: bool = False) -> list[str]:
 
 
 def spec_from_message(md: str) -> dict:
-    m = re.search(r"```json\s*(\{.*?\})\s*```", md, re.S)
-    if not m:
+    blocks = re.findall(r"```json\s*(\{.*?\})\s*```", md, re.S)
+    if not blocks:
         raise SystemExit("```json 블록이 없음")
+    if len(blocks) > 1:
+        raise SystemExit(f"```json 블록이 {len(blocks)}개 — 한 파일에 후보 하나(후보마다 파일을 나눈다)")
+    m = re.search(r"```json\s*(\{.*?\})\s*```", md, re.S)
     spec = json.loads(m.group(1))
     g = re.search(r"^## 지침\s*\n(.*?)(?=^## |\Z)", md, re.S | re.M)
     if g:
