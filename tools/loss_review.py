@@ -115,6 +115,22 @@ def review_path(d: Path, p: dict) -> Path:
     return review_dir(d) / p["round_date"] / f"{p['agent_id']}-{p['market']}.md"
 
 
+def first_id(f: Path) -> str:
+    """복기 파일 첫 줄의 pick_id(없으면 빈 문자열)."""
+    try:
+        line = f.read_text(encoding="utf-8").split("\n", 1)[0]
+    except (OSError, UnicodeDecodeError):
+        return ""
+    m = re.fullmatch(r"# 손실 복기 — (\S+)\s*", line)
+    return m.group(1) if m else ""
+
+
+def done(f: Path, pid: str) -> bool:
+    """이 종목의 복기가 끝났나: 파일이 있고, 검사를 통과하고, 첫 줄 pick_id가 이 종목(팀·모드 포함)과 정확히 같다.
+    같은 경로에 다른 팀·모드(연습 sandbox-) 복기가 있으면 끝난 것으로 보지 않는다(슈슈 검수 2026-11-08 C)."""
+    return f.exists() and first_id(f) == pid and not check(f)
+
+
 def due(d: Path) -> list[dict]:
     cfg = L.load_config(d)
     scores = L.latest_scores(d)
@@ -128,8 +144,8 @@ def due(d: Path) -> list[dict]:
         if s.get("status") != "final" or s.get("score") is None or s["score"] >= 0:
             continue
         f = review_path(d, p)
-        if f.exists() and not check(f):
-            continue   # 검사를 통과한 복기가 있으면 끝. 쓰다 만·실패한 파일은 다시 대상
+        if done(f, p["pick_id"]):
+            continue   # 검사를 통과한 이 종목의 복기가 있으면 끝. 쓰다 만·실패·다른 ID 파일은 다시 대상
 
         a = nick.get(p["agent_id"], {})
         out.append({"pick_id": p["pick_id"], "agent_id": p["agent_id"], "nickname": a.get("nickname", ""), "label": p.get("agent_label") or a.get("label", ""),
@@ -152,10 +168,12 @@ def due_bundle(bundle: Path, team: str, reviews: Path, mode: str = "실전") -> 
         if p.get("status") != "final" or p.get("score") is None or p["score"] >= 0:
             continue
         f = reviews / p["round_date"] / f"{p['agent_id']}-{p['market']}.md"
-        if f.exists() and not check(f):
+        if done(f, p["pick_id"]):
             continue
+        other = first_id(f) if f.exists() else ""
         out.append({"pick_id": p["pick_id"], "agent_id": p["agent_id"], "agent": p.get("agent", ""), "round_date": p["round_date"], "market": p["market"],
-                    "ticker": p.get("ticker"), "name": p.get("name", ""), "score": p["score"], "score_excess": p.get("score_excess"), "path": str(f)})
+                    "ticker": p.get("ticker"), "name": p.get("name", ""), "score": p["score"], "score_excess": p.get("score_excess"), "path": str(f),
+                    **({"occupied_by": other} if other and other != p["pick_id"] else {})})
     return sorted(out, key=lambda x: (x["round_date"], x["agent_id"], x["market"]))
 
 
@@ -266,11 +284,18 @@ def check(path: Path) -> list[str]:
             errs.append(f"절 없음: {s}")
     if all(i >= 0 for i in pos) and pos != sorted(pos):
         errs.append("절 순서가 다름")
-    v = re.search(r"^판정:\s*(.+)$", t, re.M)
-    if v and sum(x in v.group(1) for x in VERDICTS) > 1:
-        errs.append("판정은 하나만")
-    elif not v or not any(x in v.group(1) for x in VERDICTS):
-        errs.append(f"'판정: <{' | '.join(VERDICTS)}>' 줄이 필요")
+    if m and t.startswith("# 손실 복기 — "):
+        sb = first_id(path).startswith(f"{m.group(1)}-sandbox-")
+        under_sb = "sandbox" in path.resolve().parts
+        if sb and not under_sb and "reviews" in path.parts:
+            errs.append("연습(sandbox-) 복기는 연습 폴더(league/sandbox/reviews/losses)에 둔다")
+        elif under_sb and not sb:
+            errs.append("연습 폴더의 복기는 첫 줄 pick_id가 '<라운드>-sandbox-<팀>-…'이어야 한다")
+    vs = re.findall(r"^판정:[ \t]*(.*?)[ \t]*$", t, re.M)
+    if len(vs) != 1:
+        errs.append(f"'판정:' 줄은 정확히 하나 — 지금 {len(vs)}개")
+    elif vs[0] not in VERDICTS:
+        errs.append(f"판정 줄에는 판정 이름 하나만: <{' | '.join(VERDICTS)}> (이유·부정 표현은 다음 줄에) — 지금 {vs[0]!r}")
     tb = re.sub(r"^- 종목:.*$", "", re.sub(r"https?://\S+", "", t), flags=re.M)   # 머리글의 종목코드·출처 URL 숫자는 대조하지 않음
     for c in _known_closes(path):
         unit = r"%|배|만|억|조|주(?![변가당요간])|개|명|척|건|곳|거래일" + ("" if "," in c else r"|일|대|년")
@@ -286,9 +311,21 @@ def check(path: Path) -> list[str]:
     if mm:
         errs.append(f"원 가격·금액 표현 금지: {mm.group(0)!r} (수익률 %·지수 대비 %p만)")
     s2 = t[t.find("## 2."):t.find("## 3.")] if "## 2." in t and "## 3." in t else ""
-    if s2 and "http" not in s2 and "출처 확인 못함" not in s2:
-        errs.append("2절에 확인한 출처 URL이 하나 이상 필요(못 찾았으면 '출처 확인 못함'과 이유를 적는다)")
+    if s2 and "출처 확인 못함" not in s2:
+        if not _URL.search(s2):
+            errs.append("2절에 확인한 출처 URL(https://도메인/…)이 하나 이상 필요(못 찾았으면 '출처 확인 못함'과 이유를 적는다)")
+        elif not _STAMP.search(s2):
+            errs.append("2절 출처에 확보 시각(YYYY-MM-DDTHH:MM(:SS)+09:00)이 필요")
+    s5 = _section(t, "## 5. 다음에 바꿀 점")
+    if _FIXED_RULE.search(s5):
+        errs.append(f"5절에 특정 종목·업종을 고정으로 넣거나 빼는 규칙으로 보이는 표현: {_FIXED_RULE.search(s5).group(0)!r} — 판단 습관(점검 항목)으로 쓴다")
     return errs
+
+
+_URL = re.compile(r"https?://[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?:[/?#]\S*)?")
+_STAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:~\d{2}(?::\d{2})?)?\+09:00")
+# 경험칙: '항상·영구·절대·무조건·앞으로 계속 … 제외/빼/넣/편입/사지 않/피한' (형식 검사일 뿐 — 의미 검수는 주간 복기가 한다)
+_FIXED_RULE = re.compile(r"(?:항상|영구히?|절대|무조건|앞으로\s*(?:계속|모두))[^.\n]{0,25}?(?:제외|빼|넣|편입|사지\s*않|매수하지\s*않|피한|피하)")
 
 
 def listing(d: Path, week: str | None = None) -> list[dict]:
@@ -320,13 +357,51 @@ def _weeks_back(week: str, n: int) -> set[str]:
     return {L.iso_week(date.fromordinal(mon.toordinal() - 7 * k)) for k in range(n)}
 
 
-def summary(d: Path, week: str, weeks: int = 1, reviews: Path | None = None) -> dict:
+def _status_lookup(d: Path, bundle: Path | None, team: str | None, mode: str | None):
+    """pick_id → (집계 여부, 사유). 최신 결과(원장 또는 결과 묶음)로 '지금도 확정 손실인가'를 다시 확인한다."""
+    if bundle:
+        data = json.loads(Path(bundle).read_text(encoding="utf-8"))
+        picks = {p.get("pick_id"): p for p in data.get("picks", [])}
+        def look(pid):
+            p = picks.get(pid)
+            if not p:
+                return None, "결과 묶음에 없음"
+            if (team and team not in str(p.get("team", ""))) or (mode and p.get("mode") != mode):
+                return False, "다른 팀·모드"
+            if p.get("watch"):
+                return False, "관망"
+            if p.get("status") != "final" or p.get("score") is None:
+                return False, f"확정 아님({p.get('status') or '점수 없음'})"
+            return (True, "") if p["score"] < 0 else (False, f"정정됨({p['score']:+.2f}%)")
+        return look, "결과 묶음"
+    if (d / "ledger").exists():
+        scores, cfg = L.latest_scores(d), L.load_config(d)
+        picks = {p["pick_id"]: p for p in L.read_ledger(d, "picks")}
+        def look(pid):
+            p, sc = picks.get(pid), scores.get(pid) or {}
+            if not p:
+                return None, "원장에 없음"
+            if p.get("team") not in (TEAM, f"sandbox-{TEAM}"):
+                return False, "다른 팀"
+            if L.is_watch(p, cfg):
+                return False, "관망"
+            if sc.get("status") != "final" or sc.get("score") is None:
+                return False, f"확정 아님({sc.get('status') or '점수 없음'})"
+            return (True, "") if sc["score"] < 0 else (False, f"정정됨({sc['score']:+.2f}%)")
+        return look, "원장"
+    return (lambda pid: (None, "최신 결과 자료 없음(--bundle 필요)")), "없음"
+
+
+def summary(d: Path, week: str, weeks: int = 1, reviews: Path | None = None, bundle: Path | None = None,
+            team: str | None = None, mode: str | None = None) -> dict:
     """에이전트별: 복기 수, 판정별 개수와 pick_id, '바꿀 점' 항목, 반복 신호.
+    집계에는 '검사 통과 + 첫 줄 pick_id가 경로와 맞음 + 최신 결과로 지금도 확정 손실'인 복기만 넣는다.
+    정정·확정 아님(corrected), 검사 불합격(invalid), 결과로 확인 못함(pending)은 따로 적는다(원래 파일은 그대로 둔다).
     반복 신호 = 같은 판정이 2건 이상(특히 '분석 실수') — v2.1 규칙의 '같은 유형 오류 pick_id 2건 이상' 후보. 최종 판단은 주간 복기가 한다."""
     want = _weeks_back(week, max(1, weeks))
     agents: dict[str, dict] = {}
-    scores = L.latest_scores(d) if (d / "ledger").exists() else {}
-    corrected = []
+    look, source = _status_lookup(d, bundle, team, mode)
+    corrected, invalid, pending = [], [], []
     for f in sorted((reviews or review_dir(d)).glob("*/*.md")):
         rd = f.parent.name
         try:
@@ -334,18 +409,24 @@ def summary(d: Path, week: str, weeks: int = 1, reviews: Path | None = None) -> 
                 continue
         except ValueError:
             continue
-        t = f.read_text(encoding="utf-8")
         m = re.match(r"([a-z0-9]+)-(KR|US)$", f.stem)
         if not m:
             continue
         aid, mk = m.groups()
-        pid = (t.splitlines()[0].split("— ", 1)[-1].strip() if t else "") or f"{rd}-{aid}-{mk}"
-        sc_now = (scores.get(pid) or {}).get("score")
-        if sc_now is not None and sc_now >= 0:
-            corrected.append({"pick_id": pid, "score": sc_now})   # 확정 뒤 정정돼 손실이 아니게 됨 — 집계에서 뺀다
+        errs = check(f)
+        if errs:
+            invalid.append({"path": str(f), "errors": errs[:3]})
             continue
-        v = re.search(r"^판정:\s*(.+)$", t, re.M)
-        verdict = next((x for x in VERDICTS if v and x in v.group(1)), "판정 없음")
+        t = f.read_text(encoding="utf-8")
+        pid = first_id(f)
+        ok, why = look(pid)
+        if ok is None:
+            pending.append({"pick_id": pid, "reason": why})
+            continue
+        if not ok:
+            corrected.append({"pick_id": pid, "reason": why})
+            continue
+        verdict = re.search(r"^판정:[ \t]*(.*?)[ \t]*$", t, re.M).group(1)
         res = re.search(r"^- 결과:\s*([+−-]?\d+(?:\.\d+)?)%", t, re.M)
         score = float(res.group(1).replace("−", "-")) if res else None
         fixes = [re.sub(r"^\s*(?:[-*]|\d+[.)])\s*", "", x).strip() for x in _section(t, "## 5. 다음에 바꿀 점").splitlines()]
@@ -360,21 +441,29 @@ def summary(d: Path, week: str, weeks: int = 1, reviews: Path | None = None) -> 
         a["repeated"] = {k: v for k, v in a["verdicts"].items() if len(v) >= 2}
         a["mistakes"] = len(a["verdicts"].get("분석 실수", []))
     rows = sorted(agents.values(), key=lambda a: (-a["mistakes"], -a["reviews"], a["agent_id"]))
-    return {"week": week, "weeks": sorted(want), "agents": rows, "corrected": corrected,
-            "totals": {k: sum(len(a["verdicts"].get(k, [])) for a in rows) for k in VERDICTS + ("판정 없음",)}}
+    return {"week": week, "weeks": sorted(want), "source": source, "agents": rows, "corrected": corrected, "invalid": invalid, "pending": pending,
+            "totals": {k: sum(len(a["verdicts"].get(k, [])) for a in rows) for k in VERDICTS}}
 
 
 def summary_md(s: dict, names: dict | None = None) -> str:
     names = names or {}
     L_ = [f"# 손실 복기 요약 — {s['week']}" + (f" (최근 {len(s['weeks'])}주: {', '.join(s['weeks'])})" if len(s["weeks"]) > 1 else ""), ""]
+    extra = []
+    if s.get("corrected"):
+        extra += [f"- 정정·확정 아님(집계 제외, 원래 복기는 보존): " + ", ".join(f"{c['pick_id']} ({c['reason']})" for c in s["corrected"])]
+    if s.get("invalid"):
+        extra += [f"- 검사 불합격(집계 제외): " + "; ".join(f"{Path(x['path']).parent.name}/{Path(x['path']).name} — {x['errors'][0]}" for x in s["invalid"])]
+    if s.get("pending"):
+        extra += [f"- 최신 결과로 확인 못함(검토 대기, 집계 제외): " + ", ".join(f"{x['pick_id'] or '(ID 없음)'} ({x['reason']})" for x in s["pending"])]
+    extra = (["집계 밖:", *extra, ""] if extra else []) + [f"> 대조한 최신 결과: {s.get('source', '?')}. 집계는 형식 검사 통과 + 지금도 확정 손실인 복기만. 형식 검사 '통과'는 내용(근거의 진위·사후 정보·고정 규칙)을 보증하지 않는다.", ""]
     if not s["agents"]:
-        return "\n".join(L_ + ["이 기간에 손실 복기가 없습니다.", ""])
+        return "\n".join(L_ + ["이 기간에 집계할 손실 복기가 없습니다.", ""] + extra)
     L_ += ["| 에이전트 | 복기 | " + " | ".join(VERDICTS) + " | 반복 신호 |", "|---|---:|" + "---:|" * len(VERDICTS) + "---|"]
     for a in s["agents"]:
         rep_ = ", ".join(f"{k} {len(v)}건" for k, v in a["repeated"].items()) or "—"
         L_.append(f"| {names.get(a['agent_id'], a['agent_id'])} | {a['reviews']} | " + " | ".join(str(len(a["verdicts"].get(k, []))) for k in VERDICTS) + f" | {rep_} |")
     L_ += ["", "판정별 합계: " + " · ".join(f"{k} {n}" for k, n in s["totals"].items() if n), "",
-           *([f"정정돼 손실이 아니게 된 복기(집계 제외): {', '.join(c['pick_id'] for c in s['corrected'])}", ""] if s.get("corrected") else []),
+           *extra,
            "> 반복 신호는 '같은 판정 2건 이상'일 뿐이다. 개선안 근거가 되려면 주간 복기가 원인이 같은 유형인지 확인한다(규칙 v2.1). '시장 전체 움직임'·'운·잡음'은 지침 수정 근거가 아니다.", ""]
     for a in s["agents"]:
         L_.append(f"## {names.get(a['agent_id'], a['agent_id'])}")
@@ -396,10 +485,10 @@ def main():
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--weeks", type=int, default=1, help="summary: 이번 주 포함 최근 몇 주")
     ap.add_argument("--out", help="summary: 마크다운 저장 경로")
-    ap.add_argument("--bundle", help="due: 원장 대신 결과 묶음(results.json)으로 찾기")
-    ap.add_argument("--team", default="로로", help="due --bundle: 팀 이름 일부")
+    ap.add_argument("--bundle", help="due·summary: 원장 대신 결과 묶음(results.json)으로 찾기·대조(슈슈 안전 사본용)")
+    ap.add_argument("--team", default="로로", help="--bundle: 팀 이름 일부")
     ap.add_argument("--reviews", help="due --bundle / summary: 복기 폴더(기본 <dir>/reviews/losses)")
-    ap.add_argument("--mode", default="실전", help="due --bundle: 실전|연습")
+    ap.add_argument("--mode", default="실전", help="--bundle: 실전|연습")
     a = ap.parse_args()
     d = (L.ROOT / a.dir) if not Path(a.dir).is_absolute() else Path(a.dir)
     if a.cmd == "due":
@@ -414,7 +503,8 @@ def main():
     if a.cmd == "summary":
         if not a.week:
             sys.exit("--week 필요 (예: 2026-W46)")
-        s = summary(d, a.week, a.weeks, Path(a.reviews) if a.reviews else None)
+        s = summary(d, a.week, a.weeks, Path(a.reviews) if a.reviews else None, Path(a.bundle) if a.bundle else None,
+                    a.team if a.bundle else None, a.mode if a.bundle else None)
         try:
             roster = L.load_roster(d)
         except Exception:

@@ -2006,12 +2006,12 @@ class LossReview(unittest.TestCase):
         self.assertNotIn(rows[0]["pick_id"], [r["pick_id"] for r in self.LR.due(self.d)])
 
     def _valid(self, pid):
-        return "\n".join([f"# 손실 복기 — {pid}", "", "## 1. 그때의 논리", "가" * 200, "## 2. 실제로 무슨 일이 있었나", "https://example.com " + "나" * 200,
+        return "\n".join([f"# 손실 복기 — {pid}", "", "## 1. 그때의 논리", "가" * 200, "## 2. 실제로 무슨 일이 있었나", "https://example.com (확보 2026-11-10T12:10:00+09:00) " + "나" * 200,
                           "## 3. 판정", "판정: 운·잡음", "## 4. 놓친 신호·틀린 가정", "다" * 100, "## 5. 다음에 바꿀 점", "라" * 100])
 
     def _doc(self, extra=""):
         body = "\n".join(["# 손실 복기 — 2026-11-09-claude-wood-KR", "- 에이전트: 미래광 (혁신형) v2", "- 결과: -2.10% (지수 KOSPI -0.50%, 지수 대비 -1.60%p)", "",
-                          "## 1. 그때의 논리", "가" * 200, "## 2. 실제로 무슨 일이 있었나", "https://example.com 확인 " + "나" * 200,
+                          "## 1. 그때의 논리", "가" * 200, "## 2. 실제로 무슨 일이 있었나", "https://example.com 확인 (확보 2026-11-10T12:10:00+09:00) " + "나" * 200,
                           "## 3. 판정", "판정: 분석 실수", "이유", "## 4. 놓친 신호·틀린 가정", "다" * 100, "## 5. 다음에 바꿀 점", "라" * 100, extra])
         f = self.d / "reviews/losses/2026-11-09/wood-KR.md"; f.parent.mkdir(parents=True, exist_ok=True); f.write_text(body)
         return f
@@ -2022,19 +2022,72 @@ class LossReview(unittest.TestCase):
         self.assertTrue(any("가격" in e for e in self.LR.check(self._doc("$45 근처"))))
         self.assertEqual(self.LR.check(self._doc("종가 기준 -2.1%")), [])
 
+    def _review(self, base, rd, aid, mk, verdict, team="claude", fix="- 구간 안 일정 점검을 먼저 한다\n(제안일 뿐)"):
+        pid = f"{rd}-{team}-{aid}-{mk}"
+        f = base / f"{rd}/{aid}-{mk}.md"; f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text("\n".join([f"# 손실 복기 — {pid}", "- 결과: -1.50% (지수 대비 -1.00%p)", "", "## 1. 그때의 논리", "가" * 200,
+                                "## 2. 실제로 무슨 일이 있었나", "https://example.com (확보 2026-11-10T12:10:00+09:00) " + "나" * 200,
+                                "## 3. 판정", f"판정: {verdict}", "## 4. 놓친 신호·틀린 가정", "다" * 100, "## 5. 다음에 바꿀 점", fix, "(" + "라" * 60 + ")"]))
+        return pid, f
+
+    def _bundle(self, rows):
+        b = self.d / "results.json"
+        b.write_text(json.dumps({"schema": 1, "picks": [dict(pick_id=pid, team=team, mode=mode, watch=False, status=st, score=sc, round_date=pid[:10], agent_id=pid.rsplit("-", 2)[-2], market=pid[-2:]) for pid, team, mode, st, sc in rows]}, ensure_ascii=False))
+        return b
+
     def test_summary_groups_verdicts_and_fixes(self):
-        for rd, aid, mk, verdict in (("2026-11-09", "wood", "KR", "분석 실수"), ("2026-11-10", "wood", "US", "분석 실수"), ("2026-11-10", "dalio", "KR", "시장 전체 움직임"), ("2026-11-02", "wood", "KR", "운·잡음")):
-            f = self.d / f"reviews/losses/{rd}/{aid}-{mk}.md"; f.parent.mkdir(parents=True, exist_ok=True)
-            f.write_text(f"# 손실 복기 — {rd}-claude-{aid}-{mk}\n- 결과: -1.50% (지수 대비 -1.00%p)\n\n## 1. 그때의 논리\n가\n## 3. 판정\n판정: {verdict}\n## 5. 다음에 바꿀 점\n- 구간 안 일정 점검을 먼저 한다\n(제안일 뿐)\n")
-        s = self.LR.summary(self.d, "2026-W46")
+        base = self.d / "x/reviews/losses"
+        pids = [self._review(base, rd, aid, mk, v)[0] for rd, aid, mk, v in (("2026-11-09", "wood", "KR", "분석 실수"), ("2026-11-10", "wood", "US", "분석 실수"),
+                                                                              ("2026-11-10", "dalio", "KR", "시장 전체 움직임"), ("2026-11-02", "wood", "KR", "운·잡음"))]
+        b = self._bundle([(p, "로로 팀 (Claude)", "실전", "final", -1.5) for p in pids])
+        s = self.LR.summary(self.d, "2026-W46", reviews=base, bundle=b, team="로로", mode="실전")
         w = next(a for a in s["agents"] if a["agent_id"] == "wood")
         self.assertEqual((w["reviews"], w["mistakes"], list(w["repeated"])), (2, 2, ["분석 실수"]))
         self.assertEqual([x["text"] for x in w["fixes"]], ["구간 안 일정 점검을 먼저 한다"] * 2)
         self.assertEqual(s["agents"][0]["agent_id"], "wood")
-        self.assertEqual(next(a for a in self.LR.summary(self.d, "2026-W46", 2)["agents"] if a["agent_id"] == "wood")["reviews"], 3)
+        self.assertEqual(next(a for a in self.LR.summary(self.d, "2026-W46", 2, base, b, "로로", "실전")["agents"] if a["agent_id"] == "wood")["reviews"], 3)
         md = self.LR.summary_md(s)
         self.assertIn("분석 실수 2건", md); self.assertIsNone(self.LR.MONEY.search(md))
 
+    def test_shushu_request_corrected_invalid_and_practice_reviews(self):
+        """슈슈 수정 요청(2026-11-08) 합성 재현: A 정정된 손실, B 검사 불합격, C 같은 경로의 연습 복기, 형식 검사 보완."""
+        base = self.d / "shushu/reviews"
+        pid, f = self._review(base, "2026-11-09", "s1", "KR", "분석 실수", team="shushu")
+        b = self._bundle([(pid, "슈슈 팀 (Codex)", "실전", "final", -1.0)])
+        self.assertEqual(self.LR.check(f), [])
+        tot = lambda: sum(a["reviews"] for a in self.LR.summary(self.d, "2026-W46", 2, base, b, "슈슈", "실전")["agents"])
+        self.assertEqual(tot(), 1)
+        b = self._bundle([(pid, "슈슈 팀 (Codex)", "실전", "final", 1.0)])                     # A: 양수로 정정
+        self.assertEqual(self.LR.due_bundle(b, "슈슈", base), []); self.assertEqual(tot(), 0)
+        s = self.LR.summary(self.d, "2026-W46", 2, base, b, "슈슈", "실전")
+        self.assertIn("정정됨", s["corrected"][0]["reason"])
+        for st in ("provisional", "held", "void"):
+            self._bundle([(pid, "슈슈 팀 (Codex)", "실전", st, -1.0)])
+            self.assertEqual(tot(), 0, st)
+        self._bundle([])                                                                          # 결과에서 확인 못함
+        s = self.LR.summary(self.d, "2026-W46", 2, base, self.d / "results.json", "슈슈", "실전")
+        self.assertEqual((s["agents"], s["pending"][0]["reason"]), ([], "결과 묶음에 없음"))
+        self.assertEqual(self.LR.summary(self.d / "no-ledger", "2026-W46", 2, base)["pending"][0]["reason"], "최신 결과 자료 없음(--bundle 필요)")
+        b = self._bundle([(pid, "슈슈 팀 (Codex)", "실전", "final", -1.0)])
+        f.write_text("불완전한 합성 복기")                                                      # B: 불합격은 집계 제외·따로 표시
+        s = self.LR.summary(self.d, "2026-W46", 2, base, b, "슈슈", "실전")
+        self.assertEqual((s["agents"], len(s["invalid"])), ([], 1))
+        self._review(base, "2026-11-09", "s1", "KR", "분석 실수", team="sandbox-shushu")         # C: 같은 경로의 연습 복기
+        self.assertTrue(self.LR.check(f))                                                         # 실전 폴더의 연습 ID는 불합격
+        self.assertEqual([r["pick_id"] for r in self.LR.due_bundle(b, "슈슈", base)], [pid])
+        self.assertEqual(self.LR.due_bundle(b, "슈슈", base)[0]["occupied_by"], "2026-11-09-sandbox-shushu-s1-KR")
+        self.assertEqual(tot(), 0)
+        pid2, f = self._review(base, "2026-11-09", "s1", "KR", "분석 실수", team="shushu")       # 형식 검사 보완
+        good = f.read_text()
+        for bad, frag in ((good.replace(" (확보 2026-11-10T12:10:00+09:00)", ""), "확보 시각"),
+                          (good.replace("https://example.com", "http"), "URL"),
+                          (good.replace("판정: 분석 실수", "판정: 분석 실수가 아님"), "판정 이름 하나만"),
+                          (good + "\n판정: 운·잡음", "정확히 하나"),
+                          (good.replace("- 구간 안 일정 점검을 먼저 한다", "- 반도체 업종은 앞으로 항상 제외한다"), "고정")):
+            f.write_text(bad)
+            self.assertTrue(any(frag in e for e in self.LR.check(f)), (frag, self.LR.check(f)))
+        f.write_text(good.replace("- 구간 안 일정 점검을 먼저 한다", "- 실적 발표 전에는 항상 일정표를 먼저 확인한다"))
+        self.assertEqual(self.LR.check(f), [])
 
     def test_due_bundle_for_shushu_safe_copy(self):
         b = self.d / "results.json"
@@ -2226,7 +2279,7 @@ class LossReview(unittest.TestCase):
         p = {x["pick_id"]: x for x in L.read_ledger(self.d, "picks")}[row["pick_id"]]
         f = self.LR.review_path(self.d, p); f.parent.mkdir(parents=True, exist_ok=True); f.write_text("쓰다 만 파일")
         self.assertIn(row["pick_id"], [r["pick_id"] for r in self.LR.due(self.d)])
-        f.write_text(f"# 손실 복기 — {row['pick_id']}\n## 3. 판정\n판정: 분석 실수\n")
+        f.write_text(self._valid(row["pick_id"]))
         L.append(self.d, "scores", {**L.latest_scores(self.d)[row["pick_id"]], "score": 0.4})
         s = self.LR.summary(self.d, L.iso_week(date.fromisoformat(row["round_date"])))
         self.assertIn(row["pick_id"], [c["pick_id"] for c in s["corrected"]])

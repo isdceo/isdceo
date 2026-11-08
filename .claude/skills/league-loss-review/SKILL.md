@@ -62,7 +62,7 @@ python3 tools/loss_review.py due --json          # 연습은 --dir league/sandbo
 
 ## 3단계 — 검사와 기록
 
-1. `python3 tools/loss_review.py check <파일>...` — 전부 "통과"여야 한다. 형식 문제만 해당 에이전트에게 SendMessage로 고치게 한다(판단 내용은 진행자가 바꾸지 않는다).
+1. `python3 tools/loss_review.py check <파일>...` — 전부 "통과"여야 한다. 검사는 **형식만** 본다: 절·첫 줄 pick_id(연습은 `sandbox-`, 연습 폴더에만), 판정 줄 하나(판정 이름만), 2절 출처 URL과 확보 시각(`YYYY-MM-DDTHH:MM+09:00`), 원 가격, 고정 종목·업종 규칙으로 보이는 표현(경험칙). 근거의 진위·사후 정보 혼입은 보증하지 않는다(주간 복기가 본다). 형식 문제만 해당 에이전트에게 SendMessage로 고치게 한다(판단 내용은 진행자가 바꾸지 않는다).
 2. 통과한 파일만 **경로를 하나씩 지정해** 커밋한다: `git add <통과한 파일>...`(폴더 통째로 add하지 않는다), 커밋 메시지 `league: loss reviews <라운드들>`. 기본 브랜치에 push한다: `git push origin HEAD:claude/web-vs-desktop-differences-ir8pm0`. 거절되면 `git pull --rebase --autostash origin claude/web-vs-desktop-differences-ir8pm0` 뒤 다시 push한다(최대 3번, 그래도 안 되면 보고).
    - 같은 복기 파일이 원격에 이미 있어 rebase가 충돌하면(다른 세션이 먼저 씀) 원격 판을 채택한다: `git checkout origin/claude/web-vs-desktop-differences-ir8pm0 -- <파일>` → `git add <파일>` → `GIT_EDITOR=true git rebase --continue`(커밋이 비면 `git rebase --skip`). rebase 중에는 `--theirs`가 **내** 파일이므로 쓰지 않는다.
 3. 두 번 고쳐도 통과하지 못한 건은 **파일을 지운다**(`rm`). 커밋하지 않고 보고에 남긴다. 검사를 통과하지 못한 파일은 `due`가 다시 대상으로 잡으므로 다음 실행이 다시 쓴다.
@@ -72,5 +72,7 @@ python3 tools/loss_review.py due --json          # 연습은 --dir league/sandbo
 - 복기한 종목 수와 각 줄: 애칭 · 시장 · 종목 · 점수 · 판정 · 바꿀 점 한 줄
 - 판정별 개수(분석 실수가 몇 건인지가 핵심)
 - 실패·남은 건
+
+요약은 검사 통과 + 첫 줄 pick_id 일치 + **최신 결과로 지금도 확정 손실**인 복기만 집계하고, 정정·확정 아님·검사 불합격·결과로 확인 못함은 '집계 밖'에 따로 적는다(원래 파일은 그대로). 원장이 없는 사본은 `--bundle results.json --team <팀> --mode 실전|연습`으로 대조한다.
 
 주간 복기(`league-review` 1단계 6번)는 `python3 tools/loss_review.py summary --week <주> --weeks 2`로 이 기록들을 모아 지침 개선안의 근거로 쓴다(목록만 볼 때는 `list --week <주>`).
