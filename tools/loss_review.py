@@ -68,8 +68,8 @@ _NAME = (r"(?<![A-Za-z])" + _INDEXN + r"[\s-]*" + _IDX
          + r"|(?<![\d,.])\d{1,4}(?=\s+(?:MAX|Pro|Ultra|Plus)(?![A-Za-z]))|(?<![A-Za-z0-9])3M(?![A-Za-z0-9])|(?<![\d,.])13F(?:-HR)?(?![A-Za-z])|(?<![\d,.])(?:10|8)-[KQ](?![A-Za-z])"
          + r"|(?<![\d,.])\d{6}\.K[SQ](?![A-Za-z])"
          + r"|(?<![A-Za-z&])(?!" + _INDEXN + r")(?!(?:KRW|USD|W)\d)[A-Za-z]{1,8}(?<=[A-Za-z])\d{1,4}(?:\.\d)?" + _END + _NOCUR   # HBM3E·H100·Q3·v2·FY2026
-         + r"|(?<![\d,.$₩€¥£])(?:[1-4](?=Q)|[12](?=H)|(?:19|20)\d{2}(?=[EH]\d?)|[3-6](?=G)|\d{1,2}(?=D)|\d{1,2}(?:\.\d)?(?=x)|\d{1,2}(?=th|st|nd|rd)"
-         + r"|\d{1,4}(?:\.\d)?(?=nm|Gb|GB|TB|Tb|MB|GWh|MWh|GW|MW|kW|km|mm))(?=(?:Q|H\d?|E|G|D|x|th|st|nd|rd|nm|Gb|GB|TB|Tb|MB|GWh|MWh|GW|MW|kW|km|mm)(?![A-Za-z]))")                             # 3nm·25x·16Gb·3Q·5G
+         + r"|(?<![\d,.$₩€¥£])(?:[1-4](?=Q)|[12](?=H)|(?:19|20)\d{2}(?=[EH]\d?)|[3-6](?=G)|\d{1,2}(?=D)|\d{1,2}(?:\.\d)?(?=x)|\d{1,2}(?=th|st|nd|rd)|(?:100|200|400|800|1\.6|3\.2)(?=[GT])"
+         + r"|\d{1,4}(?:\.\d)?(?=nm|Gb|GB|TB|Tb|MB|GWh|MWh|GW|MW|kW|km|mm))(?=(?:Q|H\d?|E|G|T|D|x|th|st|nd|rd|nm|Gb|GB|TB|Tb|MB|GWh|MWh|GW|MW|kW|km|mm)(?![A-Za-z]))")                             # 3nm·25x·16Gb·3Q·5G
 _LNUM = r"[+−-]?\d{1,2}(?:\.\d+)?(?!\d|[,.]\d|\s*(?:[만천억조]|원|달러|\$))"
 _LABEL = (r"(?:베타|상관계수|상관|RSI|PER|PBR|PSR|EV/EBITDA|확률|가능성|p_beat|p\s*beat|샤프\s*지수|p\s*값|z\s*값)\s*(?:\((?:[^)\d\n]|\d{1,2}(?![\d,.])){0,40}\))?\s*(?:은|는|이|가|:|=|를|을)?\s*(?:약\s*)?"
           + _LNUM + r"(?:\s*(?:→|->|~)\s*" + _LNUM + r"|\s*에서\s*" + _LNUM + r"\s*(?:으로|로))*")
@@ -83,8 +83,9 @@ _KR_CODES = None
 
 _US_TICKERS = None
 # 영문자에 붙은 숫자가 지표·통화·종목 티커의 수준값·가격일 수 있는 앞 글자(대소문자 무시)
+_INDEX_PFX = {"SP", "KOSPI", "KOSDAQ", "NASDAQ", "RUSSELL", "NIKKEI", "FTSE", "STOXX", "DOW", "DAX", "CAC", "KRX", "KODEX", "TIGER", "미국SP"}
 _BAD_PFX = {"SPX", "NDX", "SOX", "VIX", "DJIA", "DJI", "WTI", "BRENT", "DUBAI", "KRW", "USD", "EUR", "JPY", "GBP", "CNY", "CHF", "HKD", "AUD", "CAD", "W", "X",
-            "BTC", "ETH", "DXY", "KOSPI", "KOSDAQ", "NASDAQ", "SP", "RUSSELL", "NIKKEI", "FTSE", "STOXX", "DOW", "DAX", "CAC", "KRX", "PEG"}
+            "BTC", "ETH", "DXY", "SPY", "QQQ", "SOXX", "DIA", "IWM", "TLT", "GLD", "XAU", "XAG", "GOLD", "SILVER", "COPPER", "OIL", "NDQ", "SPXL", "TQQQ", "KOSPI", "KOSDAQ", "NASDAQ", "SP", "RUSSELL", "NIKKEI", "FTSE", "STOXX", "DOW", "DAX", "CAC", "KRX", "PEG"}
 
 
 def _kr_codes() -> dict:
@@ -103,8 +104,14 @@ def _kr_codes() -> dict:
 
 
 _DAE_RE = re.compile(r"(?<![\d,.$₩])" + _NUM + r"(?:\.\d+)?\s*[천만](?:\s*" + _NUM + r"\s*천?)?\s*(?:여\s*)?대(?!비|\s*(?:초반|중반|후반|\())")
-_DAE_YES = re.compile(r"판매|생산|출하|인도|공급|수주|차량|대수|팔|증산|감산|생산능력|캐파|재고|수출|내수|등록|늘리|줄이|늘린|줄인")
+# '만 대'가 대수라는 증거: 판매·생산 낱말이 숫자 바로 앞에 붙거나(판매 120만 대·판매량은 46만 대에서 …) '대' 바로 뒤에 판매 동사가 붙을 때(120만 대를 팔았다)만.
+_SALES = r"(?:판매|생산|출하|인도|공급|수출(?!주)|내수|등록|수주|증산|감산)(?:량|대수|실적|능력)?"
+_DAE_PRE = re.compile(r"(?:" + _SALES + r"|공장|연산|누적|전기차|자동차|스마트폰|로봇|드론|차량|PC|(?:예상치|전망치|컨센서스|목표|계획)(?=[^\n]*$))(?:의)?\s*(?:은|는|이|가|도|를|:)?\s*(?:약\s*|연간\s*|월간\s*|올해\s*|모두\s*|누적\s*)?"
+                      r"(?:[\d,.]+\s*[천만](?:\s*[\d,]+\s*천?)?\s*(?:여\s*)?대(?:에서|→|->|~)\s*)?$")
+_DAE_POST = re.compile(r"(?:를|가|도|씩)?\s*(?:팔았|팔린|팔아|팔렸|판매|생산|출하|인도(?!\s*(?:증시|시장|경제|루피))|공급했|수출했|넘게\s*팔)|(?:로|까지)\s*(?:늘린|줄인|늘리|줄이|증산|감산)")
 _DAE_NO = re.compile(r"주가|종가|시가|목표가|목표주가|환율|지수|가격|시세|코스피|코스닥|나스닥|고점|저점|매수가|매도가|평단")
+_DAE_MOVE = re.compile(r"밀렸|밀린|밀려|내려|내린|떨어|하락|상승|올랐|오른|반등|출발|마감|미끄러|주저앉|회복|이탈|횡보|머물|저항|지지|버티|초입")
+_SENT = re.compile(r"(?<!\d)[.!?](?!\d)|\n")
 
 
 def number_issues(t: str, limit: int = 3) -> list[str]:
@@ -124,11 +131,12 @@ def number_issues(t: str, limit: int = 3) -> list[str]:
         if nm and body[:m.start()].rstrip().endswith(nm):
             for k in range(m.start(1), m.end(1)):
                 masked[k] = " "
-    for m in _DAE_RE.finditer(body):                                            # '만 대'는 앞 문맥에 판매·생산 낱말이 있고 가격 낱말이 없을 때만 대수
-        ls = max([0] + [x.end() for x in re.finditer(r"[.!?\n]", body[:m.start()])])
-        ctx = body[max(ls, m.start() - 30):m.start()]
-        after = re.split(r"[.!?\n,]", body[m.end():m.end() + 16])[0]
-        if (_DAE_YES.search(ctx) or _DAE_YES.search(after)) and not _DAE_NO.search(ctx) and not _DAE_NO.search(after):
+    for m in _DAE_RE.finditer(body):                                            # '만 대': 판매 낱말이 붙어 있고, 문장에 가격 낱말·'대' 뒤 가격 움직임이 없을 때만 대수
+        ls = max([0] + [x.end() for x in _SENT.finditer(body, 0, m.start())])
+        le = next((x.start() for x in _SENT.finditer(body, m.end())), len(body))
+        sent, pre, post = body[ls:le], body[ls:m.start()], body[m.end():le]
+        ok = _DAE_PRE.search(pre[-24:]) or _DAE_POST.match(post) or (re.match(r"\s*로\s*집계", post) and re.search(_SALES, sent))
+        if ok and not _DAE_NO.search(sent) and not _DAE_MOVE.search(post[:12]):
             for k in range(m.start(), m.end()):
                 masked[k] = " "
     for m in _ALLOW.finditer("".join(masked)):
@@ -136,9 +144,12 @@ def number_issues(t: str, limit: int = 3) -> list[str]:
             masked[k] = " "
     _kr_codes()
     for m in re.finditer(r"(?<![A-Za-z&])(?<!\d{4}-)([A-Za-z&]{1,8})(\d[\d.]*)", body):     # 지표·통화·종목 티커에 붙은 숫자는 식별자로 보지 않는다
-        pf = m.group(1).upper()
+        pf, num = m.group(1).upper(), m.group(2).rstrip(".")
         fx = len(pf) == 6 and pf[:3] in _BAD_PFX and pf[3:] in _BAD_PFX                   # USDJPY 같은 통화쌍
-        if pf.replace("&", "") in _BAD_PFX or pf in (_US_TICKERS or ()) or fx:
+        if pf.replace("&", "") in _INDEX_PFX and re.fullmatch(_IDX[:_IDX.index(")") + 1], num):
+            continue                                                                   # S&P500·KOSPI200은 지수 이름
+        tick = pf in (_US_TICKERS or ()) and (len(num) >= 3 or "." in num)                # GS25 같은 상품명은 두 자리까지 둔다
+        if pf.replace("&", "") in _BAD_PFX or tick or fx:
             for k in range(m.start(2), m.end(2)):
                 masked[k] = body[k]
     out, ms = [], "".join(masked)
