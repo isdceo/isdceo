@@ -111,7 +111,9 @@ def _changed(ext: Path, before: str, after: str, prior_main: str | None = None, 
         mb = r.stdout.strip() if r.returncode == 0 else ""
         if mb == after:
             return []                                  # 이미 기본 브랜치에 들어 있는 커밋 — 새 파일 없음
-        base = mb or None
+        # 이력이 이어지지 않는 브랜치(orphan, 2026-11-08 슈슈 push에서 발생): 갈라진 지점이 없으므로
+        # '이 push 전 기본 브랜치 상태'와 직접 비교한다 — 기본 브랜치와 내용이 다른 파일만 이번에 보낸 것으로 본다
+        base = mb or prior_main
     if base:
         return git("diff", "--no-renames", "--name-only", "--diff-filter=AMT", base, after, cwd=ext).splitlines()
     if first:                                          # 저장소의 맨 첫 push만 트리 전체

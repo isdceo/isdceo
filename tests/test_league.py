@@ -1104,6 +1104,21 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(out[-1]["files"], [f"submit/{rd}.sha256"])
         self.assertEqual(out[-1]["receipts"][0]["status"], "committed")
 
+    def test_orphan_branch_diffs_against_prior_main_tree(self):
+        """이력이 이어지지 않는 새 브랜치(orphan) push도 막히지 않고, 기본 브랜치와 내용이 다른 파일만 본다(2026-11-08 동기화 오류)."""
+        rd = "2026-11-10"
+        self.spush({"README.md": "y"}, f"{rd}T07:00:00+09:00")
+        self.g(self.work, "checkout", "-q", "--orphan", "codex/o")
+        (self.work / "submit").mkdir(exist_ok=True); (self.work / "submit" / f"{rd}.sha256").write_text(self._sha_line(rd))
+        self.g(self.work, "add", "."); self.g(self.work, "commit", "-qm", "o"); self.g(self.work, "push", "-q", "origin", "codex/o")
+        after = self.g(self.work, "rev-parse", "HEAD")
+        self.acts.append({"id": 51, "before": "0" * 40, "after": after, "timestamp": "2026-11-09T23:20:00Z",
+                          "activity_type": "branch_creation", "ref": "refs/heads/codex/o", "actor": {"login": "c"}})
+        self.g(self.ext, "fetch", "-q", "origin")
+        out = self.sync(f"{rd}T08:30:00+09:00")
+        self.assertEqual(out[-1]["files"], [f"submit/{rd}.sha256"])
+        self.assertEqual(out[-1]["receipts"][0]["status"], "committed")
+
     def test_accepted_file_not_overwritten(self):
         rd = "2026-11-10"; body = self.csv(rd)
         self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
