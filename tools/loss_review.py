@@ -135,7 +135,7 @@ def _col_head(t: str, pos: int) -> str:
     return ""
 
 
-_MID = re.compile(r"[\d,.]+\s*(?:%p?|포인트|p|bp)?\s*(?:을|를|까지|으로|로|이|가)?\s*(?!에서|출발|시작)[가-힣]{1,5}(?:\s*(?:뒤|후|다가))?\s*,?\s*(?=$|[\d,.])|(?<![\d,.])[가-힣]{1,4}(?:해|며|라|고|서)\s+(?=[\d,.])")
+_MID = re.compile(r"[\d,.]+\s*(?:%p?|포인트|p|bp)?\s*(?:을|를|까지|으로|로|이|가)?\s*(?!에서|출발|시작)[가-힣]{1,5}(?:\s*(?:뒤|후|다가))?\s*,?\s*(?=$|[\d,.])|(?<![\d,.])[가-힣]{1,4}(?:해|며|라|고|서)\s+(?=$|[\d,.])")
 # 지표 바로 앞에 붙은 다른 주어(사이엔 시간어만). '외국인이 팔자 환율은 …'처럼 떨어진 절의 주어는 보지 않는다
 _ABSTRACT = r"(?:문제|핵심|원인|이유|교훈|결론|요지|관건|것|점|주|날|때|이번\s*주|그\s*주에|이날|그날|당일|오늘|어제)"
 _SUBJ_PART = re.compile(r"(?<![가-힣A-Za-z0-9)&.])(?!" + _ABSTRACT + r"(?:은|는|이|가|에는)\s)[가-힣A-Za-z0-9)&.]+(?:은|는|이|가|\s*:)\s+"
@@ -165,7 +165,7 @@ def _attached_ok(t: str, ls: int, start: int) -> bool:
     a = _ATTACHED.search(t[w:start])
     if not a:
         return False
-    pre = t[ls:w + a.start()]
+    pre = re.split(r"(?:(?<=[가-힣])(?:고|며|서|지만|는데|면서)|,)\s+", t[ls:w + a.start()])[-1]   # 앞 절의 주제는 보지 않는다
     if _MID.search(a.group(0)) and (_SUBJ_PART.search(pre) or _stock_topic(pre)):
         return False   # 'SK하이닉스는 환율 1,450 돌파 뒤 1,393,000에 마감' — 주어는 종목
     return True
