@@ -58,7 +58,7 @@ _NPS = r"(?!0\.\d)(?!\d{6}(?:\.K[SQ](?![A-Za-z])|\s*\)))(?<![\d.,])(?:\d{1,3}(?:
 _MV_NUM = (r"(?:" + _DATE + r"\s*\(\s*)?" + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))(?:\s*\))?(?:\s*선|대)?"
            r"(?:\s*\(\s*(?:" + _DATE + r"|[+−-]?\d+(?:\.\d+)?%p?)\s*\))?")
 _MV_GAP = r"(?:[가-힣]{1,4}\s*(?:만에|새)\s*)?"
-_MV_VERB = (r"(?:내[렸리려린]|올[랐라린]|빠[졌지진]|밀[렸리린려]|물러|꺾|곤두박질|떨어[졌지진]|뛰[었어]|급등|급락|하락|상승|(?:급|재)?반등|폭락|폭등|치솟|솟[았아]|무너|가라앉|고꾸라|반락|회복|조정|미끄러|내려[갔왔앉가]|주저앉|추락|후퇴"
+_MV_VERB = (r"(?:내[렸리려린]|올[랐라린]|빠[졌지진]|밀[렸리린려]|물러|꺾|곤두박질|떨어[졌지진]|뛰[었어]|급등|급락|하락|상승|(?:급|재)?반등|폭락|폭등|치솟|솟구|붕괴|되밀|흘러내|튀어\s*올|반토막|되돌아|솟[았아]|무너|가라앉|고꾸라|반락|회복|조정|미끄러|내려[갔왔앉가]|주저앉|추락|후퇴"
             r"|올라[섰서갔]|낮아|높아|줄[었어]|늘[었어]|됐|되었)")
 _DIR = r"(?:(?:상승|하락|강세|약세|보합|급등|급락)\s*)"
 MONEY = re.compile(
@@ -73,12 +73,13 @@ MONEY = re.compile(
     + r"|" + _G + _MV_NUM + r"\s*에서\s*(?:(?:출발|시작)해\s*)?" + _MV_GAP + r"(?:" + _DATE + r"\s+)?" + _MV_NUM
     + r"\s*(?:(?:으로|로|까지)\s*(?:\(\s*[+−-]?\d+(?:\.\d+)?%p?\s*\)\s*)?" + _MV_GAP + r"(?:[+−-]?\d+(?:\.\d+)?%p?\s*)?" + _MV_VERB + r"|(?:이|가)\s*(?:됐|되었))"
     + r"|" + _G + _NP + r"(?<![억조])(?![\d.,]|\s*(?:%|억|조))\**\s*(?:→|->)\s*\**(?:" + _DATE + r"\s+)?" + _NP + r"(?<![억조])(?!\d|[.,]\d|\s*(?:%|억|조))"
-    + r"|" + _G + _NP + r"(?<![천억조])(?![\d.,]|\s*(?:%|억|조|천))(?:\s*선|대)?\s*(?:고점|저점|종가|최고가|최저가)", re.M)
+    + r"|" + _G + _NP + r"(?<![천억조])(?![\d.,]|\s*(?:%|억|조|천))(?:\s*선|대)?\s*(?:고점|저점|종가|최고가|최저가)"
+    + r"|" + _G + r"\d+(?:\.\d+)?\s*만\s*(?:선|대)(?:이|을|가|에서|으로|로|까지|\s+(?:아래|위|밑|붕괴|돌파|회복|이탈|안착))", re.M)   # 단서 없는 '7만 선이 무너졌다'·'130만대로' 
 
 
 # 경험칙 뒤 거름: 문맥상 가격이 아닌 매치(셈·지표 주어의 'A에서 B로', 품목 가격, 주당 지표)는 버리고 그 다음부터 다시 찾는다
 _MOVE = re.compile(r"에서|→|->")
-_SUBJ = re.compile(r"량|(?<![가-힣])수(?=[^가-힣]|$|[가는은이도의](?![가-힣]))|자\s*수|재고|판매|출하|(?<![가-힣])인도|가입자|주문|수주|매출|이익|부채|(?<![가-힣])배당금?|베타|RSI|비중|지분율|(?<=[가-힣])[률율]|(?<![가-힣A-Za-z0-9&])[금은](?=\s*(?:선물|값|가격))|(?<![가-힣A-Za-z0-9&])[금은]값|고정거래가|천연가스|팔라듐|백금|이익률|마진|(?:원|달러|엔|유로|위안)\s*[·/]\s*(?:원|달러|엔|유로|위안)|\d+년물|근월물|현물가|고정가|계약가|브렌트유?|두바이유|원유|구리|수익률|실업률|가동률|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
+_SUBJ = re.compile(r"량|(?<![가-힣])수(?=[^가-힣]|$|[가는은이도의](?![가-힣]))|자\s*수|재고|판매|출하|(?<![가-힣])인도|가입자|(?:이용|사용|구독|방문|관람)자|고객|회원|관객|계좌|대수|(?<![A-Za-z])(?:MAU|DAU)(?![A-Za-z])|주문|수주|매출|이익|부채|(?<![가-힣])배당금?|베타|RSI|비중|지분율|(?<=[가-힣])[률율]|(?<![가-힣A-Za-z0-9&])[금은](?=\s*(?:선물|값|가격))|(?<![가-힣A-Za-z0-9&])[금은]값|고정거래가|천연가스|팔라듐|백금|이익률|마진|(?:원|달러|엔|유로|위안)\s*[·/]\s*(?:원|달러|엔|유로|위안)|\d+년물|근월물|현물가|고정가|계약가|브렌트유?|두바이유|원유|구리|수익률|실업률|가동률|상관|변동성|배수|인원|직원|점수|순위|건수|환율|금리|지수|코스피|코스닥|나스닥"
                    r"|(?<![A-Za-z])(?:EPS|DPS|BPS|PER|PBR|ROE|SOX|VIX|KOSPI|S&P|DXY|ASP|WTI|CPI|PPI|PCE|PMI|GDP|LME|EBITDA)(?![A-Za-z])|컨센서스|인덱스|국채|(?:(?<![가-힣A-Za-z])|(?<=국제))유가|브렌트")
 _COMMOD = re.compile(r"(?:D램|DRAM|DDR\d|LPDDR\d?|낸드|NAND|플래시|메모리|HBM\w*|칩|구리|(?<![가-힣A-Za-z0-9&])금|(?<![가-힣A-Za-z0-9&])은|니켈|리튬|코발트|알루미늄|철광석|원자재|현물|고정거래|계약|판매|제품|평균판매|ASP|원유|WTI|브렌트유?|두바이유|(?:(?<![가-힣A-Za-z])|(?<=국제))유가|(?<![가-힣A-Za-z])가스|(?<![가-힣A-Za-z])전력|운임|선물)(?:\s*\([^)\n]{0,20}\)|\s+(?:현물|고정거래|계약|선물|근월물|평균|범용|서버용|모바일|PC용|반도체|칩|\d+\s*[GT]b|\d+단|DDR\d\w*|LPDDR\d\w*|플래시)){0,3}\s*$")
 _PER_UNIT = re.compile(r"(?:톤|온스|배럴|kg|파운드|개|GB|Gb|MWh|kWh)\s*당")
@@ -86,6 +87,7 @@ _CUE_IN = re.compile(_CUE)
 # 배당·DPS가 금액의 주어로 바로 붙은 경우만(배당락·배당주·고배당·'배당 기대에'는 아님). 앞 금액 나열(0.97달러, 연간 …)·이동(1.94달러에서)도 허용
 _DIV_ATT = re.compile(r"(?:(?<![가-힣])|(?<=현금|중간|분기|결산|기말|특별))(?:주당\s*(?:현금\s*)?)?(?:배당금?|DPS)(?![락주])(?:\([^)]*\))?\s*(?:은|는|이|가|을|를|도|으로|로)?\s*(?:(?:연간|분기|중간|기말|주당)\s*)*"
                       r"(?:(?:" + _DATE + r"\s*)?[\d,.]+\s*(?:원|달러)?\s*(?:,|에서|→|->)?\s*(?:(?:연간|분기|중간|기말)\s*)*)*(?:" + _DATE + r"\s*)?$")
+_PRICE_AFTER = re.compile(r"\s*(?:기준|선(?![가-힣])|대[로에]|(?:에|으로|로)?\s*(?:마감|출발|거래|끝))")
 _SENT_END = re.compile(r"[!?\n。]|\.(?!\d)")
 # 지표·품목 이름 바로 뒤의 단서(WTI 종가·환율 고점·금 선물 종가·EPS 컨센서스 고점)는 주가가 아님
 _IND_PRE = re.compile(r"(?:" + _SUBJ.pattern + r"|" + _COMMOD.pattern[:-4] + r")(?:\s*(?:선물|근월물|현물|컨센서스|추정치|금리|가격|단가))?\s*(?:\([^)\n]*\))?(?:\s*(?:은|는|이|가|도|의))?(?:\s*(?:장중|52주|한때))?\s*$")
@@ -128,7 +130,7 @@ def money_hit(t: str):
         ls = max([w] + [x.end() for x in _SENT_END.finditer(t, w, m.start())])
         before = t[max(ls, m.start() - 14):m.start()]
         skip = False
-        if not _CUE_IN.search(g) and (_MOVE.search(g) or _CLOSE_VERB.search(g)) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
+        if not _CUE_IN.search(g) and (_MOVE.search(g) or _CLOSE_VERB.search(g) or re.fullmatch(r"[\d.]+\s*만\s*(?:선|대).*", g)) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
             skip = True
         elif re.fullmatch(r"[\d,.]+\s*(?:고점|저점|종가|최고가|최저가)", g) and _ATTACHED.search(t[max(ls, m.start() - 60):m.start()]):
             skip = True
@@ -136,18 +138,18 @@ def money_hit(t: str):
             skip = True
         elif g.startswith(("가격", "단가")) and (_COMMOD.search(t[max(ls, m.start() - 30):m.start()]) or _PER_UNIT.search(g)):
             skip = True
-        elif not _CUE_IN.search(g) and _CO_AMT.search(g):
+        elif not _CUE_IN.search(g) and (_CO_AMT.search(g) or _CO_AMT.search(re.search(r"[\d,.\s천만억조]*$", t[max(ls, m.start() - 14):m.start()]).group(0).lstrip() + g)):
             skip = True   # 회사 금액(억·조 + 원·달러)은 허용(운영자 결정 2026-11-08). 주당 금액·종가와 원 단위 가격(126만 원)은 계속 막는다
-        elif re.search(r"원|달러|\$|USD", g) and not _MOVE.search(g) and not _CLOSE_VERB.search(g) and _DIV_ATT.search(t[max(ls, m.start() - 40):m.start()]) \
+        elif re.search(r"원|달러|\$|USD", g) and not _MOVE.search(g) and not _CLOSE_VERB.search(g) and _DIV_ATT.search(t[max(ls, m.start() - 40):m.start()]) and not _PRICE_AFTER.match(t[m.end():m.end() + 12]) \
                 and not re.search(r"종가|주가|시가|고가|저가|목표|가격|단가|고점|저점", g):
             skip = True   # 주당 배당금(원·달러)은 가격이 아님
         elif re.search(r"원|달러|\$|USD", g) and not _CUE_IN.search(g) and not _CLOSE_VERB.search(g) and re.search(r"배당|DPS", _col_head(t, m.start())):
             skip = True   # 표의 배당·DPS 열 칸
         elif re.search(r"원|달러|\$|USD", g) and not _CLOSE_VERB.search(g) and not _MOVE.search(g) and re.search(r"주당\s*$", t[max(ls, m.start() - 6):m.start()]) \
-                and re.match(r"(?:의)?\s*(?:현금\s*)?배당", t[m.end():m.end() + 10]):
+                and re.match(r"(?:의|씩)?\s*(?:(?:현금|분기|중간|결산|기말|특별|연간)\s*)*배당", t[m.end():m.end() + 14]):
             skip = True   # '주당 5,200원의 배당'·'주당 1,200원 배당' 
         elif g.startswith("주당") and not _CLOSE_VERB.search(g) and (re.match(r"주당\s*(?:현금\s*)?(?:배당|순이익|순자산|이익|현금흐름|매출)", g)
-                                                                  or re.match(r"\s*(?:원|달러)?(?:의)?\s*(?:현금\s*)?배당", t[m.end():m.end() + 12])
+                                                                  or re.match(r"\s*(?:원|달러)?(?:의|씩)?\s*(?:(?:현금|분기|중간|결산|기말|특별|연간)\s*)*배당", t[m.end():m.end() + 16])
                                                                   or _DIV_ATT.search(t[max(ls, m.start() - 20):m.start()]) or re.search(r"배당|DPS", _col_head(t, m.start()))):
             skip = True
         if not skip:
@@ -409,10 +411,15 @@ def _is_fixed(text: str, x) -> bool:
     """대상 명사구(조사 앞 낱말)만 보고 판단 습관(점검·근거·흐름…)이면 규칙이 아님. '촉매가 없는 종목'처럼 조건이 붙은 대상도 습관."""
     k = "t1" if x.group("t1") else "t2"
     tgt, st = x.group(k), x.start(k)
+    if k == "t1":   # 매치 안의 마지막 대상(동사에 가장 가까운 명사구)
+        for y in re.finditer(_FX_TARGET, text[st:x.end()]):
+            tgt, st = y.group(0), st + y.start() if False else x.start(k) + y.start()
     pre = text[max(0, st - 12):st]
     if re.search(r"(?:항목|목록|체크리스트|점검)(?:에|으로)\s|뒤에만|(?:모르|없으|있으|않으|오|나오|크|작|높으|낮으)면\s|(?:근거|논리|판단|후보\s*근거)에서\s*(?:빼|뺀|뺄)", x.group(0)):
         return False
-    return not _HABIT.search(tgt) and not re.search(r"(?:없는|있는|낮은|높은|약한|강한|큰|작은|못한|않은|고른|본|산|인)\s*$", pre)
+    cond = re.search(r"(?:없는|있는|낮은|높은|약한|강한|큰|작은|못한|않은|고른|본|산|인|[가-힣](?:는|은|던|한|된|진|린|운|른)|의)\s*$", pre) \
+        and not re.search(_FX_ALWAYS + r"\s*(?:는|은)?\s*$", pre)          # '앞으로는 테슬라를'의 '는'은 조건 수식이 아님
+    return not _HABIT.search(tgt + " " + pre) and not cond
 
 
 def _layout(path: Path) -> str:

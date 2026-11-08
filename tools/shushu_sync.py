@@ -116,7 +116,7 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         from_head = bool(pm)
     if base is None and pm == after:
         if from_head:   # 이미 병합된 브랜치: 지금 기본 브랜치로는 이 push 시각의 파일을 알 수 없음 — '파일 없음'으로 넘기지 않고 재시도·확인 대기
-            raise RuntimeError("비교 기준 없음 — 이미 기본 브랜치에 병합된 브랜치 push(병합 시각으로 판정하지 않도록 확인 대기)")
+            raise RuntimeError("비교 기준 없음 — 이미 병합된 브랜치이거나 새 커밋 없는 브랜치 생성일 수 있음(병합 시각으로 판정하지 않도록 확인 대기)")
         return []                                      # 기본 브랜치와 같은 커밋을 가리키는 새 브랜치 — 새 파일 없음
     if base is None and pm:
         # 새 브랜치·강제 push: 이 push 전 마지막 기본 브랜치 상태와 갈라진 지점부터(오래된 기준의 브랜치가 옛 내용을 '수정'으로 보이지 않게)
@@ -124,7 +124,7 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         mb = r.stdout.strip() if r.returncode == 0 else ""
         if mb == after:
             if from_head:
-                raise RuntimeError("비교 기준 없음 — 이미 기본 브랜치에 병합된 브랜치 push(병합 시각으로 판정하지 않도록 확인 대기)")
+                raise RuntimeError("비교 기준 없음 — 이미 병합된 브랜치이거나 새 커밋 없는 브랜치 생성일 수 있음(병합 시각으로 판정하지 않도록 확인 대기)")
             return []                                  # 이미 기본 브랜치에 들어 있는 커밋 — 새 파일 없음
         # 이력이 이어지지 않는 브랜치(orphan): 갈라진 지점이 없으면 '이 push 전 기본 브랜치 상태'와 직접 비교한다
         base = mb or pm
