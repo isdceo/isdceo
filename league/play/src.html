@@ -452,7 +452,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
 .showbtn:active{transform:translateX(-50%) scale(.94)}
 .game.zoomed .showbtn,.game.sheeted .showbtn,.game.showing .showbtn{opacity:0;pointer-events:none}
 .show{position:absolute;inset:0;z-index:28;display:none;flex-direction:column;align-items:center;gap:8px;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
-  background:radial-gradient(80% 70% at 50% 35%,rgba(40,90,55,.97),rgba(10,30,18,.98))}
+  background:radial-gradient(80% 70% at 50% 35%,rgba(52,38,110,.97),rgba(12,9,32,.98))}
 .game.showing .show{display:flex;animation:sheetIn .3s ease-out}
 .game.showing .lobby,.game.showing .dock,.game.showing .hud{filter:blur(6px) brightness(.5);pointer-events:none}
 .show h2{margin:4px 0 0;font-family:var(--disp);font-weight:400;font-size:clamp(20px,3vw,28px);color:var(--gold);text-shadow:0 2px 0 #5a2a08}
@@ -492,7 +492,7 @@ table.rec.wk td:first-child{width:44px;text-align:center}
   .show .grid{grid-template-columns:1fr;gap:10px}
   .show .teamcol{grid-template-columns:repeat(3,1fr);gap:6px 6px;transform:none}
   .fc,.show.two .fc{width:clamp(50px,13.5vw,64px)}
-  .fc .fr .n{font-size:10.5px;white-space:normal;line-height:1.05;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip;text-align:center}
+  .fc .fr .n{font-size:10.5px;white-space:normal;word-break:keep-all;line-height:1.05;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip;text-align:center}
   .show.two .fc .fr .v{font-size:12.5px}}
 @media (orientation:portrait) and (max-height:700px){.cards{height:33%}}
 @media (orientation:portrait) and (max-height:700px){.fc,.show.two .fc{width:clamp(44px,12vw,56px)}.show .teamcol{gap:4px 6px}.show .sub{display:none}.show .grid{gap:6px}}
@@ -581,19 +581,20 @@ html,body{background:var(--arena0)}
   filter:drop-shadow(0 0 6px color-mix(in srgb,var(--c) 70%,transparent)) drop-shadow(0 4px 4px rgba(0,0,0,.5))}
 .chipbtn:active{transform:translateY(2px) scale(.96)}
 /* 가운데 구역 판: 시장(한국·미국)마다 두 팀 평균을 마주 세운다 */
-.lanes{position:absolute;z-index:8;left:50%;transform:translateX(-50%);display:flex;gap:clamp(6px,1.4vw,14px);pointer-events:none}
-.lane{pointer-events:auto;cursor:pointer;position:relative;width:clamp(150px,21vw,230px);padding:.35em .5em .4em;border-radius:12px;font-family:var(--disp);color:#efeaff;text-align:center;
+.lanes{position:absolute;z-index:8;left:50%;transform:translateX(-50%);display:flex;flex-wrap:nowrap;max-width:96vw;gap:clamp(6px,1.4vw,14px);pointer-events:none}
+.lane{pointer-events:auto;cursor:pointer;position:relative;padding:.3em .7em;border-radius:12px;font-family:var(--disp);color:#efeaff;text-align:center;
   background:linear-gradient(180deg,rgba(44,32,96,.92),rgba(14,10,36,.92));border:1.5px solid var(--lc);box-shadow:0 0 16px color-mix(in srgb,var(--lc) 55%,transparent),inset 0 1px 0 rgba(255,255,255,.2)}
 .lane.kr{--lc:#c79bff}.lane.us{--lc:#6fd0ff}
-.lane .lt{display:flex;justify-content:center;align-items:center;gap:.3em;font-size:clamp(12px,1.6vw,15px);letter-spacing:.04em}
+.lane .lt{display:flex;justify-content:center;align-items:center;gap:.35em;font-size:clamp(12px,1.6vw,15px);letter-spacing:.02em;white-space:nowrap}
 .lane .lt i{font-style:normal;font-size:1.25em;color:var(--lc)}
-.lane .lr{display:flex;justify-content:center;align-items:center;gap:.28em;font-size:clamp(12px,1.55vw,15px);margin-top:.15em;white-space:nowrap}
+.lane .lr{display:inline-flex;align-items:center;gap:.28em;margin-left:.2em;white-space:nowrap}
 .lane .lr span{white-space:nowrap}.lane .lr .t{font-family:var(--body);font-size:.78em;color:#c9c0ea}
 .lane .lr b{font-weight:400;padding:0 .3em;border-radius:6px}
 .lane .lr b.win{background:rgba(79,224,143,.16);box-shadow:0 0 0 1px rgba(79,224,143,.6)}
 .lane .lr .vs{font-size:.7em;color:#9d93c6}
 .lane .up{color:var(--up)}.lane .dn{color:var(--dn)}.lane .eq{color:var(--eq)}.lane .no{color:var(--na)}
-.lane small{display:block;font-family:var(--body);font-size:clamp(10px,1.2vw,11px);color:#b2a9d6;margin-top:.1em}
+.lane .ltag{font-style:normal;font-family:var(--body);font-size:.72em;color:#b2a9d6}
+.lane small{display:none;font-family:var(--body);font-size:clamp(10px,1.2vw,11px);color:#b2a9d6;margin-top:.1em}
 .lane:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .game.zoomed .lanes,.game.sheeted .lanes{filter:blur(6px) brightness(.5);pointer-events:none}
 .game.zoomed .lanes .lane{pointer-events:none}
@@ -628,13 +629,13 @@ html,body{background:var(--arena0)}
   <button type="button" class="showbtn" id="showbtn" hidden></button>
   <div class="hud"><div class="logo"><small>SHUSHU × RORO</small>AI 투자 리그</div><button class="timer" id="timer" data-open="progress">다음 마감까지 <b>—</b></button></div>
   <nav class="dock" aria-label="메뉴">
-    <button class="btn chipbtn" data-open="progress" style="--c:#c8262f;--e:#6a0f14">진행</button>
-    <button class="btn chipbtn" data-open="record" style="--c:#1f8a4c;--e:#0b4a26">기록판</button>
-    <button class="btn chipbtn" data-open="picks" style="--c:#2a62c6;--e:#12306a">종목</button>
-    <button class="btn chipbtn" data-open="rules" style="--c:#2a2a2a;--e:#000">규칙</button>
+    <button class="btn chipbtn" data-open="progress" style="--c:#8f6bff;--e:#2e1a78">진행</button>
+    <button class="btn chipbtn" data-open="record" style="--c:#3fb6d8;--e:#0f4a5e">기록판</button>
+    <button class="btn chipbtn" data-open="picks" style="--c:#5a7dff;--e:#1a2a78">종목</button>
+    <button class="btn chipbtn" data-open="rules" style="--c:#6a5f9a;--e:#241c48">규칙</button>
     <button class="btn chipbtn snd" id="snd" style="--c:#6a3fb5;--e:#2e1660" aria-pressed="false" aria-label="소리 켜기"><svg viewBox="0 0 24 24" width="55%" height="55%" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path class="w" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>
   </nav>
-  <div class="fine">모의 예측 게임 · 돈·베팅 없음 · 한국 시세: 한국거래소 통계정보</div>
+  <div class="fine">모의 예측 게임 · 돈·베팅 없음 · 시세: 한국거래소 통계정보 · Alpha Vantage(미국)</div>
   <div class="close" id="close" role="dialog" aria-modal="true" aria-label="카드 쪼이기">
     <div class="hero" id="hero"></div>
     <div class="rail2"></div><div class="felt2"></div><div class="fz" id="fz1" style="left:22%;bottom:-8%"></div><div class="fz" id="fz3" style="left:4%;bottom:6%;filter:blur(1.5px)"></div><div class="fz" id="fz4" style="right:10%;bottom:20%;filter:blur(2px)"></div><div class="fz" id="fz2" style="right:-4%;bottom:-10%"></div><div class="fz" id="fz5"></div>
@@ -886,7 +887,10 @@ html,body{background:var(--arena0)}
     const live = T.picks.filter((p) => p.mode === '실전'), pool = live.length ? live : T.picks;
     // 두 팀이 함께 낸 가장 최근 라운드(없으면 가장 최근 라운드)
     const both = [...new Set(pool.map((p) => p.round_date))].filter((d) => pool.some((p) => p.round_date === d && p.team === C) && pool.some((p) => p.round_date === d && p.team === Sx)).sort();
-    const common = both.pop(), last = (tm) => common || pool.filter((p) => p.team === tm).map((p) => p.round_date).sort().pop();
+    // 평일에는 가장 최근 공동 라운드가 늘 채점 전이므로, 두 팀 모두 확정 점수가 있는 가장 최근 공동 라운드를 먼저 쓴다(재검수 C)
+    const fin = (d, tm) => pool.some((p) => p.round_date === d && p.team === tm && p.status === 'final' && p.score != null);
+    const scored = both.filter((d) => fin(d, C) && fin(d, Sx));
+    const common = scored.pop() || both.pop(), last = (tm) => common || pool.filter((p) => p.team === tm).map((p) => p.round_date).sort().pop();
     const rd = common || pool.map((p) => p.round_date).sort().pop(); if (!rd) return null;   // 함께 낸 라운드가 없으면(연습) 팀마다 자기 최근 라운드
     const mode = pool[0].mode, avg = (tm, mk) => { const xs = pool.filter((p) => p.round_date === last(tm) && p.team === tm && p.market === mk);
       const f = xs.filter((p) => p.status === 'final' && p.score != null); return {n: xs.length, f: f.length, v: f.length ? f.reduce((x, p) => x + p.score, 0) / f.length : null}; };
@@ -898,26 +902,43 @@ html,body{background:var(--arena0)}
     el.innerHTML = (D ? D.m : [{mk: 'KR', s: {n: 0, v: null}, c: {n: 0, v: null}}, {mk: 'US', s: {n: 0, v: null}, c: {n: 0, v: null}}]).map((x) => {
       const both = x.s.v != null && x.c.v != null && !(D && D.mixed), sw = both && x.s.v > x.c.v, cw = both && x.c.v > x.s.v;   // 다른 라운드끼리는 우세를 표시하지 않음
       const lead = D && D.mixed ? '팀별 최근 라운드(비교 아님)' : !both ? (x.s.n && x.c.n ? '채점 대기' : x.s.n || x.c.n ? '한 팀만 기록 있음' : '라운드 기록 없음') : sw ? '슈슈 팀 우세' : cw ? '로로 팀 우세' : '동률';
+      if (D && D.mixed) return `<button type="button" class="lane ${x.mk.toLowerCase()}" data-open="picks" aria-label="${x.mk === 'KR' ? '한국' : '미국'} 구역: 두 팀이 같은 라운드에 낸 기록 없음"><span class="lt"><i>${x.mk === 'KR' ? '♦' : '♣'}</i>${x.mk === 'KR' ? '한국' : '미국'}<span class="lr"><b class="no">같은 라운드 기록 없음</b></span></span></button>`;
       return `<button type="button" class="lane ${x.mk.toLowerCase()}" data-open="picks" aria-label="${x.mk === 'KR' ? '한국' : '미국'} 구역 ${D ? D.mode + ' ' + md(D.rd) : ''} ${lead}">
-        <span class="lt"><i>${x.mk === 'KR' ? '♦' : '♣'}</i>${x.mk === 'KR' ? '한국 구역' : '미국 구역'}</span>
-        <span class="lr"><span class="t">슈슈</span>${cell(x.s).replace('<b class="', `<b class="${sw ? 'win ' : ''}`)}<span class="vs">vs</span><span class="t">로로</span>${cell(x.c).replace('<b class="', `<b class="${cw ? 'win ' : ''}`)}</span>
+        <span class="lt"><i>${x.mk === 'KR' ? '♦' : '♣'}</i>${x.mk === 'KR' ? '한국' : '미국'}<em class="ltag">${D ? md(D.rd) : ''}</em><span class="lr"><span class="t">슈슈</span>${cell(x.s).replace('<b class="', `<b class="${sw ? 'win ' : ''}`)}<span class="vs">vs</span><span class="t">로로</span>${cell(x.c).replace('<b class="', `<b class="${cw ? 'win ' : ''}`)}</span></span>
         <small>${D ? (D.mixed ? `${D.mode} · 팀별 최근 라운드` : `${D.mode} ${md(D.rd)} · ${lead}`) : lead}</small></button>`; }).join('');
     el.querySelectorAll('.lane').forEach((b) => { b.onclick = () => openSheet('picks'); });
     return el;
   };
+  // 구역 판 자리: 테이블 카드·이름판·팀 표찰과 겹치지 않는 빈 띠에만 둔다(없으면 숨김). 재검수: 카드를 가리면 안 됨
+  const placeLanes = () => {
+    const el = document.querySelector('#lobby .lanes'); if (!el) return;
+    el.style.visibility = 'hidden'; el.style.top = '0px'; const h = el.getBoundingClientRect().height, H = innerHeight;
+    const rects = [...document.querySelectorAll('#lobby .pair, #lobby .plate, #lobby .teamtag')].map((x) => x.getBoundingClientRect());
+    let lo, hi;
+    if (PORTRAIT.matches) {           // 위 팀 카드 아래 ~ 아래 팀 표찰 위
+      const tag = [...document.querySelectorAll('#lobby .teamtag.c')].map((x) => x.getBoundingClientRect().top)[0] ?? H * .5;
+      lo = Math.max(0, ...rects.filter((r) => r.bottom <= tag + 1 && r.top < tag).map((r) => r.bottom)); hi = tag;
+    } else {                          // 테이블 카드 아래 ~ 바닥 글 위
+      lo = Math.max(...rects.map((r) => r.bottom)); hi = (document.querySelector('.fine')?.getBoundingClientRect().top ?? H) - 2;
+    }
+    if (hi - lo < h + 4) { el.style.display = 'none'; return; }
+    el.style.display = ''; el.style.top = Math.round(lo + (hi - lo - h) / 2) + 'px'; el.style.visibility = '';
+  };
+  addEventListener('resize', () => requestAnimationFrame(placeLanes));
   const renderLobby = () => {
     const L = $('#lobby'); L.innerHTML = '';
+    requestAnimationFrame(placeLanes); setTimeout(placeLanes, 2600);   // 등장 연출이 끝난 뒤 다시 잰다
     if (PORTRAIT.matches) {
       const sTop = toMiddle(teamS), cBot = toMiddle(teamC);
       seats = [...sTop, ...cBot];
       L.appendChild(tier({top: 'max(8%, 84px)', h: '41%', seats: sTop, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '78%', cardTop: 70, cw: '22px', pf: '12px', tags: [['s', '슈슈 팀 ♥', '50%', '2%']], chips: [[14, 40, 22, 4, 3], [86, 44, 22, 5, 1]]}, 0));
       L.appendChild(tier({top: '38%', h: '55%', seats: cBot, x0: 6, xw: 88, w0: 33, w1: 8, unit: 'vw', castH: '86%', cardTop: 70, cw: '22px', pf: '12px', mid: midText(), tags: [['c', '♠ 로로 팀', '50%', '20%']], chips: [[12, 44, 22, 5, 0], [88, 40, 22, 3, 2], [22, 96, 80, 4, 2, true], [80, 98, 90, 4, 1, true]]}, 1));
-      L.appendChild(lanesEl('42.6%'));
+      L.appendChild(lanesEl('0'));
     } else {
       seats = [...toCenterRight(teamC), ...toCenterLeft(teamS)];
       L.appendChild(tier({top: '0', h: '100%', seats, x0: 5, xw: 80, w0: 19, w1: 5, unit: 'vw', cardTop: 73, mid: midText(), tags: [['c', '♠ 로로 팀', '25%', '21%'], ['s', '슈슈 팀 ♥', '66%', '21%']],
         chips: [[31, 34, 30, 6, 0], [34, 40, 30, 4, 1], [64, 34, 30, 7, 3], [67, 42, 30, 3, 2], [38, 46, 28, 5, 4], [23, 92, 120, 4, 2, true], [31, 102, 130, 3, 0, true], [70, 94, 130, 5, 1, true], [77, 104, 140, 3, 3, true]]}, 0));
-      L.appendChild(lanesEl('77%'));
+      L.appendChild(lanesEl('0'));
     }
   };
   renderLobby();

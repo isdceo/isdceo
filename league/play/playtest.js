@@ -85,9 +85,9 @@ const audit = () => {
         if (await p.evaluate(() => document.querySelector('.game').classList.contains('zoomed'))) throw new Error('Esc로 안 닫힘');
       });
       await step('메뉴 창', async () => {
-        const n = await p.$$eval('[data-open]', (a) => a.length);
+        const n = await p.$$eval('.dock [data-open]', (a) => a.length);
         if (!n) throw new Error('메뉴 버튼 없음');
-        await p.click('[data-open] >> nth=0'); await p.waitForTimeout(600);
+        await p.click('.dock [data-open] >> nth=0'); await p.waitForTimeout(600);
         await shot('4-메뉴');
         row.메뉴 = await p.evaluate(audit);
         await p.keyboard.press('Escape'); await p.waitForTimeout(400);

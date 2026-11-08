@@ -119,6 +119,23 @@ jobs:
             sleep $((i * 5))
           done
           exit 1
+      - name: Record mirror commit
+        # 이번 실행이 push한 사본 커밋을 메인 원장에 따로 먼저 남긴다(깨우기가 실패해도 기록은 남게. 다음 pull이 그 커밋을 받을 수 없어도 오류로 보지 않음)
+        if: steps.mirror.outcome == 'success'
+        run: |
+          set -uo pipefail
+          [ -s "$RUNNER_TEMP/mirror_sha" ] || { echo "새 사본 커밋 없음"; exit 0; }
+          BR="$GITHUB_REF_NAME"
+          for i in 1 2 3 4; do
+            git fetch -q origin "$BR" && git reset -q --hard "origin/$BR"
+            python3 tools/shushu_sync.py note-mirror --ext ext --sha "$(cat "$RUNNER_TEMP/mirror_sha")" || exit 1
+            git add league/ledger
+            git diff --cached --quiet && exit 0
+            git commit -q -m "league: shushu mirror commit $(head -c 7 "$RUNNER_TEMP/mirror_sha")"
+            git push -q origin "HEAD:$BR" && exit 0
+            sleep $((i * 4))
+          done
+          exit 1
       - name: Wake 슈슈 team (@codex comments)
         if: steps.pull.outcome == 'success'
         env:
@@ -128,8 +145,6 @@ jobs:
           BR="$GITHUB_REF_NAME"
           for i in 1 2 3 4; do
             git fetch -q origin "$BR" && git reset -q --hard "origin/$BR"
-            # 이번 실행이 push한 사본 커밋을 메인 원장에 남긴다(다음 pull이 그 커밋을 받을 수 없어도 오류로 보지 않게)
-            if [ -s "$RUNNER_TEMP/mirror_sha" ]; then python3 tools/shushu_sync.py note-mirror --ext ext --sha "$(cat "$RUNNER_TEMP/mirror_sha")" || true; fi
             python3 tools/shushu_sync.py wake --ext ext > wake.txt; rc=$?; cat wake.txt
             [ "$rc" = 0 ] || { echo "::error::깨우기 실패 — 토큰의 Issues 쓰기 권한과 채널 이슈를 확인"; exit 1; }
             git add league/ledger
