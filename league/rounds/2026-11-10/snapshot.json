@@ -1,0 +1,5371 @@
+{
+ "corporate_actions_sources": [
+  "fsc_disclosure"
+ ],
+ "corporate_actions_upcoming": [],
+ "deadline_kst": "2026-11-10T08:30:00+09:00",
+ "disclosures": {
+  "count": 456,
+  "from": "2026-10-27",
+  "items": [
+   {
+    "category": "IR",
+    "filer": "유한양행",
+    "name": "유한양행",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800198",
+    "ticker": "000100",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800198"
+   },
+   {
+    "category": "IR",
+    "filer": "CJ대한통운",
+    "name": "CJ대한통운",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800370",
+    "ticker": "000120",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800370"
+   },
+   {
+    "category": "IR",
+    "filer": "DL",
+    "name": "DL",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800403",
+    "ticker": "000210",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800403"
+   },
+   {
+    "category": "IR",
+    "filer": "현대해상",
+    "name": "현대해상",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800220",
+    "ticker": "001450",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800220"
+   },
+   {
+    "category": "실적",
+    "filer": "한미사이언스",
+    "name": "한미사이언스",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800677",
+    "ticker": "008930",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800677"
+   },
+   {
+    "category": "실적",
+    "filer": "LG이노텍",
+    "name": "LG이노텍",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800388",
+    "ticker": "011070",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800388"
+   },
+   {
+    "category": "IR",
+    "filer": "현대위아",
+    "name": "현대위아",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800373",
+    "ticker": "011210",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800373"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성에스디에스",
+    "name": "삼성에스디에스",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800450",
+    "ticker": "018260",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800450"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성에스디에스",
+    "name": "삼성에스디에스",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800455",
+    "ticker": "018260",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800455"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성카드",
+    "name": "삼성카드",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800045",
+    "ticker": "029780",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800045"
+   },
+   {
+    "category": "실적",
+    "filer": "한화오션",
+    "name": "한화오션",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800240",
+    "ticker": "042660",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800240"
+   },
+   {
+    "category": "실적",
+    "filer": "대우건설",
+    "name": "대우건설",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800048",
+    "ticker": "047040",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800048"
+   },
+   {
+    "category": "분할·병합",
+    "filer": "쏠리드",
+    "name": "쏠리드",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027900672",
+    "ticker": "050890",
+    "title": "감자결정(종속회사의주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027900672"
+   },
+   {
+    "category": "자사주",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027000117",
+    "ticker": "055550",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000117"
+   },
+   {
+    "category": "실적",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800211",
+    "ticker": "055550",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800211"
+   },
+   {
+    "category": "실적",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800215",
+    "ticker": "055550",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800215"
+   },
+   {
+    "category": "실적",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800217",
+    "ticker": "055550",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800217"
+   },
+   {
+    "category": "실적",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800218",
+    "ticker": "055550",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800218"
+   },
+   {
+    "category": "배당",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800250",
+    "ticker": "055550",
+    "title": "현금ㆍ현물배당결정 (2026년 3분기)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800250"
+   },
+   {
+    "category": "IR",
+    "filer": "엘앤에프",
+    "name": "엘앤에프",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800439",
+    "ticker": "066970",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800439"
+   },
+   {
+    "category": "실적",
+    "filer": "셀트리온",
+    "name": "셀트리온",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800047",
+    "ticker": "068270",
+    "title": "[기재정정]연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800047"
+   },
+   {
+    "category": "자사주",
+    "filer": "제주반도체",
+    "name": "제주반도체",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027000242",
+    "ticker": "080220",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000242"
+   },
+   {
+    "category": "실적",
+    "filer": "ISC",
+    "name": "ISC",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027900052",
+    "ticker": "095340",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027900052"
+   },
+   {
+    "category": "실적",
+    "filer": "한미약품",
+    "name": "한미약품",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800461",
+    "ticker": "128940",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800461"
+   },
+   {
+    "category": "실적",
+    "filer": "iM금융지주",
+    "name": "iM금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800364",
+    "ticker": "139130",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800364"
+   },
+   {
+    "category": "실적",
+    "filer": "iM금융지주",
+    "name": "iM금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800374",
+    "ticker": "139130",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800374"
+   },
+   {
+    "category": "실적",
+    "filer": "iM금융지주",
+    "name": "iM금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800381",
+    "ticker": "139130",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800381"
+   },
+   {
+    "category": "IR",
+    "filer": "iM금융지주",
+    "name": "iM금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800587",
+    "ticker": "139130",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800587"
+   },
+   {
+    "category": "실적",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800377",
+    "ticker": "175330",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800377"
+   },
+   {
+    "category": "실적",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800385",
+    "ticker": "175330",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800385"
+   },
+   {
+    "category": "실적",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800395",
+    "ticker": "175330",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800395"
+   },
+   {
+    "category": "실적",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800404",
+    "ticker": "175330",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800404"
+   },
+   {
+    "category": "배당",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800421",
+    "ticker": "175330",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800421"
+   },
+   {
+    "category": "배당",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800427",
+    "ticker": "175330",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800427"
+   },
+   {
+    "category": "주요사항",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800475",
+    "ticker": "175330",
+    "title": "유상증자결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800475"
+   },
+   {
+    "category": "IR",
+    "filer": "JB금융지주",
+    "name": "JB금융지주",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800558",
+    "ticker": "175330",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800558"
+   },
+   {
+    "category": "실적",
+    "filer": "RFHIC",
+    "name": "RFHIC",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027900110",
+    "ticker": "218410",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027900110"
+   },
+   {
+    "category": "실적",
+    "filer": "에스티팜",
+    "name": "에스티팜",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027900160",
+    "ticker": "237690",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027900160"
+   },
+   {
+    "category": "IR",
+    "filer": "에스티팜",
+    "name": "에스티팜",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027900228",
+    "ticker": "237690",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027900228"
+   },
+   {
+    "category": "배당",
+    "filer": "HD현대",
+    "name": "HD현대",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800430",
+    "ticker": "267250",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800430"
+   },
+   {
+    "category": "배당",
+    "filer": "HD현대",
+    "name": "HD현대",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800433",
+    "ticker": "267250",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800433"
+   },
+   {
+    "category": "배당",
+    "filer": "HD현대일렉트릭",
+    "name": "HD현대일렉트릭",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800213",
+    "ticker": "267260",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800213"
+   },
+   {
+    "category": "실적",
+    "filer": "HD현대일렉트릭",
+    "name": "HD현대일렉트릭",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800226",
+    "ticker": "267260",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800226"
+   },
+   {
+    "category": "배당",
+    "filer": "HD현대일렉트릭",
+    "name": "HD현대일렉트릭",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800232",
+    "ticker": "267260",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800232"
+   },
+   {
+    "category": "실적",
+    "filer": "한화시스템",
+    "name": "한화시스템",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800302",
+    "ticker": "272210",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800302"
+   },
+   {
+    "category": "IR",
+    "filer": "한화시스템",
+    "name": "한화시스템",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800320",
+    "ticker": "272210",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800320"
+   },
+   {
+    "category": "주요사항",
+    "filer": "하이브",
+    "name": "하이브",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027800573",
+    "ticker": "352820",
+    "title": "유상증자결정(종속회사의주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027800573"
+   },
+   {
+    "category": "실적",
+    "filer": "큐리옥스바이오시스템즈",
+    "name": "큐리옥스바이오시스템즈",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027900676",
+    "ticker": "445680",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027900676"
+   },
+   {
+    "category": "자사주",
+    "filer": "달바글로벌",
+    "name": "달바글로벌",
+    "rcept_dt": "2026-10-27",
+    "rcept_no": "20261027000092",
+    "ticker": "483650",
+    "title": "주요사항보고서(자기주식취득신탁계약해지결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261027000092"
+   },
+   {
+    "category": "실적",
+    "filer": "유한양행",
+    "name": "유한양행",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800270",
+    "ticker": "000100",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800270"
+   },
+   {
+    "category": "자사주",
+    "filer": "SK하이닉스",
+    "name": "SK하이닉스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000014",
+    "ticker": "000660",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000014"
+   },
+   {
+    "category": "실적",
+    "filer": "SK하이닉스",
+    "name": "SK하이닉스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800036",
+    "ticker": "000660",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800036"
+   },
+   {
+    "category": "배당",
+    "filer": "SK하이닉스",
+    "name": "SK하이닉스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800045",
+    "ticker": "000660",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800045"
+   },
+   {
+    "category": "배당",
+    "filer": "SK하이닉스",
+    "name": "SK하이닉스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800048",
+    "ticker": "000660",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800048"
+   },
+   {
+    "category": "IR",
+    "filer": "SK하이닉스",
+    "name": "SK하이닉스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800052",
+    "ticker": "000660",
+    "title": "[기재정정]기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800052"
+   },
+   {
+    "category": "자사주",
+    "filer": "미원상사",
+    "name": "미원상사",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000289",
+    "ticker": "002840",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000289"
+   },
+   {
+    "category": "자사주",
+    "filer": "LG",
+    "name": "LG",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800481",
+    "ticker": "003550",
+    "title": "주요사항보고서(자기주식취득신탁계약체결결정)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800481"
+   },
+   {
+    "category": "실적",
+    "filer": "호텔신라",
+    "name": "호텔신라",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800277",
+    "ticker": "008770",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800277"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성전기",
+    "name": "삼성전기",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800169",
+    "ticker": "009150",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800169"
+   },
+   {
+    "category": "실적",
+    "filer": "한올바이오파마",
+    "name": "한올바이오파마",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800653",
+    "ticker": "009420",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800653"
+   },
+   {
+    "category": "실적",
+    "filer": "HD한국조선해양",
+    "name": "HD한국조선해양",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800202",
+    "ticker": "009540",
+    "title": "영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800202"
+   },
+   {
+    "category": "실적",
+    "filer": "HD한국조선해양",
+    "name": "HD한국조선해양",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800206",
+    "ticker": "009540",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800206"
+   },
+   {
+    "category": "실적",
+    "filer": "HD한국조선해양",
+    "name": "HD한국조선해양",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800208",
+    "ticker": "009540",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800208"
+   },
+   {
+    "category": "실적",
+    "filer": "SKC",
+    "name": "SKC",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800215",
+    "ticker": "011790",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800215"
+   },
+   {
+    "category": "주요사항",
+    "filer": "현대모비스",
+    "name": "현대모비스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000138",
+    "ticker": "012330",
+    "title": "[기재정정]주요사항보고서(회사분할결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000138"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성에피스홀딩스",
+    "name": "삼성에피스홀딩스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800401",
+    "ticker": "0126Z0",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800401"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성에피스홀딩스",
+    "name": "삼성에피스홀딩스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800403",
+    "ticker": "0126Z0",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800403"
+   },
+   {
+    "category": "IR",
+    "filer": "SK텔레콤",
+    "name": "SK텔레콤",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800090",
+    "ticker": "017670",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800090"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성E&A",
+    "name": "삼성E&A",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800535",
+    "ticker": "028050",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800535"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성물산",
+    "name": "삼성물산",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800394",
+    "ticker": "028260",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800394"
+   },
+   {
+    "category": "IR",
+    "filer": "LG유플러스",
+    "name": "LG유플러스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800443",
+    "ticker": "032640",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800443"
+   },
+   {
+    "category": "IR",
+    "filer": "LG유플러스",
+    "name": "LG유플러스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800449",
+    "ticker": "032640",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800449"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성생명",
+    "name": "삼성생명",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800567",
+    "ticker": "032830",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800567"
+   },
+   {
+    "category": "주요사항",
+    "filer": "SK",
+    "name": "SK",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800466",
+    "ticker": "034730",
+    "title": "[기재정정]주요사항보고서(회사합병결정)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800466"
+   },
+   {
+    "category": "자사주",
+    "filer": "LG화학",
+    "name": "LG화학",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000304",
+    "ticker": "051910",
+    "title": "주요사항보고서(자기주식취득신탁계약체결결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000304"
+   },
+   {
+    "category": "분할·병합",
+    "filer": "코스닥시장본부",
+    "name": "코나아이",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900690",
+    "ticker": "052400",
+    "title": "권리락 (무상증자)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900690"
+   },
+   {
+    "category": "실적",
+    "filer": "안랩",
+    "name": "안랩",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900060",
+    "ticker": "053800",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900060"
+   },
+   {
+    "category": "실적",
+    "filer": "안랩",
+    "name": "안랩",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900061",
+    "ticker": "053800",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900061"
+   },
+   {
+    "category": "실적",
+    "filer": "LG전자",
+    "name": "LG전자",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800266",
+    "ticker": "066570",
+    "title": "[기재정정]연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800266"
+   },
+   {
+    "category": "IR",
+    "filer": "현대백화점",
+    "name": "현대백화점",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800286",
+    "ticker": "069960",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800286"
+   },
+   {
+    "category": "실적",
+    "filer": "HD현대마린엔진",
+    "name": "HD현대마린엔진",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800200",
+    "ticker": "071970",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800200"
+   },
+   {
+    "category": "IR",
+    "filer": "GS",
+    "name": "GS",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800140",
+    "ticker": "078930",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800140"
+   },
+   {
+    "category": "IR",
+    "filer": "GS",
+    "name": "GS",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800141",
+    "ticker": "078930",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800141"
+   },
+   {
+    "category": "IR",
+    "filer": "현대글로비스",
+    "name": "현대글로비스",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800065",
+    "ticker": "086280",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800065"
+   },
+   {
+    "category": "IR",
+    "filer": "한화생명",
+    "name": "한화생명",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800416",
+    "ticker": "088350",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800416"
+   },
+   {
+    "category": "주요사항",
+    "filer": "SK이노베이션",
+    "name": "SK이노베이션",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000291",
+    "ticker": "096770",
+    "title": "[기재정정]주요사항보고서(회사합병결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000291"
+   },
+   {
+    "category": "주요사항",
+    "filer": "SK이노베이션",
+    "name": "SK이노베이션",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000313",
+    "ticker": "096770",
+    "title": "[정정제출요구][기재정정]증권신고서(합병)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000313"
+   },
+   {
+    "category": "IR",
+    "filer": "고영",
+    "name": "고영",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900739",
+    "ticker": "098460",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900739"
+   },
+   {
+    "category": "IR",
+    "filer": "고영",
+    "name": "고영",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900744",
+    "ticker": "098460",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900744"
+   },
+   {
+    "category": "자사주",
+    "filer": "iM금융지주",
+    "name": "iM금융지주",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000199",
+    "ticker": "139130",
+    "title": "주요사항보고서(자기주식취득신탁계약해지결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000199"
+   },
+   {
+    "category": "IR",
+    "filer": "휴젤",
+    "name": "휴젤",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900444",
+    "ticker": "145020",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900444"
+   },
+   {
+    "category": "실적",
+    "filer": "HK이노엔",
+    "name": "HK이노엔",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900153",
+    "ticker": "195940",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900153"
+   },
+   {
+    "category": "IR",
+    "filer": "HK이노엔",
+    "name": "HK이노엔",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900157",
+    "ticker": "195940",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900157"
+   },
+   {
+    "category": "IR",
+    "filer": "HK이노엔",
+    "name": "HK이노엔",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028900161",
+    "ticker": "195940",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028900161"
+   },
+   {
+    "category": "주요사항",
+    "filer": "금융감독원",
+    "name": "알테오젠",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028100055",
+    "ticker": "196170",
+    "title": "정정신고서제출요구( 2026.10.19. 제출 증권신고서(합병) )",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028100055"
+   },
+   {
+    "category": "IR",
+    "filer": "HL만도",
+    "name": "HL만도",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800249",
+    "ticker": "204320",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800249"
+   },
+   {
+    "category": "IR",
+    "filer": "HL만도",
+    "name": "HL만도",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800255",
+    "ticker": "204320",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800255"
+   },
+   {
+    "category": "자사주",
+    "filer": "RFHIC",
+    "name": "RFHIC",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000142",
+    "ticker": "218410",
+    "title": "[기재정정]자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000142"
+   },
+   {
+    "category": "IR",
+    "filer": "넷마블",
+    "name": "넷마블",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800504",
+    "ticker": "251270",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800504"
+   },
+   {
+    "category": "실적",
+    "filer": "HD현대",
+    "name": "HD현대",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800319",
+    "ticker": "267250",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800319"
+   },
+   {
+    "category": "실적",
+    "filer": "HD현대",
+    "name": "HD현대",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800354",
+    "ticker": "267250",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800354"
+   },
+   {
+    "category": "실적",
+    "filer": "HD현대중공업",
+    "name": "HD현대중공업",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800199",
+    "ticker": "329180",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800199"
+   },
+   {
+    "category": "실적",
+    "filer": "HD현대중공업",
+    "name": "HD현대중공업",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800211",
+    "ticker": "329180",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800211"
+   },
+   {
+    "category": "주요사항",
+    "filer": "SK아이이테크놀로지",
+    "name": "SK아이이테크놀로지",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000329",
+    "ticker": "361610",
+    "title": "[기재정정]주요사항보고서(회사합병결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000329"
+   },
+   {
+    "category": "주요사항",
+    "filer": "SK아이이테크놀로지",
+    "name": "SK아이이테크놀로지",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000468",
+    "ticker": "361610",
+    "title": "[기재정정]주요사항보고서(회사합병결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000468"
+   },
+   {
+    "category": "IR",
+    "filer": "DL이앤씨",
+    "name": "DL이앤씨",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800152",
+    "ticker": "375500",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800152"
+   },
+   {
+    "category": "배당",
+    "filer": "SK스퀘어",
+    "name": "SK스퀘어",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800046",
+    "ticker": "402340",
+    "title": "현금ㆍ현물배당결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800046"
+   },
+   {
+    "category": "배당",
+    "filer": "SK스퀘어",
+    "name": "SK스퀘어",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800049",
+    "ticker": "402340",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800049"
+   },
+   {
+    "category": "자사주",
+    "filer": "SK스퀘어",
+    "name": "SK스퀘어",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800051",
+    "ticker": "402340",
+    "title": "주요사항보고서(자기주식취득결정)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800051"
+   },
+   {
+    "category": "실적",
+    "filer": "OCI",
+    "name": "OCI",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028800321",
+    "ticker": "456040",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028800321"
+   },
+   {
+    "category": "자사주",
+    "filer": "달바글로벌",
+    "name": "달바글로벌",
+    "rcept_dt": "2026-10-28",
+    "rcept_no": "20261028000114",
+    "ticker": "483650",
+    "title": "주요사항보고서(자기주식취득신탁계약체결결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261028000114"
+   },
+   {
+    "category": "실적",
+    "filer": "세아베스틸지주",
+    "name": "세아베스틸지주",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800191",
+    "ticker": "001430",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800191"
+   },
+   {
+    "category": "IR",
+    "filer": "세아베스틸지주",
+    "name": "세아베스틸지주",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800196",
+    "ticker": "001430",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800196"
+   },
+   {
+    "category": "실적",
+    "filer": "대한전선",
+    "name": "대한전선",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800321",
+    "ticker": "001440",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800321"
+   },
+   {
+    "category": "자사주",
+    "filer": "아모레퍼시픽홀딩스",
+    "name": "아모레퍼시픽홀딩스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029000621",
+    "ticker": "002790",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000621"
+   },
+   {
+    "category": "자사주",
+    "filer": "아모레퍼시픽홀딩스",
+    "name": "아모레퍼시픽홀딩스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800768",
+    "ticker": "002790",
+    "title": "주요사항보고서(자기주식처분결정)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800768"
+   },
+   {
+    "category": "실적",
+    "filer": "아모레퍼시픽홀딩스",
+    "name": "아모레퍼시픽홀딩스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800770",
+    "ticker": "002790",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800770"
+   },
+   {
+    "category": "실적",
+    "filer": "롯데정밀화학",
+    "name": "롯데정밀화학",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800283",
+    "ticker": "004000",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800283"
+   },
+   {
+    "category": "자사주",
+    "filer": "현대자동차",
+    "name": "현대차",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029000247",
+    "ticker": "005380",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000247"
+   },
+   {
+    "category": "실적",
+    "filer": "현대자동차",
+    "name": "현대차",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800228",
+    "ticker": "005380",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800228"
+   },
+   {
+    "category": "배당",
+    "filer": "현대자동차",
+    "name": "현대차",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800264",
+    "ticker": "005380",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800264"
+   },
+   {
+    "category": "배당",
+    "filer": "현대자동차",
+    "name": "현대차",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800269",
+    "ticker": "005380",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800269"
+   },
+   {
+    "category": "IR",
+    "filer": "DB손해보험",
+    "name": "DB손해보험",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800507",
+    "ticker": "005830",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800507"
+   },
+   {
+    "category": "자사주",
+    "filer": "삼성전자",
+    "name": "삼성전자",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029000539",
+    "ticker": "005930",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000539"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성전자",
+    "name": "삼성전자",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800087",
+    "ticker": "005930",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800087"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성전자",
+    "name": "삼성전자",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800099",
+    "ticker": "005930",
+    "title": "[기재정정]연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800099"
+   },
+   {
+    "category": "배당",
+    "filer": "삼성전자",
+    "name": "삼성전자",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800101",
+    "ticker": "005930",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800101"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성SDI",
+    "name": "삼성SDI",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800053",
+    "ticker": "006400",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800053"
+   },
+   {
+    "category": "실적",
+    "filer": "대한유화",
+    "name": "대한유화",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800641",
+    "ticker": "006650",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800641"
+   },
+   {
+    "category": "IR",
+    "filer": "미래에셋증권",
+    "name": "미래에셋증권",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800623",
+    "ticker": "006800",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800623"
+   },
+   {
+    "category": "IR",
+    "filer": "호텔신라",
+    "name": "호텔신라",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800307",
+    "ticker": "008770",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800307"
+   },
+   {
+    "category": "실적",
+    "filer": "한화솔루션",
+    "name": "한화솔루션",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800252",
+    "ticker": "009830",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800252"
+   },
+   {
+    "category": "IR",
+    "filer": "한화솔루션",
+    "name": "한화솔루션",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800334",
+    "ticker": "009830",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800334"
+   },
+   {
+    "category": "실적",
+    "filer": "OCI홀딩스",
+    "name": "OCI홀딩스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800325",
+    "ticker": "010060",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800325"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성중공업",
+    "name": "삼성중공업",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800230",
+    "ticker": "010140",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800230"
+   },
+   {
+    "category": "실적",
+    "filer": "한화에어로스페이스",
+    "name": "한화에어로스페이스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800352",
+    "ticker": "012450",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800352"
+   },
+   {
+    "category": "배당",
+    "filer": "SK텔레콤",
+    "name": "SK텔레콤",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800795",
+    "ticker": "017670",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800795"
+   },
+   {
+    "category": "배당",
+    "filer": "SK텔레콤",
+    "name": "SK텔레콤",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800802",
+    "ticker": "017670",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800802"
+   },
+   {
+    "category": "실적",
+    "filer": "삼성에스디에스",
+    "name": "삼성에스디에스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800090",
+    "ticker": "018260",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800090"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성에스디에스",
+    "name": "삼성에스디에스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800092",
+    "ticker": "018260",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800092"
+   },
+   {
+    "category": "IR",
+    "filer": "팬오션",
+    "name": "팬오션",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800308",
+    "ticker": "028670",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800308"
+   },
+   {
+    "category": "IR",
+    "filer": "팬오션",
+    "name": "팬오션",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800310",
+    "ticker": "028670",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800310"
+   },
+   {
+    "category": "실적",
+    "filer": "두산에너빌리티",
+    "name": "두산에너빌리티",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800381",
+    "ticker": "034020",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800381"
+   },
+   {
+    "category": "IR",
+    "filer": "두산에너빌리티",
+    "name": "두산에너빌리티",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800755",
+    "ticker": "034020",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800755"
+   },
+   {
+    "category": "배당",
+    "filer": "SK",
+    "name": "SK",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800796",
+    "ticker": "034730",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800796"
+   },
+   {
+    "category": "배당",
+    "filer": "SK",
+    "name": "SK",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800803",
+    "ticker": "034730",
+    "title": "현금ㆍ현물배당결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800803"
+   },
+   {
+    "category": "실적",
+    "filer": "티씨케이",
+    "name": "티씨케이",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029900211",
+    "ticker": "064760",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029900211"
+   },
+   {
+    "category": "실적",
+    "filer": "금호타이어",
+    "name": "금호타이어",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800635",
+    "ticker": "073240",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800635"
+   },
+   {
+    "category": "IR",
+    "filer": "LIG디펜스앤에어로스페이스",
+    "name": "LIG디펜스앤에어로스페이스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800111",
+    "ticker": "079550",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800111"
+   },
+   {
+    "category": "IR",
+    "filer": "LIG디펜스앤에어로스페이스",
+    "name": "LIG디펜스앤에어로스페이스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800113",
+    "ticker": "079550",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800113"
+   },
+   {
+    "category": "자사주",
+    "filer": "아모레퍼시픽",
+    "name": "아모레퍼시픽",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029000577",
+    "ticker": "090430",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029000577"
+   },
+   {
+    "category": "실적",
+    "filer": "아모레퍼시픽",
+    "name": "아모레퍼시픽",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800690",
+    "ticker": "090430",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800690"
+   },
+   {
+    "category": "실적",
+    "filer": "SK이노베이션",
+    "name": "SK이노베이션",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800138",
+    "ticker": "096770",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800138"
+   },
+   {
+    "category": "실적",
+    "filer": "쎄트렉아이",
+    "name": "쎄트렉아이",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029900104",
+    "ticker": "099320",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029900104"
+   },
+   {
+    "category": "IR",
+    "filer": "풍산",
+    "name": "풍산",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800603",
+    "ticker": "103140",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800603"
+   },
+   {
+    "category": "실적",
+    "filer": "KB금융",
+    "name": "KB금융",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800345",
+    "ticker": "105560",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800345"
+   },
+   {
+    "category": "실적",
+    "filer": "KB금융",
+    "name": "KB금융",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800346",
+    "ticker": "105560",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800346"
+   },
+   {
+    "category": "실적",
+    "filer": "KB금융",
+    "name": "KB금융",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800350",
+    "ticker": "105560",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800350"
+   },
+   {
+    "category": "배당",
+    "filer": "KB금융",
+    "name": "KB금융",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800387",
+    "ticker": "105560",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800387"
+   },
+   {
+    "category": "배당",
+    "filer": "KB금융",
+    "name": "KB금융",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800391",
+    "ticker": "105560",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800391"
+   },
+   {
+    "category": "실적",
+    "filer": "두산밥캣",
+    "name": "두산밥캣",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800568",
+    "ticker": "241560",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800568"
+   },
+   {
+    "category": "배당",
+    "filer": "두산밥캣",
+    "name": "두산밥캣",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800687",
+    "ticker": "241560",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800687"
+   },
+   {
+    "category": "배당",
+    "filer": "두산밥캣",
+    "name": "두산밥캣",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800698",
+    "ticker": "241560",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800698"
+   },
+   {
+    "category": "실적",
+    "filer": "SK아이이테크놀로지",
+    "name": "SK아이이테크놀로지",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800128",
+    "ticker": "361610",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800128"
+   },
+   {
+    "category": "실적",
+    "filer": "두산로보틱스",
+    "name": "두산로보틱스",
+    "rcept_dt": "2026-10-29",
+    "rcept_no": "20261029800388",
+    "ticker": "454910",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261029800388"
+   },
+   {
+    "category": "IR",
+    "filer": "유한양행",
+    "name": "유한양행",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800260",
+    "ticker": "000100",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800260"
+   },
+   {
+    "category": "자사주",
+    "filer": "기아",
+    "name": "기아",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000550",
+    "ticker": "000270",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000550"
+   },
+   {
+    "category": "실적",
+    "filer": "기아",
+    "name": "기아",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800558",
+    "ticker": "000270",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800558"
+   },
+   {
+    "category": "IR",
+    "filer": "기아",
+    "name": "기아",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801258",
+    "ticker": "000270",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801258"
+   },
+   {
+    "category": "실적",
+    "filer": "현대건설",
+    "name": "현대건설",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800458",
+    "ticker": "000720",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800458"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성화재해상보험",
+    "name": "삼성화재",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801167",
+    "ticker": "000810",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801167"
+   },
+   {
+    "category": "실적",
+    "filer": "현대제철",
+    "name": "현대제철",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800538",
+    "ticker": "004020",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800538"
+   },
+   {
+    "category": "실적",
+    "filer": "현대제철",
+    "name": "현대제철",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800545",
+    "ticker": "004020",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800545"
+   },
+   {
+    "category": "IR",
+    "filer": "한미사이언스",
+    "name": "한미사이언스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801161",
+    "ticker": "008930",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801161"
+   },
+   {
+    "category": "IR",
+    "filer": "한미사이언스",
+    "name": "한미사이언스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801199",
+    "ticker": "008930",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801199"
+   },
+   {
+    "category": "IR",
+    "filer": "고려아연",
+    "name": "고려아연",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801330",
+    "ticker": "010130",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801330"
+   },
+   {
+    "category": "실적",
+    "filer": "현대위아",
+    "name": "현대위아",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800679",
+    "ticker": "011210",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800679"
+   },
+   {
+    "category": "자사주",
+    "filer": "현대모비스",
+    "name": "현대모비스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000571",
+    "ticker": "012330",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000571"
+   },
+   {
+    "category": "실적",
+    "filer": "현대모비스",
+    "name": "현대모비스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800221",
+    "ticker": "012330",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800221"
+   },
+   {
+    "category": "IR",
+    "filer": "현대모비스",
+    "name": "현대모비스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800253",
+    "ticker": "012330",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800253"
+   },
+   {
+    "category": "IR",
+    "filer": "현대모비스",
+    "name": "현대모비스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800645",
+    "ticker": "012330",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800645"
+   },
+   {
+    "category": "실적",
+    "filer": "제일기획",
+    "name": "제일기획",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800459",
+    "ticker": "030000",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800459"
+   },
+   {
+    "category": "자사주",
+    "filer": "SK",
+    "name": "SK",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000587",
+    "ticker": "034730",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000587"
+   },
+   {
+    "category": "주요사항",
+    "filer": "NAVER",
+    "name": "NAVER",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000001",
+    "ticker": "035420",
+    "title": "[기재정정]주요사항보고서(유상증자결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000001"
+   },
+   {
+    "category": "자사주",
+    "filer": "한국가스공사",
+    "name": "한국가스공사",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000433",
+    "ticker": "036460",
+    "title": "[기재정정]주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000433"
+   },
+   {
+    "category": "자사주",
+    "filer": "한국가스공사",
+    "name": "한국가스공사",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000492",
+    "ticker": "036460",
+    "title": "[기재정정]자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000492"
+   },
+   {
+    "category": "IR",
+    "filer": "NC",
+    "name": "NC",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800706",
+    "ticker": "036570",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800706"
+   },
+   {
+    "category": "실적",
+    "filer": "키움증권",
+    "name": "키움증권",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800044",
+    "ticker": "039490",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800044"
+   },
+   {
+    "category": "IR",
+    "filer": "키움증권",
+    "name": "키움증권",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800503",
+    "ticker": "039490",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800503"
+   },
+   {
+    "category": "실적",
+    "filer": "한미반도체",
+    "name": "한미반도체",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800184",
+    "ticker": "042700",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800184"
+   },
+   {
+    "category": "실적",
+    "filer": "LG씨엔에스",
+    "name": "LG씨엔에스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800194",
+    "ticker": "064400",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800194"
+   },
+   {
+    "category": "IR",
+    "filer": "LG씨엔에스",
+    "name": "LG씨엔에스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800215",
+    "ticker": "064400",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800215"
+   },
+   {
+    "category": "실적",
+    "filer": "SOOP",
+    "name": "SOOP",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030900808",
+    "ticker": "067160",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030900808"
+   },
+   {
+    "category": "자사주",
+    "filer": "제주반도체",
+    "name": "제주반도체",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000638",
+    "ticker": "080220",
+    "title": "자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000638"
+   },
+   {
+    "category": "주요사항",
+    "filer": "젬백스",
+    "name": "젬백스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000532",
+    "ticker": "082270",
+    "title": "합병등종료보고서(자산양수도)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000532"
+   },
+   {
+    "category": "실적",
+    "filer": "현대글로비스",
+    "name": "현대글로비스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800303",
+    "ticker": "086280",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800303"
+   },
+   {
+    "category": "IR",
+    "filer": "한미약품",
+    "name": "한미약품",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800861",
+    "ticker": "128940",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800861"
+   },
+   {
+    "category": "IR",
+    "filer": "한국콜마",
+    "name": "한국콜마",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800183",
+    "ticker": "161890",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800183"
+   },
+   {
+    "category": "주요사항",
+    "filer": "서진시스템",
+    "name": "서진시스템",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030900953",
+    "ticker": "178320",
+    "title": "[기재정정]최대주주변경을수반하는주식담보제공계약체결",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030900953"
+   },
+   {
+    "category": "실적",
+    "filer": "종근당",
+    "name": "종근당",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800726",
+    "ticker": "185750",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800726"
+   },
+   {
+    "category": "실적",
+    "filer": "HL만도",
+    "name": "HL만도",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800817",
+    "ticker": "204320",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800817"
+   },
+   {
+    "category": "주요사항",
+    "filer": "삼성바이오로직스",
+    "name": "삼성바이오로직스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000696",
+    "ticker": "207940",
+    "title": "특수관계인의유상증자참여",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000696"
+   },
+   {
+    "category": "주요사항",
+    "filer": "삼성바이오로직스",
+    "name": "삼성바이오로직스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000702",
+    "ticker": "207940",
+    "title": "특수관계인의유상증자참여",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000702"
+   },
+   {
+    "category": "주요사항",
+    "filer": "인카금융서비스",
+    "name": "인카금융서비스",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030900627",
+    "ticker": "211050",
+    "title": "[기재정정]최대주주변경을수반하는주식담보제공계약체결",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030900627"
+   },
+   {
+    "category": "IR",
+    "filer": "크래프톤",
+    "name": "크래프톤",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800865",
+    "ticker": "259960",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800865"
+   },
+   {
+    "category": "실적",
+    "filer": "에이피알",
+    "name": "에이피알",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800202",
+    "ticker": "278470",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800202"
+   },
+   {
+    "category": "IR",
+    "filer": "에이피알",
+    "name": "에이피알",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800892",
+    "ticker": "278470",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800892"
+   },
+   {
+    "category": "실적",
+    "filer": "효성티앤씨",
+    "name": "효성티앤씨",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801248",
+    "ticker": "298020",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801248"
+   },
+   {
+    "category": "IR",
+    "filer": "효성티앤씨",
+    "name": "효성티앤씨",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801268",
+    "ticker": "298020",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801268"
+   },
+   {
+    "category": "실적",
+    "filer": "효성중공업",
+    "name": "효성중공업",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800916",
+    "ticker": "298040",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800916"
+   },
+   {
+    "category": "IR",
+    "filer": "효성중공업",
+    "name": "효성중공업",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800927",
+    "ticker": "298040",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800927"
+   },
+   {
+    "category": "실적",
+    "filer": "HS효성첨단소재",
+    "name": "HS효성첨단소재",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801177",
+    "ticker": "298050",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801177"
+   },
+   {
+    "category": "IR",
+    "filer": "HS효성첨단소재",
+    "name": "HS효성첨단소재",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030801227",
+    "ticker": "298050",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030801227"
+   },
+   {
+    "category": "실적",
+    "filer": "현대오토에버",
+    "name": "현대오토에버",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800659",
+    "ticker": "307950",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800659"
+   },
+   {
+    "category": "IR",
+    "filer": "현대오토에버",
+    "name": "현대오토에버",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800685",
+    "ticker": "307950",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800685"
+   },
+   {
+    "category": "실적",
+    "filer": "DL이앤씨",
+    "name": "DL이앤씨",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030800725",
+    "ticker": "375500",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030800725"
+   },
+   {
+    "category": "자사주",
+    "filer": "HPSP",
+    "name": "HPSP",
+    "rcept_dt": "2026-10-30",
+    "rcept_no": "20261030000657",
+    "ticker": "403870",
+    "title": "자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261030000657"
+   },
+   {
+    "category": "실적",
+    "filer": "기아",
+    "name": "기아",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800493",
+    "ticker": "000270",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800493"
+   },
+   {
+    "category": "자사주",
+    "filer": "아모레퍼시픽홀딩스",
+    "name": "아모레퍼시픽홀딩스",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000197",
+    "ticker": "002790",
+    "title": "자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000197"
+   },
+   {
+    "category": "IR",
+    "filer": "삼양식품",
+    "name": "삼양식품",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800763",
+    "ticker": "003230",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800763"
+   },
+   {
+    "category": "IR",
+    "filer": "삼양식품",
+    "name": "삼양식품",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800768",
+    "ticker": "003230",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800768"
+   },
+   {
+    "category": "실적",
+    "filer": "포스코퓨처엠",
+    "name": "포스코퓨처엠",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800268",
+    "ticker": "003670",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800268"
+   },
+   {
+    "category": "실적",
+    "filer": "포스코퓨처엠",
+    "name": "포스코퓨처엠",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800270",
+    "ticker": "003670",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800270"
+   },
+   {
+    "category": "실적",
+    "filer": "현대자동차",
+    "name": "현대차",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800520",
+    "ticker": "005380",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800520"
+   },
+   {
+    "category": "실적",
+    "filer": "POSCO홀딩스",
+    "name": "POSCO홀딩스",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800417",
+    "ticker": "005490",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800417"
+   },
+   {
+    "category": "실적",
+    "filer": "POSCO홀딩스",
+    "name": "POSCO홀딩스",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800419",
+    "ticker": "005490",
+    "title": "영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800419"
+   },
+   {
+    "category": "실적",
+    "filer": "녹십자",
+    "name": "녹십자",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800193",
+    "ticker": "006280",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800193"
+   },
+   {
+    "category": "실적",
+    "filer": "포스코엠텍",
+    "name": "포스코엠텍",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102900383",
+    "ticker": "009520",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102900383"
+   },
+   {
+    "category": "실적",
+    "filer": "S-Oil",
+    "name": "S-Oil",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800404",
+    "ticker": "010950",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800404"
+   },
+   {
+    "category": "실적",
+    "filer": "동원시스템즈",
+    "name": "동원시스템즈",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800313",
+    "ticker": "014820",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800313"
+   },
+   {
+    "category": "실적",
+    "filer": "동원시스템즈",
+    "name": "동원시스템즈",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800326",
+    "ticker": "014820",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800326"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한국카본",
+    "name": "한국카본",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000095",
+    "ticker": "017960",
+    "title": "합병등종료보고서(합병)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000095"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한국카본",
+    "name": "한국카본",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000096",
+    "ticker": "017960",
+    "title": "합병등종료보고서(합병)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000096"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한국카본",
+    "name": "한국카본",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000097",
+    "ticker": "017960",
+    "title": "합병등종료보고서(합병)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000097"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한국카본",
+    "name": "한국카본",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000098",
+    "ticker": "017960",
+    "title": "합병등종료보고서(합병)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000098"
+   },
+   {
+    "category": "실적",
+    "filer": "포스코DX",
+    "name": "포스코DX",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800277",
+    "ticker": "022100",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800277"
+   },
+   {
+    "category": "실적",
+    "filer": "팬오션",
+    "name": "팬오션",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800247",
+    "ticker": "028670",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800247"
+   },
+   {
+    "category": "IR",
+    "filer": "NAVER",
+    "name": "NAVER",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800774",
+    "ticker": "035420",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800774"
+   },
+   {
+    "category": "주요사항",
+    "filer": "솔브레인홀딩스",
+    "name": "솔브레인홀딩스",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102900507",
+    "ticker": "036830",
+    "title": "기타경영사항(자율공시) (소규모합병 승인 이사회 결의(주주총회 갈음) 결과보고)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102900507"
+   },
+   {
+    "category": "실적",
+    "filer": "포스코인터내셔널",
+    "name": "포스코인터내셔널",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800220",
+    "ticker": "047050",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800220"
+   },
+   {
+    "category": "IR",
+    "filer": "한국항공우주",
+    "name": "한국항공우주",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800589",
+    "ticker": "047810",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800589"
+   },
+   {
+    "category": "자사주",
+    "filer": "미스토홀딩스",
+    "name": "미스토홀딩스",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000214",
+    "ticker": "081660",
+    "title": "자기주식취득결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000214"
+   },
+   {
+    "category": "주요사항",
+    "filer": "젬백스",
+    "name": "젬백스",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102900726",
+    "ticker": "082270",
+    "title": "[기재정정]최대주주변경을수반하는주식담보제공계약체결",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102900726"
+   },
+   {
+    "category": "IR",
+    "filer": "테크윙",
+    "name": "테크윙",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102900259",
+    "ticker": "089030",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102900259"
+   },
+   {
+    "category": "자사주",
+    "filer": "아모레퍼시픽",
+    "name": "아모레퍼시픽",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102000194",
+    "ticker": "090430",
+    "title": "자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102000194"
+   },
+   {
+    "category": "IR",
+    "filer": "한미약품",
+    "name": "한미약품",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800823",
+    "ticker": "128940",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800823"
+   },
+   {
+    "category": "주요사항",
+    "filer": "서진시스템",
+    "name": "서진시스템",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102900803",
+    "ticker": "178320",
+    "title": "[기재정정]최대주주변경을수반하는주식담보제공계약체결",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102900803"
+   },
+   {
+    "category": "IR",
+    "filer": "스튜디오드래곤",
+    "name": "스튜디오드래곤",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102900816",
+    "ticker": "253450",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102900816"
+   },
+   {
+    "category": "IR",
+    "filer": "에스케이바이오팜",
+    "name": "SK바이오팜",
+    "rcept_dt": "2026-11-02",
+    "rcept_no": "20261102800256",
+    "ticker": "326030",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261102800256"
+   },
+   {
+    "category": "실적",
+    "filer": "DL",
+    "name": "DL",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800376",
+    "ticker": "000210",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800376"
+   },
+   {
+    "category": "실적",
+    "filer": "동진쎄미켐",
+    "name": "동진쎄미켐",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900296",
+    "ticker": "005290",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900296"
+   },
+   {
+    "category": "IR",
+    "filer": "동원산업",
+    "name": "동원산업",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800574",
+    "ticker": "006040",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800574"
+   },
+   {
+    "category": "IR",
+    "filer": "현대모비스",
+    "name": "현대모비스",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800425",
+    "ticker": "012330",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800425"
+   },
+   {
+    "category": "IR",
+    "filer": "케이티",
+    "name": "KT",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800232",
+    "ticker": "030200",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800232"
+   },
+   {
+    "category": "실적",
+    "filer": "파라다이스",
+    "name": "파라다이스",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800461",
+    "ticker": "034230",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800461"
+   },
+   {
+    "category": "주요사항",
+    "filer": "NAVER",
+    "name": "NAVER",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103000311",
+    "ticker": "035420",
+    "title": "[기재정정]주요사항보고서(유상증자결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000311"
+   },
+   {
+    "category": "IR",
+    "filer": "카카오",
+    "name": "카카오",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800250",
+    "ticker": "035720",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800250"
+   },
+   {
+    "category": "IR",
+    "filer": "한미반도체",
+    "name": "한미반도체",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800375",
+    "ticker": "042700",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800375"
+   },
+   {
+    "category": "IR",
+    "filer": "한미반도체",
+    "name": "한미반도체",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800382",
+    "ticker": "042700",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800382"
+   },
+   {
+    "category": "실적",
+    "filer": "한국항공우주",
+    "name": "한국항공우주",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800386",
+    "ticker": "047810",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800386"
+   },
+   {
+    "category": "실적",
+    "filer": "한국항공우주",
+    "name": "한국항공우주",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800631",
+    "ticker": "047810",
+    "title": "[기재정정]연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800631"
+   },
+   {
+    "category": "실적",
+    "filer": "LG생활건강",
+    "name": "LG생활건강",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800407",
+    "ticker": "051900",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800407"
+   },
+   {
+    "category": "실적",
+    "filer": "고영",
+    "name": "고영",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900416",
+    "ticker": "098460",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900416"
+   },
+   {
+    "category": "실적",
+    "filer": "풍산",
+    "name": "풍산",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800095",
+    "ticker": "103140",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800095"
+   },
+   {
+    "category": "실적",
+    "filer": "풍산",
+    "name": "풍산",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800115",
+    "ticker": "103140",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800115"
+   },
+   {
+    "category": "실적",
+    "filer": "나노신소재",
+    "name": "나노신소재",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900287",
+    "ticker": "121600",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900287"
+   },
+   {
+    "category": "주요사항",
+    "filer": "서진시스템",
+    "name": "서진시스템",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900379",
+    "ticker": "178320",
+    "title": "[기재정정]최대주주변경을수반하는주식담보제공계약체결",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900379"
+   },
+   {
+    "category": "실적",
+    "filer": "알테오젠",
+    "name": "알테오젠",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900196",
+    "ticker": "196170",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900196"
+   },
+   {
+    "category": "실적",
+    "filer": "심텍",
+    "name": "심텍",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900445",
+    "ticker": "222800",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900445"
+   },
+   {
+    "category": "IR",
+    "filer": "심텍",
+    "name": "심텍",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900449",
+    "ticker": "222800",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900449"
+   },
+   {
+    "category": "자사주",
+    "filer": "크래프톤",
+    "name": "크래프톤",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103000268",
+    "ticker": "259960",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103000268"
+   },
+   {
+    "category": "주요사항",
+    "filer": "루닛",
+    "name": "루닛",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900508",
+    "ticker": "328130",
+    "title": "전환사채(해외전환사채포함)발행후만기전사채취득",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900508"
+   },
+   {
+    "category": "실적",
+    "filer": "하이브",
+    "name": "하이브",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800396",
+    "ticker": "352820",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800396"
+   },
+   {
+    "category": "실적",
+    "filer": "LG에너지솔루션",
+    "name": "LG에너지솔루션",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800087",
+    "ticker": "373220",
+    "title": "[기재정정]연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800087"
+   },
+   {
+    "category": "실적",
+    "filer": "디어유",
+    "name": "디어유",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900398",
+    "ticker": "376300",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900398"
+   },
+   {
+    "category": "IR",
+    "filer": "디어유",
+    "name": "디어유",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103900401",
+    "ticker": "376300",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103900401"
+   },
+   {
+    "category": "실적",
+    "filer": "카카오페이",
+    "name": "카카오페이",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800277",
+    "ticker": "377300",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800277"
+   },
+   {
+    "category": "실적",
+    "filer": "카카오페이",
+    "name": "카카오페이",
+    "rcept_dt": "2026-11-03",
+    "rcept_no": "20261103800279",
+    "ticker": "377300",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261103800279"
+   },
+   {
+    "category": "실적",
+    "filer": "한화",
+    "name": "한화",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800213",
+    "ticker": "000880",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800213"
+   },
+   {
+    "category": "실적",
+    "filer": "세아제강지주",
+    "name": "세아제강지주",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800263",
+    "ticker": "003030",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800263"
+   },
+   {
+    "category": "IR",
+    "filer": "현대자동차",
+    "name": "현대차",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800225",
+    "ticker": "005380",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800225"
+   },
+   {
+    "category": "자사주",
+    "filer": "삼성전자",
+    "name": "삼성전자",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104000325",
+    "ticker": "005930",
+    "title": "자기주식처분결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104000325"
+   },
+   {
+    "category": "실적",
+    "filer": "GS리테일",
+    "name": "GS리테일",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800058",
+    "ticker": "007070",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800058"
+   },
+   {
+    "category": "IR",
+    "filer": "GS리테일",
+    "name": "GS리테일",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800079",
+    "ticker": "007070",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800079"
+   },
+   {
+    "category": "실적",
+    "filer": "고려아연",
+    "name": "고려아연",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800474",
+    "ticker": "010130",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800474"
+   },
+   {
+    "category": "실적",
+    "filer": "고려아연",
+    "name": "고려아연",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800476",
+    "ticker": "010130",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800476"
+   },
+   {
+    "category": "배당",
+    "filer": "고려아연",
+    "name": "고려아연",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800480",
+    "ticker": "010130",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800480"
+   },
+   {
+    "category": "배당",
+    "filer": "고려아연",
+    "name": "고려아연",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800481",
+    "ticker": "010130",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800481"
+   },
+   {
+    "category": "자사주",
+    "filer": "성광벤드",
+    "name": "성광벤드",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104000052",
+    "ticker": "014620",
+    "title": "주요사항보고서(자기주식취득신탁계약해지결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104000052"
+   },
+   {
+    "category": "실적",
+    "filer": "SK텔레콤",
+    "name": "SK텔레콤",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800081",
+    "ticker": "017670",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800081"
+   },
+   {
+    "category": "실적",
+    "filer": "SK텔레콤",
+    "name": "SK텔레콤",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800085",
+    "ticker": "017670",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800085"
+   },
+   {
+    "category": "IR",
+    "filer": "롯데쇼핑",
+    "name": "롯데쇼핑",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800511",
+    "ticker": "023530",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800511"
+   },
+   {
+    "category": "실적",
+    "filer": "LG유플러스",
+    "name": "LG유플러스",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800115",
+    "ticker": "032640",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800115"
+   },
+   {
+    "category": "실적",
+    "filer": "LG유플러스",
+    "name": "LG유플러스",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800119",
+    "ticker": "032640",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800119"
+   },
+   {
+    "category": "IR",
+    "filer": "JYP Ent.",
+    "name": "JYP Ent.",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900674",
+    "ticker": "035900",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900674"
+   },
+   {
+    "category": "실적",
+    "filer": "주성엔지니어링",
+    "name": "주성엔지니어링",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900314",
+    "ticker": "036930",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900314"
+   },
+   {
+    "category": "실적",
+    "filer": "에스엠",
+    "name": "에스엠",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900246",
+    "ticker": "041510",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900246"
+   },
+   {
+    "category": "실적",
+    "filer": "에스엠",
+    "name": "에스엠",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900247",
+    "ticker": "041510",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900247"
+   },
+   {
+    "category": "IR",
+    "filer": "한전KPS",
+    "name": "한전KPS",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800439",
+    "ticker": "051600",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800439"
+   },
+   {
+    "category": "실적",
+    "filer": "코나아이",
+    "name": "코나아이",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900037",
+    "ticker": "052400",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900037"
+   },
+   {
+    "category": "실적",
+    "filer": "산일전기",
+    "name": "산일전기",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800392",
+    "ticker": "062040",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800392"
+   },
+   {
+    "category": "실적",
+    "filer": "산일전기",
+    "name": "산일전기",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800393",
+    "ticker": "062040",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800393"
+   },
+   {
+    "category": "실적",
+    "filer": "대웅제약",
+    "name": "대웅제약",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800041",
+    "ticker": "069620",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800041"
+   },
+   {
+    "category": "실적",
+    "filer": "현대백화점",
+    "name": "현대백화점",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800269",
+    "ticker": "069960",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800269"
+   },
+   {
+    "category": "IR",
+    "filer": "현대백화점",
+    "name": "현대백화점",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800302",
+    "ticker": "069960",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800302"
+   },
+   {
+    "category": "자사주",
+    "filer": "젬백스",
+    "name": "젬백스",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104000175",
+    "ticker": "082270",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104000175"
+   },
+   {
+    "category": "IR",
+    "filer": "CJ제일제당",
+    "name": "CJ제일제당",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800482",
+    "ticker": "097950",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800482"
+   },
+   {
+    "category": "실적",
+    "filer": "휴젤",
+    "name": "휴젤",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900284",
+    "ticker": "145020",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900284"
+   },
+   {
+    "category": "IR",
+    "filer": "휴젤",
+    "name": "휴젤",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900488",
+    "ticker": "145020",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900488"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한진칼",
+    "name": "한진칼",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800730",
+    "ticker": "180640",
+    "title": "최대주주변경",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800730"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한진칼",
+    "name": "한진칼",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800732",
+    "ticker": "180640",
+    "title": "최대주주등소유주식변동신고서(최대주주변경시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800732"
+   },
+   {
+    "category": "실적",
+    "filer": "이녹스첨단소재",
+    "name": "이녹스첨단소재",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900472",
+    "ticker": "272290",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900472"
+   },
+   {
+    "category": "IR",
+    "filer": "롯데웰푸드",
+    "name": "롯데웰푸드",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800194",
+    "ticker": "280360",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800194"
+   },
+   {
+    "category": "IR",
+    "filer": "롯데웰푸드",
+    "name": "롯데웰푸드",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800195",
+    "ticker": "280360",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800195"
+   },
+   {
+    "category": "IR",
+    "filer": "BGF리테일",
+    "name": "BGF리테일",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800556",
+    "ticker": "282330",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800556"
+   },
+   {
+    "category": "실적",
+    "filer": "카카오게임즈",
+    "name": "카카오게임즈",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104900036",
+    "ticker": "293490",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104900036"
+   },
+   {
+    "category": "실적",
+    "filer": "카카오뱅크",
+    "name": "카카오뱅크",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800002",
+    "ticker": "323410",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800002"
+   },
+   {
+    "category": "IR",
+    "filer": "카카오뱅크",
+    "name": "카카오뱅크",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104800410",
+    "ticker": "323410",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104800410"
+   },
+   {
+    "category": "주요사항",
+    "filer": "루닛",
+    "name": "루닛",
+    "rcept_dt": "2026-11-04",
+    "rcept_no": "20261104000318",
+    "ticker": "328130",
+    "title": "주요사항보고서(전환사채권발행결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261104000318"
+   },
+   {
+    "category": "실적",
+    "filer": "케이씨씨",
+    "name": "KCC",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800261",
+    "ticker": "002380",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800261"
+   },
+   {
+    "category": "주요사항",
+    "filer": "엘에스일렉트릭",
+    "name": "LS ELECTRIC",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800509",
+    "ticker": "010120",
+    "title": "영업양도결정(종속회사의주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800509"
+   },
+   {
+    "category": "자사주",
+    "filer": "에스원",
+    "name": "에스원",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105000556",
+    "ticker": "012750",
+    "title": "자기주식취득결과보고서",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000556"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성증권",
+    "name": "삼성증권",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800459",
+    "ticker": "016360",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800459"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성증권",
+    "name": "삼성증권",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800479",
+    "ticker": "016360",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800479"
+   },
+   {
+    "category": "실적",
+    "filer": "한온시스템",
+    "name": "한온시스템",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800291",
+    "ticker": "018880",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800291"
+   },
+   {
+    "category": "배당",
+    "filer": "코웨이",
+    "name": "코웨이",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800904",
+    "ticker": "021240",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800904"
+   },
+   {
+    "category": "배당",
+    "filer": "코웨이",
+    "name": "코웨이",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800921",
+    "ticker": "021240",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800921"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한화머시너리앤서비스홀딩스",
+    "name": "한화머시너리앤서비스홀딩스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800429",
+    "ticker": "0220W0",
+    "title": "최대주주변경",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800429"
+   },
+   {
+    "category": "주요사항",
+    "filer": "한화머시너리앤서비스홀딩스",
+    "name": "한화머시너리앤서비스홀딩스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800559",
+    "ticker": "0220W0",
+    "title": "최대주주등소유주식변동신고서(최대주주변경시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800559"
+   },
+   {
+    "category": "주요사항",
+    "filer": "삼성물산",
+    "name": "삼성물산",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800955",
+    "ticker": "028260",
+    "title": "[기재정정]유상증자결정(종속회사의주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800955"
+   },
+   {
+    "category": "실적",
+    "filer": "케이티앤지",
+    "name": "KT&G",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800482",
+    "ticker": "033780",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800482"
+   },
+   {
+    "category": "자사주",
+    "filer": "카카오",
+    "name": "카카오",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105000008",
+    "ticker": "035720",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000008"
+   },
+   {
+    "category": "주요사항",
+    "filer": "카카오",
+    "name": "카카오",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105000084",
+    "ticker": "035720",
+    "title": "[기재정정]주요사항보고서(회사합병결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000084"
+   },
+   {
+    "category": "주요사항",
+    "filer": "카카오",
+    "name": "카카오",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105000098",
+    "ticker": "035720",
+    "title": "[기재정정]주요사항보고서(회사분할결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000098"
+   },
+   {
+    "category": "실적",
+    "filer": "카카오",
+    "name": "카카오",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800007",
+    "ticker": "035720",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800007"
+   },
+   {
+    "category": "실적",
+    "filer": "카카오",
+    "name": "카카오",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800008",
+    "ticker": "035720",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800008"
+   },
+   {
+    "category": "실적",
+    "filer": "CJ ENM",
+    "name": "CJ ENM",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900301",
+    "ticker": "035760",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900301"
+   },
+   {
+    "category": "IR",
+    "filer": "CJ ENM",
+    "name": "CJ ENM",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900518",
+    "ticker": "035760",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900518"
+   },
+   {
+    "category": "실적",
+    "filer": "카페24",
+    "name": "카페24",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900546",
+    "ticker": "042000",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900546"
+   },
+   {
+    "category": "실적",
+    "filer": "LG화학",
+    "name": "LG화학",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800303",
+    "ticker": "051910",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800303"
+   },
+   {
+    "category": "실적",
+    "filer": "엘앤에프",
+    "name": "엘앤에프",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800489",
+    "ticker": "066970",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800489"
+   },
+   {
+    "category": "실적",
+    "filer": "한국금융지주",
+    "name": "한국금융지주",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800541",
+    "ticker": "071050",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800541"
+   },
+   {
+    "category": "실적",
+    "filer": "한국금융지주",
+    "name": "한국금융지주",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800548",
+    "ticker": "071050",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800548"
+   },
+   {
+    "category": "IR",
+    "filer": "지역난방공사",
+    "name": "지역난방공사",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800344",
+    "ticker": "071320",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800344"
+   },
+   {
+    "category": "실적",
+    "filer": "GS",
+    "name": "GS",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800350",
+    "ticker": "078930",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800350"
+   },
+   {
+    "category": "실적",
+    "filer": "에코프로",
+    "name": "에코프로",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900298",
+    "ticker": "086520",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900298"
+   },
+   {
+    "category": "IR",
+    "filer": "리가켐바이오",
+    "name": "리가켐바이오",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900327",
+    "ticker": "141080",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900327"
+   },
+   {
+    "category": "IR",
+    "filer": "코스맥스",
+    "name": "코스맥스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800169",
+    "ticker": "192820",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800169"
+   },
+   {
+    "category": "주요사항",
+    "filer": "삼성바이오로직스",
+    "name": "삼성바이오로직스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105000355",
+    "ticker": "207940",
+    "title": "[기재정정]주요사항보고서(유상증자결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000355"
+   },
+   {
+    "category": "주요사항",
+    "filer": "삼성바이오로직스",
+    "name": "삼성바이오로직스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800618",
+    "ticker": "207940",
+    "title": "유상증자신주발행가액(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800618"
+   },
+   {
+    "category": "실적",
+    "filer": "덕산네오룩스",
+    "name": "덕산네오룩스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900210",
+    "ticker": "213420",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900210"
+   },
+   {
+    "category": "IR",
+    "filer": "덕산네오룩스",
+    "name": "덕산네오룩스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900232",
+    "ticker": "213420",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900232"
+   },
+   {
+    "category": "IR",
+    "filer": "클래시스",
+    "name": "클래시스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900645",
+    "ticker": "214150",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900645"
+   },
+   {
+    "category": "실적",
+    "filer": "아이쓰리시스템",
+    "name": "아이쓰리시스템",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900183",
+    "ticker": "214430",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900183"
+   },
+   {
+    "category": "IR",
+    "filer": "파마리서치",
+    "name": "파마리서치",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900791",
+    "ticker": "214450",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900791"
+   },
+   {
+    "category": "실적",
+    "filer": "에코프로비엠",
+    "name": "에코프로비엠",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900114",
+    "ticker": "247540",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900114"
+   },
+   {
+    "category": "IR",
+    "filer": "에코프로비엠",
+    "name": "에코프로비엠",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900135",
+    "ticker": "247540",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900135"
+   },
+   {
+    "category": "실적",
+    "filer": "넷마블",
+    "name": "넷마블",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800523",
+    "ticker": "251270",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800523"
+   },
+   {
+    "category": "실적",
+    "filer": "스튜디오드래곤",
+    "name": "스튜디오드래곤",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900281",
+    "ticker": "253450",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900281"
+   },
+   {
+    "category": "실적",
+    "filer": "BGF리테일",
+    "name": "BGF리테일",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800405",
+    "ticker": "282330",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800405"
+   },
+   {
+    "category": "IR",
+    "filer": "카카오게임즈",
+    "name": "카카오게임즈",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105900650",
+    "ticker": "293490",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105900650"
+   },
+   {
+    "category": "실적",
+    "filer": "SK바이오사이언스",
+    "name": "SK바이오사이언스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800512",
+    "ticker": "302440",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800512"
+   },
+   {
+    "category": "IR",
+    "filer": "SK바이오사이언스",
+    "name": "SK바이오사이언스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800609",
+    "ticker": "302440",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800609"
+   },
+   {
+    "category": "주요사항",
+    "filer": "태성",
+    "name": "태성",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105000553",
+    "ticker": "323280",
+    "title": "주요사항보고서(전환사채권발행결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105000553"
+   },
+   {
+    "category": "실적",
+    "filer": "에스케이바이오팜",
+    "name": "SK바이오팜",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800127",
+    "ticker": "326030",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800127"
+   },
+   {
+    "category": "IR",
+    "filer": "F&F",
+    "name": "F&F",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800946",
+    "ticker": "383220",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800946"
+   },
+   {
+    "category": "IR",
+    "filer": "F&F",
+    "name": "F&F",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800947",
+    "ticker": "383220",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800947"
+   },
+   {
+    "category": "실적",
+    "filer": "에코프로머티",
+    "name": "에코프로머티",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800323",
+    "ticker": "450080",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800323"
+   },
+   {
+    "category": "IR",
+    "filer": "두산로보틱스",
+    "name": "두산로보틱스",
+    "rcept_dt": "2026-11-05",
+    "rcept_no": "20261105800603",
+    "ticker": "454910",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261105800603"
+   },
+   {
+    "category": "실적",
+    "filer": "삼양식품",
+    "name": "삼양식품",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800605",
+    "ticker": "003230",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800605"
+   },
+   {
+    "category": "IR",
+    "filer": "삼양식품",
+    "name": "삼양식품",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800648",
+    "ticker": "003230",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800648"
+   },
+   {
+    "category": "주요사항",
+    "filer": "LS",
+    "name": "LS",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800944",
+    "ticker": "006260",
+    "title": "유상증자또는주식관련사채등의발행결과(자율공시)(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800944"
+   },
+   {
+    "category": "실적",
+    "filer": "롯데케미칼",
+    "name": "롯데케미칼",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800601",
+    "ticker": "011170",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800601"
+   },
+   {
+    "category": "실적",
+    "filer": "금호석유화학",
+    "name": "금호석유화학",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800457",
+    "ticker": "011780",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800457"
+   },
+   {
+    "category": "IR",
+    "filer": "금호석유화학",
+    "name": "금호석유화학",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800487",
+    "ticker": "011780",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800487"
+   },
+   {
+    "category": "자사주",
+    "filer": "한화에어로스페이스",
+    "name": "한화에어로스페이스",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106000139",
+    "ticker": "012450",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000139"
+   },
+   {
+    "category": "실적",
+    "filer": "성광벤드",
+    "name": "성광벤드",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900261",
+    "ticker": "014620",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900261"
+   },
+   {
+    "category": "실적",
+    "filer": "코웨이",
+    "name": "코웨이",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800224",
+    "ticker": "021240",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800224"
+   },
+   {
+    "category": "실적",
+    "filer": "롯데쇼핑",
+    "name": "롯데쇼핑",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800080",
+    "ticker": "023530",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800080"
+   },
+   {
+    "category": "실적",
+    "filer": "강원랜드",
+    "name": "강원랜드",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800609",
+    "ticker": "035250",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800609"
+   },
+   {
+    "category": "주요사항",
+    "filer": "NAVER",
+    "name": "NAVER",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800553",
+    "ticker": "035420",
+    "title": "유상증자또는주식관련사채등의발행결과(자율공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800553"
+   },
+   {
+    "category": "IR",
+    "filer": "LG화학",
+    "name": "LG화학",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800943",
+    "ticker": "051910",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800943"
+   },
+   {
+    "category": "IR",
+    "filer": "코나아이",
+    "name": "코나아이",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900440",
+    "ticker": "052400",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900440"
+   },
+   {
+    "category": "IR",
+    "filer": "신한지주",
+    "name": "신한지주",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800533",
+    "ticker": "055550",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800533"
+   },
+   {
+    "category": "실적",
+    "filer": "웹젠",
+    "name": "웹젠",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900615",
+    "ticker": "069080",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900615"
+   },
+   {
+    "category": "주요사항",
+    "filer": "LIG디펜스앤에어로스페이스",
+    "name": "LIG디펜스앤에어로스페이스",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106000234",
+    "ticker": "079550",
+    "title": "[기재정정]주요사항보고서(유상증자결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000234"
+   },
+   {
+    "category": "실적",
+    "filer": "LIG디펜스앤에어로스페이스",
+    "name": "LIG디펜스앤에어로스페이스",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800588",
+    "ticker": "079550",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800588"
+   },
+   {
+    "category": "자사주",
+    "filer": "한화엔진",
+    "name": "한화엔진",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106000185",
+    "ticker": "082740",
+    "title": "주요사항보고서(자기주식취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000185"
+   },
+   {
+    "category": "실적",
+    "filer": "한화엔진",
+    "name": "한화엔진",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800463",
+    "ticker": "082740",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800463"
+   },
+   {
+    "category": "IR",
+    "filer": "현대글로비스",
+    "name": "현대글로비스",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800241",
+    "ticker": "086280",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800241"
+   },
+   {
+    "category": "IR",
+    "filer": "현대글로비스",
+    "name": "현대글로비스",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800248",
+    "ticker": "086280",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800248"
+   },
+   {
+    "category": "IR",
+    "filer": "ISC",
+    "name": "ISC",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900158",
+    "ticker": "095340",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900158"
+   },
+   {
+    "category": "실적",
+    "filer": "씨젠",
+    "name": "씨젠",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900600",
+    "ticker": "096530",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900600"
+   },
+   {
+    "category": "주요사항",
+    "filer": "금융감독원",
+    "name": "SK이노베이션",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106100004",
+    "ticker": "096770",
+    "title": "정정신고서제출요구( 2026.10.28. 제출 증권신고서(합병) )",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106100004"
+   },
+   {
+    "category": "실적",
+    "filer": "씨에스윈드",
+    "name": "씨에스윈드",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800395",
+    "ticker": "112610",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800395"
+   },
+   {
+    "category": "자사주",
+    "filer": "나노신소재",
+    "name": "나노신소재",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106000335",
+    "ticker": "121600",
+    "title": "주요사항보고서(자기주식처분결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000335"
+   },
+   {
+    "category": "IR",
+    "filer": "에스디바이오센서",
+    "name": "에스디바이오센서",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800352",
+    "ticker": "137310",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800352"
+   },
+   {
+    "category": "IR",
+    "filer": "피엔티",
+    "name": "피엔티",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900321",
+    "ticker": "137400",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900321"
+   },
+   {
+    "category": "배당",
+    "filer": "메리츠금융지주",
+    "name": "메리츠금융지주",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800959",
+    "ticker": "138040",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800959"
+   },
+   {
+    "category": "배당",
+    "filer": "메리츠금융지주",
+    "name": "메리츠금융지주",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800968",
+    "ticker": "138040",
+    "title": "현금ㆍ현물배당결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800968"
+   },
+   {
+    "category": "실적",
+    "filer": "한국타이어앤테크놀로지",
+    "name": "한국타이어앤테크놀로지",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800449",
+    "ticker": "161390",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800449"
+   },
+   {
+    "category": "실적",
+    "filer": "한국콜마",
+    "name": "한국콜마",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800125",
+    "ticker": "161890",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800125"
+   },
+   {
+    "category": "실적",
+    "filer": "한국콜마",
+    "name": "한국콜마",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800151",
+    "ticker": "161890",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800151"
+   },
+   {
+    "category": "IR",
+    "filer": "더블유게임즈",
+    "name": "더블유게임즈",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106800709",
+    "ticker": "192080",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106800709"
+   },
+   {
+    "category": "실적",
+    "filer": "파마리서치",
+    "name": "파마리서치",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900196",
+    "ticker": "214450",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900196"
+   },
+   {
+    "category": "실적",
+    "filer": "코스메카코리아",
+    "name": "코스메카코리아",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900602",
+    "ticker": "241710",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900602"
+   },
+   {
+    "category": "IR",
+    "filer": "펄어비스",
+    "name": "펄어비스",
+    "rcept_dt": "2026-11-06",
+    "rcept_no": "20261106900684",
+    "ticker": "263750",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106900684"
+   },
+   {
+    "category": "실적",
+    "filer": "두산",
+    "name": "두산",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800403",
+    "ticker": "000150",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800403"
+   },
+   {
+    "category": "배당",
+    "filer": "두산",
+    "name": "두산",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800479",
+    "ticker": "000150",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800479"
+   },
+   {
+    "category": "배당",
+    "filer": "두산",
+    "name": "두산",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800497",
+    "ticker": "000150",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800497"
+   },
+   {
+    "category": "주요사항",
+    "filer": "DL",
+    "name": "DL",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800728",
+    "ticker": "000210",
+    "title": "회사분할결정(종속회사의주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800728"
+   },
+   {
+    "category": "실적",
+    "filer": "한국앤컴퍼니",
+    "name": "한국앤컴퍼니",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800233",
+    "ticker": "000240",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800233"
+   },
+   {
+    "category": "IR",
+    "filer": "기아",
+    "name": "기아",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800476",
+    "ticker": "000270",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800476"
+   },
+   {
+    "category": "IR",
+    "filer": "기아",
+    "name": "기아",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800482",
+    "ticker": "000270",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800482"
+   },
+   {
+    "category": "IR",
+    "filer": "현대건설",
+    "name": "현대건설",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800406",
+    "ticker": "000720",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800406"
+   },
+   {
+    "category": "IR",
+    "filer": "현대건설",
+    "name": "현대건설",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800410",
+    "ticker": "000720",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800410"
+   },
+   {
+    "category": "IR",
+    "filer": "현대건설",
+    "name": "현대건설",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800419",
+    "ticker": "000720",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800419"
+   },
+   {
+    "category": "IR",
+    "filer": "현대건설",
+    "name": "현대건설",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800423",
+    "ticker": "000720",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800423"
+   },
+   {
+    "category": "IR",
+    "filer": "현대건설",
+    "name": "현대건설",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800430",
+    "ticker": "000720",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800430"
+   },
+   {
+    "category": "IR",
+    "filer": "DB하이텍",
+    "name": "DB하이텍",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800640",
+    "ticker": "000990",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800640"
+   },
+   {
+    "category": "배당",
+    "filer": "CJ",
+    "name": "CJ",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800686",
+    "ticker": "001040",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800686"
+   },
+   {
+    "category": "배당",
+    "filer": "CJ",
+    "name": "CJ",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800712",
+    "ticker": "001040",
+    "title": "현금ㆍ현물배당결정(자회사의 주요경영사항)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800712"
+   },
+   {
+    "category": "실적",
+    "filer": "롯데칠성음료",
+    "name": "롯데칠성",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800266",
+    "ticker": "005300",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800266"
+   },
+   {
+    "category": "IR",
+    "filer": "롯데칠성음료",
+    "name": "롯데칠성",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800601",
+    "ticker": "005300",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800601"
+   },
+   {
+    "category": "실적",
+    "filer": "한샘",
+    "name": "한샘",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800732",
+    "ticker": "009240",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800732"
+   },
+   {
+    "category": "IR",
+    "filer": "LG이노텍",
+    "name": "LG이노텍",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800785",
+    "ticker": "011070",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800785"
+   },
+   {
+    "category": "IR",
+    "filer": "한국전력공사",
+    "name": "한국전력",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800307",
+    "ticker": "015760",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800307"
+   },
+   {
+    "category": "IR",
+    "filer": "코웨이",
+    "name": "코웨이",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800587",
+    "ticker": "021240",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800587"
+   },
+   {
+    "category": "IR",
+    "filer": "삼성E&A",
+    "name": "삼성E&A",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800502",
+    "ticker": "028050",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800502"
+   },
+   {
+    "category": "실적",
+    "filer": "한전KPS",
+    "name": "한전KPS",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800416",
+    "ticker": "051600",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800416"
+   },
+   {
+    "category": "실적",
+    "filer": "한전기술",
+    "name": "한전기술",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800643",
+    "ticker": "052690",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800643"
+   },
+   {
+    "category": "IR",
+    "filer": "산일전기",
+    "name": "산일전기",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800751",
+    "ticker": "062040",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800751"
+   },
+   {
+    "category": "IR",
+    "filer": "티씨케이",
+    "name": "티씨케이",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900415",
+    "ticker": "064760",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900415"
+   },
+   {
+    "category": "실적",
+    "filer": "셀트리온제약",
+    "name": "셀트리온제약",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900452",
+    "ticker": "068760",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900452"
+   },
+   {
+    "category": "배당",
+    "filer": "CJ제일제당",
+    "name": "CJ제일제당",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800685",
+    "ticker": "097950",
+    "title": "현금ㆍ현물배당을위한주주명부폐쇄(기준일)결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800685"
+   },
+   {
+    "category": "배당",
+    "filer": "CJ제일제당",
+    "name": "CJ제일제당",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800711",
+    "ticker": "097950",
+    "title": "현금ㆍ현물배당결정",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800711"
+   },
+   {
+    "category": "실적",
+    "filer": "와이지엔터테인먼트",
+    "name": "와이지엔터테인먼트",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900258",
+    "ticker": "122870",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900258"
+   },
+   {
+    "category": "IR",
+    "filer": "와이지엔터테인먼트",
+    "name": "와이지엔터테인먼트",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900271",
+    "ticker": "122870",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900271"
+   },
+   {
+    "category": "IR",
+    "filer": "iM금융지주",
+    "name": "iM금융지주",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800146",
+    "ticker": "139130",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800146"
+   },
+   {
+    "category": "IR",
+    "filer": "한국콜마",
+    "name": "한국콜마",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800116",
+    "ticker": "161890",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800116"
+   },
+   {
+    "category": "주요사항",
+    "filer": "서진시스템",
+    "name": "서진시스템",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261106000481",
+    "ticker": "178320",
+    "title": "주요사항보고서(전환사채권발행결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000481"
+   },
+   {
+    "category": "주요사항",
+    "filer": "서진시스템",
+    "name": "서진시스템",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261106000482",
+    "ticker": "178320",
+    "title": "주요사항보고서(전환사채권발행결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261106000482"
+   },
+   {
+    "category": "주요사항",
+    "filer": "서진시스템",
+    "name": "서진시스템",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109000003",
+    "ticker": "178320",
+    "title": "[기재정정]주요사항보고서(전환사채권발행결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000003"
+   },
+   {
+    "category": "자사주",
+    "filer": "인카금융서비스",
+    "name": "인카금융서비스",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109000391",
+    "ticker": "211050",
+    "title": "주요사항보고서(자기주식취득신탁계약체결결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000391"
+   },
+   {
+    "category": "실적",
+    "filer": "메가스터디교육",
+    "name": "메가스터디교육",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900648",
+    "ticker": "215200",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900648"
+   },
+   {
+    "category": "실적",
+    "filer": "원익IPS",
+    "name": "원익IPS",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900411",
+    "ticker": "240810",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900411"
+   },
+   {
+    "category": "IR",
+    "filer": "코스메카코리아",
+    "name": "코스메카코리아",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900454",
+    "ticker": "241710",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900454"
+   },
+   {
+    "category": "실적",
+    "filer": "펌텍코리아",
+    "name": "펌텍코리아",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900494",
+    "ticker": "251970",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900494"
+   },
+   {
+    "category": "IR",
+    "filer": "펌텍코리아",
+    "name": "펌텍코리아",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900626",
+    "ticker": "251970",
+    "title": "기업설명회(IR)개최",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900626"
+   },
+   {
+    "category": "실적",
+    "filer": "SK케미칼",
+    "name": "SK케미칼",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800448",
+    "ticker": "285130",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800448"
+   },
+   {
+    "category": "실적",
+    "filer": "SK케미칼",
+    "name": "SK케미칼",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800451",
+    "ticker": "285130",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800451"
+   },
+   {
+    "category": "IR",
+    "filer": "SK케미칼",
+    "name": "SK케미칼",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109800489",
+    "ticker": "285130",
+    "title": "기업설명회(IR)개최(안내공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109800489"
+   },
+   {
+    "category": "주요사항",
+    "filer": "엘앤씨바이오",
+    "name": "엘앤씨바이오",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109000134",
+    "ticker": "290650",
+    "title": "주요사항보고서(자기전환사채만기전취득결정)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109000134"
+   },
+   {
+    "category": "실적",
+    "filer": "엘앤씨바이오",
+    "name": "엘앤씨바이오",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900320",
+    "ticker": "290650",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900320"
+   },
+   {
+    "category": "실적",
+    "filer": "엘앤씨바이오",
+    "name": "엘앤씨바이오",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900321",
+    "ticker": "290650",
+    "title": "영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900321"
+   },
+   {
+    "category": "실적",
+    "filer": "씨앤씨인터내셔널",
+    "name": "씨앤씨인터내셔널",
+    "rcept_dt": "2026-11-09",
+    "rcept_no": "20261109900490",
+    "ticker": "352480",
+    "title": "연결재무제표기준영업(잠정)실적(공정공시)",
+    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261109900490"
+   }
+  ],
+  "note": "제목·접수일·링크만. 본문은 링크에서 확인. 라운드 당일 07:00 이후 공시는 포함되지 않음",
+  "source": "OpenDART 공시검색",
+  "status": "ok",
+  "to": "2026-11-09"
+ },
+ "generated_at": "2026-11-10T06:51:14+09:00",
+ "institutional_13f": {
+  "funds": [
+   {
+    "filed": "2026-08-14",
+    "name": "Berkshire Hathaway",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "hold",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 22.04
+     },
+     {
+      "change": "hold",
+      "cusip": "025816109",
+      "name": "AMERICAN EXPRESS CO",
+      "put_call": null,
+      "weight_pct": 17.14
+     },
+     {
+      "change": "hold",
+      "cusip": "191216100",
+      "name": "COCA COLA CO",
+      "put_call": null,
+      "weight_pct": 10.86
+     },
+     {
+      "change": "add",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 9.41
+     },
+     {
+      "change": "reduce",
+      "cusip": "060505104",
+      "name": "BANK OF AMER CORP",
+      "put_call": null,
+      "weight_pct": 9.2
+     },
+     {
+      "change": "hold",
+      "cusip": "166764100",
+      "name": "CHEVRON CORPORATION",
+      "put_call": null,
+      "weight_pct": 4.67
+     },
+     {
+      "change": "hold",
+      "cusip": "674599105",
+      "name": "OCCIDENTAL PETE CORP",
+      "put_call": null,
+      "weight_pct": 4.3
+     },
+     {
+      "change": "hold",
+      "cusip": "H1467J104",
+      "name": "CHUBB LIMITED",
+      "put_call": null,
+      "weight_pct": 3.9
+     },
+     {
+      "change": "hold",
+      "cusip": "615369105",
+      "name": "MOODYS CORP",
+      "put_call": null,
+      "weight_pct": 3.73
+     },
+     {
+      "change": "add",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 3.21
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Bridgewater Associates",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "add",
+      "cusip": "78462F103",
+      "name": "STATE STR SPDR S&P 500 ETF T",
+      "put_call": null,
+      "weight_pct": 16.3
+     },
+     {
+      "change": "add",
+      "cusip": "464287200",
+      "name": "ISHARES TR",
+      "put_call": null,
+      "weight_pct": 9.22
+     },
+     {
+      "change": "reduce",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": null,
+      "weight_pct": 3.17
+     },
+     {
+      "change": "reduce",
+      "cusip": "11135F101",
+      "name": "BROADCOM INC",
+      "put_call": null,
+      "weight_pct": 2.04
+     },
+     {
+      "change": "reduce",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 1.98
+     },
+     {
+      "change": "reduce",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 1.94
+     },
+     {
+      "change": "reduce",
+      "cusip": "512807306",
+      "name": "LAM RESEARCH CORP",
+      "put_call": null,
+      "weight_pct": 1.67
+     },
+     {
+      "change": "add",
+      "cusip": "922908363",
+      "name": "VANGUARD INDEX FDS",
+      "put_call": null,
+      "weight_pct": 1.29
+     },
+     {
+      "change": "reduce",
+      "cusip": "007903107",
+      "name": "ADVANCED MICRO DEVICES INC",
+      "put_call": null,
+      "weight_pct": 1.28
+     },
+     {
+      "change": "reduce",
+      "cusip": "464286772",
+      "name": "ISHARES INC",
+      "put_call": null,
+      "weight_pct": 1.15
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "ARK Investment Management",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "88160R101",
+      "name": "Tesla Inc",
+      "put_call": null,
+      "weight_pct": 7.54
+     },
+     {
+      "change": "reduce",
+      "cusip": "007903107",
+      "name": "Advanced Micro Devices Inc",
+      "put_call": null,
+      "weight_pct": 5.34
+     },
+     {
+      "change": "new",
+      "cusip": "84615Q103",
+      "name": "Space Exploration Technologies Corp",
+      "put_call": null,
+      "weight_pct": 4.97
+     },
+     {
+      "change": "add",
+      "cusip": "88023B103",
+      "name": "Tempus AI Inc",
+      "put_call": null,
+      "weight_pct": 3.77
+     },
+     {
+      "change": "reduce",
+      "cusip": "770700102",
+      "name": "Robinhood Markets Inc",
+      "put_call": null,
+      "weight_pct": 3.41
+     },
+     {
+      "change": "reduce",
+      "cusip": "H17182108",
+      "name": "CRISPR Therapeutics AG",
+      "put_call": null,
+      "weight_pct": 3.35
+     },
+     {
+      "change": "reduce",
+      "cusip": "82509L107",
+      "name": "Shopify Inc",
+      "put_call": null,
+      "weight_pct": 3.08
+     },
+     {
+      "change": "reduce",
+      "cusip": "90184D100",
+      "name": "Twist Bioscience Corp",
+      "put_call": null,
+      "weight_pct": 3.04
+     },
+     {
+      "change": "reduce",
+      "cusip": "88025U109",
+      "name": "10X Genomics Inc",
+      "put_call": null,
+      "weight_pct": 2.49
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "Amazon.com Inc",
+      "put_call": null,
+      "weight_pct": 2.46
+     }
+    ]
+   },
+   {
+    "filed": "2025-11-03",
+    "name": "Scion Asset Management",
+    "period": "2025-09-30",
+    "top10": [
+     {
+      "change": "new",
+      "cusip": "69608A108",
+      "name": "PALANTIR TECHNOLOGIES INC",
+      "put_call": "Put",
+      "weight_pct": 66.04
+     },
+     {
+      "change": "new",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": "Put",
+      "weight_pct": 13.51
+     },
+     {
+      "change": "new",
+      "cusip": "717081103",
+      "name": "PFIZER INC",
+      "put_call": "Call",
+      "weight_pct": 11.07
+     },
+     {
+      "change": "new",
+      "cusip": "406216101",
+      "name": "HALLIBURTON CO",
+      "put_call": "Call",
+      "weight_pct": 4.45
+     },
+     {
+      "change": "new",
+      "cusip": "60855R100",
+      "name": "MOLINA HEALTHCARE INC",
+      "put_call": null,
+      "weight_pct": 1.73
+     },
+     {
+      "change": "add",
+      "cusip": "550021109",
+      "name": "LULULEMON ATHLETICA INC",
+      "put_call": null,
+      "weight_pct": 1.29
+     },
+     {
+      "change": "new",
+      "cusip": "78442P106",
+      "name": "SLM CORP",
+      "put_call": null,
+      "weight_pct": 0.96
+     },
+     {
+      "change": "new",
+      "cusip": "116794207",
+      "name": "BRUKER CORP",
+      "put_call": null,
+      "weight_pct": 0.95
+     }
+    ]
+   },
+   {
+    "filed": "2026-05-15",
+    "name": "Pershing Square",
+    "period": "2026-03-31",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "11271J107",
+      "name": "BROOKFIELD CORP",
+      "put_call": null,
+      "weight_pct": 17.62
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 17.39
+     },
+     {
+      "change": "reduce",
+      "cusip": "90353T100",
+      "name": "UBER TECHNOLOGIES INC",
+      "put_call": null,
+      "weight_pct": 15.71
+     },
+     {
+      "change": "new",
+      "cusip": "594918104",
+      "name": "MICROSOFT CORP",
+      "put_call": null,
+      "weight_pct": 15.26
+     },
+     {
+      "change": "reduce",
+      "cusip": "76131D103",
+      "name": "RESTAURANT BRANDS INTL INC",
+      "put_call": null,
+      "weight_pct": 12.2
+     },
+     {
+      "change": "hold",
+      "cusip": "30303M102",
+      "name": "META PLATFORMS INC",
+      "put_call": null,
+      "weight_pct": 11.1
+     },
+     {
+      "change": "hold",
+      "cusip": "44267T102",
+      "name": "HOWARD HUGHES HOLDINGS INC",
+      "put_call": null,
+      "weight_pct": 8.7
+     },
+     {
+      "change": "hold",
+      "cusip": "812215200",
+      "name": "SEAPORT ENTMT GROUP INC",
+      "put_call": null,
+      "weight_pct": 0.79
+     },
+     {
+      "change": "reduce",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 0.65
+     },
+     {
+      "change": "hold",
+      "cusip": "42806J700",
+      "name": "HERTZ GLOBAL HLDGS INC",
+      "put_call": null,
+      "weight_pct": 0.51
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-13",
+    "name": "Baupost Group",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 16.48
+     },
+     {
+      "change": "hold",
+      "cusip": "036752103",
+      "name": "ELEVANCE HEALTH INC FORMERLY",
+      "put_call": null,
+      "weight_pct": 9.11
+     },
+     {
+      "change": "reduce",
+      "cusip": "76131D103",
+      "name": "RESTAURANT BRANDS INTL INC",
+      "put_call": null,
+      "weight_pct": 9.04
+     },
+     {
+      "change": "add",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 8.95
+     },
+     {
+      "change": "add",
+      "cusip": "31488V107",
+      "name": "FERGUSON ENTERPRISES INC",
+      "put_call": null,
+      "weight_pct": 6.36
+     },
+     {
+      "change": "add",
+      "cusip": "372460105",
+      "name": "GENUINE PARTS CO",
+      "put_call": null,
+      "weight_pct": 6.13
+     },
+     {
+      "change": "reduce",
+      "cusip": "907818108",
+      "name": "UNION PAC CORP",
+      "put_call": null,
+      "weight_pct": 5.95
+     },
+     {
+      "change": "hold",
+      "cusip": "92826C839",
+      "name": "VISA INC",
+      "put_call": null,
+      "weight_pct": 4.44
+     },
+     {
+      "change": "reduce",
+      "cusip": "95082P105",
+      "name": "WESCO INTL INC",
+      "put_call": null,
+      "weight_pct": 4.23
+     },
+     {
+      "change": "reduce",
+      "cusip": "G0403H108",
+      "name": "AON PLC",
+      "put_call": null,
+      "weight_pct": 4.21
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Soros Fund Management",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 3.46
+     },
+     {
+      "change": "hold",
+      "cusip": "874039100",
+      "name": "TAIWAN SEMICONDUCTOR MANUFAC",
+      "put_call": null,
+      "weight_pct": 3.06
+     },
+     {
+      "change": "hold",
+      "cusip": "37940XAU6",
+      "name": "GLOBAL PMTS INC",
+      "put_call": null,
+      "weight_pct": 2.73
+     },
+     {
+      "change": "add",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 2.62
+     },
+     {
+      "change": "reduce",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": null,
+      "weight_pct": 2.62
+     },
+     {
+      "change": "add",
+      "cusip": "285512109",
+      "name": "ELECTRONIC ARTS INC",
+      "put_call": null,
+      "weight_pct": 2.44
+     },
+     {
+      "change": "hold",
+      "cusip": "090043AF7",
+      "name": "BILL HOLDINGS INC",
+      "put_call": null,
+      "weight_pct": 2.23
+     },
+     {
+      "change": "hold",
+      "cusip": "69331CAL2",
+      "name": "PG&E CORP",
+      "put_call": null,
+      "weight_pct": 2.21
+     },
+     {
+      "change": "reduce",
+      "cusip": "76954AAB9",
+      "name": "RIVIAN AUTOMOTIVE INC",
+      "put_call": null,
+      "weight_pct": 1.91
+     },
+     {
+      "change": "add",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 1.88
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Himalaya Capital",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "hold",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 24.55
+     },
+     {
+      "change": "hold",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 23.39
+     },
+     {
+      "change": "add",
+      "cusip": "722304102",
+      "name": "PDD HOLDINGS INC",
+      "put_call": null,
+      "weight_pct": 22.17
+     },
+     {
+      "change": "add",
+      "cusip": "084670702",
+      "name": "BERKSHIRE HATHAWAY INC DEL",
+      "put_call": null,
+      "weight_pct": 14.98
+     },
+     {
+      "change": "hold",
+      "cusip": "27579R104",
+      "name": "EAST WEST BANCORP INC",
+      "put_call": null,
+      "weight_pct": 9.68
+     },
+     {
+      "change": "hold",
+      "cusip": "227046109",
+      "name": "CROCS INC",
+      "put_call": null,
+      "weight_pct": 2.89
+     },
+     {
+      "change": "hold",
+      "cusip": "88034P109",
+      "name": "TENCENT MUSIC ENTERTAINM",
+      "put_call": null,
+      "weight_pct": 1.49
+     },
+     {
+      "change": "hold",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 0.86
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-14",
+    "name": "Duquesne Family Office",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "add",
+      "cusip": "632307104",
+      "name": "Natera Inc",
+      "put_call": null,
+      "weight_pct": 16.6
+     },
+     {
+      "change": "add",
+      "cusip": "874039100",
+      "name": "Taiwan Semiconductor Manufac",
+      "put_call": null,
+      "weight_pct": 5.4
+     },
+     {
+      "change": "add",
+      "cusip": "861012102",
+      "name": "Stmicroelectronics N V",
+      "put_call": null,
+      "weight_pct": 4.46
+     },
+     {
+      "change": "hold",
+      "cusip": "46137V357",
+      "name": "Invesco Exchange Traded Fd T",
+      "put_call": "Call",
+      "weight_pct": 3.35
+     },
+     {
+      "change": "add",
+      "cusip": "457669307",
+      "name": "Insmed Inc",
+      "put_call": null,
+      "weight_pct": 2.92
+     },
+     {
+      "change": "hold",
+      "cusip": "464286400",
+      "name": "Ishares Inc",
+      "put_call": "Call",
+      "weight_pct": 2.8
+     },
+     {
+      "change": "new",
+      "cusip": "457669307",
+      "name": "Insmed Inc",
+      "put_call": "Call",
+      "weight_pct": 2.76
+     },
+     {
+      "change": "reduce",
+      "cusip": "984245100",
+      "name": "Ypf Sociedad Anonima",
+      "put_call": null,
+      "weight_pct": 2.74
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "Amazon Com Inc",
+      "put_call": null,
+      "weight_pct": 2.48
+     },
+     {
+      "change": "reduce",
+      "cusip": "G0896C103",
+      "name": "Bbb Foods Inc",
+      "put_call": null,
+      "weight_pct": 2.32
+     }
+    ]
+   },
+   {
+    "filed": "2026-08-13",
+    "name": "국민연금 (NPS)",
+    "period": "2026-06-30",
+    "top10": [
+     {
+      "change": "reduce",
+      "cusip": "67066G104",
+      "name": "NVIDIA CORPORATION",
+      "put_call": null,
+      "weight_pct": 6.56
+     },
+     {
+      "change": "add",
+      "cusip": "037833100",
+      "name": "APPLE INC",
+      "put_call": null,
+      "weight_pct": 5.88
+     },
+     {
+      "change": "add",
+      "cusip": "594918104",
+      "name": "MICROSOFT CORP",
+      "put_call": null,
+      "weight_pct": 3.67
+     },
+     {
+      "change": "add",
+      "cusip": "023135106",
+      "name": "AMAZON COM INC",
+      "put_call": null,
+      "weight_pct": 3.22
+     },
+     {
+      "change": "add",
+      "cusip": "02079K305",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 3.02
+     },
+     {
+      "change": "reduce",
+      "cusip": "02079K107",
+      "name": "ALPHABET INC",
+      "put_call": null,
+      "weight_pct": 2.4
+     },
+     {
+      "change": "add",
+      "cusip": "11135F101",
+      "name": "BROADCOM INC",
+      "put_call": null,
+      "weight_pct": 2.34
+     },
+     {
+      "change": "hold",
+      "cusip": "46138E461",
+      "name": "INVESCO EXCH TRADED FD TR II",
+      "put_call": null,
+      "weight_pct": 2.29
+     },
+     {
+      "change": "hold",
+      "cusip": "595112103",
+      "name": "MICRON TECHNOLOGY INC",
+      "put_call": null,
+      "weight_pct": 2.15
+     },
+     {
+      "change": "hold",
+      "cusip": "464287200",
+      "name": "ISHARES TR",
+      "put_call": null,
+      "weight_pct": 1.99
+     }
+    ]
+   }
+  ],
+  "generated": "2026-11-03",
+  "source": "SEC EDGAR Form 13F-HR"
+ },
+ "markets": {
+  "KR": {
+   "base_close_kst": "2026-11-09T15:30+09:00",
+   "base_session": "2026-11-09",
+   "deadline_kst": "2026-11-10T08:30+09:00",
+   "eval_close_kst": "2026-11-10T15:30+09:00",
+   "eval_open_kst": "2026-11-10T09:00+09:00",
+   "eval_session": "2026-11-10",
+   "market": "KR",
+   "ok": true,
+   "round_date": "2026-11-10"
+  },
+  "US": {
+   "base_close_kst": "2026-11-10T06:00+09:00",
+   "base_session": "2026-11-09",
+   "deadline_kst": "2026-11-10T08:30+09:00",
+   "eval_close_kst": "2026-11-11T06:00+09:00",
+   "eval_open_kst": "2026-11-10T23:30+09:00",
+   "eval_session": "2026-11-10",
+   "market": "US",
+   "ok": true,
+   "round_date": "2026-11-10"
+  }
+ },
+ "notes": [
+  "이 자료 이후 08:30 KST 전까지 추가 검색은 허용되며 출처·기준일·확보 시각을 기록한다."
+ ],
+ "round_date": "2026-11-10",
+ "rules": {
+  "benchmarks": {
+   "KR": "KOSPI",
+   "US": "SPY"
+  },
+  "scoring": "((평가 종가 + 귀속 현금배당) × 분할비율 ÷ 기준 종가 − 1) × 100"
+ },
+ "universe": {
+  "counts": {
+   "KR": 351,
+   "US": 518
+  },
+  "file": "league/universe.json",
+  "sha256": "feaf37ad1b4ebf83bc2eaf4ea885f1460d7857f81dfecadd9ae3868ff2f26286",
+  "status": "US real / KR real"
+ },
+ "variant": "price-free"
+}
