@@ -1355,6 +1355,16 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(self.sync(f"{rd}T10:05:00+09:00")[0]["receipts"][0]["status"], "committed")
         self.assertFalse(any(x.get("type") == "taint" for x in L.read_ledger(self.repo / "league", "external_pushes")))
 
+    def test_pre_deadline_reminder_when_no_commitment(self):
+        """11/9 재발 방지: 08:00·08:15에 지문 영수증이 없으면 마감 전 경고, 지문이 있으면 보내지 않음."""
+        rd = "2026-11-10"
+        ks = lambda t: [w["kind"] + ":" + w["key"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T{t}:00+09:00"))]
+        self.assertIn(f"remind:{rd}|0800", ks("08:02")); self.assertIn(f"remind:{rd}|0815", ks("08:16"))
+        self.assertFalse([k for k in ks("08:29") if k.startswith("remind")])
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:05:00+09:00")
+        self.sync(f"{rd}T08:10:00+09:00")
+        self.assertFalse([k for k in ks("08:16") if k.startswith("remind")])
+
     def test_transient_failure_until_reveal_deadline_taints(self):
         """통신 오류가 공개 마감(12:00)까지 이어지면 그 라운드는 운영자 확인 대기."""
         rd = "2026-11-10"

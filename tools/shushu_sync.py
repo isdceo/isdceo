@@ -723,6 +723,13 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
         add("round", rd, f"@codex 오늘({rd}) 실전 라운드를 진행해 주세요. 열린 시장: {'·'.join(mk)}. {PROC} 절차대로 분석하고, "
             f"**08:20까지 `submit/{rd}.sha256`과 `submit/{rd}.csv`·`submit/{rd}-debate.md`를 함께** push해 주세요. 원본은 이 비공개 저장소에 봉인돼 "
             f"08:30 뒤 자동으로 공개·접수됩니다. 마감 08:30 KST, 판정은 이 저장소의 push 시각입니다.")
+    # 마감 전 경고(2026-11-09 첫 실전 미제출 재발 방지): 08:00·08:15에 아직 지문 영수증이 없으면 바로 알린다
+    if mk and live and "08:00" <= hm < "08:28" and not ({"committed", "accepted"} & st):
+        slot = "0815" if hm >= "08:15" else "0800"
+        add("remind", f"{rd}|{slot}", f"@codex ⏰ 오늘({rd}) 지문 마감 08:30 KST까지 {'15' if slot == '0815' else '30'}분 남짓 남았는데 아직 지문 영수증이 없습니다. "
+            f"`submit/{rd}.sha256`(+ `submit/{rd}.csv`·`submit/{rd}-debate.md`)를 **08:25 전에** push해 주세요. "
+            "분석이 덜 끝난 에이전트는 빼고 **두 시장을 모두 채운 에이전트만** 넣어도 접수됩니다(시장이 빠진 에이전트가 섞이면 파일 전체 반려). "
+            "08:30 뒤 push는 인정되지 않습니다(판정: 이 저장소의 push 시각).")
     if mk and live and "08:30" < hm < "11:40" and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 공개 마감 12:00 KST.")
