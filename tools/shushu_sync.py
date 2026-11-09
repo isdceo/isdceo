@@ -276,7 +276,7 @@ def _reopened(recs: list[dict]) -> set:
     out, last_err = set(), {}
     for x in recs:
         if x.get("type", "push") == "push" and x.get("status") == "error" and x.get("transient") and x.get("round"):
-            last_err[x["activity_id"]] = {x["round"], x.get("wake_round") or x["round"]}; out.discard(x["activity_id"])   # 다시 처리했는데 또 확정 실패하면 다시 닫힘
+            last_err[x["activity_id"]] = {x["round"], x.get("wake_round") or x["round"], *(x.get("taint_rounds") or [])}; out.discard(x["activity_id"])   # 다시 처리했는데 또 확정 실패하면 다시 닫힘
         elif x.get("type", "push") == "push" and x.get("status") != "error":
             last_err.pop(x["activity_id"], None); out.discard(x["activity_id"])
         elif x.get("type") == "untaint":
@@ -379,7 +379,8 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             wr = early if early and now < L.reveal_deadline(early, cfg) else R
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
                                             "attempt": n, "error": str(e)[:300], "transient": transient, "round": R.isoformat(),
-                                            "wake_round": wr.isoformat(), "at": now.isoformat(timespec="seconds")})
+                                            "wake_round": wr.isoformat(), "taint_rounds": sorted({R.isoformat(), *([early.isoformat()] if early else [])}),
+                                            "at": now.isoformat(timespec="seconds")})
             out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
                         "receipts": [], "lines": []})
             if transient and not superseded and early and now >= L.reveal_deadline(early, cfg):
@@ -464,12 +465,12 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             wr = next((r for r in rds if now < L.reveal_deadline(date.fromisoformat(r), cfg)), rday.isoformat())
             rec = {"repo": repo, "activity_id": act["id"], "status": "error", "attempt": n, "error": str(e)[:300],
                    "pushed_at": pushed.isoformat(), "run_id": str(run_id), "transient": transient, "round": rday.isoformat(),
-                   "wake_round": wr, "at": now.isoformat(timespec="seconds")}
+                   "wake_round": wr, "taint_rounds": rds or [rday.isoformat()], "at": now.isoformat(timespec="seconds")}
             if g.get("release"):
                 rec.update(type="release" if final else "release_error", held_id=key)
             else:
                 rec.update({**g["base"], "type": "push" if final else "push_error", "status": "error", "attempt": n, "error": str(e)[:300],
-                            "round": rday.isoformat(), "wake_round": wr})
+                            "round": rday.isoformat(), "wake_round": wr, "taint_rounds": rds or [rday.isoformat()]})
                 if final:
                     rec["held_files"] = [_name(u) for u in g["held"]]
             L.append(d, "external_pushes", rec)
