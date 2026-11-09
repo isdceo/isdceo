@@ -276,11 +276,11 @@ def _reopened(recs: list[dict]) -> set:
     out, last_err = set(), {}
     for x in recs:
         if x.get("type", "push") == "push" and x.get("status") == "error" and x.get("transient") and x.get("round"):
-            last_err[x["activity_id"]] = x["round"]; out.discard(x["activity_id"])   # 다시 처리했는데 또 확정 실패하면 다시 닫힘
+            last_err[x["activity_id"]] = {x["round"], x.get("wake_round") or x["round"]}; out.discard(x["activity_id"])   # 다시 처리했는데 또 확정 실패하면 다시 닫힘
         elif x.get("type", "push") == "push" and x.get("status") != "error":
             last_err.pop(x["activity_id"], None); out.discard(x["activity_id"])
         elif x.get("type") == "untaint":
-            out |= {a for a, r in last_err.items() if r == x["round"]}
+            out |= {a for a, rs in last_err.items() if x["round"] in rs}
     return out
 
 
@@ -370,22 +370,27 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             superseded = False
             transient = isinstance(e, TransientError)
             # 통신·서버 오류: 그 라운드 공개 마감까지 시간 기준 재시도(운영자 결정 2026-11-08). 그 밖의 오류: 3회 뒤 확정하고 바로 알림
-            # 08:30~12:00 push는 파일을 못 봤어도 그날 원본일 수 있으니 그날 12:00까지(다음 라운드 12:00까지 끌지 않음 — 슈슈 검토 2026-11-09 #1)
+            # 파일을 못 봤으니 다음 라운드 지문이 들어 있을 수 있다 → 재시도 끝은 그대로 다음 라운드(R) 12:00(재검수 H1: 그날 12:00에 끊으면
+            # 다음 라운드 지문을 조용히 버려 '두 지문 중 고르기'가 가능해짐). 다만 08:30~12:00 push는 그날 원본일 수도 있으니
+            # 그날 12:00이 지나도록 못 받으면 그날 라운드도 확인 대기로 두고, 처리 지연 알림은 그날 라운드로 보낸다(슈슈 검토 2026-11-09 #1)
             R0 = _first_round_on_or_after(pushed.date(), cfg)
-            rday = R0 if R0 != R and pushed < L.reveal_deadline(R0, cfg) else R
-            final = (now >= _retry_until(rday, cfg)) if transient else (n >= MAX_TRIES)
+            early = R0 if R0 != R and pushed < L.reveal_deadline(R0, cfg) else None
+            final = (now >= _retry_until(R, cfg)) if transient else (n >= MAX_TRIES)
+            wr = early if early and now < L.reveal_deadline(early, cfg) else R
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
-                                            "attempt": n, "error": str(e)[:300], "transient": transient, "round": rday.isoformat(),
-                                            "at": now.isoformat(timespec="seconds")})
+                                            "attempt": n, "error": str(e)[:300], "transient": transient, "round": R.isoformat(),
+                                            "wake_round": wr.isoformat(), "at": now.isoformat(timespec="seconds")})
             out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
                         "receipts": [], "lines": []})
-            if final and not superseded and transient and rday != R:
-                # 그날 원본 공개 시간(08:30~12:00)의 push를 12:00까지 받을 수 없음: 그날 원본이 들어 있을 수 있으니 그 라운드 운영자 확인
+            if transient and not superseded and early and now >= L.reveal_deadline(early, cfg):
+                cur = tainted(recs)
                 for t_ in TEAMS:
-                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": rday.isoformat(), "activity_id": act["id"],
-                                                    "s_after": act["after"], "pushed_at": pushed.isoformat(), "reason": "원본 공개 시간 push를 공개 마감까지 받을 수 없음"})
+                    if (t_, early.isoformat()) not in cur:
+                        L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": early.isoformat(), "activity_id": act["id"],
+                                                        "s_after": act["after"], "pushed_at": pushed.isoformat(),
+                                                        "reason": "원본 공개 시간 push를 그날 공개 마감까지 받을 수 없음"})
                 recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
-            elif final and not superseded and now >= dl:
+            if final and not superseded and now >= dl:
                 # 마감이 지나도록 받을 수 없음: 뒤의 지문·원본을 자동으로 인정하면 '골라 되살리기'가 가능해진다 → 그 라운드 운영자 확인
                 for t_ in TEAMS:
                     L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": R.isoformat(), "activity_id": act["id"],
@@ -395,6 +400,9 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                 block = pushed                         # 순서를 지키려고 이 뒤의 push·보류 해제는 다음 실행으로 미룬다
                 break
             continue
+        prev_held = {x.get("file") or x.get("file_hash") for x in recs if x.get("type") == "held" and x.get("activity_id") == act["id"]}
+        if prev_held:                                  # 다시 연 push: 처음 처리 때 보류한 파일은 보류 해제 경로로만(재검수 L3: 두 번 처리 방지)
+            units = [u for u in units if (L.hashlib.sha256(u["file"].encode()).hexdigest() if u["kind"] == "message" else u["file"]) not in prev_held]
         ready, held = [], []
         for u in units:
             until = hold_until(u["kind"], u["rd"], pushed, _team_cfg(main, u["dst"]))
@@ -447,23 +455,35 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             rk = g["ready"][0]["kind"] if g["ready"] else None
             # 재시도 끝: 지문·원본·토론은 그 라운드, 메시지·대사는 push 시각 기준 라운드(파일 이름 날짜로 늘어나지 않게)
             # 새 push도 같다: 08:30 뒤 push한 그날 원본은 그날 12:00까지(다음 라운드 12:00까지 끌지 않음 — 슈슈 검토 2026-11-09 #1)
+            # 여러 라운드 파일이 섞이면 가장 늦은 라운드까지 재시도(재검수 M2: 앞 라운드 12:00에 끊으면 뒤 라운드 지문을 버림)
+            R0s = _first_round_on_or_after(pushed.date(), cfg).isoformat()
             sub = [u for u in g["ready"] if u["kind"] in ("commitment", "reveal", "debate")]
-            rday = min(date.fromisoformat(max(u["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())) for u in sub) \
-                if sub else _next_round(pushed, cfg)
+            rds = sorted({max(u["rd"], R0s) for u in sub})
+            rday = date.fromisoformat(rds[-1]) if sub else _next_round(pushed, cfg)
             final = (now >= _retry_until(rday, cfg)) if transient else (n >= MAX_TRIES)
+            wr = next((r for r in rds if now < L.reveal_deadline(date.fromisoformat(r), cfg)), rday.isoformat())
             rec = {"repo": repo, "activity_id": act["id"], "status": "error", "attempt": n, "error": str(e)[:300],
                    "pushed_at": pushed.isoformat(), "run_id": str(run_id), "transient": transient, "round": rday.isoformat(),
-                   "at": now.isoformat(timespec="seconds")}
+                   "wake_round": wr, "at": now.isoformat(timespec="seconds")}
             if g.get("release"):
                 rec.update(type="release" if final else "release_error", held_id=key)
             else:
                 rec.update({**g["base"], "type": "push" if final else "push_error", "status": "error", "attempt": n, "error": str(e)[:300],
-                            "round": rday.isoformat()})
+                            "round": rday.isoformat(), "wake_round": wr})
                 if final:
                     rec["held_files"] = [_name(u) for u in g["held"]]
             L.append(d, "external_pushes", rec)
             if final and not g.get("release") and g["held"]:
                 _write_held(d, repo, act, pushed, g["base"].get("actor"), g["held"])
+            if transient and not final and not g.get("release"):
+                # 아직 재시도 중이어도, 공개 마감(12:00)이 지난 앞 라운드의 지문·원본은 그 라운드를 확인 대기로(다른 원본을 대신 인정하지 않게)
+                for u in g["ready"]:
+                    if u["kind"] in ("commitment", "reveal") and now >= L.reveal_deadline(date.fromisoformat(max(u["rd"], R0s)), cfg):
+                        team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
+                        if (team, u["rd"]) not in bad:
+                            L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"],
+                                                            "pushed_at": pushed.isoformat(), "reason": "지문·원본 push를 그 라운드 공개 마감까지 처리하지 못함"})
+                            bad.add((team, u["rd"]))
             if final and not g.get("release") and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
                 # 지문·원본이 든 push를 공개 마감까지 처리하지 못함: 다른 제출을 대신 인정하지 않고 운영자 확인 대기(마감이 지난 라운드만)
                 for u in g["ready"]:
@@ -509,9 +529,11 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
 
 def _write_held(d: Path, repo: str, act: dict, pushed: datetime, actor, held: list[dict]):
     """보류 파일 기록. 같은 push의 즉시 처리분이 끝내 실패해도 보류 파일(봉인 원본·토론·대사·메시지)은 남긴다(전체 검수 B-2)."""
-    have = {x.get("held_id") for x in L.read_ledger(d, "external_pushes") if x.get("type") == "held" and x.get("repo") == repo}
-    for k, u in enumerate(held):
-        if f"{act['id']}#{k}" in have:                 # 다시 연 push를 다시 처리할 때 같은 보류를 두 번 남기지 않는다
+    old = [x for x in L.read_ledger(d, "external_pushes") if x.get("type") == "held" and x.get("repo") == repo and x.get("activity_id") == act["id"]]
+    have, k = {x.get("file") or x.get("file_hash") for x in old}, len(old)
+    for u in held:
+        key = L.hashlib.sha256(u["file"].encode()).hexdigest() if u["kind"] == "message" else u["file"]
+        if key in have:                                # 다시 연 push를 다시 처리할 때 같은 보류를 두 번 남기지 않는다(파일 기준, 번호는 이어서)
             continue
         h = {"repo": repo, "activity_id": act["id"], "type": "held", "held_id": f"{act['id']}#{k}", "rd": u["rd"], "kind": u["kind"],
              "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": actor,
@@ -521,6 +543,7 @@ def _write_held(d: Path, repo: str, act: dict, pushed: datetime, actor, held: li
         else:
             h.update(file=u["file"], dst=u["dst"])
         L.append(d, "external_pushes", h)
+        k += 1
 
 
 def _restore_held(ext: Path, act: dict, units: list[dict]):
@@ -785,8 +808,8 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     done_ids = {x["activity_id"] for x in xp if x.get("type", "push") == "push"}
     released = {x.get("held_id") for x in xp if x.get("type") == "release"}
     def _today(x):
-        if x.get("round"):                             # 재시도 기록이 정한 라운드(08:30 뒤 push한 그날 원본은 그날 — 슈슈 검토 2026-11-09 #1)
-            return x["round"] == rd
+        if x.get("wake_round") or x.get("round"):     # 재시도 기록이 정한 라운드(08:30 뒤 push한 그날 원본은 그날 — 슈슈 검토 2026-11-09 #1)
+            return (x.get("wake_round") or x["round"]) == rd
         try:
             return _next_round(datetime.fromisoformat(x["pushed_at"]), cfg) == today
         except (KeyError, ValueError, TypeError):

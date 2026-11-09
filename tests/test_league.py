@@ -1399,6 +1399,28 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertIn(("shushu", rd), self.X.tainted(xp))
         self.assertTrue(all(x["pushed_at"] == f"{rd}T09:00:00+09:00" for x in xp if x.get("activity_id") == aid and x.get("type") in ("push", "push_error")))
 
+    def test_unreadable_reveal_window_push_keeps_next_round_commitment_safe(self):
+        """재검수 H1: 08:30~12:00 push를 통신 오류로 못 받으면(파일 모름) 그날 12:00에 그날 라운드를 확인 대기로 두되, 다음 라운드 지문이
+        들어 있을 수 있으니 다음 라운드 12:00까지 계속 재시도하고 그 라운드도 확인 대기 — 뒤에 낸 다른 지문이 대신 접수되지 않는다."""
+        r0, r1 = "2026-11-10", "2026-11-11"
+        self.spush({f"submit/{r1}.sha256": self._sha_line(r1)}, f"{r0}T09:00:00+09:00")
+        sha = self.acts[-1]["after"]; real_have = self.X._have
+        with unittest.mock.patch.object(self.X, "_remote_ok", return_value=False), \
+                unittest.mock.patch.object(self.X, "_have", side_effect=lambda e, x: False if x == sha else real_have(e, x)):
+            for t in ("09:05", "09:10", "09:15"):
+                self.sync(f"{r0}T{t}:00+09:00")
+            self.assertIn("delay", [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{r0}T11:00:00+09:00"))])
+            self.assertEqual([r["status"] for r in self.sync(f"{r0}T12:05:00+09:00")], ["retry"])        # 그날 12:00에 끊지 않음
+            xp = L.read_ledger(self.repo / "league", "external_pushes")
+            self.assertIn(("shushu", r0), self.X.tainted(xp)); self.assertNotIn(("shushu", r1), self.X.tainted(xp))
+            self.spush({f"submit/{r1}.sha256": f"{self.sh.sha256(b'h2').hexdigest()}  {r1}.csv\n"}, f"{r0}T20:00:00+09:00")
+            for t in (f"{r0}T20:05", f"{r1}T08:20", f"{r1}T08:40"):
+                self.sync(f"{t}:00+09:00")
+            self.assertEqual([r["status"] for r in self.sync(f"{r1}T12:05:00+09:00")][:1], ["error"])
+        self.assertIn(("shushu", r1), self.X.tainted(L.read_ledger(self.repo / "league", "external_pushes")))
+        self.sync(f"{r1}T12:10:00+09:00")
+        self.assertEqual([x for x in L.read_ledger(self.repo / "league", "submissions") if x["status"] == "committed"], [])
+
     def test_untaint_reopens_push_failed_by_transient_error(self):
         """슈슈 검토 2026-11-09 #2: 공개 마감까지 통신 오류로 확정된 push는 운영자 untaint 뒤 다음 동기화에서 원래 push 시각으로 다시 처리.
         다시 처리해도 같은 제출이 두 번 접수되지 않는다."""
