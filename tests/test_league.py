@@ -1442,6 +1442,45 @@ class ShushuRepoSync(unittest.TestCase):
         sub = [x for x in L.read_ledger(d, "submissions") if x["status"] == "committed"]
         self.assertEqual([x["pushed_at"] for x in sub], [f"{rd}T08:18:00+09:00"])
 
+    def test_untaint_reopens_sealed_reveal_release_failed_by_transient_error(self):
+        """슈슈 재검토 2026-11-09 #1: 봉인 원본 보류 해제가 공개 마감까지 통신 오류로 확정돼도, 운영자 해제 뒤 원래 push 시각으로 한 번 복구."""
+        rd = "2026-11-10"; d = self.repo / "league"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd), f"submit/{rd}.csv": self.csv(rd), f"submit/{rd}-debate.md": "토론"}, f"{rd}T08:15:00+09:00")
+        self.assertEqual(self.sync(f"{rd}T08:20:00+09:00")[0]["receipts"][0]["status"], "committed")
+        real = self.X._restore_held
+        def flaky(ext, act, units):
+            if any(u["kind"] == "reveal" for u in units):
+                raise self.X.TransientError("timeout")
+            return real(ext, act, units)
+        with unittest.mock.patch.object(self.X, "_restore_held", side_effect=flaky):
+            for t in ("08:31", "11:05", "12:05"):
+                self.sync(f"{rd}T{t}:00+09:00")
+        self.assertIn(("shushu", rd), self.X.tainted(L.read_ledger(d, "external_pushes")))
+        self.assertEqual([x for x in L.read_ledger(d, "submissions") if x["status"] == "accepted"], [])
+        for t_ in self.X.TEAMS:
+            L.append(d, "external_pushes", {"repo": "o/shushu", "type": "untaint", "team": t_, "round": rd, "reason": "t"})
+        self.sync(f"{rd}T12:10:00+09:00"); self.sync(f"{rd}T12:15:00+09:00")
+        acc = [x for x in L.read_ledger(d, "submissions") if x["status"] == "accepted"]
+        self.assertEqual(len(acc), 1); self.assertEqual(acc[0]["commitment_pushed_at"], f"{rd}T08:15:00+09:00")
+
+    def test_reopen_follows_latest_final_state(self):
+        """슈슈 재검토 2026-11-09 #2·#3: 다시 연 처리가 통신 오류가 아닌 오류로 확정되면 예전 해제로 다시 열리지 않는다.
+        라운드가 없는 예전 형식 기록은 같은 처리가 남긴 확인 대기 라운드로 판별해 해제 뒤 다시 연다."""
+        rd = "2026-11-10"
+        err = lambda **k: {"type": "push", "activity_id": 1, "status": "error", "pushed_at": f"{rd}T08:18:00+09:00", **k}
+        unt = {"type": "untaint", "team": "shushu", "round": rd}
+        R = self.X._reopened
+        self.assertEqual(R([err(transient=True, round=rd), unt]), {1})
+        self.assertEqual(R([err(transient=True, round=rd), unt, err(transient=False, round=rd)]), set())
+        self.assertEqual(R([err(transient=True, round=rd), unt, {"type": "push", "activity_id": 1, "status": "processed"}]), set())
+        legacy = [err(transient=True), {"type": "taint", "team": "shushu", "round": rd, "activity_id": 1}, unt]
+        self.assertEqual(R(legacy), {1})
+        self.assertEqual(R(legacy[:1] + [unt], L.load_config(self.repo / "league")), {1})       # 확인 대기 기록도 없으면 push 시각 기준 라운드
+        rel = {"type": "release", "held_id": "1#0", "activity_id": 1, "status": "error", "transient": True, "round": rd}
+        self.assertEqual(R([rel, unt]), {"1#0"})
+        self.assertEqual(R([{**rel, "transient": False}, unt]), set())
+        self.assertEqual(R([{"type": "release", "held_id": "1#0", "activity_id": 1}, unt]), set())   # 성공한 해제는 다시 열지 않음
+
     def test_retaint_after_untaint_is_honored(self):
         """원장 순서: 확인 대기를 푼 뒤 같은 라운드가 다시 확인 대기가 되면 다시 묶인다."""
         rd = "2026-11-10"; rec = lambda ty: {"type": ty, "team": "shushu", "round": rd}

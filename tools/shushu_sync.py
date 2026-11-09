@@ -270,17 +270,31 @@ def tainted(recs: list[dict]) -> set[tuple[str, str]]:
     return t
 
 
-def _reopened(recs: list[dict]) -> set:
-    """공개 마감까지 통신 오류로 처리하지 못해 확정된 push 중, 그 뒤 운영자가 그 라운드 확인 대기를 푼 것(슈슈 검토 2026-11-09 #2).
-    다시 처리 대상으로 돌린다(판정은 원래 push 시각, 같은 제출 중복 접수는 영수증 단계에서 막힘). 통신 오류가 아닌 확정 오류는 그대로 둔다."""
-    out, last_err = set(), {}
+def _reopened(recs: list[dict], cfg: dict | None = None) -> set:
+    """통신 오류로 확정된 처리 중, 그 뒤 운영자가 관련 라운드 확인 대기를 푼 것(슈슈 검토 2026-11-09 #2, 재검토 #1~#3).
+    새 push는 activity_id, 보류 해제는 held_id로 돌려준다. 원장 순서대로 그 처리의 '가장 최근 확정 상태'를 따른다:
+    통신 오류로 확정 → 해제되면 다시 처리 / 성공 또는 통신 오류가 아닌 확정 오류 → 닫힘(예전 해제로 다시 열리지 않음).
+    라운드가 기록에 없는 예전 형식은 같은 처리가 남긴 확인 대기(taint) 라운드와 push 시각 기준 라운드로 판별한다."""
+    taint_by = {}
     for x in recs:
-        if x.get("type", "push") == "push" and x.get("status") == "error" and x.get("transient") and x.get("round"):
-            last_err[x["activity_id"]] = {x["round"], x.get("wake_round") or x["round"], *(x.get("taint_rounds") or [])}; out.discard(x["activity_id"])   # 다시 처리했는데 또 확정 실패하면 다시 닫힘
-        elif x.get("type", "push") == "push" and x.get("status") != "error":
-            last_err.pop(x["activity_id"], None); out.discard(x["activity_id"])
-        elif x.get("type") == "untaint":
-            out |= {a for a, rs in last_err.items() if x["round"] in rs}
+        if x.get("type") == "taint" and x.get("activity_id") is not None:
+            taint_by.setdefault(x["activity_id"], set()).add(x["round"])
+    out, open_err = set(), {}
+    for x in recs:
+        ty = x.get("type", "push")
+        if ty in ("push", "release"):
+            key = x.get("held_id") if ty == "release" else x.get("activity_id")
+            if x.get("status") in ("error", "superseded") and x.get("transient"):
+                rs = {r for r in (x.get("round"), x.get("wake_round"), *(x.get("taint_rounds") or [])) if r}
+                rs |= taint_by.get(x.get("activity_id"), set())
+                if not rs and cfg and x.get("pushed_at"):
+                    rs = {_next_round(datetime.fromisoformat(x["pushed_at"]), cfg).isoformat()}
+                open_err[key] = rs
+            else:                                      # 성공·통신 오류가 아닌 확정 오류: 닫는다
+                open_err.pop(key, None)
+            out.discard(key)
+        elif ty == "untaint":
+            out |= {k for k, rs in open_err.items() if x["round"] in rs}
     return out
 
 
@@ -328,9 +342,10 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     d = main / "league"
     cfg = L.load_config(d)
     recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
-    done = {x["activity_id"] for x in recs if x.get("type", "push") == "push"} - _reopened(recs)
+    reopen = _reopened(recs, cfg)
+    done = {x["activity_id"] for x in recs if x.get("type", "push") == "push"} - reopen
     mirror_shas = {x["s_after"] for x in recs if x.get("type") == "mirror_commit"}   # 같은 실행에서 기록한 사본 커밋(받을 수 없어도 건너뜀)
-    released = {x["held_id"] for x in recs if x.get("type") == "release"}
+    released = {x["held_id"] for x in recs if x.get("type") == "release"} - reopen   # 통신 오류로 확정된 보류 해제도 운영자 해제 뒤 다시
     tries = {}
     for x in recs:
         if x.get("type") in ("push_error", "release_error"):
