@@ -27,6 +27,15 @@ GitHub Actions 예약(cron)이 이 저장소에서 1~7시간 늦거나 아예 �
 - 중복 방지: 같은 작업이 queued·in_progress이면 기다리고, 그 시각 이후 성공한 실행이 있으면 건너뛴다. 동기화·영수증은 같은 push·파일을 한 번만 처리한다.
 - GitHub 예약은 그대로 둔다(늦게라도 돌면 같은 결과, 중복 처리 없음).
 
+**정시 호출기(근본 대책, `tools/cron-worker/`):** Cloudflare Worker가 1분마다 깨어나 위 예약 시각표(KST)대로 워크플로를 `workflow_dispatch`로 직접 부른다. 켜는 방법:
+1. GitHub → Settings → Developer settings → Fine-grained tokens → 새 토큰: 저장소 `isdceo/isdceo`만, 권한 **Actions: Read and write**만. 만료일을 정하고 만료 전에 갱신한다.
+2. 저장소 Settings → Secrets → Actions에 `GH_DISPATCH_TOKEN`으로 저장.
+3. Cloudflare → My Profile → API Tokens → 새 토큰: 권한 **Account · Workers Scripts · Edit**. 저장소 Secret `CLOUDFLARE_WORKERS_TOKEN`으로 저장(지금 배포용 토큰에 이 권한이 있으면 생략 가능).
+4. Actions에서 `league-cron-worker`를 한 번 수동 실행 → 배포·토큰 설정 끝. Cloudflare 대시보드 Workers `league-cron` 로그에서 `dispatched …` 줄로 확인.
+- 시각표를 바꾸면 `tools/cron-worker/worker.js`의 `PLAN`과 각 워크플로 cron을 함께 고치고 `node tools/cron-worker/test.mjs` 뒤 다시 배포한다.
+- 외부 요청으로는 아무것도 실행하지 않는다(예약 실행만). 토큰은 Worker 비밀값으로만 둔다.
+- 정시 호출기가 돌기 시작하면 Claude 예약 점검은 '안 돌았을 때만 실행'이라 대부분 건너뛴다(예비로 유지).
+
 ## 매주
 
 - **월 06:30 이후:** `league/ledger/weekly_decisions.jsonl` 확인. 탈락·교체가 있으면 두 팀에 알린다.

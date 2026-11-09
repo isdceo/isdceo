@@ -1,0 +1,33 @@
+# 리그 정시 호출기(Cloudflare Worker) 배포. 수동 실행 전용.
+# 필요한 저장소 Secrets:
+#   GH_DISPATCH_TOKEN        — GitHub 세분화 토큰(fine-grained PAT): 저장소 isdceo/isdceo, 권한 Actions: Read and write 만
+#   CLOUDFLARE_WORKERS_TOKEN — Cloudflare API 토큰, 권한 Account > Workers Scripts: Edit (없으면 CLOUDFLARE_API_TOKEN 을 쓴다)
+#   CLOUDFLARE_ACCOUNT_ID    — 이미 있음(배포용)
+# 설명: docs/operations.md 'GitHub 예약 실행 지연 대비'
+name: league-cron-worker
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Check schedule table
+        run: node tools/cron-worker/test.mjs
+      - name: Deploy worker and set dispatch token
+        working-directory: tools/cron-worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GH_DISPATCH_TOKEN: ${{ secrets.GH_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          [ -n "$GH_DISPATCH_TOKEN" ] || { echo "::error::GH_DISPATCH_TOKEN 시크릿 없음"; exit 1; }
+          npx --yes wrangler@3.114.0 deploy
+          printf '%s' "$GH_DISPATCH_TOKEN" | npx --yes wrangler@3.114.0 secret put GH_DISPATCH_TOKEN
