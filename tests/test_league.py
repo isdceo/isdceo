@@ -1377,6 +1377,68 @@ class ShushuRepoSync(unittest.TestCase):
             self.assertEqual([r["status"] for r in self.sync(f"{rd}T12:05:00+09:00")], ["error"])
         self.assertIn(("shushu", rd), self.X.tainted(L.read_ledger(self.repo / "league", "external_pushes")))
 
+    def test_late_reveal_transient_retries_until_same_day_noon(self):
+        """슈슈 검토 2026-11-09 #1: 08:30 뒤(09:00) push한 그날 원본이 통신 오류면 그날 12:00까지 재시도하고(다음 라운드까지 끌지 않음),
+        3회째 그날 '처리 지연' 알림, 12:00에 그 라운드 운영자 확인 대기. 판정 시각은 원래 09:00."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:20:00+09:00")
+        self.sync(f"{rd}T08:25:00+09:00")
+        self.spush({f"submit/{rd}.csv": self.csv(rd), f"submit/{rd}-debate.md": "토론"}, f"{rd}T09:00:00+09:00")
+        aid = self.acts[-1]["id"]; real = self.X._apply
+        def flaky(main, ext, repo, act, *a, **k):
+            if act["id"] == aid:
+                raise self.X.TransientError("RPC failed; HTTP 502")
+            return real(main, ext, repo, act, *a, **k)
+        with unittest.mock.patch.object(self.X, "_apply", side_effect=flaky):
+            for t in ("09:03", "09:05", "09:07"):
+                self.assertEqual([r["status"] for r in self.sync(f"{rd}T{t}:00+09:00")], ["retry"])
+            ks = [w["kind"] for w in self.X.due_wakes(self.repo, datetime.fromisoformat(f"{rd}T11:00:00+09:00"))]
+            self.assertIn("delay", ks)
+            self.assertEqual([r["status"] for r in self.sync(f"{rd}T12:00:00+09:00")], ["error"])
+        xp = L.read_ledger(self.repo / "league", "external_pushes")
+        self.assertIn(("shushu", rd), self.X.tainted(xp))
+        self.assertTrue(all(x["pushed_at"] == f"{rd}T09:00:00+09:00" for x in xp if x.get("activity_id") == aid and x.get("type") in ("push", "push_error")))
+
+    def test_untaint_reopens_push_failed_by_transient_error(self):
+        """슈슈 검토 2026-11-09 #2: 공개 마감까지 통신 오류로 확정된 push는 운영자 untaint 뒤 다음 동기화에서 원래 push 시각으로 다시 처리.
+        다시 처리해도 같은 제출이 두 번 접수되지 않는다."""
+        rd = "2026-11-10"
+        self.spush({f"submit/{rd}.sha256": self._sha_line(rd)}, f"{rd}T08:18:00+09:00")
+        sha = self.acts[-1]["after"]; real_have = self.X._have
+        with unittest.mock.patch.object(self.X, "_remote_ok", return_value=False), \
+                unittest.mock.patch.object(self.X, "_have", side_effect=lambda e, x: False if x == sha else real_have(e, x)):
+            for t in ("08:25", "11:05", "12:05"):
+                self.sync(f"{rd}T{t}:00+09:00")
+        d = self.repo / "league"
+        self.assertIn(("shushu", rd), self.X.tainted(L.read_ledger(d, "external_pushes")))
+        self.assertEqual(self.sync(f"{rd}T12:10:00+09:00"), [])                       # 확인 대기 중에는 그대로
+        for t_ in self.X.TEAMS:
+            L.append(d, "external_pushes", {"repo": "o/shushu", "type": "untaint", "team": t_, "round": rd, "reason": "t"})
+        out = self.sync(f"{rd}T12:15:00+09:00")
+        self.assertEqual(out[0]["receipts"][0]["status"], "committed")
+        self.sync(f"{rd}T12:20:00+09:00")
+        sub = [x for x in L.read_ledger(d, "submissions") if x["status"] == "committed"]
+        self.assertEqual([x["pushed_at"] for x in sub], [f"{rd}T08:18:00+09:00"])
+
+    def test_retaint_after_untaint_is_honored(self):
+        """원장 순서: 확인 대기를 푼 뒤 같은 라운드가 다시 확인 대기가 되면 다시 묶인다."""
+        rd = "2026-11-10"; rec = lambda ty: {"type": ty, "team": "shushu", "round": rd}
+        self.assertIn(("shushu", rd), self.X.tainted([rec("taint"), rec("untaint"), rec("taint")]))
+        self.assertNotIn(("shushu", rd), self.X.tainted([rec("taint"), rec("untaint")]))
+
+    def test_base_commit_timeout_is_transient(self):
+        """슈슈 검토 2026-11-09 #3: 비교 기준(before) 커밋을 시간 초과로 못 받으면 일시 오류(공개 마감까지 재시도). 서버가 '없음'이라고 답하면 확정 오류."""
+        self.g(self.ext, "fetch", "-q", "origin", "main"); self.g(self.ext, "checkout", "-q", "FETCH_HEAD")
+        head = self.g(self.ext, "rev-parse", "HEAD")                            # after = 기본 브랜치 끝, before = 받을 수 없는 커밋
+        with unittest.mock.patch.object(self.X, "_fetch", return_value="timeout"):
+            with self.assertRaises(self.X.TransientError):
+                self.X._changed(self.ext, "d" * 40, head, [], first=False)
+        with unittest.mock.patch.object(self.X, "_fetch", return_value="fatal: couldn't find remote ref"), \
+                unittest.mock.patch.object(self.X, "_remote_ok", return_value=True):
+            with self.assertRaises(RuntimeError) as cm:
+                self.X._changed(self.ext, "d" * 40, head, [], first=False)
+            self.assertNotIsInstance(cm.exception, self.X.TransientError)
+
     def test_deleted_branch_kept_by_tag_cannot_be_picked(self):
         """5차 검수 S1: 브랜치를 마감 전에 지우고 태그로 커밋을 살려 둔 뒤 마감 뒤 '받을 수 있음/없음'을 골라도
         두 경우 모두 첫 지문만 인정되거나 확인 대기 — 뒤 지문 H2가 접수되는 길이 없다."""

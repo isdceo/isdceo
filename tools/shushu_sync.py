@@ -143,6 +143,14 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
             errs[sha] = _fetch(ext, sha)
     if not _have(ext, after):
         _missing(ext, f"커밋 {after[:12]}", errs.get(after, ""))
+
+    def no_base(msg: str):
+        # 비교 기준(이전 커밋)을 통신·서버 오류로 아직 못 받은 것과 정말 없는 것을 가른다(슈슈 검토 2026-11-09 #3).
+        # 전자는 일시 오류(공개 마감까지 시간 기준 재시도), 후자만 3회 뒤 확정
+        es = [errs[x] for x in (before, *mains[:5]) if x and errs.get(x)]
+        if any(not NOT_FOUND.search(e) for e in es) or (es and not _remote_ok(ext)):
+            raise TransientError(f"비교 기준 커밋 받기 실패(통신·서버 오류, 다시 시도): {es[0][-120:]}")
+        raise RuntimeError(msg)
     base = before if before and before != ZERO and _have(ext, before) else None
     pm = next((m for m in mains if m and m != ZERO and _have(ext, m)), None)
     from_head = False
@@ -153,7 +161,7 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         from_head = bool(pm)
     if base is None and pm == after:
         if from_head:   # 이미 병합된 브랜치: 지금 기본 브랜치로는 이 push 시각의 파일을 알 수 없음 — '파일 없음'으로 넘기지 않고 재시도·확인 대기
-            raise RuntimeError("비교 기준 없음 — 이미 병합된 브랜치이거나 새 커밋 없는 브랜치 생성일 수 있음(병합 시각으로 판정하지 않도록 확인 대기)")
+            no_base("비교 기준 없음 — 이미 병합된 브랜치이거나 새 커밋 없는 브랜치 생성일 수 있음(병합 시각으로 판정하지 않도록 확인 대기)")
         return []                                      # 기본 브랜치와 같은 커밋을 가리키는 새 브랜치 — 새 파일 없음
     if base is None and pm:
         # 새 브랜치·강제 push: 이 push 전 마지막 기본 브랜치 상태와 갈라진 지점부터(오래된 기준의 브랜치가 옛 내용을 '수정'으로 보이지 않게)
@@ -161,7 +169,7 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         mb = r.stdout.strip() if r.returncode == 0 else ""
         if mb == after:
             if from_head:
-                raise RuntimeError("비교 기준 없음 — 이미 병합된 브랜치이거나 새 커밋 없는 브랜치 생성일 수 있음(병합 시각으로 판정하지 않도록 확인 대기)")
+                no_base("비교 기준 없음 — 이미 병합된 브랜치이거나 새 커밋 없는 브랜치 생성일 수 있음(병합 시각으로 판정하지 않도록 확인 대기)")
             return []                                  # 이미 기본 브랜치에 들어 있는 커밋 — 새 파일 없음
         # 이력이 이어지지 않는 브랜치(orphan): 갈라진 지점이 없으면 '이 push 전 기본 브랜치 상태'와 직접 비교한다
         base = mb or pm
@@ -171,7 +179,7 @@ def _changed(ext: Path, before: str, after: str, prior_main=None, first: bool = 
         return git("ls-tree", "-r", "--name-only", after, cwd=ext).splitlines()
     why = (f"before={'0' if not before or before == ZERO else ('있음' if _have(ext, before) else '받을 수 없음')}, "
            f"기본 브랜치 기록 {len(mains)}건{'(받을 수 있는 것 없음)' if mains else ''}")
-    raise RuntimeError(f"비교 기준(이전 커밋)을 정할 수 없음 — 트리 전체로 대신하지 않음 [{why}]")
+    no_base(f"비교 기준(이전 커밋)을 정할 수 없음 — 트리 전체로 대신하지 않음 [{why}]")
 
 
 def _round_day(day: date, cfg: dict) -> bool:
@@ -253,8 +261,27 @@ def _next_round(pushed: datetime, cfg: dict) -> date:
 
 def tainted(recs: list[dict]) -> set[tuple[str, str]]:
     """(팀, 라운드): 마감 전 push 중 끝내 받을 수 없는 것이 있어 자동 접수하지 않는 라운드(운영자 확인 대기)."""
-    t = {(x["team"], x["round"]) for x in recs if x.get("type") == "taint"}
-    return t - {(x["team"], x["round"]) for x in recs if x.get("type") == "untaint"}
+    t = set()
+    for x in recs:                                     # 원장 순서대로: 해제 뒤 같은 라운드가 다시 확인 대기가 되면 다시 묶인다
+        if x.get("type") == "taint":
+            t.add((x["team"], x["round"]))
+        elif x.get("type") == "untaint":
+            t.discard((x["team"], x["round"]))
+    return t
+
+
+def _reopened(recs: list[dict]) -> set:
+    """공개 마감까지 통신 오류로 처리하지 못해 확정된 push 중, 그 뒤 운영자가 그 라운드 확인 대기를 푼 것(슈슈 검토 2026-11-09 #2).
+    다시 처리 대상으로 돌린다(판정은 원래 push 시각, 같은 제출 중복 접수는 영수증 단계에서 막힘). 통신 오류가 아닌 확정 오류는 그대로 둔다."""
+    out, last_err = set(), {}
+    for x in recs:
+        if x.get("type", "push") == "push" and x.get("status") == "error" and x.get("transient") and x.get("round"):
+            last_err[x["activity_id"]] = x["round"]; out.discard(x["activity_id"])   # 다시 처리했는데 또 확정 실패하면 다시 닫힘
+        elif x.get("type", "push") == "push" and x.get("status") != "error":
+            last_err.pop(x["activity_id"], None); out.discard(x["activity_id"])
+        elif x.get("type") == "untaint":
+            out |= {a for a, r in last_err.items() if r == x["round"]}
+    return out
 
 
 def _aid(x) -> tuple:
@@ -301,7 +328,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
     d = main / "league"
     cfg = L.load_config(d)
     recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
-    done = {x["activity_id"] for x in recs if x.get("type", "push") == "push"}
+    done = {x["activity_id"] for x in recs if x.get("type", "push") == "push"} - _reopened(recs)
     mirror_shas = {x["s_after"] for x in recs if x.get("type") == "mirror_commit"}   # 같은 실행에서 기록한 사본 커밋(받을 수 없어도 건너뜀)
     released = {x["held_id"] for x in recs if x.get("type") == "release"}
     tries = {}
@@ -343,12 +370,22 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             superseded = False
             transient = isinstance(e, TransientError)
             # 통신·서버 오류: 그 라운드 공개 마감까지 시간 기준 재시도(운영자 결정 2026-11-08). 그 밖의 오류: 3회 뒤 확정하고 바로 알림
-            final = (now >= _retry_until(R, cfg)) if transient else (n >= MAX_TRIES)
+            # 08:30~12:00 push는 파일을 못 봤어도 그날 원본일 수 있으니 그날 12:00까지(다음 라운드 12:00까지 끌지 않음 — 슈슈 검토 2026-11-09 #1)
+            R0 = _first_round_on_or_after(pushed.date(), cfg)
+            rday = R0 if R0 != R and pushed < L.reveal_deadline(R0, cfg) else R
+            final = (now >= _retry_until(rday, cfg)) if transient else (n >= MAX_TRIES)
             L.append(d, "external_pushes", {**base, "type": "push" if final else "push_error", "status": "superseded" if superseded else "error",
-                                            "attempt": n, "error": str(e)[:300], "transient": transient, "at": now.isoformat(timespec="seconds")})
+                                            "attempt": n, "error": str(e)[:300], "transient": transient, "round": rday.isoformat(),
+                                            "at": now.isoformat(timespec="seconds")})
             out.append({**base, "status": ("superseded" if superseded else "error") if final else "retry", "error": str(e)[:300],
                         "receipts": [], "lines": []})
-            if final and not superseded and now >= dl:
+            if final and not superseded and transient and rday != R:
+                # 그날 원본 공개 시간(08:30~12:00)의 push를 12:00까지 받을 수 없음: 그날 원본이 들어 있을 수 있으니 그 라운드 운영자 확인
+                for t_ in TEAMS:
+                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": rday.isoformat(), "activity_id": act["id"],
+                                                    "s_after": act["after"], "pushed_at": pushed.isoformat(), "reason": "원본 공개 시간 push를 공개 마감까지 받을 수 없음"})
+                recs = [x for x in L.read_ledger(d, "external_pushes") if x.get("repo") == repo]
+            elif final and not superseded and now >= dl:
                 # 마감이 지나도록 받을 수 없음: 뒤의 지문·원본을 자동으로 인정하면 '골라 되살리기'가 가능해진다 → 그 라운드 운영자 확인
                 for t_ in TEAMS:
                     L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": t_, "round": R.isoformat(), "activity_id": act["id"],
@@ -409,25 +446,31 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
             transient = isinstance(e, TransientError)
             rk = g["ready"][0]["kind"] if g["ready"] else None
             # 재시도 끝: 지문·원본·토론은 그 라운드, 메시지·대사는 push 시각 기준 라운드(파일 이름 날짜로 늘어나지 않게)
-            rday = date.fromisoformat(max(g["ready"][0]["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())) \
-                if g.get("release") and rk in ("commitment", "reveal", "debate") else _next_round(pushed, cfg)
+            # 새 push도 같다: 08:30 뒤 push한 그날 원본은 그날 12:00까지(다음 라운드 12:00까지 끌지 않음 — 슈슈 검토 2026-11-09 #1)
+            sub = [u for u in g["ready"] if u["kind"] in ("commitment", "reveal", "debate")]
+            rday = min(date.fromisoformat(max(u["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())) for u in sub) \
+                if sub else _next_round(pushed, cfg)
             final = (now >= _retry_until(rday, cfg)) if transient else (n >= MAX_TRIES)
             rec = {"repo": repo, "activity_id": act["id"], "status": "error", "attempt": n, "error": str(e)[:300],
-                   "pushed_at": pushed.isoformat(), "run_id": str(run_id), "transient": transient, "at": now.isoformat(timespec="seconds")}
+                   "pushed_at": pushed.isoformat(), "run_id": str(run_id), "transient": transient, "round": rday.isoformat(),
+                   "at": now.isoformat(timespec="seconds")}
             if g.get("release"):
                 rec.update(type="release" if final else "release_error", held_id=key)
             else:
-                rec.update({**g["base"], "type": "push" if final else "push_error", "status": "error", "attempt": n, "error": str(e)[:300]})
+                rec.update({**g["base"], "type": "push" if final else "push_error", "status": "error", "attempt": n, "error": str(e)[:300],
+                            "round": rday.isoformat()})
                 if final:
                     rec["held_files"] = [_name(u) for u in g["held"]]
             L.append(d, "external_pushes", rec)
             if final and not g.get("release") and g["held"]:
                 _write_held(d, repo, act, pushed, g["base"].get("actor"), g["held"])
-            if final and not g.get("release") and now >= L.lock_deadline(_next_round(pushed, cfg), cfg) \
-                    and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
-                # 지문·원본이 든 push를 공개 마감까지 처리하지 못함: 다른 제출을 대신 인정하지 않고 운영자 확인 대기
+            if final and not g.get("release") and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
+                # 지문·원본이 든 push를 공개 마감까지 처리하지 못함: 다른 제출을 대신 인정하지 않고 운영자 확인 대기(마감이 지난 라운드만)
                 for u in g["ready"]:
-                    if u["kind"] in ("commitment", "reveal"):
+                    # 통신 오류로 공개 마감까지 못 한 것은 그 파일 라운드 기준(08:30 뒤 push한 그날 원본 포함), 그 밖의 확정 오류는 예전처럼
+                    # 'push 시각 다음 라운드 마감'이 지났을 때만(형식 오류 등은 다시 push하면 되니 묶지 않는다)
+                    if u["kind"] in ("commitment", "reveal") and now >= L.lock_deadline(
+                            date.fromisoformat(u["rd"]) if transient else _next_round(pushed, cfg), cfg):
                         team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
                         L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"],
                                                         "pushed_at": pushed.isoformat(), "reason": "지문·원본 push를 공개 마감까지 처리하지 못함"})
@@ -466,7 +509,10 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
 
 def _write_held(d: Path, repo: str, act: dict, pushed: datetime, actor, held: list[dict]):
     """보류 파일 기록. 같은 push의 즉시 처리분이 끝내 실패해도 보류 파일(봉인 원본·토론·대사·메시지)은 남긴다(전체 검수 B-2)."""
+    have = {x.get("held_id") for x in L.read_ledger(d, "external_pushes") if x.get("type") == "held" and x.get("repo") == repo}
     for k, u in enumerate(held):
+        if f"{act['id']}#{k}" in have:                 # 다시 연 push를 다시 처리할 때 같은 보류를 두 번 남기지 않는다
+            continue
         h = {"repo": repo, "activity_id": act["id"], "type": "held", "held_id": f"{act['id']}#{k}", "rd": u["rd"], "kind": u["kind"],
              "s_after": act["after"], "pushed_at": pushed.isoformat(), "actor": actor,
              "until": u["until"].isoformat() if u["until"] else None, "taint": bool(u.get("taint"))}
@@ -739,6 +785,8 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     done_ids = {x["activity_id"] for x in xp if x.get("type", "push") == "push"}
     released = {x.get("held_id") for x in xp if x.get("type") == "release"}
     def _today(x):
+        if x.get("round"):                             # 재시도 기록이 정한 라운드(08:30 뒤 push한 그날 원본은 그날 — 슈슈 검토 2026-11-09 #1)
+            return x["round"] == rd
         try:
             return _next_round(datetime.fromisoformat(x["pushed_at"]), cfg) == today
         except (KeyError, ValueError, TypeError):
