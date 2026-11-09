@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-10T08:32:39+09:00",
+ "generated_at": "2026-11-10T08:41:38+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -1462,7 +1462,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "자본 완충력과 배당 결의를 보되, 신용비용 위험도 놓치지 않겠소.",
    "watch": false
   },
   {
@@ -1480,7 +1480,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "분산된 사업과 유동성 규율을 택했소, 보험 이익 악화는 경계하겠소.",
    "watch": false
   },
   {
@@ -1498,7 +1498,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해외 판매와 누적 현금창출은 눈여겨보되, 영업외 손실은 더 살펴볼게.",
    "watch": false
   },
   {
@@ -1516,7 +1516,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "반복 거래와 현금창출이 돋보여도, 커지는 고객 인센티브는 따져볼게.",
    "watch": false
   },
   {
@@ -1534,7 +1534,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "매출과 이익의 동반 증가는 단서지만, 현금전환은 아직 미확인이야.",
    "watch": false
   },
   {
@@ -1552,7 +1552,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "물량과 이익 증가는 확인했지만, 성장투자 뒤 현금 여유는 더 따져볼게.",
    "watch": false
   },
   {
@@ -1570,7 +1570,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "출하와 장기계약은 반가워, 그래도 투자회수까지 증명된 건 아니야!",
    "watch": false
   },
   {
@@ -1588,7 +1588,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "매출과 유료 채택이 자랐네, 하지만 AI 투자회수는 아직 지켜봐야 해!",
    "watch": false
   },
   {
@@ -1606,7 +1606,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "본업 수요의 단서는 잡았지만, 반복될지 모를 손실까지 얕보진 않을걸!",
    "watch": false
   },
   {
@@ -1624,7 +1624,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "사업 분산과 유동성은 반갑지만, 보험 악화를 다 메웠다는 착각은 금물이야!",
    "watch": false
   },
   {
