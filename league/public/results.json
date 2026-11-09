@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-09T10:38:13+09:00",
+ "generated_at": "2026-11-09T11:20:38+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -1038,7 +1038,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "판매가 줄어도 제품 구성과 비용 개선으로 이익을 지킨 점을 보겠네.",
    "watch": false
   },
   {
@@ -1056,7 +1056,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "철도와 에너지의 이익 개선을 보되 보험의 약화도 경계하겠네.",
    "watch": false
   },
   {
@@ -1074,7 +1074,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "AI 메모리 제품 구성과 서버 수요는 보되 다른 사업의 손실도 따져볼게.",
    "watch": false
   },
   {
@@ -1092,7 +1092,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "클라우드 성장에 주목하지만 계약 잔액을 곧바로 매출로 보진 않을게.",
    "watch": false
   },
   {
@@ -1110,7 +1110,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "서버 제품과 HBM 출하가 늘었다지만 성장 원인을 더 따져봐야겠어.",
    "watch": false
   },
   {
@@ -1128,7 +1128,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "클라우드 성장은 확인했지만 투자 회수까지 입증된 건 아니야.",
    "watch": false
   },
   {
@@ -1146,7 +1146,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "HBM 판매 확대는 반가워도 앞으로의 양산 전망은 따로 볼 거야!",
    "watch": false
   },
   {
@@ -1164,7 +1164,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "AWS와 소매 이익은 자라지만 투자로 현금이 나가는 것도 살펴볼게!",
    "watch": false
   },
   {
@@ -1182,7 +1182,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "목표 하향은 아프지만 하이브리드와 영업이익 방어까지 놓칠 순 없지.",
    "watch": false
   },
   {
@@ -1200,7 +1200,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "보험의 약화는 경계하되 철도와 에너지의 개선도 같이 보자고.",
    "watch": false
   },
   {
