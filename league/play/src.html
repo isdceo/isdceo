@@ -1127,7 +1127,12 @@ html,body{background:var(--arena0)}
           <div class="rdet pdet" id="${id}" ${i ? 'hidden' : ''}>${team(C)}${team(Sx)}</div></div>`; }).join('') : '';
       // 요약: 팀 대결 → 이번 주 리그 1위·꼴등 → 누적 상위 3명
       const tAvg = (t) => { const xs = T.picks.filter((p) => p.team === t && p.mode === m0 && p.status === 'final' && p.score != null); return xs.length ? xs.reduce((s, p) => s + p.score, 0) / xs.length : null; };
-      const duel = live.length
+      // 실전이 시작됐는데 아직 확정 점수가 없으면 연습 점수를 요약 맨 위에 내세우지 않는다(실전 점수로 오해, 11/9 운영자 지적)
+      const liveOn = T.picks.some((p) => p.mode === '실전'), practiceOnly = liveOn && m0 === '연습';
+      const liveRd = liveOn ? T.picks.filter((p) => p.mode === '실전').map((p) => p.round_date).sort().pop() : null;
+      const liveRow = liveRd && (T.calendar || []).find((r) => r.date === liveRd);
+      const pend = practiceOnly ? `<div class="duel">${[C, Sx].map((t) => `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="no">채점 전</b></div>`).join('')}</div><p class="muted cap">실전 ${md(liveRd)} 라운드${liveRow && liveRow.score_at ? ` · 첫 점수 ${md(liveRow.score_at.slice(0, 10))} ${liveRow.score_at.slice(11, 16)}` : ''} · 연습 기록은 순위·기록 탭에서 '연습'으로 볼 수 있습니다</p>` : '';
+      const duel = practiceOnly ? pend : live.length
         ? `<div class="duel"><div class="dc c"><span>로로 팀</span><b>${nC}승</b></div><div class="dc s"><span>슈슈 팀</span><b>${nS}승</b></div></div><p class="muted cap">실전 ${live.length}라운드${live.length - nC - nS ? ` · 무승부 ${live.length - nC - nS}` : ''} · 라운드마다 종목당 평균이 높은 팀이 1승</p>`
         : m0 ? `<div class="duel">${[C, Sx].map((t) => { const v = tAvg(t); return `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="${v == null ? 'no' : sgn(v)}">${v == null ? '—' : pct(v) + '%'}</b></div>`; }).join('')}</div><p class="muted cap">${m0} 누적 종목당 평균${m0 === '실전' ? '' : ' · 두 팀 연습 날짜가 달라 참고용 · 실전 승패는 11/9 라운드부터'}</p>` : '';
       const wk = st.map((r) => r.week).sort().pop(), cur = st.filter((r) => r.week === wk && r.avg != null);
@@ -1137,11 +1142,11 @@ html,body{background:var(--arena0)}
           const hi = Math.min(...rs.map((r) => r.league_rank)), lo = Math.max(...rs.map((r) => r.league_rank));
           const who = (k) => rs.filter((r) => r.league_rank === k).map((r) => `${nameOf(r)} ${tchip(r.team)}`).join(', ');
           return `<div class="wl"><b>${t}</b><span>👑 ${who(hi)}</span><span class="risk">⚠ ${who(lo)}</span></div>`; }).join('')}</div>` : '<p class="muted" style="margin-top:12px">이번 주 리그 순위(1위·탈락 위험)는 11/9 주부터 나옵니다.</p>';
-      const top = m0 ? rankOf(m0, 'ALL').filter((r) => r.n && r.rank <= 3) : [];   // 3위 동점자는 모두
+      const top = m0 && !practiceOnly ? rankOf(m0, 'ALL').filter((r) => r.n && r.rank <= 3) : [];   // 3위 동점자는 모두
       const sum = `${duel}${cur.length ? `<h3>이번 주 <span class="muted">${wkTxt(wk).replace(/ 주$/, '')}</span></h3>` : ''}${weekSum}
         ${top.length ? `<h3>누적 상위 3 <span class="muted">${m0} · 통합</span></h3><div class="rlist">${rankList(top, true, m0, 'ALL')}</div><p class="more"><button type="button" class="linkbtn" data-goto="rank">전체 순위 보기 ›</button></p>` : ''}
         ${!duel && !top.length && !cur.length ? '<p class="muted">채점된 라운드가 생기면 요약이 나옵니다.</p>' : ''}
-        ${SR ? `<p><button type="button" class="fastbtn" data-show>▶ ${md(SR.date)} ${SR.mode} 결과 쇼 보기</button></p>` : ''}`;
+        ${SR && !(practiceOnly && SR.mode === '연습') ? `<p><button type="button" class="fastbtn" data-show>▶ ${md(SR.date)} ${SR.mode} 결과 쇼 보기</button></p>` : ''}`;
       const fsel = modes.length ? `<div class="fsel" data-mode="${m0}" data-mk="ALL" hidden>
           <div class="seg" role="group" aria-label="시장">${MKS.map(([k, t]) => `<button type="button" data-fmk-btn="${k}" aria-pressed="${k === 'ALL'}">${t}</button>`).join('')}</div>
           ${modes.length > 1 ? `<div class="seg" role="group" aria-label="구분">${modes.map((m) => `<button type="button" data-fmode="${m}" aria-pressed="${m === m0}">${m}</button>`).join('')}</div>` : `<span class="muted">${m0}</span>`}</div>` : '';
@@ -1254,7 +1259,8 @@ html,body{background:var(--arena0)}
   };
   const SR = showRound(), showbtn = $('#showbtn'), showEl = $('#show');
   const showKey = SR ? `${SR.mode}|${SR.date}` : null;
-  const refreshShowBtn = () => { if (!SR) { showbtn.hidden = true; return; } showbtn.hidden = false; showbtn.textContent = `▶ ${md(SR.date)} ${SR.mode} 결과 보기`; showbtn.classList.toggle('new', store('league.showSeen') !== showKey); };
+  // 실전이 시작되면 연습 결과 버튼은 맨 위에 두지 않는다
+  const refreshShowBtn = () => { if (!SR || (SR.mode === '연습' && T.picks.some((p) => p.mode === '실전'))) { showbtn.hidden = true; return; } showbtn.hidden = false; showbtn.textContent = `▶ ${md(SR.date)} ${SR.mode} 결과 보기`; showbtn.classList.toggle('new', store('league.showSeen') !== showKey); };
   refreshShowBtn();
   let showTimers = [], showOpener = null, showFrom = null;
   const showDone = () => {
