@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-11T08:40:54+09:00",
+ "generated_at": "2026-11-11T08:41:36+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -1934,7 +1934,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "검증한 현금창출 내역을 택한다. 메모리 정상화와 유지투자 부담 탓에 확신은 낮다.",
    "watch": false
   },
   {
@@ -1952,7 +1952,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "보험 밖 사업의 분산을 택한다. 보험 부채와 설비투자 부담까지 사라진 것은 아니다.",
    "watch": false
   },
   {
@@ -1970,7 +1970,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해외 담배 본업의 수익성이 빛난다. 연결 이익의 질과 유통재고는 더 살펴야 한다.",
    "watch": false
   },
   {
@@ -1988,7 +1988,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "실제 사용량과 현금창출을 골랐다. 빠른 인센티브 증가와 매입 지속성은 경계한다.",
    "watch": false
   },
   {
@@ -2006,7 +2006,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "실적 성장과 장기계약은 단서다. 최신 재고·채권·현금회수 검증은 아직 미완료다.",
    "watch": false
   },
   {
@@ -2024,7 +2024,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "기업용 성장의 흔적은 확인했다. 현금 잉여 감소와 설비·리스 부담도 함께 추적한다.",
    "watch": false
   },
   {
@@ -2042,7 +2042,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "상용 출하와 공급계획이 기대돼! 그래도 고객 투자 지연과 경쟁 증설은 조심할래.",
    "watch": false
   },
   {
@@ -2060,7 +2060,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "클라우드 성장과 기업 고객 접점이 좋아! 투자 회수 우위까지 확인한 건 아니야.",
    "watch": false
   },
   {
@@ -2078,7 +2078,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "월별 회복과 실제 매입에 눈길이 가네. 보상 기저효과와 차입·투자 부담은 남았지.",
    "watch": false
   },
   {
@@ -2096,7 +2096,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "다양한 사업과 유동성을 택했지. 보험·에너지 책임과 유지투자까지 없어진 건 아냐.",
    "watch": false
   },
   {
