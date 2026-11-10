@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-11T08:32:42+09:00",
+ "generated_at": "2026-11-11T08:37:12+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -1730,7 +1730,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "분기 최대 실적에 배당까지 올렸는데 주가가 빠졌어. 이런 날 사는 거라네, 허허.",
    "watch": false
   },
   {
@@ -1748,7 +1748,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해자 넓은 회사가 며칠 밀렸을 뿐이야. 좋은 기업은 서두르지 않고 산다네.",
    "watch": false
   },
   {
@@ -1766,7 +1766,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "다들 진단주는 끝났대. 근데 오늘부터 회사가 자사주 사서 태운다. 흥.",
    "watch": false
   },
   {
@@ -1784,7 +1784,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "가치 함정이라고? 현금 뽑아서 자사주 사들이는 회사야. 군중이 틀렸어.",
    "watch": false
   },
   {
@@ -1802,7 +1802,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "성장은 식고 물가는 끈적한 국면! 지수보다 원가 변수가 유리한 쪽을 보세요!",
    "watch": false
   },
   {
@@ -1820,7 +1820,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "금리가 높게 버티면 은행 이자 장사가 웃습니다. 사이클을 읽으세요!",
    "watch": false
   },
   {
@@ -1838,7 +1838,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "카지노 영업이익이 62%나 뛰었어! 추정치보다 훨씬 높다고, 찾았다!",
    "watch": false
   },
   {
@@ -1856,7 +1856,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "비행기 부품 독점 회사가 내년 가이던스까지 올렸어! 이건 보물이야!",
    "watch": false
   },
   {
@@ -1874,7 +1874,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "어젯밤 미국 AI 클라우드가 대박 실적! 메모리 대역폭이 병목이라고!",
    "watch": false
   },
   {
@@ -1892,7 +1892,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "매출이 1년 새 168% 늘었어! 수주잔고도 쑥쑥, AI 인프라 파도다!",
    "watch": false
   },
   {
