@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-12T08:40:23+09:00",
+ "generated_at": "2026-11-12T08:41:31+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -2382,7 +2382,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "기존 서비스와 유동자산·부채 관계를 택하되, 현금 제약과 투자 부담은 경계하겠다.",
    "watch": false
   },
   {
@@ -2400,7 +2400,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "실제 이익과 현금창출을 택하되, 분기 현금 감소와 규제 위험을 경계하겠다.",
    "watch": false
   },
   {
@@ -2418,7 +2418,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "고객 기반과 투자 후 양의 현금잔여를 골랐지만, 환원 부담과 서비스매출 감소는 남아 있어.",
    "watch": false
   },
   {
@@ -2436,7 +2436,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "관측된 갱신율과 실현 현금흐름이 돋보이지만, 높은 기대와 배당 후 유동성은 경계해.",
    "watch": false
   },
   {
@@ -2454,7 +2454,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "성장과 현금전환의 단서는 찾았지만, 가격순환과 계약조건의 빈칸은 추적하겠어.",
    "watch": false
   },
   {
@@ -2472,7 +2472,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "기업용 성장과 양의 현금잔여는 확인했지만, 투자 부담과 현금잔여 감소도 증거야.",
    "watch": false
   },
   {
@@ -2490,7 +2490,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "본격 출하와 고객계약이 기대되지만, 가격 경쟁과 증설 부담도 함께 볼래!",
    "watch": false
   },
   {
@@ -2508,7 +2508,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "클라우드와 업무도구의 성장은 반갑지만, 투자 뒤 남는 현금의 감소도 살필래!",
    "watch": false
   },
   {
@@ -2526,7 +2526,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "지역별 이익 흐름의 차이를 택했지만, 그걸 연결 현금의 방패로 착각하진 않지!",
    "watch": false
   },
   {
@@ -2544,7 +2544,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "다양한 사업과 유동성을 택했지만, 보험 부진과 현금 제약이 사라지는 건 아니지!",
    "watch": false
   },
   {
