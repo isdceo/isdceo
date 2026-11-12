@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-12T17:39:43+09:00",
+ "generated_at": "2026-11-13T07:16:14+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -280,6 +280,22 @@
    "source_commit": "5d9a736"
   },
   {
+   "key": "18020c9|2026-11-13|claude|commitment",
+   "mode": "실전",
+   "team": "로로 팀 (Claude)",
+   "round": "2026-11-13",
+   "kind": "commitment",
+   "status": "committed",
+   "pushed_at": "2026-11-13T07:15:32+09:00",
+   "commit": "18020c9",
+   "imported": 0,
+   "sealed": false,
+   "early_reveal": false,
+   "judged_by": "push_event.repository.pushed_at",
+   "via": "메인 저장소",
+   "source_commit": ""
+  },
+  {
    "key": "2e99da5|2026-11-05|sandbox|csv",
    "mode": "연습",
    "team": "sandbox",
@@ -397,11 +413,11 @@
    "key": "실전|로로 팀 (Claude)",
    "mode": "실전",
    "team": "로로 팀 (Claude)",
-   "round": "2026-11-12",
-   "status": "accepted",
-   "pushed_at": "2026-11-12T08:30:51+09:00",
-   "imported": 10,
-   "visible_picks": 10
+   "round": "2026-11-13",
+   "status": "committed",
+   "pushed_at": "2026-11-13T07:15:32+09:00",
+   "imported": 0,
+   "visible_picks": 0
   },
   {
    "key": "실전|슈슈 팀 (Codex)",
@@ -3178,16 +3194,6 @@
  ],
  "calendar": [
   {
-   "key": "2026-10-29",
-   "date": "2026-10-29",
-   "kr": true,
-   "us": true,
-   "markets": "한국·미국",
-   "deadline": "2026-10-29T08:30+09:00",
-   "reveal_until": "2026-10-29T12:00+09:00",
-   "score_at": "2026-10-30T08:35+09:00"
-  },
-  {
    "key": "2026-10-30",
    "date": "2026-10-30",
    "kr": true,
@@ -3586,6 +3592,16 @@
    "deadline": "2026-12-24T08:30+09:00",
    "reveal_until": "2026-12-24T12:00+09:00",
    "score_at": "2026-12-25T08:35+09:00"
+  },
+  {
+   "key": "2026-12-28",
+   "date": "2026-12-28",
+   "kr": true,
+   "us": true,
+   "markets": "한국·미국",
+   "deadline": "2026-12-28T08:30+09:00",
+   "reveal_until": "2026-12-28T12:00+09:00",
+   "score_at": "2026-12-29T08:35+09:00"
   }
  ]
 }
