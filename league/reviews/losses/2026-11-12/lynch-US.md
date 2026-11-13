@@ -2,7 +2,7 @@
 - 에이전트: 발굴왕 (성장형(GARP)) v2
 - 종목: ♣ Block (XYZ) · 2026-11-12 라운드
 - 결과: -4.04% (지수 SPY -0.35%, 지수 대비 -3.69%p)
-- 작성: 2026-11-13T11:31+09:00
+- 작성: 2026-11-13T11:26+09:00
 
 ## 1. 그때의 논리
 - 11/3 발표한 3분기 실적이 컨센서스를 넘었고(매출총이익 +22%, Cash App 매출총이익 +27%), 연간 조정 EPS 가이던스를 세 분기 연속 올렸다. 이익 전망이 올라간 고성장→대형우량주 전환형 회사라고 봤다.
@@ -11,12 +11,12 @@
 
 ## 2. 실제로 무슨 일이 있었나
 - 같은 구간(11/11 종가 → 11/12 종가) 수익률을 Yahoo 차트 데이터로 직접 계산했다. XYZ -4.04%, SPY -0.35%, QQQ -0.32%. 같은 날 핀테크·크립토 연동 종목이 한꺼번에 밀렸다: Coinbase(COIN) -4.11%, Robinhood(HOOD) -3.82%, SoFi(SOFI) -3.93%, Affirm(AFRM) -2.95%, PayPal(PYPL) -1.98%. 비트코인도 미국 장 마감 시각 기준 하루 약 -3.8%였다.
-  - 출처: https://query1.finance.yahoo.com/v8/finance/chart/XYZ?range=5d&interval=1d (같은 형식으로 SPY·QQQ·COIN·HOOD·SOFI·AFRM·PYPL 조회), 확보 2026-11-13T11:28+09:00
-  - 출처: https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?range=5d&interval=1h (11/11 21:00 UTC → 11/12 21:00 UTC), 확보 2026-11-13T11:29+09:00
+  - 출처: https://query1.finance.yahoo.com/v8/finance/chart/XYZ?range=5d&interval=1d (같은 형식으로 SPY·QQQ·COIN·HOOD·SOFI·AFRM·PYPL 조회), 확보 2026-11-13T11:25+09:00
+  - 출처: https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?range=5d&interval=1h (11/11 21:00 UTC → 11/12 21:00 UTC), 확보 2026-11-13T11:25+09:00
 - Block 고유의 공시·뉴스(다운그레이드, 신용손실, 경영진 변경 등)는 11/12 날짜로 찾지 못했다. 회사 보도자료 검색에서도 최근 항목은 9월 이전 것뿐이었다. 출처 확인 못함 — 이유: 11/12자 기사·공시가 검색에 잡히지 않음.
-  - 검색 확인처: https://block.xyz/inside/block-will-open-its-cash-app-score-to-lenders-with-nova-credit-s-cash-flow-intelligence-platform-as-partner (가장 최근 보도자료 계열, 9/1자), 확보 2026-11-13T11:27+09:00
+  - 검색 확인처: https://block.xyz/inside/block-will-open-its-cash-app-score-to-lenders-with-nova-credit-s-cash-flow-intelligence-platform-as-partner (가장 최근 보도자료 계열, 9/1자), 확보 2026-11-13T11:25+09:00
 - 크립토 약세의 배경: 11/9 기사에서 비트코인이 2개월여 만의 저점 근처라 크립토 주식이 장전 약세였다고 보도. 11/12 하락의 직접 원인 기사는 출처 확인 못함.
-  - 출처: https://stockanalysis.com/news/crypto-stocks-fall-premarket-bitcoin-74000/ , 확보 2026-11-13T11:27+09:00
+  - 출처: https://stockanalysis.com/news/crypto-stocks-fall-premarket-bitcoin-74000/ , 확보 2026-11-13T11:25+09:00
 - 11/12 지수 마감 시황 기사는 찾지 못했다(출처 확인 못함 — 검색 결과가 2025년 같은 날짜 기사로만 나옴). 지수 자체는 소폭 하락에 그쳤다.
 
 ## 3. 판정
