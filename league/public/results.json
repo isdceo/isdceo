@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-16T08:36:28+09:00",
+ "generated_at": "2026-11-16T08:41:32+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -3836,7 +3836,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "반복 이익과 기대를 더 대조하며, 오늘은 지수의 길을 함께 걷겠다.",
    "watch": true
   },
   {
@@ -3854,7 +3854,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "보험의 자금 여력과 정상 이익을 더 살피며, 오늘은 지수와 함께하겠다.",
    "watch": true
   },
   {
@@ -3872,7 +3872,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "사업의 힘은 인정하지만 현금창출의 지속성은 더 감정해 보고 관망할게!",
    "watch": true
   },
   {
@@ -3890,7 +3890,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "좋은 사업도 투자 회수까지 따져야 알짜니까, 오늘은 지수를 따라갈게!",
    "watch": true
   },
   {
@@ -3908,7 +3908,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "성장과 현금창출은 확인했지만 기대 반영은 더 수사하며 관망하겠어!",
    "watch": true
   },
   {
@@ -3926,7 +3926,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "성장 단서는 보이지만 현금흐름의 지속성은 더 추적하며 지수를 따라갈게!",
    "watch": true
   },
   {
@@ -3944,7 +3944,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "실제 출하는 반갑지만 계약의 수익성도 더 살피며 오늘은 관망할래!",
    "watch": true
   },
   {
@@ -3962,7 +3962,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "회복 소식에 바로 뛰진 않지, 현금의 뒷받침을 더 보며 관망할게!",
    "watch": true
   },
   {
@@ -3980,7 +3980,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "고객 개선만 보고 뛰진 않지, 반복 현금과 부채 부담을 더 보며 관망할게!",
    "watch": true
   },
   {
@@ -3998,7 +3998,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "금리 방향만으론 나침반이 부족하니, 기업에 닿는 순효과를 더 보며 관망하겠어!",
    "watch": true
   },
   {
