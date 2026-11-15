@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-14T16:49:28+09:00",
+ "generated_at": "2026-11-16T06:31:30+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -520,7 +520,7 @@
    "sum_raw": 11.74,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -544,7 +544,7 @@
    "sum_raw": 10.62,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -568,7 +568,7 @@
    "sum_raw": 9.64,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -592,7 +592,7 @@
    "sum_raw": 7.86,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -616,7 +616,7 @@
    "sum_raw": 6.77,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -640,7 +640,7 @@
    "sum_raw": 0.94,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -664,7 +664,7 @@
    "sum_raw": -0.73,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -688,7 +688,7 @@
    "sum_raw": -2.14,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -712,7 +712,7 @@
    "sum_raw": -2.57,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -736,8 +736,8 @@
    "sum_raw": -4.73,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
-   "out": ""
+   "closed": true,
+   "out": "탈락"
   },
   {
    "key": "실전|2026-W46|US|shushu|s2",
@@ -760,7 +760,7 @@
    "sum_raw": 5.45,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -784,7 +784,7 @@
    "sum_raw": 3.81,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -808,7 +808,7 @@
    "sum_raw": 2.46,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -832,7 +832,7 @@
    "sum_raw": 1.56,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -856,7 +856,7 @@
    "sum_raw": 1.2,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -880,7 +880,7 @@
    "sum_raw": 0.47,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -904,7 +904,7 @@
    "sum_raw": -0.28,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -928,7 +928,7 @@
    "sum_raw": -1.8,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -952,7 +952,7 @@
    "sum_raw": -5.94,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
+   "closed": true,
    "out": ""
   },
   {
@@ -976,8 +976,8 @@
    "sum_raw": -7.4,
    "held": 0,
    "submit_rate": 100.0,
-   "closed": false,
-   "out": ""
+   "closed": true,
+   "out": "탈락"
   }
  ],
  "team_daily": [
@@ -3395,10 +3395,16 @@
    "joined_week": "",
    "eliminated_week": "",
    "markets": {
-    "KR": "현역",
+    "KR": "탈락",
     "US": "현역"
    },
-   "events": []
+   "events": [
+    {
+     "market": "KR",
+     "type": "eliminated",
+     "week": "2026-W46"
+    }
+   ]
   },
   {
    "key": "로로 팀 (Claude)|발굴왕 · 성장형(GARP)",
@@ -3485,15 +3491,21 @@
    "label": "모멘텀형",
    "tagline": "가격·거래량 추세와 지수 대비 상대강도를 따라간다",
    "avatar": "pado",
-   "status": "대기 1순위",
+   "status": "현역",
    "version": 1,
-   "joined_week": "",
+   "joined_week": "2026-W47",
    "eliminated_week": "",
    "markets": {
-    "KR": "대기",
-    "US": "대기"
+    "KR": "현역",
+    "US": "미참가"
    },
-   "events": []
+   "events": [
+    {
+     "market": "KR",
+     "type": "joined",
+     "week": "2026-W47"
+    }
+   ]
   },
   {
    "key": "로로 팀 (Claude)|계산기 · 퀀트 팩터형",
@@ -3504,7 +3516,7 @@
    "label": "퀀트 팩터형",
    "tagline": "가치·퀄리티·모멘텀·저변동성 점수를 합쳐 고른다",
    "avatar": "gyesan",
-   "status": "대기 2순위",
+   "status": "대기 1순위",
    "version": 1,
    "joined_week": "",
    "eliminated_week": "",
@@ -3586,9 +3598,15 @@
    "eliminated_week": "",
    "markets": {
     "KR": "현역",
-    "US": "현역"
+    "US": "탈락"
    },
-   "events": []
+   "events": [
+    {
+     "market": "US",
+     "type": "eliminated",
+     "week": "2026-W46"
+    }
+   ]
   },
   {
    "key": "슈슈 팀 (Codex)|반전이 · 위험역발상형",
@@ -3618,15 +3636,21 @@
    "label": "거시사이클형",
    "tagline": "금리와 경기 흐름에서 기회를 찾는다",
    "avatar": "nachim",
-   "status": "대기 1순위",
+   "status": "현역",
    "version": 2,
-   "joined_week": "",
+   "joined_week": "2026-W47",
    "eliminated_week": "",
    "markets": {
-    "KR": "대기",
-    "US": "대기"
+    "KR": "미참가",
+    "US": "현역"
    },
-   "events": []
+   "events": [
+    {
+     "market": "US",
+     "type": "joined",
+     "week": "2026-W47"
+    }
+   ]
   },
   {
    "key": "슈슈 팀 (Codex)|순풍 · 추세모멘텀형",
@@ -3637,7 +3661,7 @@
    "label": "추세모멘텀형",
    "tagline": "가격과 거래량의 추세를 살핀다",
    "avatar": "sunpung",
-   "status": "대기 2순위",
+   "status": "대기 1순위",
    "version": 2,
    "joined_week": "",
    "eliminated_week": "",
@@ -4058,6 +4082,26 @@
    "deadline": "2026-12-29T08:30+09:00",
    "reveal_until": "2026-12-29T12:00+09:00",
    "score_at": "2026-12-30T08:35+09:00"
+  },
+  {
+   "key": "2026-12-30",
+   "date": "2026-12-30",
+   "kr": true,
+   "us": true,
+   "markets": "한국·미국",
+   "deadline": "2026-12-30T08:30+09:00",
+   "reveal_until": "2026-12-30T12:00+09:00",
+   "score_at": "2026-12-31T08:35+09:00"
+  },
+  {
+   "key": "2026-12-31",
+   "date": "2026-12-31",
+   "kr": false,
+   "us": true,
+   "markets": "미국만 (한국 휴장)",
+   "deadline": "2026-12-31T08:30+09:00",
+   "reveal_until": "2026-12-31T12:00+09:00",
+   "score_at": "2027-01-01T08:35+09:00"
   }
  ]
 }
