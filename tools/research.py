@@ -37,10 +37,24 @@ def now_kst() -> datetime:
     return datetime.now(L.KST)
 
 
-def _get(url: str) -> bytes:
+RETRY_WAIT = (2.0, 5.0)        # 429·5xx 뒤 다시 시도 전 대기(초). 라운드 시간을 아끼려고 최대 2번, 합 7초 안팎
+
+
+def _get(url: str, sleep=None) -> bytes:
+    """같은 이름(UA)·같은 주소로만 요청한다. 429(요청 과다)·5xx는 잠깐 쉬고 최대 2번 다시 시도하고, 그래도 안 되면 그대로 실패를 알린다
+    (11/10~11/13 라운드에서 에이전트 여러 명이 동시에 조회해 429가 반복됨). Retry-After가 짧게(10초 이하) 오면 그 값을 따른다."""
+    import time
+    sleep = sleep or time.sleep
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json,text/plain,*/*"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read()
+    for i in range(len(RETRY_WAIT) + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if i >= len(RETRY_WAIT) or not (e.code == 429 or 500 <= e.code < 600):
+                raise
+            ra = (e.headers.get("Retry-After") if e.headers else None) or ""
+            sleep(float(ra) if ra.strip().isdigit() and 0 < int(ra) <= 10 else RETRY_WAIT[i])
 
 
 def _rec(kind, market, ticker, session, value, url, raw: bytes, note=None, as_of=None, retrieved=None) -> dict:
@@ -185,9 +199,9 @@ def write_log(path: Path, recs: list[dict]):
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
 
-PRICE_CLAIM = re.compile(r"(\d{1,2})/(\d{1,2})\s*(?:일\s*)?(?:종가|마감)\s*\(?\s*\$?\s*([\d,]+(?:\.\d+)?)")
+PRICE_CLAIM = re.compile(r"(\d{1,2})/(\d{1,2})\s*(?:일\s*)?(?:종가|마감)\s*\(?\s*\$?\s*(\d[\d,]*(?:\.\d+)?)")
 # "종가 219,500원(11/6)"처럼 날짜가 뒤에 오는 형태
-PRICE_CLAIM_AFTER = re.compile(r"(?:종가|마감)\s*\$?\s*([\d,]+(?:\.\d+)?)\s*(?:원|달러|포인트|pt)?\s*\(\s*(\d{1,2})/(\d{1,2})\s*\)")
+PRICE_CLAIM_AFTER = re.compile(r"(?:종가|마감)\s*\$?\s*(\d[\d,]*(?:\.\d+)?)\s*(?:원|달러|포인트|pt)?\s*\(\s*(\d{1,2})/(\d{1,2})\s*\)")
 
 
 def check_csv(path: Path, log: Path, cfg: dict) -> list[str]:

@@ -86,3 +86,44 @@ class CheckCsvMore(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WeeklyCheck20261115(unittest.TestCase):
+    """2026-11-15 주간 개선 점검: 11/11~11/13 라운드 기록에서 찾은 도구 결함."""
+    def test_check_csv_comma_after_closing_word_does_not_crash(self):
+        # "종가, ..." 처럼 종가 뒤에 쉼표가 오면 숫자 칸이 ','만 잡혀 float 변환에서 멈췄다(라운드 세션이 사흘 우회)
+        d = Path(tempfile.mkdtemp())
+        log = d / "log.jsonl"
+        R.write_log(log, [R._rec("close", "KR", "033780", "2026-11-06", 189900.0, "u", b"x")])
+        f = d / "x.csv"
+        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+                     "2026-11-09,buffett,1,KR,033780,KT&G,2026-11-09T08:10:00+09:00,\"11/06 종가, 그리고 마감 ,(11/6) 뒤 11/06 종가 189,900원\",위험,https://a|2026-11-06|2026-11-09T07:30:00+09:00\n",
+                     encoding="utf-8")
+        self.assertEqual(R.check_csv(f, log, CFG), [])
+        self.assertEqual(R.PRICE_CLAIM.findall("11/10 종가, 그리고"), [])
+        self.assertEqual(R.PRICE_CLAIM.findall("11/6 종가 $1,234.5"), [("11", "6", "1,234.5")])
+
+    def test_get_retries_429_then_succeeds_and_gives_up_after_two(self):
+        import io, urllib.error, unittest.mock as M
+        calls, waits = [], []
+        def opener(codes):
+            it = iter(codes)
+            def f(req, timeout=30):
+                c = next(it); calls.append(c)
+                if c != 200:
+                    raise urllib.error.HTTPError(req.full_url, c, "x", {"Retry-After": "1"} if c == 429 else {}, io.BytesIO(b""))
+                return io.BytesIO(b"ok")
+            return f
+        with M.patch("urllib.request.urlopen", opener([429, 503, 200])):
+            self.assertEqual(R._get("https://example/a", sleep=waits.append), b"ok")
+        self.assertEqual((calls, waits), ([429, 503, 200], [1.0, 5.0]))
+        calls.clear(); waits.clear()
+        with M.patch("urllib.request.urlopen", opener([429, 429, 429])):
+            with self.assertRaises(urllib.error.HTTPError):
+                R._get("https://example/a", sleep=waits.append)
+        self.assertEqual(len(calls), 3)
+        calls.clear()
+        with M.patch("urllib.request.urlopen", opener([404])):
+            with self.assertRaises(urllib.error.HTTPError):
+                R._get("https://example/a", sleep=waits.append)
+        self.assertEqual(calls, [404])                                                     # 4xx(429 제외)는 바로 실패
