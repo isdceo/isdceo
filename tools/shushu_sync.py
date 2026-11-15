@@ -275,10 +275,11 @@ def _reopened(recs: list[dict], cfg: dict | None = None) -> set:
     새 push는 activity_id, 보류 해제는 held_id로 돌려준다. 원장 순서대로 그 처리의 '가장 최근 확정 상태'를 따른다:
     통신 오류로 확정 → 해제되면 다시 처리 / 성공 또는 통신 오류가 아닌 확정 오류 → 닫힘(예전 해제로 다시 열리지 않음).
     라운드가 기록에 없는 예전 형식은 같은 처리가 남긴 확인 대기(taint) 라운드와 push 시각 기준 라운드로 판별한다."""
-    taint_by = {}
+    taint_by, teams_by = {}, {}
     for x in recs:
         if x.get("type") == "taint" and x.get("activity_id") is not None:
             taint_by.setdefault(x["activity_id"], set()).add(x["round"])
+            teams_by.setdefault(x["activity_id"], set()).add((x.get("team"), x["round"]))
     out, open_err = set(), {}
     for x in recs:
         ty = x.get("type", "push")
@@ -289,12 +290,13 @@ def _reopened(recs: list[dict], cfg: dict | None = None) -> set:
                 rs |= taint_by.get(x.get("activity_id"), set())
                 if not rs and cfg and x.get("pushed_at"):
                     rs = {_next_round(datetime.fromisoformat(x["pushed_at"]), cfg).isoformat()}
-                open_err[key] = rs
+                open_err[key] = (rs, teams_by.get(x.get("activity_id"), set()))
             else:                                      # 성공·통신 오류가 아닌 확정 오류: 닫는다
                 open_err.pop(key, None)
             out.discard(key)
         elif ty == "untaint":
-            out |= {k for k, rs in open_err.items() if x["round"] in rs}
+            # 팀까지 맞춘다: 연습만 해제했는데 실전 push가 다시 열리지 않게(주간 점검 2026-11-15 L3). 확인 대기 기록이 없으면 라운드만
+            out |= {k for k, (rs, tt) in open_err.items() if x["round"] in rs and (not tt or (x.get("team"), x["round"]) in tt)}
     return out
 
 
@@ -497,7 +499,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                     if u["kind"] in ("commitment", "reveal") and now >= L.reveal_deadline(date.fromisoformat(max(u["rd"], R0s)), cfg):
                         team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
                         if (team, u["rd"]) not in bad:
-                            L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"],
+                            L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"], "s_after": act.get("after"),
                                                             "pushed_at": pushed.isoformat(), "reason": "지문·원본 push를 그 라운드 공개 마감까지 처리하지 못함"})
                             bad.add((team, u["rd"]))
             if final and not g.get("release") and any(u["kind"] in ("commitment", "reveal") for u in g["ready"]):
@@ -508,7 +510,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                     if u["kind"] in ("commitment", "reveal") and now >= L.lock_deadline(
                             date.fromisoformat(u["rd"]) if transient else _next_round(pushed, cfg), cfg):
                         team = "sandbox-shushu" if str(u.get("dst") or "").startswith(("league/imports/sandbox-", "league/sandbox/")) else "shushu"
-                        L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"],
+                        L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": u["rd"], "activity_id": act["id"], "s_after": act.get("after"),
                                                         "pushed_at": pushed.isoformat(), "reason": "지문·원본 push를 공개 마감까지 처리하지 못함"})
                         bad.add((team, u["rd"]))
             out.append({**rec, "status": "error" if final else "retry", "receipts": [], "lines": []})
@@ -518,7 +520,7 @@ def pull(main: Path, ext: Path, activities: list[dict], repo: str, now: datetime
                 rr = max(u["rd"], _first_round_on_or_after(pushed.date(), cfg).isoformat())
                 if final and (u["kind"] in ("reveal", "debate") or g["release"].get("taint")):
                     # 보류한 원본을 끝내 꺼낼 수 없음: 같은 라운드의 다른 원본을 대신 인정하지 않는다
-                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": rr, "activity_id": act["id"],
+                    L.append(d, "external_pushes", {"repo": repo, "type": "taint", "team": team, "round": rr, "activity_id": act["id"], "s_after": act.get("after"),
                                                     "pushed_at": pushed.isoformat(), "reason": "보류한 원본을 받을 수 없음"})
                     bad.add((team, rr))
             if not final:
@@ -821,7 +823,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     xp = L.read_ledger(d, "external_pushes")
     taint = (("shushu", rd) in tainted(xp))
     # 오늘 라운드에 속한 push(직전 마감 뒤 ~ 오늘 마감 전)의 처리 상태. 다른 라운드의 오류로 오늘 깨우기를 바꾸지 않는다
-    done_ids = {x["activity_id"] for x in xp if x.get("type", "push") == "push"}
+    done_ids = {x["activity_id"] for x in xp if x.get("type", "push") == "push"} - _reopened(xp, cfg)   # 다시 연 push는 다시 '처리 중'(주간 점검 2026-11-15 L4)
     released = {x.get("held_id") for x in xp if x.get("type") == "release"}
     def _today(x):
         if x.get("wake_round") or x.get("round"):     # 재시도 기록이 정한 라운드(08:30 뒤 push한 그날 원본은 그날 — 슈슈 검토 2026-11-09 #1)

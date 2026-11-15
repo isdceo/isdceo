@@ -1481,6 +1481,16 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(R([{**rel, "transient": False}, unt]), set())
         self.assertEqual(R([{"type": "release", "held_id": "1#0", "activity_id": 1}, unt]), set())   # 성공한 해제는 다시 열지 않음
 
+    def test_reopen_matches_untaint_team(self):
+        """주간 점검 2026-11-15 L3: 연습만 확인 대기를 풀었을 때 실전 push가 다시 열리지 않는다(팀까지 맞춤)."""
+        rd = "2026-11-10"; R = self.X._reopened
+        err = {"type": "push", "activity_id": 7, "status": "error", "transient": True, "round": rd}
+        taint = lambda t: {"type": "taint", "team": t, "round": rd, "activity_id": 7, "s_after": "a" * 40}
+        unt = lambda t: {"type": "untaint", "team": t, "round": rd}
+        self.assertEqual(R([err, taint("shushu"), unt("sandbox-shushu")]), set())
+        self.assertEqual(R([err, taint("shushu"), unt("shushu")]), {7})
+        self.assertEqual(R([err, unt("sandbox-shushu")]), {7})                              # 확인 대기 기록이 없으면 라운드만으로
+
     def test_retaint_after_untaint_is_honored(self):
         """원장 순서: 확인 대기를 푼 뒤 같은 라운드가 다시 확인 대기가 되면 다시 묶인다."""
         rd = "2026-11-10"; rec = lambda ty: {"type": ty, "team": "shushu", "round": rd}

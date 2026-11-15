@@ -1129,7 +1129,7 @@ html,body{background:var(--arena0)}
       const tAvg = (t) => { const xs = T.picks.filter((p) => p.team === t && p.mode === m0 && p.status === 'final' && p.score != null); return xs.length ? xs.reduce((s, p) => s + p.score, 0) / xs.length : null; };
       // 실전이 시작됐는데 아직 확정 점수가 없으면 연습 점수를 요약 맨 위에 내세우지 않는다(실전 점수로 오해, 11/9 운영자 지적)
       const liveOn = T.picks.some((p) => p.mode === '실전'), practiceOnly = liveOn && m0 === '연습';
-      const liveRd = liveOn ? T.picks.filter((p) => p.mode === '실전').map((p) => p.round_date).sort().pop() : null;
+      const liveRd = liveOn ? T.picks.filter((p) => p.mode === '실전').map((p) => p.round_date).sort()[0] : null;   // 첫 점수는 가장 이른 실전 라운드(주간 점검 2026-11-15)
       const liveRow = liveRd && (T.calendar || []).find((r) => r.date === liveRd);
       const pend = practiceOnly ? `<div class="duel">${[C, Sx].map((t) => `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="no">채점 전</b></div>`).join('')}</div><p class="muted cap">실전 ${md(liveRd)} 라운드${liveRow && liveRow.score_at ? ` · 첫 점수 ${md(liveRow.score_at.slice(0, 10))} ${liveRow.score_at.slice(11, 16)}` : ''} · 연습 기록은 순위·기록 탭에서 '연습'으로 볼 수 있습니다</p>` : '';
       const duel = practiceOnly ? pend : live.length
