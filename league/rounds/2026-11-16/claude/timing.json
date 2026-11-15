@@ -33,7 +33,10 @@
   {
    "stage": "원본 공개",
    "start": "2026-11-16T08:30:25+09:00",
-   "end": "2026-11-16T08:30:40+09:00"
+   "end": "2026-11-16T08:30:40+09:00",
+   "receipt": "accepted",
+   "receipt_checked_at": "2026-11-16T08:31:27+09:00",
+   "commit": "f525f032e024b0cdf55462675bbcc6b0b32e36c1"
   }
  ],
  "notes": [
@@ -47,6 +50,7 @@
   "발굴왕(lynch)의 SEC·medtechdive 출처는 검색 요약으로만 확인.",
   "관망 이번 주 첫 사용: 한국 lynch·dalio·wood·burry, 미국 buffett·wood·burry.",
   "미래광은 stock_data에 .KS 접미사가 필요했음.",
-  "08:30:25 CSV sha256이 지문과 같음을 확인한 뒤 공개. end는 push 직전 시각."
+  "08:30:25 CSV sha256이 지문과 같음을 확인한 뒤 공개. end는 push 직전 시각.",
+  "accepted는 08:31:27 확인(서버 push 08:30:42). 한 줄 이유는 accepted 뒤 작성·검사 통과."
  ]
 }
