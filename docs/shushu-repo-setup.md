@@ -70,6 +70,7 @@ Actions 탭에서 수동 실행도 됩니다.
 | `lines/<날짜>-shushu.json` | `league/lines/` |
 | `practice-lines/<날짜>-sandbox-shushu.json` | `league/sandbox/lines/` |
 | `to-roro/<날짜>-<주제>.md` | `league/inbox/shushu/` (메시지, 라운드 날 12:00 뒤) |
+| `avatars/<그림 이름>.webp` | `league/play/av/` (캐릭터 3D 그림, 운영자 승인 2026-11-16: 명단에 있는 그림 이름만, webp·200KB 이하, 이미 있는 그림은 덮어쓰지 않음, 보류 없음) |
 
 - `from-league/` 사본은 허용 목록의 파일만 담습니다. 가격·점수 원장과 가격 포함 공통 자료는 넣지 않고, 가격처럼 보이는 칸이 섞인 파일은 사본에서 뺍니다(설정 사본에 섞이면 사본 작업 전체를 멈춥니다).
 - 로로 팀 세션은 전용 저장소를 열지 않습니다. 메인으로는 마감 전에 지문만 들어옵니다.

@@ -1089,7 +1089,7 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T10:00:00+09:00"), post=post), [])  # 라운드 시간엔 보내지 않음
         w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T12:30:00+09:00"), post=post)
         # 대기 후보 보충 요청(bench)은 실제 명단 상태에 따라 같이 나갈 수 있다(별도 시험) — 여기서는 공지만 본다
-        self.assertEqual([x["kind"] for x in w if x["kind"] != "bench"], ["notice"]); self.assertIn("2026-11-10-answer.md", posted[-1])
+        self.assertEqual([x["kind"] for x in w if x["kind"] not in ("bench", "avatar")], ["notice"])   # 그림 요청은 별도 시험; self.assertIn("2026-11-10-answer.md", posted[-1])
         self.assertNotIn("v2.0-market-leagues", posted[-1])                      # 기존 공지는 처음 켤 때 표시만
 
     # ── 검수 1차 재현 사례 ──
@@ -1491,6 +1491,36 @@ class ShushuRepoSync(unittest.TestCase):
         self.assertEqual(R([err, taint("shushu"), unt("sandbox-shushu")]), set())
         self.assertEqual(R([err, taint("shushu"), unt("shushu")]), {7})
         self.assertEqual(R([err, unt("sandbox-shushu")]), {7})                              # 확인 대기 기록이 없으면 라운드만으로
+
+    def test_avatar_webp_imported_once_and_checked(self):
+        """운영자 승인 2026-11-16: 슈슈 팀이 avatars/<이름>.webp를 push하면 게임 화면 그림으로 — 명단 이름·webp·크기 검사, 덮어쓰기 없음, 영수증과 무관."""
+        av = self.repo / "league" / "play" / "av"
+        names = self.X.avatar_names(self.repo)
+        name = next(n for n in sorted(names) if not (av / f"{n}.webp").exists()) if any(not (av / f"{n}.webp").exists() for n in names) else None
+        if name is None:                                   # 시험용 명단에 그림 없는 캐릭터를 하나 만든다
+            rp = self.repo / "league/agents/roster.json"; r = json.loads(rp.read_text())
+            r["bench"].append({"id": "zz", "label": "시험형", "approved": True, "avatar": "zztest", "nickname": "시험"}); rp.write_text(json.dumps(r, ensure_ascii=False))
+            name = "zztest"
+        webp = lambda tag: b"RIFF" + (100).to_bytes(4, "little") + b"WEBPVP8X" + tag * 20
+        self.assertIn(("avatar", name), [(w["kind"], w["key"]) for w in self.X.due_wakes(self.repo, datetime.fromisoformat("2026-11-16T14:00:00+09:00"))])
+        p = self.work / "avatars"; p.mkdir(exist_ok=True)
+        (p / f"{name}.webp").write_bytes(webp(b"a")); (p / "nobody.webp").write_bytes(webp(b"b")); (p / "fake.webp").write_bytes(b"not an image")
+        self.g(self.work, "add", "."); self.g(self.work, "commit", "-qm", "av"); self.g(self.work, "push", "-q", "origin", "HEAD:main")
+        after = self.g(self.work, "rev-parse", "HEAD")
+        utc = datetime(2026, 11, 16, 5, 0, tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.acts.append({"id": len(self.acts) + 1, "before": self.last, "after": after, "timestamp": utc, "activity_type": "push", "actor": {"login": "x"}}); self.last = after
+        out = self.sync("2026-11-16T14:10:00+09:00")
+        self.assertEqual((av / f"{name}.webp").read_bytes(), webp(b"a"))
+        self.assertFalse((av / "nobody.webp").exists()); self.assertFalse((av / "fake.webp").exists())
+        self.assertTrue(any("명단에 없는" in x for x in out[0]["problems"]))
+        self.assertNotIn(("avatar", name), [(w["kind"], w["key"]) for w in self.X.due_wakes(self.repo, datetime.fromisoformat("2026-11-16T15:00:00+09:00"))])
+        (p / f"{name}.webp").write_bytes(webp(b"c"))
+        self.g(self.work, "add", "."); self.g(self.work, "commit", "-qm", "av2"); self.g(self.work, "push", "-q", "origin", "HEAD:main")
+        after = self.g(self.work, "rev-parse", "HEAD")
+        utc = datetime(2026, 11, 16, 5, 30, tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.acts.append({"id": len(self.acts) + 1, "before": self.last, "after": after, "timestamp": utc, "activity_type": "push", "actor": {"login": "x"}}); self.last = after
+        self.sync("2026-11-16T14:40:00+09:00")
+        self.assertEqual((av / f"{name}.webp").read_bytes(), webp(b"a"))                                  # 덮어쓰지 않음
 
     def test_retaint_after_untaint_is_honored(self):
         """원장 순서: 확인 대기를 푼 뒤 같은 라운드가 다시 확인 대기가 되면 다시 묶인다."""

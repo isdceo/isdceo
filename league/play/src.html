@@ -683,7 +683,7 @@ html,body{background:var(--arena0)}
 (() => {
     { const g0 = document.getElementById('game'); const unshift = () => { if (g0.scrollLeft || g0.scrollTop) { g0.scrollLeft = 0; g0.scrollTop = 0; } if (window.scrollX || window.scrollY) window.scrollTo(0, 0); };   // 틀이 밀리면 즉시 되돌림
     g0.addEventListener('scroll', unshift, { passive: true }); window.addEventListener('scroll', unshift, { passive: true }); document.addEventListener('focusin', () => requestAnimationFrame(unshift)); window.addEventListener('resize', unshift); }
-  const T = window.TABLE, AV3D = Object.fromEntries(['ttukshim', 'alzza', 'balgul', 'keun', 'mirae', 'ppittak', 'dandan', 'dotbogi', 'ssuk', 'banjeon', 'pado', 'gyesan', 'nachim', 'sunpung'].map((k) => [k, `av/${k}.webp`]));
+  const T = window.TABLE, AV3D = Object.fromEntries((T.av3d || ['ttukshim', 'alzza', 'balgul', 'keun', 'mirae', 'ppittak', 'dandan', 'dotbogi', 'ssuk', 'banjeon', 'pado', 'gyesan', 'nachim', 'sunpung']).map((k) => [k, `av/${k}.webp`]));   // 3D 그림 목록은 배포 때 av/ 폴더에서(새 그림 자동 반영)
   const $ = (q) => document.querySelector(q), game = $('#game'), root = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const PORTRAIT = matchMedia('(orientation: portrait)');

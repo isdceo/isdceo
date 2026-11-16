@@ -44,6 +44,35 @@ RULES = [  # (전용 저장소 경로, 메인 경로 틀, 마감 전 보류 여�
 ]
 ZERO = "0" * 40
 MIRROR_DIR = "from-league"
+# 캐릭터 3D 그림(운영자 승인 2026-11-16): 슈슈 팀이 avatars/<이름>.webp로 push하면 게임 화면 그림으로 넣는다.
+# 명단에 있는 그림 이름만, webp(RIFF…WEBP)·200KB 이하, 이미 있는 그림은 덮어쓰지 않는다. 라운드·마감과 무관(보류 없음).
+AVATAR_RX = re.compile(r"^avatars/([a-z][a-z0-9]{1,23})\.webp$")
+AVATAR_DIR = "league/play/av"
+AVATAR_MAX = 200_000
+
+
+def avatar_names(main: Path) -> dict:
+    """그림 이름 → (팀, 애칭, 스타일, 대기 여부). 두 팀 명단(현역·대기)에서 그림 이름이 있는 사람만."""
+    out = {}
+    try:
+        r = json.loads((main / "league/agents/roster.json").read_text())
+        for m in r.get("claude") or []:
+            if m.get("avatar"):
+                out[m["avatar"]] = ("로로", m.get("nickname") or "", m.get("label") or "", False)
+        for m in r.get("bench") or []:
+            if m.get("avatar") and m.get("approved", True):
+                out[m["avatar"]] = ("로로", m.get("nickname") or "", m.get("label") or "", True)
+    except (OSError, ValueError, AttributeError):
+        pass
+    try:
+        s_ = json.loads((main / "league/imports/shushu/roster.json").read_text())
+        for k, bench in (("members", False), ("bench", True)):
+            for m in s_.get(k) or []:
+                if m.get("avatar"):
+                    out[m["avatar"]] = ("슈슈", m.get("nickname") or "", m.get("label") or "", bench)
+    except (OSError, ValueError, AttributeError):
+        pass
+    return out
 
 
 def git(*a, cwd) -> str:
@@ -56,6 +85,9 @@ def git_bytes(*a, cwd) -> bytes:
 
 def map_path(p: str):
     """허용 경로면 (메인 경로, 라운드 날짜, 마감 전 보류 여부, 종류). 날짜가 실제 날짜가 아니면 None."""
+    am = AVATAR_RX.match(p)
+    if am:
+        return f"{AVATAR_DIR}/{am.group(1)}.webp", None, False, "avatar"
     for rx, tmpl, hold, kind in RULES:
         m = rx.match(p)
         if m:
@@ -198,7 +230,7 @@ def hold_until(kind: str, rd: str, pushed: datetime, cfg: dict) -> datetime | No
     """마감 전 공개 차단. 원본·토론·대사: 라운드 날 마감 전 push면 (그날, 파일 날짜) 중 늦은 쪽의 마감까지,
     마감 뒤 push면 파일 날짜의 마감이 아직이면 그때까지(다음 라운드 정보는 공지의 '종목 언급 금지' 정책으로 막는다).
     메시지: 라운드 날 12:00 전에 push했으면 그날 12:00까지. 지문은 보류 없음."""
-    if kind == "commitment":
+    if kind in ("commitment", "avatar"):
         return None
     if kind == "message":
         noon = pushed.replace(hour=12, minute=0, second=0, microsecond=0)
@@ -236,6 +268,16 @@ def _classify(ext: Path, act: dict, files: list[str], main: Path) -> tuple[list[
         if t != "blob" or size > MAX_BYTES:
             problems.append(f"{_name({'file': f, 'kind': kind})}: 일반 파일이 아니거나 {MAX_BYTES:,}바이트 초과 — 무시")   # 메시지 주제는 해시로
             continue
+        if kind == "avatar":
+            name = Path(dst).stem
+            head = git_bytes("show", spec, cwd=ext)[:16] if size else b""
+            why = ("명단에 없는 그림 이름" if name not in avatar_names(main) else
+                   f"{AVATAR_MAX:,}바이트 초과" if size > AVATAR_MAX else
+                   "webp 파일이 아님" if not (head[:4] == b"RIFF" and head[8:12] == b"WEBP") else
+                   "이미 그림이 있음(덮어쓰지 않음 — 바꾸려면 to-roro/로 요청)" if (main / dst).exists() else None)
+            if why:
+                problems.append(f"{f}: 캐릭터 그림 — {why} — 무시")
+                continue
         if kind == "commitment" and not SHA_LINE.match(git_bytes("show", spec, cwd=ext)):
             problems.append(f"{f}: 지문 파일은 64자리 sha256(+ 두 칸 + 파일 이름) 한 줄만 — 무시")
             continue
@@ -584,8 +626,9 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
     대사는 같은 push의 원본을 먼저 반영·판정한 뒤(접수된 종목이 원장에 생긴 뒤) 임시 위치에서 검사해, 통과한 것만 따로 반입한다."""
     if not units:
         return [], [], ""
-    order = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4}
+    order = {"commitment": 0, "reveal": 1, "debate": 2, "lines": 3, "message": 4, "avatar": 5}
     units = sorted(units, key=lambda u: order.get(u["kind"], 9))
+    avatars, units = [u for u in units if u["kind"] == "avatar"], [u for u in units if u["kind"] != "avatar"]
     notes, wrote, failed_lines, receipts = [], [], [], []
     # 1) 지문·원본·토론·메시지
     for u in [x for x in units if x["kind"] != "lines"]:
@@ -652,6 +695,23 @@ def _apply(main: Path, ext: Path, repo: str, act: dict, pushed: datetime, units:
     if lines_ok and git("status", "--porcelain", "--", *[u["dst"] for u in lines_ok], cwd=main):
         git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
             "commit", "-q", *msg, "-m", "한 줄 대사", cwd=main)
+    # 3) 캐릭터 그림: 영수증과 무관하게 따로 커밋(이미 있으면 덮어쓰지 않음)
+    av_ok = []
+    for u in avatars:
+        p = main / u["dst"]
+        if p.exists():
+            notes.append(f"{u['file']}: 이미 그림이 있음 — 덮어쓰지 않음")
+            continue
+        raw = git_bytes("show", f"{act['after']}:{u['file']}", cwd=ext)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(raw)
+        git("add", u["dst"], cwd=main)
+        u["sha256"] = L.hashlib.sha256(raw).hexdigest()
+        av_ok.append(u)
+    if av_ok:
+        git("-c", "user.name=league-bot", "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+            "commit", "-q", *msg, "-m", "캐릭터 그림: " + ", ".join(Path(u["dst"]).stem for u in av_ok), cwd=main)
+        notes += [f"캐릭터 그림 반입 {u['dst']} sha256 {u['sha256']}" for u in av_ok]
     lines = [(u["dst"], True) for u in lines_ok] + [(d_, False) for d_ in failed_lines]
     notes += [f"{u['dst']} sha256 {u['sha256']}" for u in wrote + lines_ok if u["kind"] in ("debate", "lines", "message")]   # 출처·해시 기록
     return receipts, lines, "; ".join(notes)
@@ -884,6 +944,19 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
                 f"후보마다 파일 하나(`to-roro/{rd}-bench-<id>.md`)에 ```json 블록 하나(team·id·nickname·label·style_ref·tagline·look)와 `## 지침` 절(v1 지침 본문)을 넣어 push하면, "
                 "검사(`python3 from-league/tools/add_character.py from-message to-roro/<파일> --dry-run`)를 통과한 안은 운영자 상시 위임으로 자동 등록됩니다. 기존 에이전트와 다른 투자 관점, 실존 인물 사칭·특정 종목 고정 금지. "
                 "형식: `from-league/docs/bench-addition.md`.")
+    # 캐릭터 3D 그림 요청(운영자 승인 2026-11-16): 명단에 있는데 게임 화면 그림(league/play/av/<이름>.webp)이 없는 캐릭터마다 한 번.
+    # 기존 14명을 그려 준 슈슈 팀(2026-11-06 공지)에게 같은 화풍으로 부탁한다. 라운드 시간은 피한다.
+    if cfg.get("shushu_repo", {}).get("wake_avatar", True) and not (mk and "06:50" <= hm < "12:00"):
+        for name, (tm, nick, lab, bench) in sorted(avatar_names(main).items()):
+            if (main / AVATAR_DIR / f"{name}.webp").exists():
+                continue
+            col = "주황·갈색" if tm == "로로" else "파란색"
+            add("avatar", name, f"@codex 캐릭터 3D 그림을 부탁합니다: **{nick}**({tm} 팀 · {lab}{' · 대기 후보' if bench else ''}, 그림 이름 `{name}`). "
+                "기존 14명(2026-11-06 공지 `from-league/docs/codex-notices/2026-11-06-3d-characters.md`)과 같은 화풍·구도로 그려 주세요: "
+                f"3D 애니메이션 영화 느낌, 정면 상반신, 두 손에 카드 한 장씩(♦·♣), 옷에 팀 색({col}) 포인트, 투명 배경, 512×512 webp(RGBA), 200KB 이하. "
+                "생김새는 현황판의 2D 캐릭터(`from-league` 화면의 같은 이름)를 바탕으로 하되 **실존 인물(특히 같은 투자 스타일의 실존 투자자)을 닮지 않게** 해 주세요. "
+                f"전용 저장소에 `avatars/{name}.webp`로 push하면 다음 동기화가 받아 게임 화면에 넣습니다(명단에 있는 이름만, 이미 있는 그림은 덮어쓰지 않음). "
+                "이미지 생성 도구 약관상 지인 공개 화면에 써도 되는지 확인이 필요하면 `to-roro/`로 알려 주세요.")
     # 새 공지·회신 (메인 docs/codex-notices) — 내용 해시로 판단
     new = [p for p in _notes(main) if ("notice", p.name + ":" + L._sha(p)[:12]) not in sent]
     today_notices = sum(1 for w in L.read_ledger(d, "shushu_wakes") if w["kind"] == "notice" and w.get("url") != "seeded"

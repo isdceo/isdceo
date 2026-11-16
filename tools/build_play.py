@@ -268,6 +268,7 @@ def table_data(now: datetime | None = None, base: Path | None = None) -> dict:
     out = {k: b[k] for k in D.BUNDLE_KEYS}
     out["calendar"] = b["calendar"]                    # 결과 묶음에 이미 들어 있음
     out["generated_at"] = b["generated_at"]
+    out["av3d"] = sorted(f.stem for f in (GAME / "av").glob("*.webp"))   # 3D 그림이 있는 캐릭터(새 그림이 들어오면 자동으로 씀)
     out["reviews"] = D.reviews(base)                   # 로로 팀 주간 복기 요약 — 사이트에만(공유 결과 묶음에는 없음)
     return out
 
