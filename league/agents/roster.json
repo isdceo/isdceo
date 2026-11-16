@@ -135,6 +135,16 @@
       "id": "kvalueup",
       "label": "한국 밸류업형",
       "style_ref": "저PBR·지배구조 개선·주주환원 확대"
+    },
+    {
+      "id": "catalyst",
+      "label": "촉매 이벤트형",
+      "style_ref": "공개된 이벤트 드리븐 투자 원칙 참고",
+      "version": 1,
+      "nickname": "번개",
+      "avatar": "beongae",
+      "tagline": "실적·공시·지수 변경 같은 확인된 사건을 노린다",
+      "guideline": ".claude/agents/catalyst.md"
     }
   ]
 }

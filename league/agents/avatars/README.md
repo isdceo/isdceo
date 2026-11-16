@@ -24,3 +24,4 @@
 | sunpung | 순풍 | 바람에 머리가 날리는 선원 |
 
 그림은 `src/`의 생성기로 만든 SVG입니다(`gen.py` 공통 얼굴 틀, `chars.py` 캐릭터별 머리·모자·소품). `src/` 안에서 `python3 chars.py`를 실행하면 `defs.svg`(현황판에 넣는 정의)와 `preview.html`이 나온다. 현황판 페이지(`docs/dashboard/operator-dashboard-page.html`)의 정의와 같다.
+| beongae | 번개 | 자동 추가(claude, 촉매 이벤트형) — 선택지형 캐릭터 |
