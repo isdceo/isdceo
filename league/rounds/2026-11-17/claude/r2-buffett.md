@@ -1,0 +1,17 @@
+# r2-buffett (2026-11-17 반론 1회)
+
+## (1) 가장 동의하지 않는 주장: wood의 US NVDA (실적 전날 포지셔닝)
+- 사실 확인: NVDA 11/16 종가 156.14달러(research 도구)는 1년 최저 종가가 맞다(stock_data 1y: 최저 156.14, 최고 239.24). 그러나 같은 자료로 하루 -4.12%, 5거래일 -12.61%, 1개월 -27.08%다. 하락 흐름이 이어지는 중이다.
+- 반박: 실적이 11/17 장 마감 뒤라면 실적 결과는 구간 밖이다. 그러면 오늘 점수를 정하는 것은 실적 전날의 위험 회피 흐름뿐이다. 이 흐름은 저점 매수보다 헤지·비중 축소 쪽으로 작용하기 쉽다(일반론). 또 진행자 일정표는 NVDA 실적 11/17을 '확인 못함'으로 적었다. 촉매 날짜가 확인되지 않았으니 '실적 전날'이라는 전제 자체가 아직 검증되지 않았다. dalio가 전한 11/16 뒤 나스닥 선물 -2.7%(직접 확인 못함)가 맞다면 지수보다 베타가 큰 NVDA가 가장 먼저 맞는다. 내 렌즈에서도 이유가 확인되지 않은 낙폭은 '싸다'의 근거가 되지 못한다.
+
+## (2) 내 후보: TJX 유지 (changed=false)
+- 3분기 실적은 11/18 장전(boerse-express, 날짜 확인 못함)이라 구간 밖이다. 구간 안에 회사 고유 악재 일정이 없다.
+- 11/16 종가 131.09달러(research 도구). 1개월 -11.0%, 5거래일 -5.1%(stock_data). 2분기 comps +4%, 연간 EPS 가이던스 상향(2026-08 기사).
+- 기술주 주도 약세가 이어지면 SPY 대비 상대 방어 여지가 있다. 반대로 HD 실적·10월 소매판매가 약하면 업종 동반 약세가 온다 → p_beat 0.53 유지.
+
+## (3) 중복 종목: 없음 (US 후보는 KO·NVDA·ADBE, lynch는 US 관망)
+
+## 최종 JSON
+```json
+{"agent_id": "buffett", "final": [{"market": "US", "ticker": "TJX", "name": "TJX Companies", "rationale": "오프프라이스 1위 TJX는 구매력·재고 회전이라는 원가우위 해자를 가진 이해하기 쉬운 사업이다. 2분기(FY27, 8/19 발표) 동일점 매출 +4%, 조정 EPS 1.22달러(+11%), 연간 EPS 가이던스 상향(GAAP 5.31~5.36달러). 그런데 주가는 11/16 종가 131.09달러(research 도구)로 하루 -2.44%, 5거래일 -5.1%, 1개월 -11.0%(stock_data 계산)이다. 확인된 회사 고유 악재는 없고, Marmaxx 부진 우려와 11/16 시장 급락(SPY 11/16 종가 739.95달러 research 도구, 하루 -1.91%)이 겹친 일시적 낙폭으로 본다. 3분기 실적은 11/18(수) 장전이라 평가 구간(11/17 종가) 밖이므로 구간 안에 실적 악재가 나올 일정이 없다. 조정 EPS 가이던스 중간값 대비 PER 약 25배(추정)로 싸지는 않지만, 질 좋은 회사가 시장과 함께 과하게 밀린 뒤 실적 전날 되돌림 여지를 본다. 바깥 관점(일반론): 큰 지수 하락 다음 날 방어적 우량주의 초과수익은 방향이 일정하지 않으며, 실적 전날 포지션 정리가 이어질 수도 있다.", "risks": ["11/17 장전 Home Depot 실적과 08:30 ET 10월 소매판매가 약하면 소매 업종 전체가 함께 밀릴 수 있다", "실적 전날 불확실성 회피 매도(Marmaxx 부진 우려 지속)로 낙폭이 이어질 수 있다", "시장이 기술주 중심으로 급반등하면 방어 소비주는 상대적으로 뒤처질 수 있다"], "catalyst": "회사 고유 촉매 없음(실적은 11/18 장전으로 구간 밖). 구간 안 간접 변수: 10월 소매판매(11/17 08:30 ET), HD 실적(11/17 장전)", "flip_condition": "소매판매가 크게 부진하거나 HD가 소비 둔화를 경고해 소매주 전반이 장전 급락하면, 또는 TJX 실적 일정이 11/17로 앞당겨졌거나 사전 악재 공시가 확인되면 판단을 철회한다", "p_beat": 0.53, "exp_excess": 0.3, "sources": [{"url": "https://query1.finance.yahoo.com/v8/finance/chart/TJX?range=3mo&interval=1d", "as_of": "2026-11-16", "retrieved_at": "2026-11-17T07:09:40+09:00"}, {"url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d", "as_of": "2026-11-16", "retrieved_at": "2026-11-17T07:09:40+09:00"}, {"url": "https://www.boerse-express.com/news/articles/tjx-aktie-q3-zahlen-kommen-am-18-november-959218", "as_of": "확인 못함", "retrieved_at": "2026-11-17T07:09:40+09:00"}, {"url": "https://sgbonline.com/tjxs-lifts-fy-eps-outlook-despite-q2-sales-shortfal-at-marmaxxl-sierra-opens-three-stores-in-quarter/", "as_of": "2026-08", "retrieved_at": "2026-11-17T07:09:40+09:00"}, {"url": "https://www.just-style.com/news/tjx-q2-fy27-result/", "as_of": "2026-08", "retrieved_at": "2026-11-17T07:09:40+09:00"}, {"url": "https://www.barchart.com/story/news/3986726/ross-stores-just-flipped-the-off-price-retail-story-after-tjx-s-marmaxx-miss", "as_of": "확인 못함", "retrieved_at": "2026-11-17T07:09:40+09:00"}]}], "changed": false, "why": "TJX 유지. 3분기 실적이 11/18 장전이라 구간 안 회사 고유 악재 일정이 없고, 1개월 -11.0% 낙폭(stock_data)은 확인된 회사 악재 없이 Marmaxx 우려와 시장 급락이 겹친 것으로 본다. 동료(dalio)가 전한 11/16 뒤 나스닥 선물 -2.7%(내가 직접 확인 못함)가 맞다면 기술주 비중이 큰 SPY보다 오프프라이스 소매가 상대적으로 덜 빠질 여지가 있어 유지 근거가 약해지지 않는다. 다만 HD 실적·소매판매가 업종 전체를 흔들 수 있어 p_beat 0.53을 그대로 둔다. 다른 에이전트와 겹치는 종목 없음."}
+```
