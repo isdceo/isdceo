@@ -2798,3 +2798,24 @@ class LossReview(unittest.TestCase):
         f = self.LR.review_path(self.d, p); f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text(self._valid(row["pick_id"]).replace("\n\n## 1.", "\n- 종목: ♦ 가상 (352800) · 라운드\n\n## 1.", 1).replace("https://example.com", "https://example.com/news?idxno=352800"))
         self.assertFalse(any("원장에 기록된" in e for e in self.LR.check(f)))   # 머리글 티커·URL 숫자는 원장 종가와 대조하지 않는다(가상 코드는 숫자 규칙이 따로 막음)
+
+
+class ReviewsOnSite(unittest.TestCase):
+    """운영자 요청 2026-11-16: 주간 복기 요약을 리그 화면에 — 사이트에만 싣고 공유 결과 묶음에는 넣지 않는다."""
+    def test_reviews_alias_price_filter_and_not_in_bundle(self):
+        import dashboard_data as D, build_play as BP
+        base = Path(tempfile.mkdtemp(prefix="league-tests-")) / "league"
+        shutil.copytree(ROOT / "league", base, ignore=shutil.ignore_patterns("reviews", "public", "sandbox"))
+        d = base / "reviews" / "2026-W46" / "claude"; d.mkdir(parents=True)
+        (d / "summary.json").write_text(json.dumps({"week": "2026-W46", "note": "결론", "common": [{"summary": "공통", "agents": ["buffett"]}],
+            "agents": [{"agent_id": "buffett", "status": "cooldown", "one_line": "11/06 종가 188,700원에서 샀다",
+                        "signals": [{"summary": "직전 흐름 미점검", "n": 3}, {"summary": "목표가 $250", "n": 2}]}]}, ensure_ascii=False))
+        r = D.reviews(base)
+        a = r[0]["agents"][0]
+        self.assertEqual(a["agent_id"], L.load_config(base)["public_alias"]["claude"]["buffett"])      # 실존 인물 id 대신 별칭
+        self.assertEqual(a["nickname"], "뚝심이")
+        self.assertEqual(a["one_line"], "")                                                            # 원 가격 문장은 뺌
+        self.assertEqual([x["summary"] for x in a["signals"]], ["직전 흐름 미점검"])
+        self.assertEqual(r[0]["common"][0]["who"], ["뚝심이"])
+        self.assertNotIn("reviews", D.bundle(base=base))                                               # 공유 묶음(슈슈 사본)에는 없음
+        self.assertEqual(BP.table_data(base=base)["reviews"][0]["week"], "2026-W46")                     # 사이트 데이터에는 있음

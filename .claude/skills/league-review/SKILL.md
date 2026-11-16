@@ -80,6 +80,14 @@ argument-hint: "[주차 YYYY-Www]  (기본: 이번 주, 토요일 실행 기준)
 - 결과를 에이전트별 "근거 정확도(맞음/틀림/확인 불가 건수)"로 복기에 기록한다. 틀린 패턴(예: 다른 날 종가, 검색 요약만 보고 단정)은 지침 개선안의 근거 pick_id로 쓴다.
 - 감사는 두 팀에 같은 방식으로 하고 결과는 공지로 공유한다. 점수·순위에는 반영하지 않는다.
 
+## 2-2단계 — 화면용 요약 (리그 화면 '기록판 → 복기' 탭, 운영자 요청 2026-11-16)
+
+`league/reviews/<주차>/claude/summary.json`을 쓴다. 형식은 `league/reviews/2026-W46/claude/summary.json`과 같다.
+- 팀 칸: `week`, `rounds`, `proposal`(개선안 PR 여부), `pr`(PR 주소 또는 null), `note`(한 줄 결론), `calibration`(2-0 숫자 점검: picks·beat·brier·baseline), `audit`(2-1 근거 감사 합계·한 줄), `common`(팀 공통 반복 신호: summary, agents=[에이전트 id])
+- 에이전트 칸(`agents`): `agent_id`, `status`(update-plan), `scored`, `avg`, `excess`, `beat`, `one_line`, `signals`(반복 신호: summary, n=근거 pick_id 수), `audit`
+- **원 가격(원·달러 금액, 종가)과 슈슈 팀 종목·점수는 쓰지 않는다.** 퍼센트와 종목 이름은 괜찮다. 가격처럼 보이는 문장은 화면에서 자동으로 빠진다.
+- 이 요약은 사이트(`build-site`)에만 실리고, 슈슈 저장소로 가는 공유 결과 묶음(results.json)에는 들어가지 않는다.
+
 ## 3단계 — 점검과 PR
 
 1. 각 개선안을 원칙에 맞는지 점검한다.

@@ -360,6 +360,42 @@ BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "pi
 BUNDLE_SCHEMA = 1
 
 
+def reviews(base: Path | None = None) -> list[dict]:
+    """로로 팀 주간 복기 요약(league/reviews/<주차>/claude/summary.json) — 리그 화면(사이트)에만 싣는다.
+    공유 결과 묶음(results.json, 슈슈 저장소로 복사됨)에는 넣지 않는다: 복기 문서는 상대 팀에 보내지 않아 왔기 때문(운영자 요청 2026-11-16).
+    에이전트 id는 공개 별칭으로 바꾸고, 원 가격처럼 보이는 문장은 뺀다."""
+    base = Path(base or LEAGUE)
+    cfg = L.load_config(base)
+    amap = (cfg.get("public_alias") or {}).get("claude", {})
+    try:
+        rj = json.loads((base / "agents" / "roster.json").read_text()).get("claude")
+        roster = {m["id"]: m for m in (rj if isinstance(rj, list) else (rj or {}).get("members", []))}
+    except (OSError, KeyError, ValueError, AttributeError):
+        roster = {}
+    clean = lambda t: "" if not isinstance(t, str) or PRICE_LIKE.search(t) else t
+    out = []
+    for f in sorted(base.glob("reviews/*/claude/summary.json"), reverse=True):
+        try:
+            r = json.loads(f.read_text())
+        except ValueError:
+            continue
+        ags = []
+        for a in r.get("agents", []):
+            m = roster.get(a.get("agent_id"), {})
+            ags.append({"agent_id": amap.get(a.get("agent_id"), a.get("agent_id")), "nickname": m.get("nickname") or "",
+                        "label": m.get("label") or "", "status": a.get("status"), "scored": a.get("scored"),
+                        "avg": a.get("avg"), "excess": a.get("excess"), "beat": a.get("beat"),
+                        "one_line": clean(a.get("one_line")), "audit": a.get("audit"),
+                        "signals": [{"summary": clean(x.get("summary")), "n": x.get("n")} for x in a.get("signals", []) if clean(x.get("summary"))]})
+        nick = lambda i: (roster.get(i) or {}).get("nickname") or amap.get(i, i)
+        out.append({"week": r.get("week"), "rounds": r.get("rounds"), "proposal": bool(r.get("proposal")), "pr": r.get("pr"),
+                    "note": clean(r.get("note")), "calibration": r.get("calibration"), "audit": r.get("audit"),
+                    "common": [{"summary": clean(c.get("summary")), "who": [nick(i) for i in c.get("agents", [])]}
+                               for c in r.get("common", []) if clean(c.get("summary"))],
+                    "agents": ags})
+    return out
+
+
 def bundle(now: datetime | None = None, base: Path | None = None) -> dict:
     """두 팀 공유용 결과 묶음 (league/public/results.json).
     마감(08:30 KST) 전 라운드 종목·점수와 원 가격은 들어가지 않는다. 섞이면 만들지 않고 실패한다."""

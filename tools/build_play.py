@@ -268,6 +268,7 @@ def table_data(now: datetime | None = None, base: Path | None = None) -> dict:
     out = {k: b[k] for k in D.BUNDLE_KEYS}
     out["calendar"] = b["calendar"]                    # 결과 묶음에 이미 들어 있음
     out["generated_at"] = b["generated_at"]
+    out["reviews"] = D.reviews(base)                   # 로로 팀 주간 복기 요약 — 사이트에만(공유 결과 묶음에는 없음)
     return out
 
 

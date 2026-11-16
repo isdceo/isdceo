@@ -339,6 +339,22 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .sheet.on{background:linear-gradient(180deg,#26143a,#0e0818)}
 .trow .v{font-size:17px}
 details.help{margin:12px 0 2px}
+/* 복기 탭 (로로 팀 주간 복기 요약) */
+.rv-wk{margin:0 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.rv-wk>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none;font-weight:700}
+.rv-wk>summary::-webkit-details-marker{display:none}
+.rv-note{font-size:13px;color:#ddd2f0;margin:4px 0 8px}
+.rv-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:#cfc3e6;margin:0 0 8px}
+.rv-ag{margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05)}
+.rv-ag .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rv-ag .hd b{font-size:15px}
+.rv-ag .st{font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);color:#f2e7c9}
+.rv-ag .st.frozen{background:rgba(232,207,142,.22)}
+.rv-ag .st.eligible{background:rgba(120,200,140,.22)}
+.rv-ag .nums{font-size:12.5px;color:#cfc3e6;margin:4px 0}
+.rv-ag .one{font-size:13.5px;margin:4px 0}
+.rv-ag ul,.rv-common{margin:4px 0 0;padding-left:18px;font-size:13px;color:#ddd2f0}
+.rv-ag li,.rv-common li{margin:2px 0}
 details.help summary{display:inline-flex;align-items:center;min-height:32px;cursor:pointer;color:#e8cf8e;font-size:13px;list-style:none}
 details.help summary::-webkit-details-marker{display:none}
 details.help p{font-size:13px;color:#ddd2f0;margin:2px 0 0}
@@ -732,6 +748,25 @@ html,body{background:var(--arena0)}
       return `<table class="rec wk"><tr><th>순위</th><th>에이전트</th><th>평균</th><th>확정</th></tr>${rows.map((r, i, arr) => `<tr><td class="rkc">${r.avg == null ? '—' : tieTxt(r.league_rank, rks)}</td><td>${esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id)} ${tchip(r.team)}${r.out ? ' <span class="tag dn">탈락</span>' : r.avg != null && sc.length > 1 && r.league_rank === lo && lo > 1 && !r.closed ? ' <span class="tag dn">꼴등</span>' : ''}</td><td>${r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>` : '<span class="muted">미채점</span>'}</td><td>${r.scored}/${r.expected}${r.watch ? ` <span class="muted">관망 ${r.watch}</span>` : ''}</td></tr>`).join('')}</table>`; };
     if (!cur.some((r) => r.market)) return `<p class="muted">${wkTxt(wk)}</p>${tbl(cur)}`;
     return [['KR', '♦ 한국 리그'], ['US', '♣ 미국 리그']].map(([mk, t]) => { const rows = cur.filter((r) => r.market === mk); return rows.length ? `<div data-fmk="${mk}"><p class="lg"><b>${t}</b> <span class="muted">${wkTxt(wk)}</span></p>${tbl(rows)}</div>` : ''; }).join('');
+  };
+  // 복기 탭: 로로 팀 주간 복기 요약(사이트에만 실림). 최근 주가 위, 첫 주는 펼친 채로
+  const RV_ST = {frozen: '동결 · 1위', cooldown: '냉각 · 새 버전 첫 주', eligible: '개선 대상', out: '탈락'};
+  const reviewBoard = () => {
+    const rs = T.reviews || [];
+    if (!rs.length) return '<p class="muted">아직 주간 복기가 없습니다. 매주 토요일 오후에 나옵니다.</p>';
+    const sp = (v) => v == null ? '—' : `<span class="${sgn(v)}">${pct(v)}%</span>`;
+    return rs.map((r, i) => {
+      const c = r.calibration, a = r.audit;
+      const agents = (r.agents || []).map((g) => `<div class="rv-ag"><div class="hd"><b>${esc(g.nickname || g.agent_id)}</b><span class="muted">${esc(g.label)}</span><span class="st ${esc(g.status)}">${esc(RV_ST[g.status] || g.status || '')}</span></div>
+          <div class="nums">종목당 평균 ${sp(g.avg)} · 지수 대비 ${g.excess == null ? '—' : `<span class="${sgn(g.excess)}">${pct(g.excess)}%p</span>`} · 지수를 이긴 종목 ${g.beat ?? '—'}/${g.scored ?? '—'}${g.audit ? ` · 근거 감사 맞음 ${g.audit.ok}·틀림 ${g.audit.wrong}` : ''}</div>
+          ${g.one_line ? `<div class="one">${esc(g.one_line)}</div>` : ''}
+          ${(g.signals || []).length ? `<div class="muted cap" style="margin-top:6px">반복된 판단 실수 (다음 복기 검토 후보)</div><ul>${g.signals.map((x) => `<li>${esc(x.summary)}${x.n ? ` <span class="muted">(${x.n}건)</span>` : ''}</li>`).join('')}</ul>` : ''}</div>`).join('');
+      return `<details class="rv-wk" ${i ? '' : 'open'}><summary>${esc(r.week)} <span class="muted">${esc(r.rounds || '')}</span><span class="chev" aria-hidden="true" style="margin-left:auto">›</span></summary>
+        <div class="rv-note">${esc(r.note || '')}${r.pr ? ` <a href="${esc(r.pr)}" target="_blank" rel="noopener">개선안 PR</a>` : ''}</div>
+        <div class="rv-meta">${c ? `<span>확률 점검: ${c.picks}건 중 ${c.beat}건 지수 이김 · Brier ${c.brier} (늘 50%면 ${c.baseline})</span>` : ''}${a ? `<span>근거 감사: 맞음 ${a.ok} · 틀림 ${a.wrong} · 확인 불가 ${a.unverifiable}</span>` : ''}</div>
+        ${(r.common || []).length ? `<h3>팀 공통으로 반복된 습관</h3><ul class="rv-common">${r.common.map((x) => `<li>${esc(x.summary)} <span class="muted">— ${esc((x.who || []).join(' · '))}</span></li>`).join('')}</ul>` : ''}
+        <h3>에이전트별</h3>${agents}</details>`;
+    }).join('') + help('로로 팀이 매주 토요일에 쓰는 주간 복기 요약입니다. 동결(그 주 1위)·냉각(새 지침 버전 첫 주)이면 지침을 바꾸지 않고, 같은 유형의 실수가 2건 이상 반복될 때만 개선안을 PR로 올립니다(병합 = 운영자 승인). 슈슈 팀 복기는 슈슈 팀이 따로 합니다. 한 주 표본은 작아 결과만으로 실력을 판단하지 않습니다.');
   };
   const MKS = [['ALL', '통합'], ['KR', '한국 ♦'], ['US', '미국 ♣']];
   const recModes = () => ['실전', '연습'].filter((m) => T.picks.some((p) => p.mode === m && p.status === 'final' && p.score != null));
@@ -1150,14 +1185,15 @@ html,body{background:var(--arena0)}
       const fsel = modes.length ? `<div class="fsel" data-mode="${m0}" data-mk="ALL" hidden>
           <div class="seg" role="group" aria-label="시장">${MKS.map(([k, t]) => `<button type="button" data-fmk-btn="${k}" aria-pressed="${k === 'ALL'}">${t}</button>`).join('')}</div>
           ${modes.length > 1 ? `<div class="seg" role="group" aria-label="구분">${modes.map((m) => `<button type="button" data-fmode="${m}" aria-pressed="${m === m0}">${m}</button>`).join('')}</div>` : `<span class="muted">${m0}</span>`}</div>` : '';
-      const TABS = [['sum', '요약'], ['flow', '흐름'], ['rank', '순위'], ['log', '기록']];
+      const TABS = [['sum', '요약'], ['flow', '흐름'], ['rank', '순위'], ['log', '기록'], ['rev', '복기']];
       return `<div class="rbar"><div class="tabs rtabs" role="tablist">${TABS.map(([k, t], i) => `<button role="tab" id="rt-${k}" aria-controls="rp-${k}" aria-selected="${!i}" tabindex="${i ? -1 : 0}" data-tab="${k}">${t}</button>`).join('')}</div>${fsel}</div>
         <div data-pane="sum" id="rp-sum" role="tabpanel" aria-labelledby="rt-sum">${sum}</div>
         <div data-pane="flow" id="rp-flow" role="tabpanel" aria-labelledby="rt-flow" hidden>${trendBoard(modes)}</div>
         <div data-pane="rank" id="rp-rank" role="tabpanel" aria-labelledby="rt-rank" hidden><div class="wkblk" ${m0 && m0 !== '실전' ? 'hidden' : ''}><h3>이번 주 리그 순위 <span class="muted">실전 · 탈락 기준</span></h3>${weekBoard(st)}</div><h3>누적 순위 <span class="muted">참고</span></h3>${rankBoard(modes)}</div>
         <div data-pane="log" id="rp-log" role="tabpanel" aria-labelledby="rt-log" hidden>${live.length ? `<h3>실전 승패</h3><div class="beads">${beads}</div>` : ''}
           <h3>라운드별 기록</h3>${roundsHTML || '<p class="muted">아직 공개된 라운드가 없습니다.</p>'}
-          ${help('점수는 하루 수익률(배당 포함, %)입니다. 팀 비교는 종목 한 건당 평균으로 합니다. 최근 라운드가 위에 오고, 줄을 누르면 그 라운드 종목이 펼쳐집니다. 마감이 지난 종목만 보입니다.')}</div>`; }},
+          ${help('점수는 하루 수익률(배당 포함, %)입니다. 팀 비교는 종목 한 건당 평균으로 합니다. 최근 라운드가 위에 오고, 줄을 누르면 그 라운드 종목이 펼쳐집니다. 마감이 지난 종목만 보입니다.')}</div>
+        <div data-pane="rev" id="rp-rev" role="tabpanel" aria-labelledby="rt-rev" hidden>${reviewBoard()}</div>`; }},
     picks: {t: '고른 종목 · 대기석', c: '#2a62c6', html: () => {
       const row = (a) => { const pp = picksOf(a); const one = (mk) => { const p = pp[mk]; if (!p) return `<span class="tag ${mk.toLowerCase()}">${mk === 'KR' ? '♦' : '♣'} —</span>`;
           const s = p.score == null ? `<span class="no">${p.status === 'held' ? '보류' : p.status === 'void' ? '무효' : '채점 전'}</span>` : `<span class="${sgn(p.score)}">${pct(p.score)}%${p.status !== 'final' ? ' 잠정' : ''}</span>`;
