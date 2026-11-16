@@ -1088,7 +1088,8 @@ class ShushuRepoSync(unittest.TestCase):
         (self.repo / "docs" / "codex-notices" / "replies" / "2026-11-10-answer.md").write_text("답")
         self.assertEqual(self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T10:00:00+09:00"), post=post), [])  # 라운드 시간엔 보내지 않음
         w = self.X.wake(self.repo, "o/shushu", "t", now=datetime.fromisoformat("2026-11-10T12:30:00+09:00"), post=post)
-        self.assertEqual([x["kind"] for x in w], ["notice"]); self.assertIn("2026-11-10-answer.md", posted[-1])
+        # 대기 후보 보충 요청(bench)은 실제 명단 상태에 따라 같이 나갈 수 있다(별도 시험) — 여기서는 공지만 본다
+        self.assertEqual([x["kind"] for x in w if x["kind"] != "bench"], ["notice"]); self.assertIn("2026-11-10-answer.md", posted[-1])
         self.assertNotIn("v2.0-market-leagues", posted[-1])                      # 기존 공지는 처음 켤 때 표시만
 
     # ── 검수 1차 재현 사례 ──

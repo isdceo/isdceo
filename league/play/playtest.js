@@ -57,6 +57,10 @@ const audit = () => {
       await p.waitForTimeout(3500);                         // 첫 방문 카드 돌리기 연출이 끝날 때까지
       await shot('1-첫화면');
       row.첫화면 = await p.evaluate(audit);
+      // 주간 마감 뒤 첫 방문이면 탈락·합류 안내 창이 먼저 뜬다(기기마다 한 번). 찍어 두고 닫은 뒤 나머지 점검
+      if (await p.evaluate(() => document.querySelector('.game')?.classList.contains('elimming'))) {
+        await shot('1b-주간마감안내'); await p.keyboard.press('Escape'); await p.waitForTimeout(600);
+      }
       row.밀림 = await p.evaluate(async () => {            // 아이폰 사파리는 포커스 때 게임 틀을 옆으로 민 적이 있다(2026-11-07)
         const g = document.querySelector('.game'); g.scrollLeft = 200; g.scrollTop = 200; window.scrollTo(200, 200);
         await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -70,12 +74,14 @@ const audit = () => {
         await shot('2-확대');
       });
       await step('카드 공개', async () => {
-        const c = await p.$('.big'); const bb = await c.boundingBox();
+        // 카드가 있는 칸을 고른다(그 리그에서 빠진 에이전트는 빈 칸 '○○ 리그 탈락'이 먼저 올 수 있음 — 2026-W47부터)
+        await p.evaluate(() => { const c = [...document.querySelectorAll('.big')].find((x) => x._t); if (c) c.dataset.pt = '1'; });
+        const c = await p.$('.big[data-pt="1"]'); if (!c) throw new Error('젖힐 카드 없음'); const bb = await c.boundingBox();
         const x = bb.x + bb.width / 2, y0 = bb.y + bb.height * 0.85;
         await p.mouse.move(x, y0); await p.mouse.down();
         for (let k = 1; k <= 12; k++) { await p.mouse.move(x, y0 - bb.height * 0.8 * k / 12); await p.waitForTimeout(16); }
         await p.mouse.up(); await p.waitForTimeout(1800);
-        const done = await p.evaluate(() => { const c = document.querySelector('.big'); return c && c._t ? c._t() : -1; });
+        const done = await p.evaluate(() => { const c = document.querySelector('.big[data-pt="1"]'); return c && c._t ? c._t() : -1; });
         if (done < 0.99) throw new Error('끝까지 안 젖혀짐(' + done.toFixed(2) + ')');
         await shot('3-공개');
         row.공개 = await p.evaluate(audit);
