@@ -198,7 +198,7 @@ def rule_v22_on(cfg: dict) -> bool:
 
 
 V22_RULE, OLD_RULE = "v2.2", "v2.1"
-SNAP_KEYS = ("rule", "watch_cash", "accept_time", "min_real", "watch_cap_market")
+SNAP_KEYS = ("rule", "watch_cash", "accept_time", "min_real", "watch_cap_market", "watch_cap_week")
 
 
 def _v22_from(cfg: dict) -> str | None:
@@ -221,7 +221,8 @@ def rule_snapshot_from_cfg(round_date, cfg: dict) -> dict:
     acc = acc22 or (cfg.get("commit_reveal") or {}).get("reveal_deadline", "12:00")
     return {"rule": V22_RULE if (cash or acc22) else OLD_RULE, "watch_cash": cash, "accept_time": acc,
             "min_real": int(w.get("min_real_per_week_per_market", 2)) if cash else None,
-            "watch_cap_market": None if cash else w.get("max_per_week_per_market")}   # 이전 규칙의 리그별 관망 한도도 고정
+            "watch_cap_market": None if cash else w.get("max_per_week_per_market"),
+            "watch_cap_week": None if cash else int(w.get("max_per_week", 2))}   # 이전 규칙의 리그별 관망 한도도 고정
 
 
 def round_snapshot(round_date, cfg: dict, d: Path | None = None) -> dict:
@@ -1018,7 +1019,7 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
             if len(used_m) + 1 > int(per_m):
                 errs.append(f"{rec['agent_id']} {rec['market']} 관망은 주 {per_m}회까지 ({wk} 이미 {len(used_m)}회)")
         else:
-            cap = int(wcfg.get("max_per_week", 2))
+            cap = int(round_snapshot(rec["round_date"], cfg, d).get("watch_cap_week") or wcfg.get("max_per_week", 2))
             if len(used) + 1 > cap:
                 errs.append(f"{rec['agent_id']} 관망은 주 {cap}회까지 ({wk} 이미 {len(used)}회)")
     elif rec["ticker"] not in uni[rec["market"]]:
