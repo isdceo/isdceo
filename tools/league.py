@@ -164,10 +164,15 @@ def latest_scores(d: Path) -> dict:
         out[r["pick_id"]] = r
     return out
 
+def rule_v22_on(cfg: dict) -> bool:
+    """규칙 v2.2 적용 스위치(config rule_v22.confirmed). 꺼져 있으면 날짜가 지나도 이전 규칙 — 두 팀 준비·운영자 확정 전 자동 전환 금지(2026-11-17)."""
+    return bool((cfg.get("rule_v22") or {}).get("confirmed"))
+
+
 def watch_is_cash(round_date: str, cfg: dict) -> bool:
     """규칙 v2.2: 이 라운드의 관망이 현금(0%) 채점인가."""
     cf = (cfg.get("watch") or {}).get("cash_from")
-    return bool(cf) and str(round_date) >= cf
+    return rule_v22_on(cfg) and bool(cf) and str(round_date) >= cf
 
 
 def is_watch(p: dict, cfg: dict) -> bool:
@@ -1117,7 +1122,7 @@ def reveal_accept_deadline(round_date: date, cfg: dict) -> datetime:
     """원본 접수 마감(규칙 v2.2: 장 시작 5분 전, push 시각 판정). 그 전 라운드는 공개 마감(reveal_deadline)과 같다.
     동기화 재시도·확인 대기 처리 시한은 reveal_deadline(12:00)을 그대로 쓴다."""
     ad = (cfg.get("commit_reveal") or {}).get("accept_deadline") or {}
-    if ad.get("from") and round_date.isoformat() >= ad["from"]:
+    if rule_v22_on(cfg) and ad.get("from") and round_date.isoformat() >= ad["from"]:
         hh, mm = map(int, ad["time"].split(":"))
         return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
     return reveal_deadline(round_date, cfg)

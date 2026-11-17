@@ -38,6 +38,13 @@ def pin_roster_v1(dst):
     Path(dst).write_text(json.dumps(r, ensure_ascii=False))
 
 
+def enable_v22(cfg_path):
+    """시험용: 규칙 v2.2 적용 스위치 켜기(실제 설정은 운영자 확정 전까지 꺼짐)."""
+    p = Path(cfg_path)
+    c = json.loads(p.read_text()); c["rule_v22"]["confirmed"] = True
+    p.write_text(json.dumps(c, ensure_ascii=False))
+
+
 def use_mode(d, mode="combined_bottom1", **watch):
     """시험용 설정 바꾸기: 주간 방식(예전 통합 방식 시험용)·관망 한도."""
     p = d / "config.json"
@@ -774,6 +781,7 @@ class CommitReveal(Receipts):
 
     def test_reveal_after_0855_rejected_from_v22(self):
         """규칙 v2.2(2026-11-23부터): 원본 접수 마감 08:55 KST(push 시각 기준). 그 전 라운드는 12:00 그대로."""
+        enable_v22(self.repo / "league" / "config.json")
         rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")
         self.assertEqual(self._commit(rd, body, "2026-11-23T08:20:00+09:00")["status"], "committed")
         r = self._push_files({f"{rd}.csv": body}, "2026-11-23T09:10:00+09:00")[0]
@@ -781,7 +789,14 @@ class CommitReveal(Receipts):
         self.assertIn("08:55", str(r.get("reason") or r.get("error") or r))
         self.assertEqual(L.read_ledger(self.repo / "league", "picks"), [])
 
+    def test_reveal_after_0855_accepted_while_switch_off(self):
+        """스위치가 꺼져 있으면 11/23도 이전 공개 마감(12:00)."""
+        rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")
+        self._commit(rd, body, "2026-11-23T08:20:00+09:00")
+        self.assertEqual(self._push_files({f"{rd}.csv": body}, "2026-11-23T09:10:00+09:00")[0]["status"], "accepted")
+
     def test_reveal_before_0855_accepted_from_v22(self):
+        enable_v22(self.repo / "league" / "config.json")
         rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")
         self._commit(rd, body, "2026-11-23T08:20:00+09:00")
         r = self._push_files({f"{rd}.csv": body}, "2026-11-23T08:54:00+09:00")[0]
@@ -2889,7 +2904,7 @@ class WatchCashV22(unittest.TestCase):
     """규칙 v2.2(2026-11-23 라운드부터, 운영자 결정 2026-11-17): 관망 = 현금 0%, 초과 = −지수,
     주 1회 제한 대신 시장별 주 2건 이상 실제 종목(남은 개장일로 못 채우면 관망 거부), 원본 접수 마감 08:55."""
     def test_cash_scoring_from_1123_only(self):
-        d = new_league()
+        d = new_league(); enable_v22(d / "config.json")
         price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
         price(d, "KR", "KOSPI", "2026-11-13", 2000.0); price(d, "KR", "KOSPI", "2026-11-16", 1960.0)
         cfg, pi, ca = L.load_config(d), L.price_index(d), L.corporate_actions(d)
@@ -2899,7 +2914,7 @@ class WatchCashV22(unittest.TestCase):
         self.assertEqual((old["score"], old["score_excess"]), (-2.0, 0.0))                   # 이전 라운드는 그대로(과거 점수 불변)
 
     def test_min_real_picks_per_market(self):
-        d = new_league()                                     # 11/23~27 한국 5일 개장
+        d = new_league(); enable_v22(d / "config.json")       # 11/23~27 한국 5일 개장
         for day in ("23", "24", "25"):
             pick(d, "buffett", f"2026-11-{day}", "KR", "WATCH")                  # 0 + 남은 2일 ≥ 2 → 수요일까지 가능
         with self.assertRaisesRegex(ValueError, "최소 2건"):
@@ -2916,13 +2931,26 @@ class WatchCashV22(unittest.TestCase):
 
     def test_later_real_pick_processed_first_not_double_counted(self):
         """검수 2026-11-17: 금요일 실제 종목이 목요일 파일보다 먼저 처리돼도 목요일 관망을 통과시키지 않는다(남은 개장일과 겹침)."""
-        d = new_league()
+        d = new_league(); enable_v22(d / "config.json")
         pick(d, "buffett", "2026-11-27", "KR", "005930")
         with self.assertRaisesRegex(ValueError, "최소 2건"):
             pick(d, "buffett", "2026-11-26", "KR", "WATCH")                       # 앞선 실제 0 + 남은 1일 < 2
 
+    def test_switch_off_keeps_old_rules_after_date(self):
+        """스위치(rule_v22.confirmed)가 꺼져 있으면 11/23이 지나도 자동 전환하지 않는다(운영자 결정 2026-11-17)."""
+        self.assertFalse(L.load_config(ROOT / "league")["rule_v22"]["confirmed"])
+        d = new_league()
+        price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
+        cfg, pi, ca = L.load_config(d), L.price_index(d), L.corporate_actions(d)
+        r = L.evaluate_pick(pick(d, "buffett", "2026-11-23", "KR", "WATCH"), pi, cfg, date(2026, 11, 24), ca)
+        self.assertEqual((r["score"], r["score_excess"]), (-2.0, 0.0))                       # 지수 수익률(이전 규칙)
+        with self.assertRaises(ValueError):
+            pick(d, "buffett", "2026-11-24", "KR", "WATCH")                                   # 리그별 주 1회(이전 규칙)
+
     def test_accept_deadline_0855_from_1123(self):
         cfg = L.load_config(ROOT / "league")
+        self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "12:00")   # 스위치 꺼짐(실제 설정) = 이전 규칙
+        cfg["rule_v22"]["confirmed"] = True
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "08:55")
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 20), cfg).strftime("%H:%M"), "12:00")
         self.assertEqual(L.reveal_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "12:00")   # 동기화 처리 시한은 그대로
