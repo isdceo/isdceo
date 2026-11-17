@@ -164,6 +164,12 @@ def latest_scores(d: Path) -> dict:
         out[r["pick_id"]] = r
     return out
 
+def watch_is_cash(round_date: str, cfg: dict) -> bool:
+    """규칙 v2.2: 이 라운드의 관망이 현금(0%) 채점인가."""
+    cf = (cfg.get("watch") or {}).get("cash_from")
+    return bool(cf) and str(round_date) >= cf
+
+
 def is_watch(p: dict, cfg: dict) -> bool:
     """'관망' 카드(v1.9): 종목 대신 비교 지수를 따라가는 제출."""
     return str(p.get("ticker", "")).upper() == (cfg.get("watch") or {}).get("ticker", "WATCH")
@@ -238,6 +244,10 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
     if bench and bb_ and be_ and bb_.get("close") and be_.get("close"):
         bench_ret = round((be_["close"] / bb_["close"] - 1) * 100, 2)
         excess = 0.0 if watch else round(total - bench_ret, 2)
+    if watch and watch_is_cash(p.get("round_date", ""), cfg):
+        # 규칙 v2.2(2026-11-23 라운드부터): 관망 = 현금 0%, 초과 점수 = −비교 지수 수익률(지수 확정 뒤)
+        total, price_only = 0.0, 0.0
+        excess = (-bench_ret if bench_ret else 0.0) if bench_ret is not None else None
     final = base.get("status") == "final" and ev.get("status") == "final"
     out.update(status="final" if final else "provisional", score=total, score_price_only=price_only,
                benchmark=bench, benchmark_return=bench_ret, score_excess=excess,
@@ -400,6 +410,7 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False, o
         vals = [sc["score"] for _, sc in fin]
         exc = [sc["score_excess"] for _, sc in fin if sc.get("score_excess") is not None]
         by_m = {mk: [sc["score"] for p, sc in fin if p["market"] == mk] for mk in ("KR", "US")}
+        real_m = {mk: [sc["score"] for p, sc in fin if p["market"] == mk and not is_watch(p, cfg)] for mk in ("KR", "US")}   # v2.2 표시: 관망 뺀 실제 종목
         exc_m = {mk: [sc["score_excess"] for p, sc in fin if p["market"] == mk and sc.get("score_excess") is not None]
                  for mk in ("KR", "US")}
         held = sum(1 for p in mine if scores.get(p["pick_id"], {}).get("status") in ("held", "pending", "provisional", None))
@@ -422,6 +433,7 @@ def weekly(d: Path, week: str, team: str = "claude", _rows_only: bool = False, o
                                       "min": min(by_m[mk]) if by_m[mk] else None, "expected": exp_m[mk],
                                       "picks": sum(1 for p in mine if p["market"] == mk),
                                       "watch": sum(1 for p in mine if p["market"] == mk and is_watch(p, cfg)),
+                                      "real_avg": _avg(real_m[mk]), "real_scored": len(real_m[mk]),
                                       "held_or_pending": sum(1 for p in mine if p["market"] == mk and scores.get(p["pick_id"], {}).get("status") in ("held", "pending", "provisional", None)),
                                       "active": active_in(a, mk, week), "new_this_week": mstatus(a, mk).get("joined_week") == week}
                                  for mk in MARKETS}})
@@ -559,7 +571,7 @@ def weekly_market_league(d: Path, week: str, mk: str, only_ids: set | None = Non
             continue
         mr = [{"agent_id": r["agent_id"], "label": r["label"], "version": r["version"], "team": team, "market": mk,
                **{k: r["markets"][mk][k] for k in ("avg", "median", "min", "scored", "expected", "picks", "watch",
-                                                   "held_or_pending", "avg_excess", "new_this_week", "sum_raw")}} for r in t]
+                                                   "held_or_pending", "avg_excess", "new_this_week", "sum_raw", "real_avg", "real_scored")}} for r in t]
         sc = sum(r["scored"] for r in mr)
         raw = sum(r["sum_raw"] for r in mr)
         teams[team] = {"scored": sc, "expected": sum(r["expected"] for r in mr), "picks": sum(r["picks"] for r in mr),
@@ -891,7 +903,20 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         used = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
                 and is_watch(p, cfg) and iso_week(date.fromisoformat(p["round_date"])) == wk]
         per_m = wcfg.get("max_per_week_per_market")
-        if per_m is not None:                       # v2.0: 리그(시장)별 주 N회
+        if watch_is_cash(rec["round_date"], cfg):
+            # v2.2: 횟수 제한 없음. 대신 그 주 실제 종목 최소 건수를 남은 개장일로 채울 수 있어야 한다
+            need_n = int(wcfg.get("min_real_per_week_per_market", 2))
+            mon = rd - timedelta(days=rd.weekday())
+            open_days = [x for x in (mon + timedelta(days=i) for i in range(7)) if round_sessions(rec["market"], x, cfg)]
+            need = min(need_n, len(open_days))
+            real = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
+                    and p["market"] == rec["market"] and not is_watch(p, cfg)
+                    and iso_week(date.fromisoformat(p["round_date"])) == wk and p["round_date"] != rec["round_date"]]
+            after = [x for x in open_days if x > rd]
+            if len(real) + len(after) < need:
+                errs.append(f"{rec['agent_id']} {rec['market']} 관망 불가 — 이번 주 실제 종목 최소 {need}건을 채울 수 없음 "
+                            f"(접수된 실제 종목 {len(real)}건 + 남은 개장일 {len(after)}일)")
+        elif per_m is not None:                       # v2.0: 리그(시장)별 주 N회
             used_m = [p for p in used if p["market"] == rec["market"]]
             if len(used_m) + 1 > int(per_m):
                 errs.append(f"{rec['agent_id']} {rec['market']} 관망은 주 {per_m}회까지 ({wk} 이미 {len(used_m)}회)")
@@ -1088,6 +1113,16 @@ def commit_reveal_applies(round_date: str, cfg: dict) -> bool:
     cr = cfg.get("commit_reveal") or {}
     return bool(cr.get("from")) and round_date >= cr["from"]
 
+def reveal_accept_deadline(round_date: date, cfg: dict) -> datetime:
+    """원본 접수 마감(규칙 v2.2: 장 시작 5분 전, push 시각 판정). 그 전 라운드는 공개 마감(reveal_deadline)과 같다.
+    동기화 재시도·확인 대기 처리 시한은 reveal_deadline(12:00)을 그대로 쓴다."""
+    ad = (cfg.get("commit_reveal") or {}).get("accept_deadline") or {}
+    if ad.get("from") and round_date.isoformat() >= ad["from"]:
+        hh, mm = map(int, ad["time"].split(":"))
+        return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
+    return reveal_deadline(round_date, cfg)
+
+
 def reveal_deadline(round_date: date, cfg: dict) -> datetime:
     hh, mm = map(int, (cfg.get("commit_reveal") or {}).get("reveal_deadline", "12:00").split(":"))
     return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
@@ -1189,9 +1224,9 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
             rec.update(status="rejected", errors=[f"이미 접수된 제출이 있음 ({prior[0]['commit'][:7]}) — 확정 후 변경 불가"])
         elif cr and commitment and sha != commitment["committed_sha256"]:
             rec.update(status="rejected", errors=[f"원본 해시 {sha[:12]}가 마감 전 지문 {commitment['committed_sha256'][:12]}와 다름 — "
-                                                   f"지문과 같은 파일을 다시 push하면 됨 (공개 마감 {reveal_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST)"])
-        elif cr and commitment and judged_at > reveal_deadline(date.fromisoformat(rd), cfg):
-            rec.update(status="rejected", errors=[f"원본 공개 마감 {reveal_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
+                                                   f"지문과 같은 파일을 다시 push하면 됨 (접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST)"])
+        elif cr and commitment and judged_at > reveal_accept_deadline(date.fromisoformat(rd), cfg):
+            rec.update(status="rejected", errors=[f"원본 접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
         elif judged_at > deadline and cr and not commitment and _commitment_file_pending(event, team, rd, d, cwd):
             raise CommitmentPending(f"{team} {rd}: 지문 파일은 있으나 지문 영수증이 아직 없음 — 잠시 뒤 다시 처리")
         elif judged_at > deadline and not (cr and commitment):

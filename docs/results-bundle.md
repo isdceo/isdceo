@@ -37,7 +37,8 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
   "team_weeks": [ ... ],
   "picks":      [ ... ],
   "agents":     [ ... ],
-  "calendar":   [ ... ]
+  "calendar":   [ ... ],
+  "league_daily": [ ... ]
 }
 ```
 
@@ -144,3 +145,19 @@ GitHub 예약 실행은 몇 분~수십 분 늦을 수 있다. 파일의 `generat
 - `standings[].market`, `standings[].watch`: 주간 순위가 리그마다 따로 나온다(`weekly.mode = per_market_bottom1`). `rank`·`league_rank`는 그 리그 안의 순위
 - `team_weeks[].market`: 리그별 팀 주간 합계
 - `picks[].watch`: 관망 카드 여부(v1.9)
+
+## v2.2 칸 (2026-11-17 추가, 기존 칸의 뜻은 그대로)
+
+- `standings[].watch_rate`: 관망 비율(%) = 관망 수 ÷ 접수된 유효 제출 수
+- `standings[].real_avg`, `standings[].real_scored`: 관망을 뺀 확정 종목의 평균(%)과 건수. 없으면 `real_avg`는 `null`(화면 '없음')
+- `league_daily`: 리그별 일별 결과 — 라운드·시장·팀마다 1줄. 리그별 승패(규칙 v2.2 1단계)를 계산하는 재료다.
+
+| 필드 | 뜻 |
+|---|---|
+| `key` | `모드|시장|날짜|팀` |
+| `mode`, `market`(KR/US), `date`, `team` | |
+| `n`, `scored`, `watch` | 그 팀 그 리그 종목 수, 확정 수, 관망 수 |
+| `complete` | 그 팀 그 리그 종목이 모두 확정(무효 포함)이고 확정 1건 이상이면 `true` |
+| `avg`, `real_avg` | 종목당 평균(관망 포함), 관망을 뺀 평균. 없으면 `null` |
+
+승패: 같은 `mode·market·date`의 두 팀 줄이 **모두 `complete`**일 때 `avg`를 소수 둘째 자리로 비교해 높은 팀이 1승, 같으면 무승부. 한쪽이라도 `complete`가 아니면 '채점 중'. 2026-11-23부터 관망 행의 점수는 0.0(초과 점수 = −지수 수익률)이다.

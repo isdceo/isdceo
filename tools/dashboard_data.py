@@ -235,6 +235,8 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
                                                  "avg": r["avg"], "median": r["median"], "avg_excess": r["avg_excess"],
                                                  "scored": r["scored"], "picks": r["picks"], "expected": r["expected"],
                                                  "watch": r["watch"], "missed": max(r["expected"] - r["picks"], 0),
+                                                 "watch_rate": round(r["watch"] / r["picks"] * 100, 1) if r["picks"] else None,   # v2.2: 접수된 제출 중 관망
+                                                 "real_avg": r.get("real_avg"), "real_scored": r.get("real_scored"),        # 관망 뺀 확정 종목(없으면 None='없음')
                                                  "sum_raw": round(r["sum_raw"], 6),
                                                  "held": r["held_or_pending"],
                                                  "submit_rate": round(r["picks"] / r["expected"] * 100, 1) if r["expected"] else None,
@@ -295,6 +297,25 @@ def build(now: datetime | None = None, logos: bool = False, base: Path | None = 
         import logos as LG
         seen = sorted({(p["market"], p["ticker"]) for p in out["picks"] if not p.get("watch")})
         out["logos"] = [{"key": f"{m}|{t}", "market": m, "ticker": t, "logo": LG.fetch_logo(m, t) or ""} for m, t in seen]
+    # 리그별 일별 결과(규칙 v2.2, 1단계): 라운드·시장·팀마다 종목당 평균. 그 팀 그 시장 종목이 모두 확정(무효 포함)일 때만 complete.
+    # 승패는 두 팀이 모두 complete인 경기에서 소수 둘째 자리로 비교한다(화면·슈슈 쪽 같은 기준). 2026-11-09부터 소급 표시, 점수는 그대로
+    ld = {}
+    for p in out["picks"]:
+        k = (p["mode"], p["market"], p["round_date"], p["team"])
+        g = ld.setdefault(k, {"n": 0, "final": [], "open": 0, "watch": 0, "real": []})
+        g["n"] += 1
+        g["watch"] += bool(p.get("watch"))
+        if p.get("status") == "final" and p.get("score") is not None:
+            g["final"].append(p["score"])
+            if not p.get("watch"):
+                g["real"].append(p["score"])
+        elif p.get("status") != "void":
+            g["open"] += 1
+    out["league_daily"] = [{"key": f"{mo}|{mk}|{dt}|{tm}", "mode": mo, "market": mk, "date": dt, "team": tm,
+                            "n": g["n"], "scored": len(g["final"]), "watch": g["watch"], "complete": g["open"] == 0 and bool(g["final"]),
+                            "avg": round(sum(g["final"]) / len(g["final"]), 2) if g["final"] else None,
+                            "real_avg": round(sum(g["real"]) / len(g["real"]), 2) if g["real"] else None}
+                           for (mo, mk, dt, tm), g in sorted(ld.items())]
     out["calendar"] = calendar(now, base=base)
     out["notices"] = [{"file": f.name} for f in sorted((L.ROOT / "docs" / "codex-notices").glob("*.md"), reverse=True)]
     return public_alias(out, L.load_config(base))
@@ -356,7 +377,7 @@ def calendar(now: datetime, back: int = 14, ahead: int = 45, base: Path | None =
     return rows
 
 
-BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "picks", "agents", "calendar")
+BUNDLE_KEYS = ("receipts", "teams", "standings", "team_daily", "team_weeks", "picks", "agents", "calendar", "league_daily")
 BUNDLE_SCHEMA = 1
 
 

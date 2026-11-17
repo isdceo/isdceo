@@ -772,6 +772,21 @@ class CommitReveal(Receipts):
         pk = L.read_ledger(self.repo / "league", "picks")[0]
         self.assertEqual(pk["submission"]["committed_at"], "2026-11-10T08:20:00+09:00")
 
+    def test_reveal_after_0855_rejected_from_v22(self):
+        """규칙 v2.2(2026-11-23부터): 원본 접수 마감 08:55 KST(push 시각 기준). 그 전 라운드는 12:00 그대로."""
+        rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")
+        self.assertEqual(self._commit(rd, body, "2026-11-23T08:20:00+09:00")["status"], "committed")
+        r = self._push_files({f"{rd}.csv": body}, "2026-11-23T09:10:00+09:00")[0]
+        self.assertNotEqual(r["status"], "accepted")
+        self.assertIn("08:55", str(r.get("reason") or r.get("error") or r))
+        self.assertEqual(L.read_ledger(self.repo / "league", "picks"), [])
+
+    def test_reveal_before_0855_accepted_from_v22(self):
+        rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")
+        self._commit(rd, body, "2026-11-23T08:20:00+09:00")
+        r = self._push_files({f"{rd}.csv": body}, "2026-11-23T08:54:00+09:00")[0]
+        self.assertEqual(r["status"], "accepted")
+
     def test_same_push_processed_twice_records_once(self):
         """3차 검수: 겹친 영수증을 최신 원장 위에서 다시 처리하거나 재실행해도 같은 push는 한 번만 기록."""
         rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
@@ -2275,6 +2290,24 @@ class MarketLeagues(unittest.TestCase):
             kr, us, al = tw[("KR", team)], tw[("US", team)], tw[("ALL", team)]
             self.assertEqual(al["scored"], kr["scored"] + us["scored"])
 
+    def test_league_daily_complete_and_real_avg(self):
+        """규칙 v2.2 1단계: 리그별 일별 결과 줄은 그 리그 종목이 모두 확정돼야 complete, 순위엔 실제 종목 평균(관망 제외)."""
+        import dashboard_data as D
+        d = self._league()
+        self._scores(d, "claude", {a: [1.0, None, None, None, None] for a in self.CLAUDE}, {a: [2.0, None, None, None, None] for a in self.CLAUDE})
+        self._scores(d, "shushu", {a: [0.5, None, None, None, None] for a in self.SHUSHU}, {})
+        out = D.build(datetime.fromisoformat("2026-11-15T12:00:00+09:00"), base=d)
+        ro, su = "로로 팀 (Claude)", "슈슈 팀 (Codex)"                             # 결과 묶음은 표시 이름·공개 별칭
+        ld = {(r["market"], r["date"], r["team"]): r for r in out["league_daily"] if r["mode"] == "실전"}
+        kc = ld[("KR", "2026-11-09", ro)]
+        self.assertTrue(kc["complete"]); self.assertEqual((kc["avg"], kc["real_avg"]), (1.0, 1.0))
+        self.assertFalse(ld[("KR", "2026-11-10", ro)]["complete"])                # 확정 전 종목만 있는 날
+        self.assertEqual(ld[("KR", "2026-11-09", su)]["avg"], 0.5)
+        self.assertNotIn(("US", "2026-11-09", su), ld)
+        st = [r for r in out["standings"] if r["week"] == "2026-W46" and r["market"] == "KR" and r["team"] == ro]
+        self.assertTrue(st and all(r["real_avg"] == 1.0 for r in st))
+        self.assertIn("league_daily", D.BUNDLE_KEYS)
+
     def test_team_average_uses_raw_scores_not_rounded(self):
         """검수: 시장별 반올림 평균을 다시 평균하면 팀 승패가 뒤집힐 수 있다 → 원점수 합으로 계산."""
         import dashboard_data as D
@@ -2850,3 +2883,39 @@ class ReviewsOnSite(unittest.TestCase):
         self.assertEqual(r[0]["common"][0]["who"], ["뚝심이"])
         self.assertNotIn("reviews", D.bundle(base=base))                                               # 공유 묶음(슈슈 사본)에는 없음
         self.assertEqual(BP.table_data(base=base)["reviews"][0]["week"], "2026-W46")                     # 사이트 데이터에는 있음
+
+
+class WatchCashV22(unittest.TestCase):
+    """규칙 v2.2(2026-11-23 라운드부터, 운영자 결정 2026-11-17): 관망 = 현금 0%, 초과 = −지수,
+    주 1회 제한 대신 시장별 주 2건 이상 실제 종목(남은 개장일로 못 채우면 관망 거부), 원본 접수 마감 08:55."""
+    def test_cash_scoring_from_1123_only(self):
+        d = new_league()
+        price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
+        price(d, "KR", "KOSPI", "2026-11-13", 2000.0); price(d, "KR", "KOSPI", "2026-11-16", 1960.0)
+        cfg, pi, ca = L.load_config(d), L.price_index(d), L.corporate_actions(d)
+        new = L.evaluate_pick(pick(d, "buffett", "2026-11-23", "KR", "WATCH"), pi, cfg, date(2026, 11, 24), ca)
+        self.assertEqual((new["status"], new["score"], new["benchmark_return"], new["score_excess"]), ("final", 0.0, -2.0, 2.0))
+        old = L.evaluate_pick(pick(d, "lynch", "2026-11-16", "KR", "WATCH"), pi, cfg, date(2026, 11, 17), ca)
+        self.assertEqual((old["score"], old["score_excess"]), (-2.0, 0.0))                   # 이전 라운드는 그대로(과거 점수 불변)
+
+    def test_min_real_picks_per_market(self):
+        d = new_league()                                     # 11/23~27 한국 5일 개장
+        for day in ("23", "24", "25"):
+            pick(d, "buffett", f"2026-11-{day}", "KR", "WATCH")                  # 0 + 남은 2일 ≥ 2 → 수요일까지 가능
+        with self.assertRaisesRegex(ValueError, "최소 2건"):
+            pick(d, "buffett", "2026-11-26", "KR", "WATCH")                       # 0 + 1 < 2
+        pick(d, "lynch", "2026-11-23", "KR", "005930"); pick(d, "lynch", "2026-11-24", "KR", "WATCH")
+        pick(d, "lynch", "2026-11-25", "KR", "WATCH"); pick(d, "lynch", "2026-11-26", "KR", "WATCH")   # 1 + 1 ≥ 2
+        with self.assertRaisesRegex(ValueError, "최소 2건"):
+            pick(d, "lynch", "2026-11-27", "KR", "WATCH")                         # 1 + 0 < 2
+        pick(d, "buffett", "2026-11-23", "US", "WATCH")                           # 시장마다 따로 센다
+        # 미국은 11/26 추수감사절 휴장 → 개장 4일(23·24·25·27)
+        pick(d, "buffett", "2026-11-24", "US", "WATCH")
+        with self.assertRaisesRegex(ValueError, "최소 2건"):
+            pick(d, "buffett", "2026-11-25", "US", "WATCH")                       # 0 + 남은 1일(27) < 2
+
+    def test_accept_deadline_0855_from_1123(self):
+        cfg = L.load_config(ROOT / "league")
+        self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "08:55")
+        self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 20), cfg).strftime("%H:%M"), "12:00")
+        self.assertEqual(L.reveal_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "12:00")   # 동기화 처리 시한은 그대로

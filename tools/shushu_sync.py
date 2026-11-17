@@ -877,9 +877,10 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             f"`submit/{rd}.sha256`(+ `submit/{rd}.csv`·`submit/{rd}-debate.md`)를 **08:25 전에** push해 주세요. "
             "분석이 덜 끝난 에이전트는 빼고 **두 시장을 모두 채운 에이전트만** 넣어도 접수됩니다(시장이 빠진 에이전트가 섞이면 파일 전체 반려). "
             "08:30 뒤 push는 인정되지 않습니다(판정: 이 저장소의 push 시각).")
-    if mk and live and "08:30" < hm < "11:40" and "committed" in st and "accepted" not in st:
+    acc = L.reveal_accept_deadline(today, cfg).strftime("%H:%M")   # 원본 접수 마감(v2.2: 11/23부터 08:55, 그 전 12:00). 동기화 처리 시한은 12:00 그대로
+    if mk and live and "08:30" < hm < min("11:40", acc) and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
-            f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 공개 마감 12:00 KST.")
+            f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 접수 마감 {acc} KST(push 시각 기준).")
     xp = L.read_ledger(d, "external_pushes")
     taint = (("shushu", rd) in tainted(xp))
     # 오늘 라운드에 속한 push(직전 마감 뒤 ~ 오늘 마감 전)의 처리 상태. 다른 라운드의 오류로 오늘 깨우기를 바꾸지 않는다
@@ -904,7 +905,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             add("delay", f"{aid}|{rd}", f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')}) 처리가 통신·서버 오류로 늦어지고 있습니다"
                 f"({x.get('attempt')}회). 로로 쪽이 공개 마감(12:00)까지 자동으로 계속 다시 시도하고, 처리되면 **원래 push 시각**으로 판정합니다(08:30 마감 기준 그대로). "
                 "같은 파일을 다시 push하거나 브랜치를 지우지 마세요. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다."
-                + (f" 지문만 냈다면 원본 `submit/{rd}.csv`·`submit/{rd}-debate.md`도 12:00 전에 push해 두세요." if late else ""))
+                + (f" 지문만 냈다면 원본 `submit/{rd}.csv`·`submit/{rd}-debate.md`도 {acc} 전에 push해 두세요." if late else ""))
     for x in xp:                                       # 재시도 대상이 아닌 오류로 확정된 push: 확정된 날 바로 알림(마감 전이면 다시 낼 수 있음)
         if x.get("type", "push") in ("push", "release") and x.get("status") == "error" and not x.get("transient") \
                 and (str(x.get("at") or "")[:10] == rd or (not x.get("at") and _today(x))):
@@ -915,7 +916,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
                 + "그 push에 제출 파일이 없었다면 무시해도 됩니다. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다.")
     if mk and live and "08:30" < hm < "11:40" and taint:
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
-            f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **12:00 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
+            f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **{acc} 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
     elif mk and live and "11:40" <= hm < "21:00" and taint:     # 공개 마감까지 처리하지 못해 생긴 확인 대기(12:00 이후)
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push를 공개 마감까지 처리하지 못함). 이미 push한 파일과 브랜치는 그대로 두세요. "
             "운영자 확인이 끝나면 원래 push 시각으로 처리됩니다.")

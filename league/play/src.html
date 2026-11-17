@@ -277,6 +277,10 @@ table.rec th{font-weight:400;color:#cbb88a;font-family:var(--disp);font-size:14p
 .tchip{display:inline-block;vertical-align:1px;padding:0 7px;border-radius:999px;font-size:12px;line-height:18px;font-family:inherit;font-weight:700}
 .tchip.c{background:rgba(224,97,79,.28);color:#ffbcae}.tchip.s{background:rgba(91,143,224,.3);color:#c3d8ff}
 .duel{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* 리그별 승패(규칙 v2.2): 한국·미국 리그를 한 줄씩 */
+.lgrow{margin:0 0 10px}.lgrow .lgn{display:block;font-size:13px;color:#f2e7c9;margin:0 0 4px;font-weight:700}
+.lgrow .duel .dc{padding:8px 12px}.lgrow .duel .dc b{font-size:clamp(20px,5vw,26px)}
+.lgbeads h4{font-size:13px;color:#f2e7c9;margin:10px 0 4px}
 .duel .dc{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-left:5px solid var(--tc)}
 .duel .dc.c{--tc:#e0614f}.duel .dc.s{--tc:#5b8fe0}
 .duel .dc span{display:block;font-size:13px;color:#e4d9f5}
@@ -745,7 +749,7 @@ html,body{background:var(--arena0)}
     if (!st.length) return '<p class="muted">첫 주간 순위는 11/9 주부터 나옵니다.</p>';
     const wk = st.map((r) => r.week).sort().pop(), cur = st.filter((r) => r.week === wk);
     const tbl = (rows) => { rows = rows.slice().sort((x, y) => (x.avg == null) - (y.avg == null) || x.league_rank - y.league_rank); const rks = rows.map((r) => r.league_rank), sc = rows.filter((r) => r.avg != null).map((r) => r.league_rank), lo = sc.length ? Math.max(...sc) : 0;   // 꼴등은 평균이 있는 줄에서만(요약·로비와 같은 기준)
-      return `<table class="rec wk"><tr><th>순위</th><th>에이전트</th><th>평균</th><th>확정</th></tr>${rows.map((r, i, arr) => `<tr><td class="rkc">${r.avg == null ? '—' : tieTxt(r.league_rank, rks)}</td><td>${esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id)} ${tchip(r.team)}${r.out ? ' <span class="tag dn">탈락</span>' : r.avg != null && sc.length > 1 && r.league_rank === lo && lo > 1 && !r.closed ? ' <span class="tag dn">꼴등</span>' : ''}</td><td>${r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>` : '<span class="muted">미채점</span>'}</td><td>${r.scored}/${r.expected}${r.watch ? ` <span class="muted">관망 ${r.watch}</span>` : ''}</td></tr>`).join('')}</table>`; };
+      return `<table class="rec wk"><tr><th>순위</th><th>에이전트</th><th>평균</th><th>실제 종목</th><th>확정</th></tr>${rows.map((r, i, arr) => `<tr><td class="rkc">${r.avg == null ? '—' : tieTxt(r.league_rank, rks)}</td><td>${esc(r.nickname || (r.agent || '').split(' · ')[0] || r.agent_id)} ${tchip(r.team)}${r.out ? ' <span class="tag dn">탈락</span>' : r.avg != null && sc.length > 1 && r.league_rank === lo && lo > 1 && !r.closed ? ' <span class="tag dn">꼴등</span>' : ''}</td><td>${r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span>` : '<span class="muted">미채점</span>'}</td><td>${r.real_avg != null ? `<span class="${sgn(r.real_avg)}">${pct(r.real_avg)}%</span>` : '<span class="muted">없음</span>'}</td><td>${r.scored}/${r.expected}${r.watch ? `<br><span class="muted" style="white-space:nowrap">관망 ${r.watch}</span>` : ''}${r.closed && r.missed ? `<br><span class="muted" style="white-space:nowrap">미제출 ${r.missed}</span>` : ''}</td></tr>`).join('')}</table>`; };   // 미제출은 주간 마감 뒤에만(주 중간엔 남은 라운드가 미제출처럼 보임)   // v2.2: 실제 종목 = 관망 뺀 확정 종목 평균(없으면 '없음')
     if (!cur.some((r) => r.market)) return `<p class="muted">${wkTxt(wk)}</p>${tbl(cur)}`;
     return [['KR', '♦ 한국 리그'], ['US', '♣ 미국 리그']].map(([mk, t]) => { const rows = cur.filter((r) => r.market === mk); return rows.length ? `<div data-fmk="${mk}"><p class="lg"><b>${t}</b> <span class="muted">${wkTxt(wk)}</span></p>${tbl(rows)}</div>` : ''; }).join('');
   };
@@ -1143,6 +1147,18 @@ html,body{background:var(--arena0)}
       const live = days.filter((d) => by(d, C) && by(d, Sx) && by(d, C).mode === '실전' && by(d, C).avg != null && by(d, Sx).avg != null);
       const beads = live.map((d) => { const a = by(d, C).avg, b = by(d, Sx).avg; const ra = Math.round(a * 100), rb = Math.round(b * 100), w = ra > rb ? 'c' : ra < rb ? 's' : 't'; const lbl = `${md(d)} ${{c: '로로 팀 승', s: '슈슈 팀 승', t: '무승부'}[w]} · 로로 ${pct(a)}% / 슈슈 ${pct(b)}%`; return `<span class="bd"><span class="bead ${w}" role="img" aria-label="${lbl}" title="${lbl}">${{c: '로', s: '슈', t: '='}[w]}</span><small aria-hidden="true">${md(d).replace(/\(.\)$/, '')}</small></span>`; }).join('');
       const R2 = (v) => Math.round(v * 100), nC = live.filter((d) => R2(by(d, C).avg) > R2(by(d, Sx).avg)).length, nS = live.filter((d) => R2(by(d, C).avg) < R2(by(d, Sx).avg)).length;
+      // 리그별 승패(규칙 v2.2 1단계, 2026-11-09부터 소급): 그 리그 두 팀 종목이 모두 확정된 경기만, 소수 둘째 자리로 비교
+      const LDx = (T.league_daily || []).filter((r) => r.mode === '실전');
+      const lgGames = (mk) => [...new Set(LDx.filter((r) => r.market === mk).map((r) => r.date))].sort().map((d) => {
+        const a = LDx.find((r) => r.date === d && r.market === mk && r.team === C), b = LDx.find((r) => r.date === d && r.market === mk && r.team === Sx);
+        if (!a || !b || !a.complete || !b.complete || a.avg == null || b.avg == null) return null;
+        return {d, a: a.avg, b: b.avg, w: R2(a.avg) > R2(b.avg) ? 'c' : R2(a.avg) < R2(b.avg) ? 's' : 't'}; }).filter(Boolean);
+      const LG = {KR: lgGames('KR'), US: lgGames('US')}, LGN = {KR: '♦ 한국 리그', US: '♣ 미국 리그'};
+      const lgCount = (mk) => { const g = LG[mk], c = g.filter((x) => x.w === 'c').length, s_ = g.filter((x) => x.w === 's').length; return {c, s: s_, t: g.length - c - s_, n: g.length}; };
+      const lgBeads = (mk) => LG[mk].map((x) => { const lbl = `${md(x.d)} ${LGN[mk]} ${{c: '로로 팀 승', s: '슈슈 팀 승', t: '무승부'}[x.w]} · 로로 ${pct(x.a)}% / 슈슈 ${pct(x.b)}%`;
+        return `<span class="bd"><span class="bead ${x.w}" role="img" aria-label="${lbl}" title="${lbl}">${{c: '로', s: '슈', t: '='}[x.w]}</span><small aria-hidden="true">${md(x.d).replace(/\(.\)$/, '')}</small></span>`; }).join('');
+      const lgDuel = () => `${['KR', 'US'].map((mk) => { const k = lgCount(mk); return `<div class="lgrow"><span class="lgn">${LGN[mk]}</span><div class="duel"><div class="dc c"><span>로로 팀</span><b>${k.c}승</b></div><div class="dc s"><span>슈슈 팀</span><b>${k.s}승</b></div></div><small class="muted">${k.n}경기${k.t ? ` · 무승부 ${k.t}` : ''}</small></div>`; }).join('')}
+        <p class="muted cap">리그마다 라운드별로 그 리그 종목당 평균이 높은 팀이 1승(두 팀 종목이 모두 확정된 경기만) · 두 시장 합산 기록(참고): 로로 ${nC}승 · 슈슈 ${nS}승</p>`;
       const st = (T.standings || []).slice().sort((x, y) => x.league_rank - y.league_rank);
       const cell = (r) => r && r.avg != null ? `<span class="${sgn(r.avg)}">${pct(r.avg)}%</span> <span class="muted">${r.n}건</span>` : '<span class="no">—</span>';
       const modes = recModes(), m0 = modes[0];
@@ -1168,7 +1184,7 @@ html,body{background:var(--arena0)}
       const liveRow = liveRd && (T.calendar || []).find((r) => r.date === liveRd);
       const pend = practiceOnly ? `<div class="duel">${[C, Sx].map((t) => `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="no">채점 전</b></div>`).join('')}</div><p class="muted cap">실전 ${md(liveRd)} 라운드${liveRow && liveRow.score_at ? ` · 첫 점수 ${md(liveRow.score_at.slice(0, 10))} ${liveRow.score_at.slice(11, 16)}` : ''} · 연습 기록은 순위·기록 탭에서 '연습'으로 볼 수 있습니다</p>` : '';
       const duel = practiceOnly ? pend : live.length
-        ? `<div class="duel"><div class="dc c"><span>로로 팀</span><b>${nC}승</b></div><div class="dc s"><span>슈슈 팀</span><b>${nS}승</b></div></div><p class="muted cap">실전 ${live.length}라운드${live.length - nC - nS ? ` · 무승부 ${live.length - nC - nS}` : ''} · 라운드마다 종목당 평균이 높은 팀이 1승</p>`
+        ? lgDuel()
         : m0 ? `<div class="duel">${[C, Sx].map((t) => { const v = tAvg(t); return `<div class="dc ${t === C ? 'c' : 's'}"><span>${short(t)} 팀</span><b class="${v == null ? 'no' : sgn(v)}">${v == null ? '—' : pct(v) + '%'}</b></div>`; }).join('')}</div><p class="muted cap">${m0} 누적 종목당 평균${m0 === '실전' ? '' : ' · 두 팀 연습 날짜가 달라 참고용 · 실전 승패는 11/9 라운드부터'}</p>` : '';
       const wk = st.map((r) => r.week).sort().pop(), cur = st.filter((r) => r.week === wk && r.avg != null);
       const lgs = cur.some((r) => r.market) ? [['KR', '♦ 한국 리그'], ['US', '♣ 미국 리그']] : [[null, '이번 주']];
@@ -1190,7 +1206,7 @@ html,body{background:var(--arena0)}
         <div data-pane="sum" id="rp-sum" role="tabpanel" aria-labelledby="rt-sum">${sum}</div>
         <div data-pane="flow" id="rp-flow" role="tabpanel" aria-labelledby="rt-flow" hidden>${trendBoard(modes)}</div>
         <div data-pane="rank" id="rp-rank" role="tabpanel" aria-labelledby="rt-rank" hidden><div class="wkblk" ${m0 && m0 !== '실전' ? 'hidden' : ''}><h3>이번 주 리그 순위 <span class="muted">실전 · 탈락 기준</span></h3>${weekBoard(st)}</div><h3>누적 순위 <span class="muted">참고</span></h3>${rankBoard(modes)}</div>
-        <div data-pane="log" id="rp-log" role="tabpanel" aria-labelledby="rt-log" hidden>${live.length ? `<h3>실전 승패</h3><div class="beads">${beads}</div>` : ''}
+        <div data-pane="log" id="rp-log" role="tabpanel" aria-labelledby="rt-log" hidden>${live.length ? `<h3>실전 승패 <span class="muted">리그별</span></h3><div class="lgbeads">${['KR', 'US'].map((mk) => LG[mk].length ? `<h4>${LGN[mk]}</h4><div class="beads">${lgBeads(mk)}</div>` : '').join('')}<h4>두 시장 합산 <span class="muted">참고 · 예전 방식</span></h4><div class="beads">${beads}</div></div>` : ''}
           <h3>라운드별 기록</h3>${roundsHTML || '<p class="muted">아직 공개된 라운드가 없습니다.</p>'}
           ${help('점수는 하루 수익률(배당 포함, %)입니다. 팀 비교는 종목 한 건당 평균으로 합니다. 최근 라운드가 위에 오고, 줄을 누르면 그 라운드 종목이 펼쳐집니다. 마감이 지난 종목만 보입니다.')}</div>
         <div data-pane="rev" id="rp-rev" role="tabpanel" aria-labelledby="rt-rev" hidden>${reviewBoard()}</div>`; }},
