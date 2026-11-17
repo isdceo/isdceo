@@ -3043,6 +3043,29 @@ class RuleV22Freeze(unittest.TestCase):
         self.assertEqual(L.latest_scores(d)["2026-11-23-claude-buffett-KR"]["score"], -2.0)
         self.assertEqual(L.round_rule("2026-11-25", cfg, d), "v2.2")       # 고정 안 된 뒤 라운드는 지금 설정
 
+    def test_locked_old_round_keeps_its_deadline_after_config_change(self):
+        """슈슈 재검증 2026-11-17: 기존 규칙으로 고정된 라운드도 원본 접수 마감 시각이 고정돼, 뒤에 reveal_deadline·accept_deadline을 바꿔도 그대로."""
+        d = new_league()
+        self.assertEqual(self._lock(d)["accept_time"], "12:00")
+        def move(c):
+            c["commit_reveal"]["reveal_deadline"] = "10:00"
+            c["commit_reveal"]["accept_deadline"].update({"from": "2026-11-20", "time": "08:50"})
+            c["rule_v22"]["confirmed"] = True
+        self._cfg(d, move)
+        cfg = L.load_config(d)
+        self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg, d).strftime("%H:%M"), "12:00")
+        self.assertEqual(L.round_rule("2026-11-23", cfg, d), "v2.1")
+        self.assertTrue(any("accept_time" in e for e in L.rule_lock_problems(d)))
+
+    def test_locked_old_round_keeps_watch_cap(self):
+        """이전 규칙으로 고정된 라운드는 리그별 관망 한도(주 1회)도 고정."""
+        d = new_league()
+        self._lock(d, "2026-11-23"); self._lock(d, "2026-11-24", at=datetime.fromisoformat("2026-11-24T08:20:00+09:00"))
+        self._cfg(d, lambda c: c["watch"].update(max_per_week_per_market=3))
+        pick(d, "buffett", "2026-11-23", "KR", "WATCH")
+        with self.assertRaisesRegex(ValueError, "주 1회"):
+            pick(d, "buffett", "2026-11-24", "KR", "WATCH")
+
     def test_no_lock_before_round_start_or_before_from(self):
         d = new_league()
         self._lock(d, at=datetime.fromisoformat("2026-11-22T21:00:00+09:00"))    # 일요일 밤에 미리 낸 지문

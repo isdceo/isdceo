@@ -198,7 +198,7 @@ def rule_v22_on(cfg: dict) -> bool:
 
 
 V22_RULE, OLD_RULE = "v2.2", "v2.1"
-SNAP_KEYS = ("rule", "watch_cash", "accept_time", "min_real")
+SNAP_KEYS = ("rule", "watch_cash", "accept_time", "min_real", "watch_cap_market")
 
 
 def _v22_from(cfg: dict) -> str | None:
@@ -216,9 +216,12 @@ def rule_snapshot_from_cfg(round_date, cfg: dict) -> dict:
     w = cfg.get("watch") or {}
     ad = (cfg.get("commit_reveal") or {}).get("accept_deadline") or {}
     cash = on and bool(w.get("cash_from")) and rd >= w["cash_from"]
-    acc = ad.get("time") if on and ad.get("from") and rd >= ad["from"] else None
-    return {"rule": V22_RULE if (cash or acc) else OLD_RULE, "watch_cash": cash, "accept_time": acc,
-            "min_real": int(w.get("min_real_per_week_per_market", 2)) if cash else None}
+    acc22 = ad.get("time") if on and ad.get("from") and rd >= ad["from"] else None
+    # 접수 마감 시각은 규칙판과 상관없이 늘 값으로 고정한다(이전 규칙은 공개 마감 reveal_deadline) — 고정 뒤 설정 변경과 무관(슈슈 재검증 2026-11-17)
+    acc = acc22 or (cfg.get("commit_reveal") or {}).get("reveal_deadline", "12:00")
+    return {"rule": V22_RULE if (cash or acc22) else OLD_RULE, "watch_cash": cash, "accept_time": acc,
+            "min_real": int(w.get("min_real_per_week_per_market", 2)) if cash else None,
+            "watch_cap_market": None if cash else w.get("max_per_week_per_market")}   # 이전 규칙의 리그별 관망 한도도 고정
 
 
 def round_snapshot(round_date, cfg: dict, d: Path | None = None) -> dict:
@@ -996,7 +999,7 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         wk = iso_week(rd)
         used = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
                 and is_watch(p, cfg) and iso_week(date.fromisoformat(p["round_date"])) == wk]
-        per_m = wcfg.get("max_per_week_per_market")
+        per_m = round_snapshot(rec["round_date"], cfg, d).get("watch_cap_market")   # 고정된 라운드는 고정값, 아니면 지금 설정(적용일 변경과 무관)
         if watch_is_cash(rec["round_date"], cfg, d):
             # v2.2: 횟수 제한 없음. 대신 그 주 실제 종목 최소 건수를 남은 개장일로 채울 수 있어야 한다
             need_n = int(round_snapshot(rec["round_date"], cfg, d)["min_real"] or 2)
