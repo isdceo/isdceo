@@ -3047,13 +3047,26 @@ class RuleV22Freeze(unittest.TestCase):
         d = new_league()
         self._lock(d, at=datetime.fromisoformat("2026-11-22T21:00:00+09:00"))    # 일요일 밤에 미리 낸 지문
         self._lock(d, rd="2026-12-23", at=datetime.fromisoformat("2026-11-23T08:20:00+09:00"))   # 날짜 오타(먼 미래)
-        pick(d, "buffett", "2026-11-24", "KR", "005930")                       # 실제 시계(라운드 전) 기록
         self.assertEqual(L.read_ledger(d, "rule_locks"), [])
         enable_v22(d / "config.json")                                          # 월요일 07:00에 켜면
         self.assertEqual(self._lock(d)["rule"], "v2.2")                        # 11/23은 v2.2로 고정
         pick(d, "lynch", "2026-11-20", "KR", "005930")
         L.run_scoring(d, today=date(2026, 11, 21), now="2026-11-21T08:35:00+09:00")
         self.assertEqual([r["round_date"] for r in L.read_ledger(d, "rule_locks")], ["2026-11-23"])
+
+    def test_pick_write_always_locks_even_before_round_start(self):
+        """재검수 M1: 라운드 시작 전에 접수된 종목(이른 공개)도 그 판정 규칙으로 고정 → 뒤에 스위치를 바꿔도 채점이 판정과 같다."""
+        d = new_league(); enable_v22(d / "config.json")
+        price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
+        pick(d, "buffett", "2026-11-23", "KR", "WATCH")                        # 실제 시계는 라운드 전
+        set_v22(d / "config.json", False)
+        L.run_scoring(d, today=date(2026, 11, 24), now="2026-11-24T08:35:00+09:00")
+        self.assertEqual(L.latest_scores(d)["2026-11-23-claude-buffett-KR"]["score"], 0.0)
+
+    def test_bad_freeze_time_blocks_verify(self):
+        d = new_league()
+        self._cfg(d, lambda c: c["rule_v22"].update(freeze_time="7시"))
+        self.assertTrue(any("설정 오류" in e for e in L.verify(d)))
 
     def test_dry_run_writes_no_lock(self):
         d = new_league(); enable_v22(d / "config.json")

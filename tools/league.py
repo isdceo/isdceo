@@ -77,8 +77,9 @@ def rule_lock_problems(d: Path) -> list[str]:
         return []
     try:
         rule_v22_on(cfg)
+        rule_freeze_at("2026-01-01", cfg)
     except ValueError as e:
-        return [str(e)]
+        return [str(e) if str(e).startswith("설정 오류") else f"설정 오류: rule_v22.freeze_time 형식(HH:MM) — {e}"]
     out = []
     for r in read_ledger(d, "rule_locks"):
         now = rule_snapshot_from_cfg(r["round_date"], cfg)      # 원장을 보지 않은, 지금 설정 기준 값
@@ -242,14 +243,15 @@ def rule_freeze_at(round_date, cfg: dict) -> datetime:
     return datetime(y, m, dd, hh, mm, tzinfo=KST)
 
 
-def lock_round_rule(d: Path, round_date, cfg: dict, by: str, at: datetime | None = None, judged_at: str | None = None) -> dict:
+def lock_round_rule(d: Path, round_date, cfg: dict, by: str, at: datetime | None = None, judged_at: str | None = None,
+                    force: bool = False) -> dict:
     """유효한 기록(지문 committed, 원본 accepted, 종목 기록, 채점)이 라운드 시작(07:05) 뒤에 처음 처리될 때 그 라운드 규칙을 한 번 고정한다.
     적용일 전 라운드는 늘 이전 규칙이라 기록하지 않는다."""
     rd = str(round_date)
     at = at or datetime.now(KST)
     snap = round_snapshot(rd, cfg, d)
     f = _v22_from(cfg)
-    if f and rd >= f and at >= rule_freeze_at(rd, cfg) and not any(r.get("round_date") == rd for r in read_ledger(d, "rule_locks")):
+    if f and rd >= f and (force or at >= rule_freeze_at(rd, cfg)) and not any(r.get("round_date") == rd for r in read_ledger(d, "rule_locks")):
         append(d, "rule_locks", {"round_date": rd, **snap, "by": by, "switch": rule_v22_on(cfg),
                                  "at": at.isoformat(timespec="seconds"), "judged_at": judged_at})
     return snap
@@ -1071,7 +1073,7 @@ def submit_pick(d: Path, rec: dict) -> dict:
     errs = validate_pick(rec, d, cfg, read_ledger(d, "picks"))
     if errs:
         raise ValueError("; ".join(errs))
-    lock_round_rule(d, rec["round_date"], cfg, "pick")
+    lock_round_rule(d, rec["round_date"], cfg, "pick", force=True)   # 종목 기록은 규칙에 따른 판정이라 시각과 상관없이 고정(재검수 M1)
     return append(d, "picks", rec)
 
 def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[list, list]:
@@ -1138,7 +1140,7 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
                         "errors": [f"{agent}: {rd}에 열린 시장 {'·'.join(sorted(need))} 중 {'·'.join(sorted(need - have))} 종목 누락"]})
     if not dry_run and not bad:
         for rd_ in sorted({r["round_date"] for r in ok}):
-            lock_round_rule(d, rd_, cfg, "import")
+            lock_round_rule(d, rd_, cfg, "import", force=True)
         for rec in ok:
             append(d, "picks", rec)
     return ok, bad
@@ -1355,7 +1357,7 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                     meta = {"commit": event["after"], "csv_sha256": sha, "pushed_at": rec["pushed_at"], "run_id": str(run_id)}
                     if rec.get("commitment_commit"):
                         meta.update(commitment_commit=rec["commitment_commit"], committed_at=rec["commitment_pushed_at"])
-                    lock_round_rule(d, rd, cfg, "submission", judged_at=rec["pushed_at"])   # 접수 판정 뒤, 같은 설정으로 고정
+                    lock_round_rule(d, rd, cfg, "submission", judged_at=rec["pushed_at"], force=True)   # 접수 판정 뒤, 같은 설정으로 고정(이른 공개도)
                     for r in ok:
                         append(d, "picks", {**r, "submission": meta})
                     rec.update(status="accepted", imported=len(ok))
@@ -1363,6 +1365,8 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                 rec.update(status="rejected", errors=[f"파일 형식 오류: {type(e).__name__} {e}"])   # 코드·설정 오류는 여기서 반려로 굳히지 않고 재시도로 둔다
             finally:
                 tmp.unlink(missing_ok=True)
+        if rec.get("status") == "rejected":           # 규칙에 따른 거부(접수 마감·관망 검사)도 라운드 시작 뒤면 고정(재검수 L2)
+            lock_round_rule(d, rd, cfg, "submission-rejected", judged_at=rec.get("pushed_at"))
         receipts.append(append(d, "submissions", rec))
     return receipts
 
