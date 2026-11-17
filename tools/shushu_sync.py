@@ -877,7 +877,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             f"`submit/{rd}.sha256`(+ `submit/{rd}.csv`·`submit/{rd}-debate.md`)를 **08:25 전에** push해 주세요. "
             "분석이 덜 끝난 에이전트는 빼고 **두 시장을 모두 채운 에이전트만** 넣어도 접수됩니다(시장이 빠진 에이전트가 섞이면 파일 전체 반려). "
             "08:30 뒤 push는 인정되지 않습니다(판정: 이 저장소의 push 시각).")
-    acc = L.reveal_accept_deadline(today, cfg).strftime("%H:%M")   # 원본 접수 마감(v2.2: 11/23부터 08:55, 그 전 12:00). 동기화 처리 시한은 12:00 그대로
+    acc = L.reveal_accept_deadline(today, cfg, d).strftime("%H:%M")   # 원본 접수 마감(v2.2: 11/23부터 08:55, 그 전 12:00). 동기화 처리 시한은 12:00 그대로
     if mk and live and "08:30" < hm < min("11:40", acc) and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 접수 마감 {acc} KST(push 시각 기준).")

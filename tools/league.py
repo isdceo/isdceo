@@ -21,7 +21,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 LEDGERS = ("picks", "prices", "scores", "corrections", "corporate_actions", "submissions", "approvals", "price_checks",
-           "weekly_decisions", "guidelines", "outages", "external_pushes", "shushu_wakes")
+           "weekly_decisions", "guidelines", "outages", "external_pushes", "shushu_wakes", "rule_locks")
 
 # ───────────────────────── 설정 ─────────────────────────
 
@@ -65,7 +65,27 @@ def verify(d: Path) -> list[str]:
             if hashlib.sha256(_canon(r).encode()).hexdigest() != r.get("hash"):
                 errors.append(f"{name}.jsonl:{i} 내용 해시 불일치 (이 줄이 수정됨)")
             prev = r.get("hash")
+    errors += [e for e in rule_lock_problems(d) if e.startswith("설정 오류")]   # 스위치 형식 오류만 막는다. 고정값과의 차이는 rule-check로 본다(처리를 멈추지 않게)
     return errors
+
+
+def rule_lock_problems(d: Path) -> list[str]:
+    """규칙판 점검: 스위치 값 형식, 이미 고정된 라운드와 지금 설정이 어긋나는지(스위치·적용일을 라운드 뒤에 바꾼 경우)."""
+    try:
+        cfg = load_config(d)
+    except (OSError, ValueError):
+        return []
+    try:
+        rule_v22_on(cfg)
+    except ValueError as e:
+        return [str(e)]
+    out = []
+    for r in read_ledger(d, "rule_locks"):
+        now = round_rule(r["round_date"], cfg)                  # 원장을 보지 않은, 지금 설정 기준 값
+        if now != r["rule"]:
+            out.append(f"rule_locks {r['round_date']}: 고정 규칙 {r['rule']}와 지금 설정({now})이 다름 — 이미 진행된 라운드는 고정값으로 처리됨. "
+                       "스위치·적용일 변경이 맞는지 확인")
+    return out
 
 # ───────────────────────── 거래일 달력 ─────────────────────────
 
@@ -165,21 +185,60 @@ def latest_scores(d: Path) -> dict:
     return out
 
 def rule_v22_on(cfg: dict) -> bool:
-    """규칙 v2.2 적용 스위치(config rule_v22.confirmed). 꺼져 있으면 날짜가 지나도 이전 규칙 — 두 팀 준비·운영자 확정 전 자동 전환 금지(2026-11-17)."""
-    return bool((cfg.get("rule_v22") or {}).get("confirmed"))
+    """규칙 v2.2 적용 스위치(config rule_v22.confirmed). 꺼져 있으면 날짜가 지나도 이전 규칙 — 두 팀 준비·운영자 확정 전 자동 전환 금지(2026-11-17).
+    JSON 참(true)만 켜짐. 키가 없거나 null이면 꺼짐, 그 밖의 값("false" 같은 글자 등)은 설정 오류로 멈춘다(슈슈 검토 2026-11-17 #1)."""
+    v = (cfg.get("rule_v22") or {}).get("confirmed")
+    if v is None or v is False:
+        return False
+    if v is True:
+        return True
+    raise ValueError(f"설정 오류: rule_v22.confirmed는 true/false여야 함 (지금 {v!r})")
 
 
-def watch_is_cash(round_date: str, cfg: dict) -> bool:
+V22_RULE, OLD_RULE = "v2.2", "v2.1"
+
+
+def _v22_from(cfg: dict) -> str | None:
+    """v2.2가 걸릴 수 있는 가장 이른 라운드 날짜(관망·접수 마감 적용일 중 이른 것)."""
+    ds = [x for x in ((cfg.get("watch") or {}).get("cash_from"),
+                      ((cfg.get("commit_reveal") or {}).get("accept_deadline") or {}).get("from")) if x]
+    return min(ds) if ds else None
+
+
+def round_rule(round_date, cfg: dict, d: Path | None = None) -> str:
+    """그 라운드에 적용할 규칙판. 라운드에 처음 기록(지문·원본·종목·채점)이 생길 때 rule_locks 원장에 고정한 값을 우선한다.
+    고정 뒤에는 스위치를 바꿔도 그 라운드의 제출 검사·접수·채점·재처리 결과가 바뀌지 않는다(슈슈 검토 2026-11-17 #2)."""
+    rd = str(round_date)
+    if d is not None:
+        for r in read_ledger(d, "rule_locks"):
+            if r.get("round_date") == rd:
+                return r["rule"]
+    f = _v22_from(cfg)
+    return V22_RULE if (f and rd >= f and rule_v22_on(cfg)) else OLD_RULE
+
+
+def lock_round_rule(d: Path, round_date, cfg: dict, by: str) -> str:
+    """v2.2 적용일 이후 라운드면 처음 한 번 규칙판을 원장에 고정한다(그 전 라운드는 늘 이전 규칙이라 기록하지 않음)."""
+    rd = str(round_date)
+    rule = round_rule(rd, cfg, d)
+    f = _v22_from(cfg)
+    if f and rd >= f and not any(r.get("round_date") == rd for r in read_ledger(d, "rule_locks")):
+        append(d, "rule_locks", {"round_date": rd, "rule": rule, "by": by,
+                                 "switch": rule_v22_on(cfg), "at": datetime.now(KST).isoformat(timespec="seconds")})
+    return rule
+
+
+def watch_is_cash(round_date: str, cfg: dict, d: Path | None = None) -> bool:
     """규칙 v2.2: 이 라운드의 관망이 현금(0%) 채점인가."""
     cf = (cfg.get("watch") or {}).get("cash_from")
-    return rule_v22_on(cfg) and bool(cf) and str(round_date) >= cf
+    return bool(cf) and str(round_date) >= cf and round_rule(round_date, cfg, d) == V22_RULE
 
 
 def is_watch(p: dict, cfg: dict) -> bool:
     """'관망' 카드(v1.9): 종목 대신 비교 지수를 따라가는 제출."""
     return str(p.get("ticker", "")).upper() == (cfg.get("watch") or {}).get("ticker", "WATCH")
 
-def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict] | None = None) -> dict:
+def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict] | None = None, d: Path | None = None) -> dict:
     """추천 1건의 현재 채점 상태를 계산한다 (원장에 쓰지는 않음)."""
     w = cfg["weekly"]
     cas = cas or []
@@ -249,7 +308,7 @@ def evaluate_pick(p: dict, prices: dict, cfg: dict, today: date, cas: list[dict]
     if bench and bb_ and be_ and bb_.get("close") and be_.get("close"):
         bench_ret = round((be_["close"] / bb_["close"] - 1) * 100, 2)
         excess = 0.0 if watch else round(total - bench_ret, 2)
-    if watch and watch_is_cash(p.get("round_date", ""), cfg):
+    if watch and watch_is_cash(p.get("round_date", ""), cfg, d):
         # 규칙 v2.2(2026-11-23 라운드부터): 관망 = 현금 0%, 초과 점수 = −비교 지수 수익률(지수 확정 뒤)
         total, price_only = 0.0, 0.0
         excess = (-bench_ret if bench_ret else 0.0) if bench_ret is not None else None
@@ -267,8 +326,10 @@ def run_scoring(d: Path, today: date | None = None, now: str | None = None) -> l
     today = today or datetime.now(KST).date()
     prices, prev, cas = price_index(d), latest_scores(d), corporate_actions(d)
     written = []
+    for rd_ in sorted({p["round_date"] for p in read_ledger(d, "picks")}):
+        lock_round_rule(d, rd_, cfg, "scoring")       # 고정 전 라운드(예전 원장)도 처음 채점 때 고정
     for p in read_ledger(d, "picks"):
-        cur = evaluate_pick(p, prices, cfg, today, cas)
+        cur = evaluate_pick(p, prices, cfg, today, cas, d)
         old = prev.get(p["pick_id"])
         keys = ("status", "score", "score_price_only", "score_excess", "reason", "eval_session")
         if old and all(old.get(k) == cur.get(k) for k in keys):
@@ -908,7 +969,7 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         used = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
                 and is_watch(p, cfg) and iso_week(date.fromisoformat(p["round_date"])) == wk]
         per_m = wcfg.get("max_per_week_per_market")
-        if watch_is_cash(rec["round_date"], cfg):
+        if watch_is_cash(rec["round_date"], cfg, d):
             # v2.2: 횟수 제한 없음. 대신 그 주 실제 종목 최소 건수를 남은 개장일로 채울 수 있어야 한다
             need_n = int(wcfg.get("min_real_per_week_per_market", 2))
             mon = rd - timedelta(days=rd.weekday())
@@ -984,6 +1045,7 @@ def submit_pick(d: Path, rec: dict) -> dict:
     errs = validate_pick(rec, d, cfg, read_ledger(d, "picks"))
     if errs:
         raise ValueError("; ".join(errs))
+    lock_round_rule(d, rec["round_date"], cfg, "pick")
     return append(d, "picks", rec)
 
 def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[list, list]:
@@ -1049,6 +1111,8 @@ def import_csv(d: Path, path: Path, team: str, dry_run: bool = False) -> tuple[l
             bad.append({"line": 0, "pick": {"agent_id": agent, "round_date": rd},
                         "errors": [f"{agent}: {rd}에 열린 시장 {'·'.join(sorted(need))} 중 {'·'.join(sorted(need - have))} 종목 누락"]})
     if not dry_run and not bad:
+        for rd_ in sorted({r["round_date"] for r in ok}):
+            lock_round_rule(d, rd_, cfg, "import")
         for rec in ok:
             append(d, "picks", rec)
     return ok, bad
@@ -1118,11 +1182,11 @@ def commit_reveal_applies(round_date: str, cfg: dict) -> bool:
     cr = cfg.get("commit_reveal") or {}
     return bool(cr.get("from")) and round_date >= cr["from"]
 
-def reveal_accept_deadline(round_date: date, cfg: dict) -> datetime:
+def reveal_accept_deadline(round_date: date, cfg: dict, d: Path | None = None) -> datetime:
     """원본 접수 마감(규칙 v2.2: 장 시작 5분 전, push 시각 판정). 그 전 라운드는 공개 마감(reveal_deadline)과 같다.
     동기화 재시도·확인 대기 처리 시한은 reveal_deadline(12:00)을 그대로 쓴다."""
     ad = (cfg.get("commit_reveal") or {}).get("accept_deadline") or {}
-    if rule_v22_on(cfg) and ad.get("from") and round_date.isoformat() >= ad["from"]:
+    if ad.get("from") and round_date.isoformat() >= ad["from"] and round_rule(round_date.isoformat(), cfg, d) == V22_RULE:
         hh, mm = map(int, ad["time"].split(":"))
         return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
     return reveal_deadline(round_date, cfg)
@@ -1209,6 +1273,7 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
         sha = hashlib.sha256(raw).hexdigest()
         content = raw.decode("utf-8-sig", "replace")
         deadline = lock_deadline(date.fromisoformat(rd), cfg)
+        lock_round_rule(d, rd, cfg, "submission")      # 그 라운드 규칙판 고정(이미 있으면 그대로)
         rec = {"team": team, "round_date": rd, "path": path, "commit": event["after"], "before": event.get("before"),
                "ref": event.get("ref"), "pusher": (event.get("pusher") or {}).get("name"),
                "csv_sha256": sha, "pushed_at": pushed_at.isoformat() if pushed_at else None,
@@ -1227,11 +1292,11 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
             rec.update(status="rejected", errors=["서버 push 시각을 확인할 수 없음"])
         elif prior:
             rec.update(status="rejected", errors=[f"이미 접수된 제출이 있음 ({prior[0]['commit'][:7]}) — 확정 후 변경 불가"])
-        elif cr and commitment and judged_at > reveal_accept_deadline(date.fromisoformat(rd), cfg):   # 마감 뒤면 해시와 상관없이 마감 경과로 알린다(검수 2026-11-17)
-            rec.update(status="rejected", errors=[f"원본 접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
+        elif cr and commitment and judged_at > reveal_accept_deadline(date.fromisoformat(rd), cfg, d):   # 마감 뒤면 해시와 상관없이 마감 경과로 알린다(검수 2026-11-17)
+            rec.update(status="rejected", errors=[f"원본 접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg, d).strftime('%H:%M')} KST 경과"])
         elif cr and commitment and sha != commitment["committed_sha256"]:
             rec.update(status="rejected", errors=[f"원본 해시 {sha[:12]}가 마감 전 지문 {commitment['committed_sha256'][:12]}와 다름 — "
-                                                   f"지문과 같은 파일을 다시 push하면 됨 (접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST)"])
+                                                   f"지문과 같은 파일을 다시 push하면 됨 (접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg, d).strftime('%H:%M')} KST)"])
         elif judged_at > deadline and cr and not commitment and _commitment_file_pending(event, team, rd, d, cwd):
             raise CommitmentPending(f"{team} {rd}: 지문 파일은 있으나 지문 영수증이 아직 없음 — 잠시 뒤 다시 처리")
         elif judged_at > deadline and not (cr and commitment):
@@ -1283,6 +1348,7 @@ def _process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, r
     raw = subprocess.run(["git", "show", f"{event['after']}:{path}"], cwd=cwd, check=True, capture_output=True).stdout
     m = SHA_RE.match(raw.decode("utf-8-sig", "replace").lower())
     deadline = lock_deadline(date.fromisoformat(rd), cfg)
+    lock_round_rule(d, rd, cfg, "commitment")          # 그 라운드 규칙판 고정: 지문 접수 때의 설정으로
     rec = {"team": team, "round_date": rd, "path": path, "kind": "commitment", "commit": event["after"],
            "before": event.get("before"), "ref": event.get("ref"), "pusher": (event.get("pusher") or {}).get("name"),
            "committed_sha256": m.group(1) if m else None, "csv_sha256": None,
@@ -1666,7 +1732,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit", "update-plan"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit", "update-plan", "rule-check"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -1687,6 +1753,19 @@ def main():
         errs = verify(d)
         print("\n".join(errs) if errs else "원장 정상 (해시 체인 일치)")
         sys.exit(1 if errs else 0)
+    elif a.cmd == "rule-check":                     # 규칙 v2.2 스위치·라운드 고정값 점검(운영자 확인용)
+        cfg = load_config(d)
+        probs = rule_lock_problems(d)
+        try:
+            print(f"스위치 rule_v22.confirmed = {rule_v22_on(cfg)}, v2.2 적용일 {_v22_from(cfg)}")
+        except ValueError:
+            pass
+        for r in read_ledger(d, "rule_locks"):
+            print(f"고정: {r['round_date']} {r['rule']} ({r['by']}, {r['at']})")
+        if a.arg:
+            print(f"{a.arg} 라운드 규칙: {round_rule(a.arg, cfg, d)}")
+        print("\n".join(probs) if probs else "문제 없음")
+        sys.exit(1 if probs else 0)
     elif a.cmd == "score":
         for r in run_scoring(d):
             print(r["pick_id"], r["status"], r.get("score"), r.get("reason") or "")
