@@ -46,6 +46,13 @@
   "check-csv는 정규식 메모리 우회로 실행, 경고 2건(burry KR 11/16 비교값)은 문제없음 확인",
   "형식 수정: buffett·lynch rationale 길이, dalio·wood·momentum 출처 형식 — 모두 에이전트에게 요청해 본인이 고침",
   "dalio는 R2에서 스스로 US NVDA → WATCH로 바꿈",
-  "buffett·lynch r2 md 안 JSON은 줄이기 전 판본, final.json이 기준"
- ]
+  "buffett·lynch r2 md 안 JSON은 줄이기 전 판본, final.json이 기준",
+  "lines 검사에서 lynch-US '52주 최저'가 가격 표현으로 걸려 문구를 바꿈"
+ ],
+ "reveal_receipt": {
+  "status": "accepted",
+  "pushed_at": "08:30:56",
+  "receipt_checked_at": "08:31:21",
+  "commit": "8263b53264c44af4d1d0b3a0ec5a7f46ec02f1cb"
+ }
 }
