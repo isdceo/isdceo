@@ -81,10 +81,11 @@ def rule_lock_problems(d: Path) -> list[str]:
         return [str(e)]
     out = []
     for r in read_ledger(d, "rule_locks"):
-        now = round_rule(r["round_date"], cfg)                  # 원장을 보지 않은, 지금 설정 기준 값
-        if now != r["rule"]:
-            out.append(f"rule_locks {r['round_date']}: 고정 규칙 {r['rule']}와 지금 설정({now})이 다름 — 이미 진행된 라운드는 고정값으로 처리됨. "
-                       "스위치·적용일 변경이 맞는지 확인")
+        now = rule_snapshot_from_cfg(r["round_date"], cfg)      # 원장을 보지 않은, 지금 설정 기준 값
+        diff = [k for k in SNAP_KEYS if now[k] != r.get(k)]
+        if diff:
+            out.append(f"rule_locks {r['round_date']}: 고정 규칙 {r['rule']}와 지금 설정이 다름({', '.join(f'{k} {r.get(k)}→{now[k]}' for k in diff)}) — "
+                       "이미 진행된 라운드는 고정값으로 처리됨. 스위치·적용일·시각 변경이 맞는지 확인")
     return out
 
 # ───────────────────────── 거래일 달력 ─────────────────────────
@@ -196,6 +197,7 @@ def rule_v22_on(cfg: dict) -> bool:
 
 
 V22_RULE, OLD_RULE = "v2.2", "v2.1"
+SNAP_KEYS = ("rule", "watch_cash", "accept_time", "min_real")
 
 
 def _v22_from(cfg: dict) -> str | None:
@@ -205,33 +207,57 @@ def _v22_from(cfg: dict) -> str | None:
     return min(ds) if ds else None
 
 
-def round_rule(round_date, cfg: dict, d: Path | None = None) -> str:
-    """그 라운드에 적용할 규칙판. 라운드에 처음 기록(지문·원본·종목·채점)이 생길 때 rule_locks 원장에 고정한 값을 우선한다.
-    고정 뒤에는 스위치를 바꿔도 그 라운드의 제출 검사·접수·채점·재처리 결과가 바뀌지 않는다(슈슈 검토 2026-11-17 #2)."""
+def rule_snapshot_from_cfg(round_date, cfg: dict) -> dict:
+    """지금 설정이 그 라운드에 주는 규칙(원장 고정값은 보지 않음): 규칙판, 관망 현금 여부, 원본 접수 마감 시각, 관망 최소 실제 종목 수."""
+    rd = str(round_date)
+    f = _v22_from(cfg)
+    on = bool(f) and rd >= f and rule_v22_on(cfg)          # 적용일 전 라운드는 스위치를 읽지도 않는다
+    w = cfg.get("watch") or {}
+    ad = (cfg.get("commit_reveal") or {}).get("accept_deadline") or {}
+    cash = on and bool(w.get("cash_from")) and rd >= w["cash_from"]
+    acc = ad.get("time") if on and ad.get("from") and rd >= ad["from"] else None
+    return {"rule": V22_RULE if (cash or acc) else OLD_RULE, "watch_cash": cash, "accept_time": acc,
+            "min_real": int(w.get("min_real_per_week_per_market", 2)) if cash else None}
+
+
+def round_snapshot(round_date, cfg: dict, d: Path | None = None) -> dict:
+    """그 라운드에 적용할 규칙. rule_locks 원장에 고정된 값이 있으면 그것(스위치·날짜·시각·최소 건수 모두), 없으면 지금 설정.
+    고정 뒤에는 설정을 바꿔도 그 라운드의 제출 검사·접수·채점·재처리 결과가 바뀌지 않는다(슈슈 검토 2026-11-17 #2, 검수 H1)."""
     rd = str(round_date)
     if d is not None:
         for r in read_ledger(d, "rule_locks"):
             if r.get("round_date") == rd:
-                return r["rule"]
-    f = _v22_from(cfg)
-    return V22_RULE if (f and rd >= f and rule_v22_on(cfg)) else OLD_RULE
+                return {k: r.get(k) for k in SNAP_KEYS}
+    return rule_snapshot_from_cfg(rd, cfg)
 
 
-def lock_round_rule(d: Path, round_date, cfg: dict, by: str) -> str:
-    """v2.2 적용일 이후 라운드면 처음 한 번 규칙판을 원장에 고정한다(그 전 라운드는 늘 이전 규칙이라 기록하지 않음)."""
+def round_rule(round_date, cfg: dict, d: Path | None = None) -> str:
+    return round_snapshot(round_date, cfg, d)["rule"]
+
+
+def rule_freeze_at(round_date, cfg: dict) -> datetime:
+    """규칙을 고정하는 가장 이른 시각: 그 라운드 날 07:05 KST(라운드 시작). 그 전 기록(미리 낸 지문, 날짜 오타 등)은 고정하지 않는다(검수 H2)."""
+    hh, mm = map(int, str((cfg.get("rule_v22") or {}).get("freeze_time", "07:05")).split(":"))
+    y, m, dd = map(int, str(round_date).split("-"))
+    return datetime(y, m, dd, hh, mm, tzinfo=KST)
+
+
+def lock_round_rule(d: Path, round_date, cfg: dict, by: str, at: datetime | None = None, judged_at: str | None = None) -> dict:
+    """유효한 기록(지문 committed, 원본 accepted, 종목 기록, 채점)이 라운드 시작(07:05) 뒤에 처음 처리될 때 그 라운드 규칙을 한 번 고정한다.
+    적용일 전 라운드는 늘 이전 규칙이라 기록하지 않는다."""
     rd = str(round_date)
-    rule = round_rule(rd, cfg, d)
+    at = at or datetime.now(KST)
+    snap = round_snapshot(rd, cfg, d)
     f = _v22_from(cfg)
-    if f and rd >= f and not any(r.get("round_date") == rd for r in read_ledger(d, "rule_locks")):
-        append(d, "rule_locks", {"round_date": rd, "rule": rule, "by": by,
-                                 "switch": rule_v22_on(cfg), "at": datetime.now(KST).isoformat(timespec="seconds")})
-    return rule
+    if f and rd >= f and at >= rule_freeze_at(rd, cfg) and not any(r.get("round_date") == rd for r in read_ledger(d, "rule_locks")):
+        append(d, "rule_locks", {"round_date": rd, **snap, "by": by, "switch": rule_v22_on(cfg),
+                                 "at": at.isoformat(timespec="seconds"), "judged_at": judged_at})
+    return snap
 
 
 def watch_is_cash(round_date: str, cfg: dict, d: Path | None = None) -> bool:
     """규칙 v2.2: 이 라운드의 관망이 현금(0%) 채점인가."""
-    cf = (cfg.get("watch") or {}).get("cash_from")
-    return bool(cf) and str(round_date) >= cf and round_rule(round_date, cfg, d) == V22_RULE
+    return bool(round_snapshot(round_date, cfg, d)["watch_cash"])
 
 
 def is_watch(p: dict, cfg: dict) -> bool:
@@ -327,7 +353,7 @@ def run_scoring(d: Path, today: date | None = None, now: str | None = None) -> l
     prices, prev, cas = price_index(d), latest_scores(d), corporate_actions(d)
     written = []
     for rd_ in sorted({p["round_date"] for p in read_ledger(d, "picks")}):
-        lock_round_rule(d, rd_, cfg, "scoring")       # 고정 전 라운드(예전 원장)도 처음 채점 때 고정
+        lock_round_rule(d, rd_, cfg, "scoring", at=datetime.fromisoformat(now) if now else None)   # 고정 전 라운드도 처음 채점 때 고정
     for p in read_ledger(d, "picks"):
         cur = evaluate_pick(p, prices, cfg, today, cas, d)
         old = prev.get(p["pick_id"])
@@ -971,7 +997,7 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
         per_m = wcfg.get("max_per_week_per_market")
         if watch_is_cash(rec["round_date"], cfg, d):
             # v2.2: 횟수 제한 없음. 대신 그 주 실제 종목 최소 건수를 남은 개장일로 채울 수 있어야 한다
-            need_n = int(wcfg.get("min_real_per_week_per_market", 2))
+            need_n = int(round_snapshot(rec["round_date"], cfg, d)["min_real"] or 2)
             mon = rd - timedelta(days=rd.weekday())
             open_days = [x for x in (mon + timedelta(days=i) for i in range(7)) if round_sessions(rec["market"], x, cfg)]
             need = min(need_n, len(open_days))
@@ -1185,9 +1211,9 @@ def commit_reveal_applies(round_date: str, cfg: dict) -> bool:
 def reveal_accept_deadline(round_date: date, cfg: dict, d: Path | None = None) -> datetime:
     """원본 접수 마감(규칙 v2.2: 장 시작 5분 전, push 시각 판정). 그 전 라운드는 공개 마감(reveal_deadline)과 같다.
     동기화 재시도·확인 대기 처리 시한은 reveal_deadline(12:00)을 그대로 쓴다."""
-    ad = (cfg.get("commit_reveal") or {}).get("accept_deadline") or {}
-    if ad.get("from") and round_date.isoformat() >= ad["from"] and round_rule(round_date.isoformat(), cfg, d) == V22_RULE:
-        hh, mm = map(int, ad["time"].split(":"))
+    t = round_snapshot(round_date.isoformat(), cfg, d)["accept_time"]   # 고정값이 있으면 그 시각(설정 변경과 무관)
+    if t:
+        hh, mm = map(int, t.split(":"))
         return datetime(round_date.year, round_date.month, round_date.day, hh, mm, tzinfo=KST)
     return reveal_deadline(round_date, cfg)
 
@@ -1273,7 +1299,6 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
         sha = hashlib.sha256(raw).hexdigest()
         content = raw.decode("utf-8-sig", "replace")
         deadline = lock_deadline(date.fromisoformat(rd), cfg)
-        lock_round_rule(d, rd, cfg, "submission")      # 그 라운드 규칙판 고정(이미 있으면 그대로)
         rec = {"team": team, "round_date": rd, "path": path, "commit": event["after"], "before": event.get("before"),
                "ref": event.get("ref"), "pusher": (event.get("pusher") or {}).get("name"),
                "csv_sha256": sha, "pushed_at": pushed_at.isoformat() if pushed_at else None,
@@ -1330,6 +1355,7 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
                     meta = {"commit": event["after"], "csv_sha256": sha, "pushed_at": rec["pushed_at"], "run_id": str(run_id)}
                     if rec.get("commitment_commit"):
                         meta.update(commitment_commit=rec["commitment_commit"], committed_at=rec["commitment_pushed_at"])
+                    lock_round_rule(d, rd, cfg, "submission", judged_at=rec["pushed_at"])   # 접수 판정 뒤, 같은 설정으로 고정
                     for r in ok:
                         append(d, "picks", {**r, "submission": meta})
                     rec.update(status="accepted", imported=len(ok))
@@ -1348,7 +1374,6 @@ def _process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, r
     raw = subprocess.run(["git", "show", f"{event['after']}:{path}"], cwd=cwd, check=True, capture_output=True).stdout
     m = SHA_RE.match(raw.decode("utf-8-sig", "replace").lower())
     deadline = lock_deadline(date.fromisoformat(rd), cfg)
-    lock_round_rule(d, rd, cfg, "commitment")          # 그 라운드 규칙판 고정: 지문 접수 때의 설정으로
     rec = {"team": team, "round_date": rd, "path": path, "kind": "commitment", "commit": event["after"],
            "before": event.get("before"), "ref": event.get("ref"), "pusher": (event.get("pusher") or {}).get("name"),
            "committed_sha256": m.group(1) if m else None, "csv_sha256": None,
@@ -1371,6 +1396,8 @@ def _process_commitment(event, path, pushed_at, judged_at, judged_src, run_id, r
         rec.update(status="late", errors=[f"마감 {cfg['lock_deadline']} KST 이후 지문 push ({judged_at.isoformat(timespec='seconds')})"])
     else:
         rec["status"] = "committed"
+    if rec.get("status") == "committed":                  # 유효한 지문만, 판정 뒤에 고정(거부·늦음·라운드 시작 전 지문은 고정하지 않음 — 검수 H2·M3)
+        lock_round_rule(d, rd, cfg, "commitment", at=judged_at, judged_at=rec.get("judged_at"))   # 기준은 push 시각(라운드 시작 전 지문은 고정 안 함)
     return append(d, "submissions", rec)
 
 def append_only_violations(base: str, head: str, cwd=ROOT) -> list[str]:

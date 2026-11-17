@@ -789,6 +789,20 @@ class CommitReveal(Receipts):
         self.assertIn("08:55", str(r.get("reason") or r.get("error") or r))
         self.assertEqual(L.read_ledger(self.repo / "league", "picks"), [])
 
+    def test_commitment_locks_rule_only_when_valid_and_in_round(self):
+        """검수 H2: 라운드 시작(07:05) 뒤 유효한 지문만 규칙을 고정. 미리 낸 지문·늦은 지문은 고정하지 않음."""
+        enable_v22(self.repo / "league" / "config.json")
+        lk = lambda: [(r["round_date"], r["rule"], r["by"]) for r in L.read_ledger(self.repo / "league", "rule_locks")]
+        body = self._csv("2026-11-24", self.ROWS)
+        self._commit("2026-11-24", body, "2026-11-22T21:00:00+09:00")                # 이틀 전에 낸 지문: committed지만 고정 안 함
+        self.assertEqual(lk(), [])
+        body = self._csv("2026-11-23", self.ROWS)
+        self.assertEqual(self._commit("2026-11-23", body, "2026-11-23T08:40:00+09:00")["status"], "late")
+        self.assertEqual(lk(), [])
+        body = self._csv("2026-11-25", self.ROWS)
+        self.assertEqual(self._commit("2026-11-25", body, "2026-11-25T08:10:00+09:00")["status"], "committed")
+        self.assertEqual(lk(), [("2026-11-25", "v2.2", "commitment")])
+
     def test_reveal_after_0855_accepted_while_switch_off(self):
         """스위치가 꺼져 있으면 11/23도 이전 공개 마감(12:00)."""
         rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")
@@ -2963,7 +2977,16 @@ def set_v22(cfg_path, value):
 
 
 class RuleV22Freeze(unittest.TestCase):
-    """슈슈 검토 2026-11-17: (1) 스위치는 JSON true만 켜짐 (2) 라운드 규칙판은 처음 기록될 때 고정, 뒤에 스위치를 바꿔도 그 라운드는 그대로."""
+    """슈슈 검토 2026-11-17: (1) 스위치는 JSON true만 켜짐 (2) 라운드 규칙(스위치·날짜·시각·최소 건수)은 라운드 시작(07:05) 뒤 첫 유효 기록 때 고정.
+    고정 뒤 설정을 바꿔도 그 라운드는 그대로(검수 H1), 라운드 시작 전·거부된 기록으로는 고정하지 않음(검수 H2)."""
+    AT = datetime.fromisoformat("2026-11-23T08:20:00+09:00")
+
+    def _lock(self, d, rd="2026-11-23", at=None):
+        return L.lock_round_rule(d, rd, L.load_config(d), "test", at=at or self.AT)
+
+    def _cfg(self, d, fn):
+        p = d / "config.json"; c = json.loads(p.read_text()); fn(c); p.write_text(json.dumps(c, ensure_ascii=False))
+
     def test_switch_type_strict(self):
         self.assertFalse(L.rule_v22_on({}))
         self.assertFalse(L.rule_v22_on({"rule_v22": {"confirmed": None}}))
@@ -2973,38 +2996,69 @@ class RuleV22Freeze(unittest.TestCase):
                 L.rule_v22_on({"rule_v22": {"confirmed": bad}})
         d = new_league(); set_v22(d / "config.json", "false")
         self.assertTrue(any("설정 오류" in e for e in L.verify(d)))
+        self.assertEqual(L.round_rule("2026-11-20", L.load_config(d)), "v2.1")    # 적용일 전 라운드는 스위치를 읽지 않음
 
     def test_locked_v22_round_stays_v22_after_switch_off(self):
         d = new_league(); enable_v22(d / "config.json")
         price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
         pick(d, "buffett", "2026-11-23", "KR", "WATCH")
-        self.assertEqual([r["rule"] for r in L.read_ledger(d, "rule_locks")], ["v2.2"])
-        set_v22(d / "config.json", False)                      # 라운드가 진행된 뒤 스위치를 끔
+        self.assertEqual(self._lock(d)["rule"], "v2.2")
+        set_v22(d / "config.json", False)
         cfg = L.load_config(d)
         self.assertEqual(L.round_rule("2026-11-23", cfg, d), "v2.2")
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg, d).strftime("%H:%M"), "08:55")
-        L.run_scoring(d, today=date(2026, 11, 24))
+        L.run_scoring(d, today=date(2026, 11, 24), now="2026-11-24T08:35:00+09:00")
         sc = L.latest_scores(d)["2026-11-23-claude-buffett-KR"]
-        self.assertEqual((sc["score"], sc["score_excess"]), (0.0, 2.0))       # 고정값(v2.2)으로 채점
-        pick(d, "lynch", "2026-11-23", "KR", "WATCH")                         # 같은 라운드 검사도 고정값(주 1회 제한 아님)
+        self.assertEqual((sc["score"], sc["score_excess"]), (0.0, 2.0))
+        pick(d, "lynch", "2026-11-23", "KR", "WATCH")                         # 같은 라운드 검사도 고정값
         self.assertTrue(any("고정 규칙 v2.2" in e for e in L.rule_lock_problems(d)))
-        self.assertFalse(L.verify(d))                                         # 처리는 멈추지 않음(rule-check로 알림)
+        self.assertFalse(L.verify(d))
+
+    def test_locked_round_ignores_later_date_and_time_changes(self):
+        d = new_league(); enable_v22(d / "config.json")
+        price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
+        pick(d, "buffett", "2026-11-23", "KR", "WATCH"); self._lock(d)
+        def move(c):
+            c["watch"]["cash_from"] = "2026-11-30"; c["commit_reveal"]["accept_deadline"]["time"] = "11:00"
+            c["watch"]["min_real_per_week_per_market"] = 3
+        self._cfg(d, move)
+        cfg = L.load_config(d)
+        self.assertTrue(L.watch_is_cash("2026-11-23", cfg, d))
+        self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg, d).strftime("%H:%M"), "08:55")
+        self.assertEqual(L.round_snapshot("2026-11-23", cfg, d)["min_real"], 2)
+        L.run_scoring(d, today=date(2026, 11, 24), now="2026-11-24T08:35:00+09:00")
+        self.assertEqual(L.latest_scores(d)["2026-11-23-claude-buffett-KR"]["score"], 0.0)
+        probs = L.rule_lock_problems(d)
+        self.assertTrue(probs and "watch_cash" in probs[0] and "accept_time" in probs[0])
 
     def test_locked_old_round_stays_old_after_switch_on(self):
-        d = new_league()                                       # 스위치 꺼짐
+        d = new_league()
         price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
-        pick(d, "buffett", "2026-11-23", "KR", "WATCH")
-        enable_v22(d / "config.json")                          # 뒤늦게 켜도
+        pick(d, "buffett", "2026-11-23", "KR", "WATCH"); self._lock(d)
+        enable_v22(d / "config.json")
         cfg = L.load_config(d)
         self.assertEqual(L.round_rule("2026-11-23", cfg, d), "v2.1")
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg, d).strftime("%H:%M"), "12:00")
-        L.run_scoring(d, today=date(2026, 11, 24))
+        L.run_scoring(d, today=date(2026, 11, 24), now="2026-11-24T08:35:00+09:00")
         self.assertEqual(L.latest_scores(d)["2026-11-23-claude-buffett-KR"]["score"], -2.0)
         self.assertEqual(L.round_rule("2026-11-25", cfg, d), "v2.2")       # 고정 안 된 뒤 라운드는 지금 설정
 
-    def test_rounds_before_from_never_locked(self):
-        d = new_league(); enable_v22(d / "config.json")
-        pick(d, "buffett", "2026-11-20", "KR", "005930")
-        L.run_scoring(d, today=date(2026, 11, 21))
+    def test_no_lock_before_round_start_or_before_from(self):
+        d = new_league()
+        self._lock(d, at=datetime.fromisoformat("2026-11-22T21:00:00+09:00"))    # 일요일 밤에 미리 낸 지문
+        self._lock(d, rd="2026-12-23", at=datetime.fromisoformat("2026-11-23T08:20:00+09:00"))   # 날짜 오타(먼 미래)
+        pick(d, "buffett", "2026-11-24", "KR", "005930")                       # 실제 시계(라운드 전) 기록
         self.assertEqual(L.read_ledger(d, "rule_locks"), [])
+        enable_v22(d / "config.json")                                          # 월요일 07:00에 켜면
+        self.assertEqual(self._lock(d)["rule"], "v2.2")                        # 11/23은 v2.2로 고정
+        pick(d, "lynch", "2026-11-20", "KR", "005930")
+        L.run_scoring(d, today=date(2026, 11, 21), now="2026-11-21T08:35:00+09:00")
+        self.assertEqual([r["round_date"] for r in L.read_ledger(d, "rule_locks")], ["2026-11-23"])
 
+    def test_dry_run_writes_no_lock(self):
+        d = new_league(); enable_v22(d / "config.json")
+        f = d / "x.csv"
+        f.write_text("round_date,agent_id,agent_version,market,ticker,name,locked_at,rationale,risks,sources\n"
+                     "2026-11-23,buffett,1,KR,WATCH,,2026-11-23T08:00:00+09:00,근거,,\n")
+        L.import_csv(d, f, "claude", dry_run=True)
+        self.assertEqual(L.read_ledger(d, "rule_locks"), [])
