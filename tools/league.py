@@ -911,7 +911,7 @@ def validate_pick(rec: dict, d: Path, cfg: dict, existing: list[dict]) -> list[s
             need = min(need_n, len(open_days))
             real = [p for p in existing if p["team"] == rec["team"] and p["agent_id"] == rec["agent_id"]
                     and p["market"] == rec["market"] and not is_watch(p, cfg)
-                    and iso_week(date.fromisoformat(p["round_date"])) == wk and p["round_date"] != rec["round_date"]]
+                    and iso_week(date.fromisoformat(p["round_date"])) == wk and p["round_date"] < rec["round_date"]]   # 이미 접수된(앞선 라운드) 것만 — 뒤 라운드를 먼저 처리해도 남은 개장일과 겹쳐 세지 않게(검수 2026-11-17)
             after = [x for x in open_days if x > rd]
             if len(real) + len(after) < need:
                 errs.append(f"{rec['agent_id']} {rec['market']} 관망 불가 — 이번 주 실제 종목 최소 {need}건을 채울 수 없음 "
@@ -1222,11 +1222,11 @@ def process_push(event: dict, run_id: str = "", run_url: str = "", run_created_a
             rec.update(status="rejected", errors=["서버 push 시각을 확인할 수 없음"])
         elif prior:
             rec.update(status="rejected", errors=[f"이미 접수된 제출이 있음 ({prior[0]['commit'][:7]}) — 확정 후 변경 불가"])
+        elif cr and commitment and judged_at > reveal_accept_deadline(date.fromisoformat(rd), cfg):   # 마감 뒤면 해시와 상관없이 마감 경과로 알린다(검수 2026-11-17)
+            rec.update(status="rejected", errors=[f"원본 접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
         elif cr and commitment and sha != commitment["committed_sha256"]:
             rec.update(status="rejected", errors=[f"원본 해시 {sha[:12]}가 마감 전 지문 {commitment['committed_sha256'][:12]}와 다름 — "
                                                    f"지문과 같은 파일을 다시 push하면 됨 (접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST)"])
-        elif cr and commitment and judged_at > reveal_accept_deadline(date.fromisoformat(rd), cfg):
-            rec.update(status="rejected", errors=[f"원본 접수 마감 {reveal_accept_deadline(date.fromisoformat(rd), cfg).strftime('%H:%M')} KST 경과"])
         elif judged_at > deadline and cr and not commitment and _commitment_file_pending(event, team, rd, d, cwd):
             raise CommitmentPending(f"{team} {rd}: 지문 파일은 있으나 지문 영수증이 아직 없음 — 잠시 뒤 다시 처리")
         elif judged_at > deadline and not (cr and commitment):

@@ -905,7 +905,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             add("delay", f"{aid}|{rd}", f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')}) 처리가 통신·서버 오류로 늦어지고 있습니다"
                 f"({x.get('attempt')}회). 로로 쪽이 공개 마감(12:00)까지 자동으로 계속 다시 시도하고, 처리되면 **원래 push 시각**으로 판정합니다(08:30 마감 기준 그대로). "
                 "같은 파일을 다시 push하거나 브랜치를 지우지 마세요. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다."
-                + (f" 지문만 냈다면 원본 `submit/{rd}.csv`·`submit/{rd}-debate.md`도 {acc} 전에 push해 두세요." if late else ""))
+                + (f" 지문만 냈다면 원본 `submit/{rd}.csv`·`submit/{rd}-debate.md`도 {acc} 전에 push해 두세요." if late and hm < acc else ""))
     for x in xp:                                       # 재시도 대상이 아닌 오류로 확정된 push: 확정된 날 바로 알림(마감 전이면 다시 낼 수 있음)
         if x.get("type", "push") in ("push", "release") and x.get("status") == "error" and not x.get("transient") \
                 and (str(x.get("at") or "")[:10] == rd or (not x.get("at") and _today(x))):
@@ -914,10 +914,10 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
             add("failed", str(x.get("held_id") or x["activity_id"]), f"@codex push `{str(x.get('s_after') or '')[:7]}`({x.get('pushed_at', '')})를 처리하지 못했습니다: {str(x.get('error') or '')[:120]}. "
                 + (f"{rr} 라운드 마감(08:30) 전이면 같은 제출 파일을 새 커밋으로 다시 push해 주세요. " if not past else "그 라운드 마감이 지나 새 지문은 인정되지 않습니다. ")
                 + "그 push에 제출 파일이 없었다면 무시해도 됩니다. 처리 결과는 `from-league/sync-log.jsonl`에서 확인할 수 있습니다.")
-    if mk and live and "08:30" < hm < "11:40" and taint:
+    if mk and live and "08:30" < hm < min("11:40", acc) and taint:
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
             f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **{acc} 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
-    elif mk and live and "11:40" <= hm < "21:00" and taint:     # 공개 마감까지 처리하지 못해 생긴 확인 대기(12:00 이후)
+    elif mk and live and min("11:40", acc) <= hm < "21:00" and taint:   # 원본 접수 마감(08:55~) 또는 공개 마감 뒤: 이미 낸 것은 그대로     # 공개 마감까지 처리하지 못해 생긴 확인 대기(12:00 이후)
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push를 공개 마감까지 처리하지 못함). 이미 push한 파일과 브랜치는 그대로 두세요. "
             "운영자 확인이 끝나면 원래 push 시각으로 처리됩니다.")
     if mk and live and "08:45" <= hm < "11:40" and not taint and not retrying and not ({"committed", "accepted"} & st):   # 재시도 중이면 '지문 없음' 대신 위 '처리 지연'으로   # 08:28~08:30 push는 2분 대기 뒤 처리되므로 08:45부터

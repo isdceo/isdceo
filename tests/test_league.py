@@ -2914,6 +2914,13 @@ class WatchCashV22(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "최소 2건"):
             pick(d, "buffett", "2026-11-25", "US", "WATCH")                       # 0 + 남은 1일(27) < 2
 
+    def test_later_real_pick_processed_first_not_double_counted(self):
+        """검수 2026-11-17: 금요일 실제 종목이 목요일 파일보다 먼저 처리돼도 목요일 관망을 통과시키지 않는다(남은 개장일과 겹침)."""
+        d = new_league()
+        pick(d, "buffett", "2026-11-27", "KR", "005930")
+        with self.assertRaisesRegex(ValueError, "최소 2건"):
+            pick(d, "buffett", "2026-11-26", "KR", "WATCH")                       # 앞선 실제 0 + 남은 1일 < 2
+
     def test_accept_deadline_0855_from_1123(self):
         cfg = L.load_config(ROOT / "league")
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "08:55")
