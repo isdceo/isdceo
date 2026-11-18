@@ -803,6 +803,23 @@ class CommitReveal(Receipts):
         self.assertEqual(self._commit("2026-11-25", body, "2026-11-25T08:10:00+09:00")["status"], "committed")
         self.assertEqual(lk(), [("2026-11-25", "v2.2", "commitment")])
 
+    def test_accept_late_operator_exception(self):
+        """운영자 예외(2026-11-18): late 원본을 그 라운드 점수에 넣되 사유·실제 push 시각을 남긴다. 해시가 다르거나 이미 접수됐으면 거부."""
+        rd = "2026-11-10"; body = self._csv(rd, self.ROWS)
+        r = self._push_files({f"{rd}.sha256": __import__("hashlib").sha256(body.encode()).hexdigest() + f"  {rd}.csv\n",
+                              f"{rd}.csv": body}, "2026-11-10T09:10:00+09:00")
+        self.assertTrue(all(x["status"] == "late" for x in r))
+        lg = self.repo / "league"; f = lg / "imports" / "shushu" / f"{rd}.csv"
+        with self.assertRaisesRegex(ValueError, "late 원본 영수증이 없음"):
+            p2 = self.repo / "other.csv"; p2.write_text(body + "\n"); L.accept_late(lg, "shushu", rd, "시험", p2)
+        rec = L.accept_late(lg, "shushu", rd, "전용 환경 장애", f)
+        self.assertEqual((rec["status"], rec["imported"]), ("accepted", 2))
+        pk = [p for p in L.read_ledger(lg, "picks") if p["round_date"] == rd]
+        self.assertEqual(pk[0]["submission"]["operator_exception"]["late_pushed_at"], "2026-11-10T09:10:00+09:00")
+        self.assertTrue(any(a["type"] == "late_accept" for a in L.read_ledger(lg, "approvals")))
+        with self.assertRaisesRegex(ValueError, "이미 접수"):
+            L.accept_late(lg, "shushu", rd, "다시", f)
+
     def test_reveal_after_0855_accepted_while_switch_off(self):
         """스위치가 꺼져 있으면 11/23도 이전 공개 마감(12:00)."""
         rd = "2026-11-23"; body = self._csv(rd, self.ROWS, locked="07:50")

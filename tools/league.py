@@ -1259,6 +1259,38 @@ def ledger_dir_for(team: str, cwd=ROOT) -> Path:
     팀별 연습 경로(예: league/imports/sandbox-claude/)를 쓰면 다른 연습 제출과 섞이지 않는다."""
     return Path(cwd) / "league" / ("sandbox" if team == "sandbox" or team.startswith("sandbox-") else "")
 
+def accept_late(d: Path, team: str, round_date: str, reason: str, csv_path: Path, now: datetime | None = None) -> dict:
+    """운영자 예외: 마감 뒤(late) push된 원본을 그 라운드 점수에 넣는다. 규칙상 소급 제출은 없으므로 운영자가 명시적으로 결정한 경우에만 쓴다.
+    조건: 그 팀·라운드의 원본 영수증이 late이고, 접수된 종목이 없으며, 파일 해시가 그 late 영수증의 해시와 같고, 형식 검사를 통과.
+    기록: 종목의 submission.operator_exception(사유·결정 시각·실제 push 시각), 승인 원장(type late_accept), 제출 영수증(kind operator_accept)."""
+    now = now or datetime.now(KST)
+    subs = [s for s in read_ledger(d, "submissions") if s["team"] == team and s["round_date"] == round_date]
+    if any(s["status"] == "accepted" for s in subs) or any(p["team"] == team and p["round_date"] == round_date for p in read_ledger(d, "picks")):
+        raise ValueError(f"{team} {round_date}: 이미 접수된 제출·종목이 있음")
+    raw = Path(csv_path).read_bytes()
+    sha = hashlib.sha256(raw).hexdigest()
+    late = [s for s in subs if s["status"] == "late" and s.get("csv_sha256") == sha]
+    if not late:
+        raise ValueError(f"{team} {round_date}: 이 파일(sha256 {sha[:12]})과 같은 late 원본 영수증이 없음")
+    rec0 = late[-1]
+    ok, bad = import_csv(d, Path(csv_path), team, dry_run=True)
+    if bad or not ok:
+        raise ValueError("형식 검사 실패: " + "; ".join("; ".join(b["errors"]) for b in bad))
+    if any(r["round_date"] != round_date for r in ok):
+        raise ValueError("파일 안 라운드 날짜가 다름")
+    cfg = load_config(d)
+    exc = {"reason": reason, "decided_by": "operator", "decided_at": now.isoformat(timespec="seconds"),
+           "late_pushed_at": rec0.get("pushed_at"), "late_receipt": rec0.get("hash")}
+    append(d, "approvals", {"type": "late_accept", "team": team, "round_date": round_date, "decision": "approved", **exc})
+    lock_round_rule(d, round_date, cfg, "late_accept", force=True)
+    meta = {"commit": rec0.get("commit"), "csv_sha256": sha, "pushed_at": rec0.get("pushed_at"), "operator_exception": exc}
+    for r in ok:
+        append(d, "picks", {**r, "submission": meta})
+    return append(d, "submissions", {"team": team, "round_date": round_date, "kind": "operator_accept", "path": rec0.get("path"),
+                                     "commit": rec0.get("commit"), "csv_sha256": sha, "pushed_at": rec0.get("pushed_at"),
+                                     "status": "accepted", "imported": len(ok), "errors": [], "operator_exception": exc})
+
+
 class CommitmentPending(Exception):
     """원본을 판정하려는데, 같은 라운드 지문 파일은 저장소에 있으나 지문 영수증이 아직 원장에 없다.
     (지문과 원본을 연달아 push해 원본 작업이 먼저 돈 경우) 늦음으로 굳히지 않고 잠시 뒤 최신 원장에서 다시 처리한다."""
@@ -1767,7 +1799,7 @@ def make_sample(d: Path, close_week: bool = True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit", "update-plan", "rule-check"])
+    ap.add_argument("cmd", choices=["verify", "score", "weekly", "import-csv", "sample", "export", "schedule", "receipt", "append-only", "build-site", "snapshot", "make-csv", "weekly-close", "collect-due", "review-data", "guideline-check", "readiness", "outage", "commit", "update-plan", "rule-check", "accept-late"])
     ap.add_argument("arg", nargs="?")
     ap.add_argument("--dir", default=str(ROOT / "league"))
     ap.add_argument("--team", default="claude")
@@ -1776,7 +1808,8 @@ def main():
     ap.add_argument("--to", help="schedule: 끝 날짜")
     ap.add_argument("--public", action="store_true", help="export: 지인 공유판 (원시 가격 제외)")
     ap.add_argument("--variant", default="price-free", choices=["price-free", "with-prices"])
-    ap.add_argument("--reason", help="outage: 미제출 사유")
+    ap.add_argument("--reason", help="outage·accept-late: 사유")
+    ap.add_argument("--csv", help="accept-late: 원본 CSV 경로(기본 league/imports/<팀>/<날짜>.csv)")
     ap.add_argument("--agent", help="outage: 특정 에이전트만 해당하면 id")
     ap.add_argument("--kind", default="operator", choices=["operator", "team"])
     ap.add_argument("--run-id", default="")
@@ -1788,6 +1821,12 @@ def main():
         errs = verify(d)
         print("\n".join(errs) if errs else "원장 정상 (해시 체인 일치)")
         sys.exit(1 if errs else 0)
+    elif a.cmd == "accept-late":                    # 운영자 예외: 마감 뒤 원본을 점수에 넣음(운영자 명시 결정 때만)
+        if not (a.arg and a.team and a.reason):
+            sys.exit("사용법: league.py accept-late <라운드 날짜> --team <팀> --reason <사유> [--csv <파일>]")
+        csvp = Path(a.csv) if getattr(a, "csv", None) else ROOT / "league" / "imports" / a.team / f"{a.arg}.csv"
+        r = accept_late(d, a.team, a.arg, a.reason, csvp)
+        print(f"예외 접수: {a.team} {a.arg} {r['imported']}건 (실제 push {r['pushed_at']})")
     elif a.cmd == "rule-check":                     # 규칙 v2.2 스위치·라운드 고정값 점검(운영자 확인용)
         cfg = load_config(d)
         probs = rule_lock_problems(d)
