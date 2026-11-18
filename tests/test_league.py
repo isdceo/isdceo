@@ -817,6 +817,7 @@ class CommitReveal(Receipts):
         pk = [p for p in L.read_ledger(lg, "picks") if p["round_date"] == rd]
         self.assertEqual(pk[0]["submission"]["operator_exception"]["late_pushed_at"], "2026-11-10T09:10:00+09:00")
         self.assertTrue(any(a["type"] == "late_accept" for a in L.read_ledger(lg, "approvals")))
+        L.readiness(lg, self.repo)                       # 회귀(2026-11-18): agent_id 없는 late_accept 승인이 있어도 점검표가 죽지 않음
         with self.assertRaisesRegex(ValueError, "이미 접수"):
             L.accept_late(lg, "shushu", rd, "다시", f)
 

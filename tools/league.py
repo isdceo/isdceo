@@ -1493,7 +1493,8 @@ def readiness(d: Path, root: Path = ROOT) -> list[dict]:
     rehearsal = list((root / "league" / "imports").glob("sandbox*/*-debate.md"))
     add("Claude 팀", "연습 라운드 1회 이상 (/league-round sandbox)", bool(rehearsal), f"{len(rehearsal)}회", "Claude (운영자 승인 후)")
     roster = load_roster(d)
-    appr = {(x["team"], x["agent_id"]) for x in read_ledger(d, "approvals") if x.get("decision") == "approved"}
+    appr = {(x["team"], x["agent_id"]) for x in read_ledger(d, "approvals")
+            if x.get("type") == "bench" and x.get("decision") == "approved"}   # late_accept 등 다른 승인은 agent_id가 없다
     for team in cfg["teams"]:
         mem = [a for a in roster.get(team, []) if a.get("status") == "active"]
         bench = roster.get("bench" if team == "claude" else f"bench_{team}", [])
