@@ -3121,3 +3121,21 @@ class RuleV22Freeze(unittest.TestCase):
                      "2026-11-23,buffett,1,KR,WATCH,,2026-11-23T08:00:00+09:00,근거,,\n")
         L.import_csv(d, f, "claude", dry_run=True)
         self.assertEqual(L.read_ledger(d, "rule_locks"), [])
+
+
+class SampleBoard(unittest.TestCase):
+    """표본 관찰판(읽기 전용): 유형×상태 두 축, 미제출 별도, 확정 관망은 한 칸에만."""
+    def test_cells_and_missed(self):
+        import sample_board as SB
+        d = new_league()
+        cfg = L.load_config(d)
+        a = pick(d, "buffett", "2026-11-17", "KR", "005930")
+        w = pick(d, "buffett", "2026-11-18", "KR", "WATCH")
+        L.append(d, "scores", {"pick_id": a["pick_id"], "status": "final", "score": 1.5})
+        L.append(d, "scores", {"pick_id": w["pick_id"], "status": "final", "score": -0.5})
+        data = SB.collect(d, datetime.fromisoformat("2026-11-19T09:00:00+09:00"), start="2026-11-17")
+        rows = [r for r in SB.summarize(data) if (r["team"], r["agent_id"], r["market"]) == ("claude", "buffett", "KR")]
+        self.assertEqual(len(rows), 1); r = rows[0]
+        self.assertEqual((r["real_final"], r["watch_final"], r["final"], r["submitted"]), (1, 1, 2, 2))
+        self.assertEqual((r["missed"], r["rounds"], r["band"]), (1, 2, "<10"))     # 11/19 KR 미제출 1건
+        self.assertEqual(L.read_ledger(d, "rule_locks"), [])                      # 아무것도 쓰지 않음
