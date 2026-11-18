@@ -1259,7 +1259,8 @@ def ledger_dir_for(team: str, cwd=ROOT) -> Path:
     팀별 연습 경로(예: league/imports/sandbox-claude/)를 쓰면 다른 연습 제출과 섞이지 않는다."""
     return Path(cwd) / "league" / ("sandbox" if team == "sandbox" or team.startswith("sandbox-") else "")
 
-def accept_late(d: Path, team: str, round_date: str, reason: str, csv_path: Path, now: datetime | None = None) -> dict:
+def accept_late(d: Path, team: str, round_date: str, reason: str, csv_path: Path, now: datetime | None = None,
+                dry_run: bool = False) -> dict:
     """운영자 예외: 마감 뒤(late) push된 원본을 그 라운드 점수에 넣는다. 규칙상 소급 제출은 없으므로 운영자가 명시적으로 결정한 경우에만 쓴다.
     조건: 그 팀·라운드의 원본 영수증이 late이고, 접수된 종목이 없으며, 파일 해시가 그 late 영수증의 해시와 같고, 형식 검사를 통과.
     기록: 종목의 submission.operator_exception(사유·결정 시각·실제 push 시각), 승인 원장(type late_accept), 제출 영수증(kind operator_accept)."""
@@ -1278,17 +1279,30 @@ def accept_late(d: Path, team: str, round_date: str, reason: str, csv_path: Path
         raise ValueError("형식 검사 실패: " + "; ".join("; ".join(b["errors"]) for b in bad))
     if any(r["round_date"] != round_date for r in ok):
         raise ValueError("파일 안 라운드 날짜가 다름")
+    if rec0.get("pushed_at"):                       # 정상 접수와 같은 검사: 확정 시각이 실제 push보다 늦을 수 없다(검수 2026-11-18)
+        late_at = [r["locked_at"] for r in ok if datetime.fromisoformat(r["locked_at"]) > datetime.fromisoformat(rec0["pushed_at"])]
+        if late_at:
+            raise ValueError(f"locked_at이 실제 push 시각({rec0['pushed_at']})보다 늦음: {late_at[0]}")
     cfg = load_config(d)
     exc = {"reason": reason, "decided_by": "operator", "decided_at": now.isoformat(timespec="seconds"),
            "late_pushed_at": rec0.get("pushed_at"), "late_receipt": rec0.get("hash")}
-    append(d, "approvals", {"type": "late_accept", "team": team, "round_date": round_date, "decision": "approved", **exc})
+    if dry_run:                                     # 미리보기: 원장에 아무것도 쓰지 않는다
+        return {"dry_run": True, "team": team, "round_date": round_date, "imported": len(ok), "pushed_at": rec0.get("pushed_at"),
+                "status": "preview", **exc}
+    if not any(a.get("type") == "late_accept" and a.get("team") == team and a.get("round_date") == round_date
+               and a.get("late_receipt") == rec0.get("hash") for a in read_ledger(d, "approvals")):   # 중간 실패 뒤 다시 실행해도 승인 행은 한 번만
+        append(d, "approvals", {"type": "late_accept", "team": team, "round_date": round_date, "decision": "approved", **exc})
     lock_round_rule(d, round_date, cfg, "late_accept", force=True)
     meta = {"commit": rec0.get("commit"), "csv_sha256": sha, "pushed_at": rec0.get("pushed_at"), "operator_exception": exc}
     for r in ok:
         append(d, "picks", {**r, "submission": meta})
-    return append(d, "submissions", {"team": team, "round_date": round_date, "kind": "operator_accept", "path": rec0.get("path"),
-                                     "commit": rec0.get("commit"), "csv_sha256": sha, "pushed_at": rec0.get("pushed_at"),
-                                     "status": "accepted", "imported": len(ok), "errors": [], "operator_exception": exc})
+    rec = {"team": team, "round_date": round_date, "kind": "operator_accept", "path": rec0.get("path"),
+           "commit": rec0.get("commit"), "csv_sha256": sha, "pushed_at": rec0.get("pushed_at"),
+           "status": "accepted", "imported": len(ok), "errors": [], "operator_exception": exc}
+    for k in ("judged_by", "judged_at", "source"):  # 어디서 온 push인지 늦은 영수증 그대로(화면 '경로' 표시 — 검수 2026-11-18)
+        if rec0.get(k) is not None:
+            rec[k] = rec0[k]
+    return append(d, "submissions", rec)
 
 
 class CommitmentPending(Exception):
@@ -1823,11 +1837,15 @@ def main():
         print("\n".join(errs) if errs else "원장 정상 (해시 체인 일치)")
         sys.exit(1 if errs else 0)
     elif a.cmd == "accept-late":                    # 운영자 예외: 마감 뒤 원본을 점수에 넣음(운영자 명시 결정 때만)
-        if not (a.arg and a.team and a.reason):
-            sys.exit("사용법: league.py accept-late <라운드 날짜> --team <팀> --reason <사유> [--csv <파일>]")
+        if not (a.arg and a.reason and "--team" in sys.argv):    # 팀은 꼭 직접 적는다(기본값 claude로 잘못 가지 않게)
+            sys.exit("사용법: league.py accept-late <라운드 날짜> --team <팀> --reason <사유> [--csv <파일>] [--dry-run]")
+        base_team = a.team.removeprefix("sandbox-")
+        if base_team not in load_config(ROOT / "league").get("teams", {}):
+            sys.exit(f"알 수 없는 팀: {a.team}")
+        dd = d if "--dir" in sys.argv else ledger_dir_for(a.team)   # 연습 팀은 연습 원장
         csvp = Path(a.csv) if getattr(a, "csv", None) else ROOT / "league" / "imports" / a.team / f"{a.arg}.csv"
-        r = accept_late(d, a.team, a.arg, a.reason, csvp)
-        print(f"예외 접수: {a.team} {a.arg} {r['imported']}건 (실제 push {r['pushed_at']})")
+        r = accept_late(dd, a.team, a.arg, a.reason, csvp, dry_run=a.dry_run)
+        print(("미리보기(기록 안 함)" if a.dry_run else "예외 접수") + f": {a.team} {a.arg} {r['imported']}건 (실제 push {r['pushed_at']})")
     elif a.cmd == "rule-check":                     # 규칙 v2.2 스위치·라운드 고정값 점검(운영자 확인용)
         cfg = load_config(d)
         probs = rule_lock_problems(d)

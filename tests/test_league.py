@@ -812,11 +812,16 @@ class CommitReveal(Receipts):
         lg = self.repo / "league"; f = lg / "imports" / "shushu" / f"{rd}.csv"
         with self.assertRaisesRegex(ValueError, "late 원본 영수증이 없음"):
             p2 = self.repo / "other.csv"; p2.write_text(body + "\n"); L.accept_late(lg, "shushu", rd, "시험", p2)
+        n0 = {k: len(L.read_ledger(lg, k)) for k in ("approvals", "picks", "submissions")}
+        prev = L.accept_late(lg, "shushu", rd, "미리보기", f, dry_run=True)
+        self.assertEqual((prev["status"], prev["imported"]), ("preview", 2))
+        self.assertEqual({k: len(L.read_ledger(lg, k)) for k in n0}, n0)            # 미리보기는 아무것도 쓰지 않음
         rec = L.accept_late(lg, "shushu", rd, "전용 환경 장애", f)
         self.assertEqual((rec["status"], rec["imported"]), ("accepted", 2))
         pk = [p for p in L.read_ledger(lg, "picks") if p["round_date"] == rd]
         self.assertEqual(pk[0]["submission"]["operator_exception"]["late_pushed_at"], "2026-11-10T09:10:00+09:00")
         self.assertTrue(any(a["type"] == "late_accept" for a in L.read_ledger(lg, "approvals")))
+        self.assertEqual(rec.get("judged_by"), [x for x in r if x.get("kind") == "reveal" or x.get("csv_sha256")][-1].get("judged_by"))
         L.readiness(lg, self.repo)                       # 회귀(2026-11-18): agent_id 없는 late_accept 승인이 있어도 점검표가 죽지 않음
         with self.assertRaisesRegex(ValueError, "이미 접수"):
             L.accept_late(lg, "shushu", rd, "다시", f)
