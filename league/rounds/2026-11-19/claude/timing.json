@@ -49,5 +49,11 @@
   "형식 수정: wood 출처 URL .KQ→.KS — 에이전트에게 요청해 본인이 고침",
   "R2 뒤 6명 모두 종목·p 변경 없음",
   "prep_start 기록 파일은 UTC로 남아 KST로 환산"
- ]
+ ],
+ "reveal_receipt": {
+  "status": "accepted",
+  "pushed_at": "08:30:45",
+  "receipt_checked_at": "08:31:31",
+  "commit": "619f9aaea6195e990a77771eb2a2bf28c8396c14"
+ }
 }
