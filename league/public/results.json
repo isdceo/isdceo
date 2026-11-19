@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-19T08:43:24+09:00",
+ "generated_at": "2026-11-19T09:01:23+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -5316,7 +5316,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "자본 여력은 눈여겨봤어. 장부가 할인만으로 안전하다고 단정하진 않을게.",
    "watch": false
   },
   {
@@ -5334,7 +5334,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "현금과 여러 사업이 완충재지만, 그게 지금의 프리미엄을 정당화하진 않아.",
    "watch": false
   },
   {
@@ -5352,7 +5352,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해외 사업의 성장에 주목했어. 그 이익이 환원 재원이 되는지는 더 봐야 해.",
    "watch": false
   },
   {
@@ -5370,7 +5370,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "장 마감 전 행사를 지켜볼게. 일정이 있다고 좋은 소식까지 보장되진 않아.",
    "watch": false
   },
   {
@@ -5388,7 +5388,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "메모리 성장은 확인했지만, 높은 마진과 채권 회수가 이어질지는 별개야.",
    "watch": false
   },
   {
@@ -5406,7 +5406,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "같은 점포 매출이 늘었어. 다만 이익의 질과 이미 반영된 기대는 따로 볼게.",
    "watch": false
   },
   {
@@ -5424,7 +5424,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "실제 판매는 반갑지만 장기계약도 같은 고객 투자에 기대고 있어. 회수까지 봐야 해.",
    "watch": false
   },
   {
@@ -5442,7 +5442,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "본업 개선은 보였어. 기타손실의 원인과 환원 재원은 아직 확인하지 못했지.",
    "watch": false
   },
   {
@@ -5460,7 +5460,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "가입자 흐름은 나아졌지만, 투자비가 줄어 늘어난 현금까지 반복된다고 보진 않아.",
    "watch": false
   },
   {
@@ -5478,7 +5478,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "장전 지표가 헤지 거래를 늘릴 수 있지만, 거래가 곧 수수료 증가인 건 아니야.",
    "watch": false
   },
   {
