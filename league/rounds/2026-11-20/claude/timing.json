@@ -48,5 +48,10 @@
   "형식 수정: wood 출처 URL .KQ→.KS (에이전트 본인이 수정)",
   "R2 뒤 6명 모두 판단 변경 없음"
  ],
- "reveal_receipt": null
+ "reveal_receipt": {
+  "status": "accepted",
+  "pushed_at": "2026-11-20T08:30:51+09:00",
+  "receipt_checked_at": "2026-11-20T08:31:37+09:00",
+  "commit": "bcc914391d824cc4c52ff41d9f9df5d68b27fd8c"
+ }
 }
