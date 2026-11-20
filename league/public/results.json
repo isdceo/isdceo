@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-20T10:31:35+09:00",
+ "generated_at": "2026-11-20T11:40:42+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -5764,7 +5764,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "자본과 유동성은 공시로 확인했어. 다만 부실여신이 늘어 안전마진은 단정하지 않아.",
    "watch": false
   },
   {
@@ -5782,7 +5782,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "유동성과 사업 분산을 봤어. 보험 이익이 약해진 만큼 가격이 싸다고 보진 않아.",
    "watch": false
   },
   {
@@ -5800,7 +5800,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해외 판매량과 영업현금에 주목했어. 이 현금이 계속 쌓이거나 배당으로 이어질지는 더 봐야 해.",
    "watch": false
   },
   {
@@ -5818,7 +5818,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "판매량 증가와 현금창출을 봤어. 마진 압박과 인수 후 유동성 부담은 여전히 남아 있어.",
    "watch": false
   },
   {
@@ -5836,7 +5836,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "HBM4 판매가 매출과 이익 성장으로 이어지는 점을 봤어. 현금회수와 가격 매력은 미확인이야.",
    "watch": false
   },
   {
@@ -5854,7 +5854,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "거래건수와 영업이익이 늘었지만, 설비투자가 커져 잉여현금흐름은 줄었어.",
    "watch": false
   },
   {
@@ -5872,7 +5872,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "HBM4 상용 판매와 장기계약을 봤어. 계약이 매출이나 가격 하한을 보장하는 건 아니야.",
    "watch": false
   },
   {
@@ -5890,7 +5890,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "본업 이익 성장과 주주환원 계획을 봤어. 순이익 급감 원인과 환원 재원은 더 확인해야 해.",
    "watch": false
   },
   {
@@ -5908,7 +5908,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "가입자 회복을 봤어. 잉여현금 증가의 상당 부분이 투자 감소에서 왔고 총부채는 늘었어.",
    "watch": false
   },
   {
@@ -5926,7 +5926,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "금리 헤지 거래가 수수료로 이어지는 구조를 봤어. 지표 발표가 거래 증가를 보장하진 않아.",
    "watch": false
   },
   {
