@@ -23,8 +23,14 @@ def new_league():
     (d / "agents").mkdir()
     for f in ("config.json", "universe.json"):
         shutil.copy(ROOT / "league" / f, d / f)
+    switch_off(d / "config.json")            # 시험은 스위치 꺼짐에서 시작(실제 설정과 무관하게), 필요하면 enable_v22
     pin_roster_v1(d / "agents" / "roster.json")
     return d
+
+
+def switch_off(cfg_path):
+    p = Path(cfg_path); c = json.loads(p.read_text()); c.setdefault("rule_v22", {})["confirmed"] = False
+    p.write_text(json.dumps(c, ensure_ascii=False))
 
 
 def pin_roster_v1(dst):
@@ -328,6 +334,7 @@ class Receipts(unittest.TestCase):
         (lg / "agents").mkdir()
         for f in ("config.json", "universe.json"):
             shutil.copy(ROOT / "league" / f, lg / f)
+        switch_off(lg / "config.json")
         pin_roster_v1(lg / "agents" / "roster.json")
         self.run = lambda *a: subprocess.run(["git", *a], cwd=self.repo, check=True, capture_output=True, text=True).stdout.strip()
         self.run("init", "-q"); self.run("config", "user.email", "t@t"); self.run("config", "user.name", "t")
@@ -2975,8 +2982,8 @@ class WatchCashV22(unittest.TestCase):
 
     def test_switch_off_keeps_old_rules_after_date(self):
         """스위치(rule_v22.confirmed)가 꺼져 있으면 11/23이 지나도 자동 전환하지 않는다(운영자 결정 2026-11-17)."""
-        self.assertFalse(L.load_config(ROOT / "league")["rule_v22"]["confirmed"])
         d = new_league()
+        self.assertFalse(L.load_config(d)["rule_v22"]["confirmed"])
         price(d, "KR", "KOSPI", "2026-11-20", 2000.0); price(d, "KR", "KOSPI", "2026-11-23", 1960.0)
         cfg, pi, ca = L.load_config(d), L.price_index(d), L.corporate_actions(d)
         r = L.evaluate_pick(pick(d, "buffett", "2026-11-23", "KR", "WATCH"), pi, cfg, date(2026, 11, 24), ca)
@@ -2985,7 +2992,7 @@ class WatchCashV22(unittest.TestCase):
             pick(d, "buffett", "2026-11-24", "KR", "WATCH")                                   # 리그별 주 1회(이전 규칙)
 
     def test_accept_deadline_0855_from_1123(self):
-        cfg = L.load_config(ROOT / "league")
+        cfg = L.load_config(new_league())
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "12:00")   # 스위치 꺼짐(실제 설정) = 이전 규칙
         cfg["rule_v22"]["confirmed"] = True
         self.assertEqual(L.reveal_accept_deadline(date(2026, 11, 23), cfg).strftime("%H:%M"), "08:55")
