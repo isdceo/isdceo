@@ -3,7 +3,7 @@
  "team": "claude",
  "rounds": "11/16~11/20 실전",
  "proposal": true,
- "pr": null,
+ "pr": "https://github.com/isdceo/isdceo/pull/2",
  "note": "지침 변경 제안 4명·7곳(뚝심이 1, 발굴왕·미래광·삐딱이 각 2) — 파도타기는 한국 1위라 동결, 큰그림은 반복 근거가 없어 변경 없음. 월요일 마감 뒤 재확인.",
  "calibration": {
   "picks": 41,
