@@ -1,0 +1,178 @@
+{
+ "week": "2026-W47",
+ "team": "claude",
+ "rounds": "11/16~11/20 실전",
+ "proposal": true,
+ "pr": null,
+ "note": "지침 변경 제안 4명·7곳(뚝심이 1, 발굴왕·미래광·삐딱이 각 2) — 파도타기는 한국 1위라 동결, 큰그림은 반복 근거가 없어 변경 없음. 월요일 마감 뒤 재확인.",
+ "calibration": {
+  "picks": 41,
+  "beat": 28,
+  "brier": 0.243,
+  "baseline": 0.25
+ },
+ "audit": {
+  "ok": 15,
+  "wrong": 1,
+  "unverifiable": 2,
+  "note": "틀린 1건은 도구가 받은 기준 종가가 공식 원장과 달랐던 경우(에이전트 판단 문제 아님). 확인 불가 2건은 선물 과거 값 변경, 회사 IR 페이지 접속 차단"
+ },
+ "common": [
+  {
+   "summary": "실적은 좋지만 경영진 교체·조사 같은 비이익 문제로 빠지는 종목을 실적 근거로 고름",
+   "agents": [
+    "lynch",
+    "wood"
+   ]
+  },
+  {
+   "summary": "관망을 이미 쓴 강제 제출일에 같은 종목을 새 근거 없이 반복해서 냄",
+   "agents": [
+    "wood",
+    "burry",
+    "lynch"
+   ]
+  },
+  {
+   "summary": "지난 손실 복기의 '바꿀 점'을 다음 카드에 적용하지 않음(라운드 진행 쪽 참고)",
+   "agents": [
+    "buffett",
+    "wood",
+    "burry"
+   ]
+  }
+ ],
+ "agents": [
+  {
+   "agent_id": "momentum",
+   "status": "frozen",
+   "scored": 5,
+   "avg": 2.01,
+   "excess": 3.61,
+   "beat": 5,
+   "one_line": "한국 첫 주 1위. 하락장에서 지수보다 강한 종목을 골라 5번 모두 지수를 이겼다. 약한 돌파와 베타 방어력 과신은 기록만 한다.",
+   "signals": [
+    {
+     "summary": "거래량이 약한 돌파 다음 날 되돌림 위험",
+     "n": 2
+    },
+    {
+     "summary": "선형 베타로 급락일 방어력을 크게 봄",
+     "n": 2
+    }
+   ],
+   "audit": {
+    "ok": 3,
+    "wrong": 0,
+    "unverifiable": 0
+   }
+  },
+  {
+   "agent_id": "dalio",
+   "status": "eligible",
+   "scored": 10,
+   "avg": -0.82,
+   "excess": 0.86,
+   "beat": 7,
+   "one_line": "거시 방어 논리가 하락장에서 통해 실제 종목 8건 중 7건이 지수를 이겼다. 반복된 판단 오류가 없어 변경 없음.",
+   "signals": [],
+   "audit": {
+    "ok": 2,
+    "wrong": 0,
+    "unverifiable": 1
+   }
+  },
+  {
+   "agent_id": "buffett",
+   "status": "eligible",
+   "scored": 5,
+   "avg": -1.13,
+   "excess": 0.64,
+   "beat": 3,
+   "one_line": "이긴 건도 하락장 방어 덕이다. 원인을 모르는 하락이나 업종 전체 재평가를 '일시적 악재'로 읽는 습관이 두 주째 반복돼 지침 1곳 수정을 제안한다.",
+   "signals": [
+    {
+     "summary": "원인 미특정·업종 재평가를 '일시적 악재·과매도'로 분류하고 되돌림 기대",
+     "n": 3
+    }
+   ],
+   "audit": {
+    "ok": 3,
+    "wrong": 0,
+    "unverifiable": 0
+   }
+  },
+  {
+   "agent_id": "burry",
+   "status": "eligible",
+   "scored": 10,
+   "avg": -1.28,
+   "excess": 0.4,
+   "beat": 4,
+   "one_line": "구간 안 자사주 집행을 공시로 확인한 두 건은 이겼고, 장기 자사주 한도를 하루 근거로 Adobe를 세 번 낸 것이 손실이었다. 지침 2곳 수정을 제안한다.",
+   "signals": [
+    {
+     "summary": "자사주·FCF 같은 하방 받침을 구간 안 집행 확인 없이 하루 근거로 사용",
+     "n": 3
+    },
+    {
+     "summary": "같은 종목을 새 원자료 없이 다시 내고 업종 수급 일정을 놓침",
+     "n": 3
+    }
+   ],
+   "audit": {
+    "ok": 3,
+    "wrong": 0,
+    "unverifiable": 0
+   }
+  },
+  {
+   "agent_id": "lynch",
+   "status": "eligible",
+   "scored": 10,
+   "avg": -1.52,
+   "excess": 0.16,
+   "beat": 6,
+   "one_line": "한국 2위, 미국 꼴등. 경영진 공백·조사로 빠진 종목을 '이익 대비 덜 반영'으로 두 번 골랐고, PEG 거름망이 확신도 문구로만 쓰였다. 지침 2곳 수정을 제안한다.",
+   "signals": [
+    {
+     "summary": "비이익 문제로 생긴 하락을 좋은 실적이 되돌린다고 보고 '덜 반영' 판정",
+     "n": 2
+    },
+    {
+     "summary": "PEG 미계산·2 이상이거나 렌즈 밖 근거인데 그대로 제출",
+     "n": 4
+    }
+   ],
+   "audit": {
+    "ok": 2,
+    "wrong": 1,
+    "unverifiable": 0
+   }
+  },
+  {
+   "agent_id": "wood",
+   "status": "eligible",
+   "scored": 10,
+   "avg": -2.08,
+   "excess": -0.4,
+   "beat": 3,
+   "one_line": "실적 반응을 확인하지 못한 카드에 높은 확률을 냈고, 새 사건이 없는 날 변동이 큰 종목을 반복했다. 지침 2곳 수정을 제안한다.",
+   "signals": [
+    {
+     "summary": "실적 다음 날 컨센서스·장후 반응 미확인인데 확률을 기준선보다 크게 높임",
+     "n": 2
+    },
+    {
+     "summary": "새 사건 없는 날 고변동 종목·같은 종목 연속 선택",
+     "n": 3
+    }
+   ],
+   "audit": {
+    "ok": 2,
+    "wrong": 0,
+    "unverifiable": 1
+   }
+  }
+ ]
+}
