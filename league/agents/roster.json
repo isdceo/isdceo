@@ -7,7 +7,7 @@
       "status": "active",
       "joined_week": null,
       "eliminated_week": null,
-      "version": 2,
+      "version": 3,
       "nickname": "뚝심이",
       "tagline": "경제적 해자·ROE·안전마진으로 오래 갈 좋은 기업을 고른다",
       "avatar": "ttukshim",
@@ -15,6 +15,10 @@
         {
           "version": 2,
           "from_round": "2026-11-09"
+        },
+        {
+          "version": 3,
+          "from_round": "2026-11-23"
         }
       ]
     },
@@ -25,7 +29,7 @@
       "status": "active",
       "joined_week": null,
       "eliminated_week": null,
-      "version": 2,
+      "version": 3,
       "nickname": "발굴왕",
       "tagline": "이익 성장률과 PEG로 아직 덜 알려진 성장주를 찾는다",
       "avatar": "balgul",
@@ -33,6 +37,10 @@
         {
           "version": 2,
           "from_round": "2026-11-09"
+        },
+        {
+          "version": 3,
+          "from_round": "2026-11-23"
         }
       ]
     },
@@ -61,7 +69,7 @@
       "status": "active",
       "joined_week": null,
       "eliminated_week": null,
-      "version": 2,
+      "version": 3,
       "nickname": "미래광",
       "tagline": "AI·로봇·에너지 저장 같은 기술 성장 곡선 위의 기업을 찾는다",
       "avatar": "mirae",
@@ -69,6 +77,10 @@
         {
           "version": 2,
           "from_round": "2026-11-09"
+        },
+        {
+          "version": 3,
+          "from_round": "2026-11-23"
         }
       ]
     },
@@ -79,7 +91,7 @@
       "status": "active",
       "joined_week": null,
       "eliminated_week": null,
-      "version": 2,
+      "version": 3,
       "nickname": "삐딱이",
       "tagline": "버블 징후·회계 품질·숨은 부채를 파고들어 군중의 반대편에 선다",
       "avatar": "ppittak",
@@ -87,6 +99,10 @@
         {
           "version": 2,
           "from_round": "2026-11-09"
+        },
+        {
+          "version": 3,
+          "from_round": "2026-11-23"
         }
       ]
     }
