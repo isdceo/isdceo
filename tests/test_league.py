@@ -1684,6 +1684,9 @@ class ShushuRepoSync(unittest.TestCase):
         wrote = self.X.mirror(ROOT, ext, today=date(2026, 11, 7))
         bad = [f for f in wrote if re.search(r"ledger/(prices|scores|corporate_actions|picks|price_checks|corrections)\.jsonl$|with-prices", f)]
         self.assertEqual(bad, [])
+        mp = ext / "from-league" / "league" / "ledger" / "picks.jsonl"          # 슈슈 자기 종목 최소 목록만(관망 dry-run용)
+        rows = [json.loads(l) for l in mp.read_text().splitlines() if l.strip()]
+        self.assertTrue(all(r["team"] == "shushu" and set(r) <= {"pick_id", "team", "agent_id", "market", "round_date", "ticker"} for r in rows))
         self.assertTrue((ext / "from-league" / "receipts-shushu.jsonl").exists())
         cfg = (ext / "from-league" / "league" / "config.json").read_text()
         self.assertNotIn("provider_verified", cfg); self.assertNotRegex(cfg, r"\b[A-Z]{1,5} \d+\.\d{2}\b")
@@ -1691,6 +1694,31 @@ class ShushuRepoSync(unittest.TestCase):
             if f.is_file() and "tools" not in f.parts:
                 self.assertIsNone(self.X.PRICE_TEXT.search(f.read_text(errors="replace")), str(f))
         self.assertTrue((ext / "from-league" / "tools" / "league.py").exists())
+
+
+class MirrorWatchDryRun(unittest.TestCase):
+    """주간 개선 점검 2026-11-22 H1: 사본으로 돌리는 슈슈 dry-run도 이번 주 앞선 실제 종목을 센다."""
+    def test_mirror_dry_run_counts_own_real_picks(self):
+        import tempfile as T, shushu_sync as X
+        main = Path(T.mkdtemp()); d = main / "league"; shutil.copytree(new_league(), d)
+        shutil.copytree(ROOT / "league" / "imports" / "shushu", d / "imports" / "shushu",
+                        ignore=shutil.ignore_patterns("*.csv", "*.sha256", "*.md"))
+        enable_v22(d / "config.json")
+        cfg = L.load_config(d)
+        for day in ("23", "24", "25"):
+            L.append(d, "picks", L.make_pick("shushu", "s1", 1, f"2026-11-{day}", "KR", "005930", "삼성전자",
+                                             f"2026-11-{day}T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-20"}], cfg))
+        L.append(d, "picks", L.make_pick("claude", "buffett", 1, "2026-11-23", "KR", "005930", "삼성전자",
+                                         "2026-11-23T08:00:00+09:00", "근거", ["위험"], [{"url": "x", "as_of": "2026-11-20"}], cfg))
+        ext = Path(T.mkdtemp()); X.mirror(main, ext, today=date(2026, 11, 26))
+        md = ext / "from-league" / "league"
+        rows = L.read_ledger(md, "picks")
+        self.assertEqual({r["team"] for r in rows}, {"shushu"})                 # 로로 종목은 싣지 않음
+        self.assertTrue(all("rationale" not in r for r in rows))
+        rec = L.make_pick("shushu", "s1", 1, "2026-11-26", "KR", "WATCH", "관망", "2026-11-26T08:00:00+09:00",
+                          "근거", [], [], L.load_config(md))
+        errs = L.validate_pick(rec, md, L.load_config(md), L.read_ledger(md, "picks"))
+        self.assertFalse([e for e in errs if "관망 불가" in e])                  # 앞선 실제 3건 + 남은 1일 ≥ 2
 
 
 class SealedSubmission(unittest.TestCase):

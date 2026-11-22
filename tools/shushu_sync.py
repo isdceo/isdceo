@@ -803,6 +803,14 @@ def mirror(main: Path, ext: Path, today: date | None = None) -> list[str]:
     (dst / "league").mkdir(parents=True, exist_ok=True)
     (dst / "league" / "config.json").write_text(cfg_copy)
     wrote.append("league/config.json")
+    # 슈슈 팀 자기 접수 종목의 최소 목록(관망 최소 건수 dry-run용, 주간 개선 점검 2026-11-22 H1).
+    # 사본에는 picks 원장이 없어 import-csv --dry-run이 '이번 주 접수된 실제 종목'을 늘 0건으로 봐, 목요일부터 정상 관망도 거부했다.
+    # 슈슈 팀 행만, 판정에 필요한 칸만 싣는다(근거·출처·가격·로로 종목 없음).
+    mine = [{k: p.get(k) for k in ("pick_id", "team", "agent_id", "market", "round_date", "ticker")}
+            for p in L.read_ledger(main / "league", "picks") if p.get("team") == "shushu"]
+    (dst / "league" / "ledger").mkdir(parents=True, exist_ok=True)
+    (dst / "league" / "ledger" / "picks.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in mine))
+    wrote.append("league/ledger/picks.jsonl (shushu-min)")
     # 슈슈 팀 영수증과 연결 기록, 업데이트 계획(이번 주·지난주)
     subs = [r for dd in (main / "league", main / "league" / "sandbox") for r in L.read_ledger(dd, "submissions")
             if r.get("team") in ("shushu", "sandbox-shushu")]
@@ -866,6 +874,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
     live = rd >= (cfg.get("season_start") or "9999")
     subs = [s for s in L.read_ledger(d, "submissions") if s.get("team") == "shushu" and s.get("round_date") == rd]
     st = {s["status"] for s in subs}
+    acc = L.reveal_accept_deadline(today, cfg, d).strftime("%H:%M")   # 원본 접수 마감(v2.2: 11/23부터 08:55, 그 전 12:00). 동기화 처리 시한은 12:00 그대로
     if mk and live and "07:00" <= hm < "08:15" and cfg.get("shushu_repo", {}).get("wake_round", True):
         add("round", rd, f"@codex 오늘({rd}) 실전 라운드를 진행해 주세요. 열린 시장: {'·'.join(mk)}. {PROC} 절차대로 분석하고, "
             f"**08:20까지 `submit/{rd}.sha256`과 `submit/{rd}.csv`·`submit/{rd}-debate.md`를 함께** push해 주세요. 원본은 이 비공개 저장소에 봉인돼 "
@@ -876,8 +885,8 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
         add("remind", f"{rd}|{slot}", f"@codex ⏰ 오늘({rd}) 지문 마감 08:30 KST까지 {'15' if slot == '0815' else '30'}분 남짓 남았는데 아직 지문 영수증이 없습니다. "
             f"`submit/{rd}.sha256`(+ `submit/{rd}.csv`·`submit/{rd}-debate.md`)를 **08:25 전에** push해 주세요. "
             "분석이 덜 끝난 에이전트는 빼고 **두 시장을 모두 채운 에이전트만** 넣어도 접수됩니다(시장이 빠진 에이전트가 섞이면 파일 전체 반려). "
-            "08:30 뒤 push는 인정되지 않습니다(판정: 이 저장소의 push 시각).")
-    acc = L.reveal_accept_deadline(today, cfg, d).strftime("%H:%M")   # 원본 접수 마감(v2.2: 11/23부터 08:55, 그 전 12:00). 동기화 처리 시한은 12:00 그대로
+            "08:30 뒤 push는 인정되지 않습니다(판정: 이 저장소의 push 시각)."
+            + (f" 지문만 따로 내면 원본은 {acc} KST까지 push해야 접수됩니다." if acc != "12:00" else ""))
     if mk and live and "08:30" < hm < min("11:40", acc) and "committed" in st and "accepted" not in st:
         add("reveal", rd, f"@codex 지문 영수증 `committed`를 확인했습니다. 이제 지문과 바이트가 똑같은 `submit/{rd}.csv`와 `submit/{rd}-debate.md`를 push하고, "
             f"`from-league/receipts-shushu.jsonl`에서 `accepted`를 확인한 뒤 `lines/{rd}-shushu.json`(한 줄 대사)을 push해 주세요. 원본 접수 마감 {acc} KST(push 시각 기준).")
@@ -918,7 +927,7 @@ def due_wakes(main: Path, now: datetime) -> list[dict]:
         add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push 중 받을 수 없는 커밋이 있음). 지문을 냈다면 그 지문과 바이트가 같은 "
             f"`submit/{rd}.csv`·`submit/{rd}-debate.md`를 **{acc} 전에 그대로** push해 두세요. 확인이 끝나면 원래 push 시각으로 처리됩니다. 마감 전 push한 브랜치는 지우지 마세요.")
     elif mk and live and min("11:40", acc) <= hm < "21:00" and taint:   # 원본 접수 마감(08:55~) 또는 공개 마감 뒤: 이미 낸 것은 그대로     # 공개 마감까지 처리하지 못해 생긴 확인 대기(12:00 이후)
-        add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push를 공개 마감까지 처리하지 못함). 이미 push한 파일과 브랜치는 그대로 두세요. "
+        add("taint", rd, f"@codex 오늘({rd}) 라운드는 **운영자 확인 대기**입니다(마감 전 push를 아직 처리하지 못함 — 원본 접수 마감 {acc} 또는 처리 시한 12:00 경과). 이미 push한 파일과 브랜치는 그대로 두세요. "
             "운영자 확인이 끝나면 원래 push 시각으로 처리됩니다.")
     if mk and live and "08:45" <= hm < "11:40" and not taint and not retrying and not ({"committed", "accepted"} & st):   # 재시도 중이면 '지문 없음' 대신 위 '처리 지연'으로   # 08:28~08:30 push는 2분 대기 뒤 처리되므로 08:45부터
         add("missing", rd, f"@codex 오늘({rd}) 지문 영수증이 없습니다. 08:30 전에 `submit/{rd}.sha256`을 push했다면 "
