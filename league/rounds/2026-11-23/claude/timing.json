@@ -49,5 +49,10 @@
   "관망 3건: wood KR·US, burry US (v2.2 최소 건수 조건 충족)",
   "R2 뒤 6명 모두 종목 변경 없음(확률만 일부 조정)"
  ],
- "reveal_receipt": null
+ "reveal_receipt": {
+  "status": "accepted",
+  "pushed_at": "2026-11-23T08:30:32+09:00",
+  "receipt_checked_at": "2026-11-23T08:30:57+09:00",
+  "commit": "e8d5170d7cf56afcfb4e755c68680715cd3e9331"
+ }
 }
