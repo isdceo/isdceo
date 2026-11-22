@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-23T08:36:40+09:00",
+ "generated_at": "2026-11-23T08:51:45+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -6830,7 +6830,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "보험 밖 이익과 두툼한 현금은 든든하지만, 안전마진이 확인되기 전엔 방패를 들고 기다릴게.",
    "watch": true
   },
   {
@@ -6848,7 +6848,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해외 판매는 반짝였지만 재고와 매입채무 덕을 뺀 현금창출력이 더 또렷해질 때까지 기다릴래.",
    "watch": true
   },
   {
@@ -6866,7 +6866,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "꾸준히 팔리는 건 장점이지만, 투자와 재고를 제하고도 현금이 남는지 더 따져볼래.",
    "watch": true
   },
   {
@@ -6884,7 +6884,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "HBM4가 실제로 팔려 이익으로 이어진 건 확인했고 이제 그 이익이 현금으로 돌아오는지 볼 차례야.",
    "watch": false
   },
   {
@@ -6902,7 +6902,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "거래 건수와 조정 영업이익이 함께 늘었다는 단서는 잡았으니 설비투자 회수는 더 지켜볼게.",
    "watch": false
   },
   {
@@ -6920,7 +6920,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "이미 팔리는 HBM4와 늘어난 서버용 메모리 판매를 봤지만, 시연은 아직 매출로 세지 않을래!",
    "watch": false
   },
   {
@@ -6938,7 +6938,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "본업은 웃는데 순이익은 울상이니, 손실이 현금에 얼마나 닿는지 확인할 때까지 지켜볼래.",
    "watch": true
   },
   {
@@ -6956,7 +6956,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "가입자는 늘었지만, 늘어난 잉여현금의 큰 몫이 투자 축소 덕이라 이번엔 한발 물러설래.",
    "watch": true
   },
   {
@@ -6974,7 +6974,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "기준금리가 그대로인데 은행 마진은 좁아졌으니, 금리가 기업 실적에 어떻게 전달되는지 더 살필게.",
    "watch": true
   },
   {
@@ -6992,7 +6992,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "금리의 방향보다 금리 불확실성이 헤지 거래와 청산 수수료로 이어지는 길을 봤어.",
    "watch": false
   },
   {
