@@ -35,7 +35,7 @@
   {
    "name": "원본 공개",
    "start": "2026-11-24T08:30:19+09:00",
-   "end": null,
+   "end": "2026-11-24T08:30:35+09:00",
    "note": "sha256 일치 확인 뒤 바로 push"
   }
  ],
@@ -50,5 +50,10 @@
   "wood의 HPE 시간외 확인 요청은 진행자가 거절, wood가 직접 확인",
   "research 도구가 KOSPI 종목에 .KQ URL을 돌려줌"
  ],
- "reveal_receipt": null
+ "reveal_receipt": {
+  "status": "accepted",
+  "pushed_at": "2026-11-24T08:30:34+09:00",
+  "commit": "b9ac0a457cec83905675072c2bb44967aea5a866",
+  "checked_at": "2026-11-24T08:31:00+09:00"
+ }
 }
