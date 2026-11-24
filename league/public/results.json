@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-24T08:42:29+09:00",
+ "generated_at": "2026-11-24T09:01:28+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -7278,7 +7278,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "현금은 든든하지만 리스까지 보면 얘기가 달라져. 실적 발표에서 재고와 마진을 살필게.",
    "watch": false
   },
   {
@@ -7296,7 +7296,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "재고와 결제 시점의 영향을 빼고도 본업에서 현금이 남는지 확인할 때까지 기다릴래.",
    "watch": true
   },
   {
@@ -7314,7 +7314,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "결제와 처리량이 함께 늘었지만, 인센티브를 제하고도 그 힘이 이어지는지 볼게.",
    "watch": false
   },
   {
@@ -7332,7 +7332,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "수주와 영업이익은 늘었지만, 인도한 배가 실제 현금으로 돌아오는 속도를 볼게.",
    "watch": false
   },
   {
@@ -7350,7 +7350,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "여러 고객 시장에서 매출과 현금이 늘었어. 다음 실적에서 재고와 현금 마진을 확인할게.",
    "watch": false
   },
   {
@@ -7368,7 +7368,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "방산 잔고보다 실제 납품에 주목했어. 다음 인도분이 수금으로 이어지는지도 볼래.",
    "watch": false
   },
   {
@@ -7386,7 +7386,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "본업 이익과 환원 방침은 보이지만, 영업이익과 현금전환이 함께 둔해지면 다시 볼게.",
    "watch": false
   },
   {
@@ -7404,7 +7404,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "매출과 연간 전망은 좋아졌지만, 설비투자와 재고를 제하고도 현금이 남는지 살필게.",
    "watch": false
   },
   {
@@ -7422,7 +7422,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "소비심리는 둔해졌지만 실제 지출이 줄었다는 뜻은 아니야. 유통 실적에 닿는지 볼게.",
    "watch": true
   },
   {
@@ -7440,7 +7440,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "금리 방향을 맞히기보다, 기대가 바뀔 때 헤지 거래가 수수료로 이어지는지 볼게.",
    "watch": false
   },
   {
