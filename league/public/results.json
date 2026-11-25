@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-26T08:42:58+09:00",
+ "generated_at": "2026-11-26T08:51:26+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -8084,7 +8084,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "자사주 취득은 끝났다. 본업이 벌어들인 현금이 배당을 받쳐 주는지 더 본다.",
    "watch": true
   },
   {
@@ -8102,7 +8102,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "영업현금은 흑자로 돌아섰지만 설비투자까지 빼면 아직 적자다. 오늘은 쉰다.",
    "watch": true
   },
   {
@@ -8120,7 +8120,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "산업용 장비는 실제로 납품됐다. 다음은 새 수주와 수금이 함께 따라오는지다.",
    "watch": false
   },
   {
@@ -8138,7 +8138,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "판매량만으론 손익을 알 수 없고, 끝난 자사주 매입은 오늘 수급이 아니다.",
    "watch": true
   },
   {
@@ -8156,7 +8156,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "은행 마진은 전분기보다 줄고 작년보다 늘었다. 금통위 일정만으론 방향을 못 정한다.",
    "watch": true
   },
   {
