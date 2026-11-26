@@ -35,7 +35,7 @@
   {
    "name": "원본 공개",
    "start": "2026-11-27T08:30:40+09:00",
-   "end": null,
+   "end": "2026-11-27T08:30:43+09:00",
    "note": "sha256 일치 확인 뒤 바로 push"
   }
  ],
@@ -52,5 +52,10 @@
   "burry ADBE SEC 출처는 11/25 확보분 재사용(retrieved_at 11/25 실제 시각)",
   "진행자 프롬프트에 '다른 종목 가격은 종가라는 말 없이' 규칙을 추가해 11/26의 check-csv 오경고 재발을 막음"
  ],
- "reveal_receipt": null
+ "reveal_receipt": {
+  "status": "accepted",
+  "pushed_at": "2026-11-27T08:30:43+09:00",
+  "commit": "5eab6b29c9533630a2a200c33a57cef4f515b1db",
+  "checked_at": "2026-11-27T08:31:14+09:00"
+ }
 }
