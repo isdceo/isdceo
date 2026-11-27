@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_at": "2026-11-27T08:40:50+09:00",
+ "generated_at": "2026-11-27T09:01:32+09:00",
  "rules": {
   "embargo": "각 라운드 마감(08:30 KST)이 지난 뒤, 지문을 낸 두 팀의 원본이 모두 접수됐거나 원본 공개 마감(12:00)이 지난 뒤에만 그 라운드 종목·점수를 싣는다(동시 공개)",
   "prices": "원 가격(종가·배당 금액)은 싣지 않고 점수(%)만 싣는다",
@@ -8442,7 +8442,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "동일점포 매출은 좋아졌지만, 예고된 할인 행사가 현금과 이익으로 이어질지는 아직 모른다.",
    "watch": false
   },
   {
@@ -8460,7 +8460,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "배당 수취를 빼도 투자 후 현금은 남았다. 자사주 신탁은 오늘 수급을 보장하지 않는다.",
    "watch": false
   },
   {
@@ -8478,7 +8478,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "현금흐름은 비교 기준부터 맞춰야 한다. 회복 근거나 충분한 가격 여유가 나올 때까지 관망한다.",
    "watch": true
   },
   {
@@ -8496,7 +8496,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "이익은 줄었고 배당과 장비투자를 함께 빼면 현금 개선 폭은 작다. 본업 회복은 더 확인한다.",
    "watch": false
   },
   {
@@ -8514,7 +8514,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "연간 현금 개선만으로 구조가 좋아졌다고 볼 수 없다. 회전율과 마진을 함께 확인할 때까지 쉰다.",
    "watch": true
   },
   {
@@ -8532,7 +8532,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "해외 매출은 작년보다 늘었지만 직전 분기보다 줄었다. 성장에 마진과 현금 회수가 따라오는지 본다.",
    "watch": false
   },
   {
@@ -8550,7 +8550,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "소각을 예고했지만 신탁 개시가 매입 완료는 아니다. 실제 집행과 현금흐름을 함께 본다.",
    "watch": false
   },
   {
@@ -8568,7 +8568,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "행사 일정은 이미 알려졌다. 할인 뒤 마진과 추가 수요를 확인하기 전에는 관망한다.",
    "watch": true
   },
   {
@@ -8586,7 +8586,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "판매량이 늘어도 인센티브가 이익을 깎을 수 있다. 같은 시장의 판매와 마진을 함께 본다.",
    "watch": false
   },
   {
@@ -8604,7 +8604,7 @@
    "score_price_only": null,
    "score_excess": null,
    "reason": "",
-   "line": "",
+   "line": "온·오프라인 할인 일정은 알려져 있다. 추가 판매가 할인 후 이익으로 남는지가 관건이다.",
    "watch": false
   },
   {
