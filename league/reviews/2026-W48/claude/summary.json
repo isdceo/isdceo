@@ -1,0 +1,61 @@
+{
+  "week": "2026-W48",
+  "team": "claude",
+  "rounds": "11/23~11/27 실전 (규칙 v2.2 첫 주, 11/26 미국 휴장)",
+  "proposal": true,
+  "pr": null,
+  "note": "큰그림 v3·파도타기 v2 제안(각 2곳). 미래광·삐딱이는 1등이라 동결. 뚝심이·발굴왕은 지난주 v3 제안(PR #2)이 승인 대기라 이번 주 추가안은 복기 문서에만 기록.",
+  "calibration": {"picks": 39, "beat": 24, "brier": 0.236, "baseline": 0.25, "note": "관망 제외 실제 종목 기준"},
+  "audit": {"ok": 16, "wrong": 1, "unverifiable": 3, "note": "틀린 1건은 비교 지수의 1개월 수익률을 잘못 적은 경우. 확인 불가는 원장에 비교 시점 종가가 없거나 기사 기준일을 알 수 없는 경우"},
+  "common": [
+    {"summary": "베타·지수 방향에서 나온 성과를 종목 근거와 나눠 적지 않음(저베타 카드가 지수 상승일에 짐)", "agents": ["burry", "momentum", "dalio"]},
+    {"summary": "같은 종목을 새 근거 없이 연속 제출", "agents": ["burry", "lynch", "buffett"]},
+    {"summary": "지난 복기의 '바꿀 점'을 다음 카드에 적용했는지 표기하지 않음", "agents": ["burry", "momentum", "wood"]},
+    {"summary": "관망(v2.2, 0%)과 실제 종목의 비교를 빠뜨리거나 옛 규칙으로 읽음", "agents": ["dalio", "wood"]}
+  ],
+  "agents": [
+    {"agent_id": "wood", "status": "frozen", "scored": 9, "avg": 2.09, "excess": 1.31, "beat": 5,
+     "one_line": "실제 종목 5건 모두 지수를 이겨 시즌 누적이 플러스로 바뀌었다. 과정이 좋은 철회·전환도 있었지만 업종 반등 효과가 컸다.",
+     "signals": [
+       {"summary": "실적 다음 날 컨센서스 대비를 확인 못한 채 확률을 기준선 위로 제출", "n": 4},
+       {"summary": "직전 손실 복기 점검 항목을 근거에 적지 않음", "n": 2},
+       {"summary": "월요일 한국·미국 동시 관망 2주 연속", "n": 4}],
+     "audit": {"ok": 4, "wrong": 0, "unverifiable": 0}},
+    {"agent_id": "burry", "status": "frozen", "scored": 9, "avg": 1.96, "excess": 1.18, "beat": 6,
+     "one_line": "한국 1위였지만 대부분 저·고베타 노출이 그날 지수 방향과 맞은 결과였다. 미국은 관망 1건과 촉매 없는 같은 종목 반복으로 마이너스.",
+     "signals": [
+       {"summary": "자사주 결정·한도를 집행 확인 없이 하루 수급 근거로 사용(3주 연속)", "n": 3},
+       {"summary": "베타×지수 방향 성과를 종목 근거와 나눠 적지 않음", "n": 4},
+       {"summary": "촉매 없는 같은 종목을 기준선 확률로 반복 제출", "n": 2},
+       {"summary": "지난 복기 '바꿀 점' 대조 표기 없음", "n": 3}],
+     "audit": {"ok": 3, "wrong": 0, "unverifiable": 1}},
+    {"agent_id": "dalio", "status": "eligible", "scored": 9, "avg": 1.25, "excess": 0.47, "beat": 6,
+     "one_line": "지수를 6번 이겼지만 한국 평균은 한 건에 기댔다. 한국 국면을 미국 금리로 판정하고 관망 비교를 빠뜨린 일이 반복돼 v3를 제안한다.",
+     "signals": [
+       {"summary": "한국 카드 국면을 미국 금리로 판정하고 금통위를 확인 못함으로 둠", "n": 3},
+       {"summary": "관망(0%) 비교를 빠뜨리거나 옛 규칙으로 읽음", "n": 6},
+       {"summary": "이익 반영 시차가 긴 유가를 하루 근거로 사용(이번엔 보류)", "n": 2}],
+     "audit": {"ok": 2, "wrong": 0, "unverifiable": 1}},
+    {"agent_id": "lynch", "status": "eligible", "scored": 5, "avg": 0.72, "excess": 0.42, "beat": 3,
+     "one_line": "한국 5건 중 3번 지수를 이겼다. 대기 중인 v3의 PEG 거름망이 4건에 걸리고, '덜 반영' 판정·연속 제출 문제는 문서에만 추가안을 남겼다.",
+     "signals": [
+       {"summary": "PEG 미계산·추정 상태로 제출(대기 중 v3 대상)", "n": 5},
+       {"summary": "'덜 반영'을 지수 대비 없이 절대 주가 지표로만 판정", "n": 4},
+       {"summary": "같은 종목을 새 근거 없이 연속 제출", "n": 3}],
+     "audit": {"ok": 2, "wrong": 0, "unverifiable": 1}},
+    {"agent_id": "momentum", "status": "eligible", "scored": 9, "avg": 0.30, "excess": -0.48, "beat": 3,
+     "one_line": "하락장 상대강도(저베타) 카드가 반등일에 연속으로 졌다. 지수 방향 의존 점검과 지수 쪽 촉매 기재 2곳을 v2로 제안한다.",
+     "signals": [
+       {"summary": "지수 방향 의존을 베타·급락일 성과로만 측정", "n": 7},
+       {"summary": "'촉매 없음'에서 공개 전 알려진 지수 쪽 입력 누락", "n": 3},
+       {"summary": "직전 복기 '바꿀 점' 미적용", "n": 4}],
+     "audit": {"ok": 3, "wrong": 0, "unverifiable": 0}},
+    {"agent_id": "buffett", "status": "eligible", "scored": 4, "avg": 0.25, "excess": -1.14, "beat": 1,
+     "one_line": "미국 1승 3패. 지수보다 덜 빠진 종목을 '과한 낙폭'으로 보거나 지수 하나와만 비교했다. 대기 중인 v3는 2건만 일부 막고, 추가안은 문서에만.",
+     "signals": [
+       {"summary": "업종·시장 전반 하락을 일시적 과매도로 보고 되돌림 기대(대기 중 v3 대상)", "n": 2},
+       {"summary": "지수 하나 또는 다른 업종과만 비교해 상대 강세·과한 낙폭 판정", "n": 4},
+       {"summary": "가이던스 하향을 일시적 악재로 봄", "n": 2}],
+     "audit": {"ok": 2, "wrong": 1, "unverifiable": 0}}
+  ]
+}
