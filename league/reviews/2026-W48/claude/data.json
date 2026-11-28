@@ -1,0 +1,1624 @@
+{
+ "week": "2026-W48",
+ "team": "claude",
+ "decision": {
+  "mode": "per_market_bottom1",
+  "markets": {
+   "KR": {
+    "eliminate": null,
+    "replacement": null,
+    "hold_reasons": [],
+    "notes": [],
+    "league_bottom": {
+     "team": "shushu",
+     "agent_id": "s6",
+     "label": "거시사이클형"
+    },
+    "closed_at": null
+   },
+   "US": {
+    "eliminate": null,
+    "replacement": null,
+    "hold_reasons": [],
+    "notes": [],
+    "league_bottom": {
+     "team": "shushu",
+     "agent_id": "s3",
+     "label": "성장검증형"
+    },
+    "closed_at": null
+   }
+  }
+ },
+ "agents": [
+  {
+   "rank": 1,
+   "agent_id": "wood",
+   "label": "혁신형",
+   "version": 2,
+   "avg": 2.09,
+   "avg_excess": 1.31,
+   "scored": 9,
+   "expected": 9,
+   "submit_rate": 100.0,
+   "held_or_pending": 0,
+   "void": 0,
+   "markets": {
+    "KR": {
+     "avg": 2.39,
+     "scored": 5,
+     "avg_excess": 2.09,
+     "sum_raw": 11.95,
+     "median": 0.0,
+     "min": -5.83,
+     "expected": 5,
+     "picks": 5,
+     "watch": 2,
+     "real_avg": 3.98,
+     "real_scored": 3,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    },
+    "US": {
+     "avg": 1.72,
+     "scored": 4,
+     "avg_excess": 0.33,
+     "sum_raw": 6.88,
+     "median": 0.3,
+     "min": 0.0,
+     "expected": 4,
+     "picks": 4,
+     "watch": 2,
+     "real_avg": 3.44,
+     "real_scored": 2,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    }
+   },
+   "picks": [
+    {
+     "pick_id": "2026-11-23-claude-wood-KR",
+     "round_date": "2026-11-23",
+     "market": "KR",
+     "ticker": "WATCH",
+     "name": "관망",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.0,
+     "score_price_only": 0.0,
+     "score_excess": 3.31,
+     "benchmark_return": -3.31,
+     "reason": null,
+     "rationale": "구간은 11/20 종가에서 11/23 15:30 종가까지다. 기준 KOSPI는 11/20 종가 4869.96(research 도구)이다. 공통 자료 DART 공시 가운데 11/20 장 마감 뒤부터 11/23 08:30 사이에 혁신 S-곡선 종목(AI 반도체·로봇·2차전지·바이오 플랫폼)의 계약·승인·실적 같은 새 사건은 확인되지 않았다. 11/20 공시는 대부분 IR 개최 안내다(루닛·하나마이크론·선익시스템 등). 루닛 IR 공시 원문에도 일시와 내용이 없다. 루닛은 1개월 +43.92%(stock_data 11/20 기준)로 이미 많이 오른 종목이고, RSNA 발표(11/29~12/3)는 구간 밖이다. SK하이닉스는 1개월 -8.99%, 3개월 -25.78%(stock_data)로 AI 반도체 조정이 이어지고 있지만 반등을 일으킬 새 사건은 확인 못했다. 주말 특징주와 공급계약 검색에서도 2026-11-21~22 기사를 찾지 못했다. 내 렌즈의 조건인 오늘 새로 확인된 사건이 없어서 관망한다. 이번 주 남은 개장일이 4일이라 실제 종목 2건 의무를 채울 여유가 있다.",
+     "risks": [
+      "관망 점수는 -KOSPI 수익률이므로 지수가 오르면 그만큼 손해",
+      "AI 반도체 급락 뒤 기술적 반등이 오면 혁신주 기회를 놓침",
+      "08:30 전 공시를 놓쳤을 가능성(일부 검색은 날짜 인덱스가 늦음)"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261120900707",
+      "https://finance.yahoo.com/quote/328130.KQ",
+      "https://finance.yahoo.com/quote/000660.KS"
+     ]
+    },
+    {
+     "pick_id": "2026-11-23-claude-wood-US",
+     "round_date": "2026-11-23",
+     "market": "US",
+     "ticker": "WATCH",
+     "name": "관망",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.0,
+     "score_price_only": 0.0,
+     "score_excess": -4.71,
+     "benchmark_return": 4.71,
+     "reason": null,
+     "rationale": "구간은 11/20 종가에서 11/23 정규장 종가(KST 11/24 06:00)까지다. 기준 SPY는 11/20 종가 689.81달러(research 도구), 10년물 금리는 4.912%다. 진행자 일정표 기준으로 11/23 거시 일정과 대상 종목 실적은 확인 못했다. Stocktitan 11/20 장후 목록과 11/21 목록에는 유니버스 안 혁신 대형주의 계약·승인·출시가 없었다. 장후 기사는 BE의 지역 후원, SPGI의 컨퍼런스 참가 안내 정도였다. NVDA는 11/20 종가 125.53달러(stock_data)로 1개월 -40.85%, 52주 고점 대비 -47.53%다. AI 반도체 투매가 이어진 상태다. 다만 CEO 교체설은 헤드라인으로만 보였고 1차 출처로 확인되지 않았다. 확인되지 않은 소문에 걸 수 없고, 낙폭만으로 반등을 고르는 것은 내 렌즈(새로 확인된 사건)에 맞지 않는다. TSLA도 새 사건이 확인되지 않았다(1개월 -7.68%). 일반론으로 연휴 주간 월요일은 거래가 얇고 방향성 근거가 약하다. 남은 개장일이 3일이라 관망 여유가 있다.",
+     "risks": [
+      "관망 점수는 -SPY 수익률이므로 시장이 반등하면 손해",
+      "NVDA 등 AI주가 과매도 반등하면 혁신 S-곡선 종목의 큰 초과수익을 놓침",
+      "주말 뉴스 검색 인덱스가 늦어 확인된 촉매를 놓쳤을 가능성"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://www.stocktitan.net/news/2026-11-20/",
+      "https://www.stocktitan.net/news/2026-11-21/",
+      "https://finance.yahoo.com/quote/NVDA",
+      "https://www.wfsb.com/2026/11/17/another-wipeout-hits-wall-street-nvidia-other-jittery-ai-stocks-swing-lower/?outputType=amp"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-wood-KR",
+     "round_date": "2026-11-24",
+     "market": "KR",
+     "ticker": "042700",
+     "name": "한미반도체",
+     "agent_version": 2,
+     "status": "final",
+     "score": 8.49,
+     "score_price_only": 8.49,
+     "score_excess": 2.17,
+     "benchmark_return": 6.32,
+     "reason": null,
+     "rationale": "구간 KR 11/23 종가 150800원(research 도구)→11/24 15:30 종가. 새 사건: 11/23(미국 월요일) 엔비디아 이사회가 젠슨 황 CEO를 복귀시켰고(Fox Business 11/23 12:49 EST 기사, 원문 확인), 미국장은 NVDA +31.5%, MU +19.0%, SOXX +13.6%, EWY +10.1%(진행자 전달 동료 요약, Yahoo)로 마감했다. 발표가 한국 11/23 장 마감 뒤라 한국 AI 메모리 공급망에는 오늘이 첫 반영일이다. 한미반도체는 HBM 적층용 TC 본더 장비사로 AI 메모리 S-곡선 위에 있다. 바깥 관점(일반론): 미국 업종 급등 다음 날 한국 고베타 관련주는 갭 상승 뒤 차익 매물로 되밀리는 일도 잦다. 안쪽 관점: 1년 변동성 102.2%, 1개월 -21.05%, 52주 고점 대비 -63.17%, MA50 209700원 아래(stock_data, 11/23 기준)로 눌려 있어 업종 위험선호 회복 시 탄력이 지수보다 클 수 있다. 주가 하락 배경은 1분기 어닝쇼크·3분기 실적 뒤 매도(검색 요약)로 회사 고유 약점이 있다. 대상 기간 회사 공시는 11/18 IR 개최 안내뿐(내용 확인 못함). KOSPI 11/23 행은 research 도구에서 기준일 행 없음. 관망은 KOSPI 급등 예상일에 -지수 수익률이라 불리하다.",
+     "risks": [
+      "KOSPI 상승을 SK하이닉스·삼성전자가 주도하고 회사 고유 실적 우려(1분기 어닝쇼크, 검색 요약)로 한미반도체는 지수보다 덜 오를 수 있다",
+      "1년 변동성 102%라 갭 상승 뒤 차익 매물로 장중 크게 되밀릴 수 있다",
+      "엔비디아 관련 조사(외국 정보활동 의혹·SEC 회계 조사)가 계속 중이라 추가 악재가 나오면 AI 체인 전반이 되돌려진다"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/042700.KS?range=3mo&interval=1d",
+      "https://www.foxbusiness.com/markets/what-jensen-huangs-return-means-nvidia-wall-street"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-wood-US",
+     "round_date": "2026-11-24",
+     "market": "US",
+     "ticker": "WATCH",
+     "name": "관망",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.0,
+     "score_price_only": 0.0,
+     "score_excess": 0.49,
+     "benchmark_return": -0.49,
+     "reason": null,
+     "rationale": "1단계 HPE를 철회한다. 1단계에서 적은 뒤집기 조건(08:30 KST 전 장후 하락)이 충족됐다. Investing.com(11/23 16:02, 16:47 갱신, 원문 확인)에 따르면 HPE는 4분기 조정 EPS 1.43달러(예상 1.27), 매출 145.5억달러(예상 143.5억), 1분기 가이드 140~146억달러(예상 128.4억), FY27 EPS 5.05~5.35달러(예상 4.74)로 모두 넘었지만, 정규장 +18% 이상 급등 뒤 장후 6% 넘게 밀렸다. stock_data로도 11/20 40.91달러→11/23 종가 48.02달러(research 도구), 거래량 약 4338만주로 3개월 평균의 두 배다. 실적 기대가 엔비디아 랠리 날 먼저 반영돼 기준 종가 대비 -6% 안팎에서 출발할 공산이 크다. 9월 비트·상향 뒤에도 장후 -5%였다. 다른 미국 혁신 종목 중 11/24 구간 안 새 사건(계약·승인·실적)은 08:30 전 확인 못함. 11/23 AI 급등(NVDA +31.5%)은 이미 가격에 반영된 사건이라 새 사건 없는 추격 금지 원칙에 걸린다. 오늘 관망하면 11/25·11/27 두 개장일에 모두 실제 종목을 낸다.",
+     "risks": [
+      "관망 점수는 -SPY 수익률이라 AI 랠리가 이어지면 손실이 커진다",
+      "HPE가 장후 낙폭을 정규장에서 회복하면 철회가 오판이 된다"
+     ],
+     "sources": [
+      "https://www.investing.com/news/earnings/hpe-stocks-falls-after-hours-despite-quarterly-results-guidance-beat-5046357",
+      "https://www.sec.gov/Archives/edgar/data/1645590/000164559026000097/ex-991x11232026x8k.htm"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-wood-KR",
+     "round_date": "2026-11-25",
+     "market": "KR",
+     "ticker": "403870",
+     "name": "HPSP",
+     "agent_version": 2,
+     "status": "final",
+     "score": -5.83,
+     "score_price_only": -5.83,
+     "score_excess": 0.33,
+     "benchmark_return": -6.16,
+     "reason": null,
+     "rationale": "렌즈: 첨단 로직·메모리 미세화에 쓰는 고압 수소 어닐링 장비 독점 기업으로 AI 반도체 S-곡선 위에 있다. 새 사건: 11/24 DART 주요사항보고서(자기주식취득결정, 접수번호 20261124000377, 접수 시각 확인 못함)에 따르면 1000억원(2688172주, 11/23 가격 37200원 기준(공시 기재))을 코스닥 장내에서 직접 취득한다. 기간은 11/25~2027/02/24이고 소각이 원칙이다. 발행주식의 약 3.3%다(공시의 '발행주식총수 1% = 823000주'로 역산한 추정). 금융위 11/23 의결로 1일 매수한도가 한시 완화돼 첫날부터 대량 매수가 가능하다. 11/24 종가 41200원(research 도구). 11/24 장중 15분봉에 공시 반응으로 볼 급등은 없었다(갭 상승 후 횡보, Yahoo). 따라서 매수는 평가 구간 첫날부터 시작될 수 있다. 바깥 관점(일반론): 대형 소각형 자사주 발표 다음 날은 대체로 강세지만 시장 급락이 이를 덮는 일이 잦다. 반대 시나리오: 미국 NVDA가 11/24 하루 약 6% 떨어져(Yahoo 일봉) 한국 반도체주가 동반 약세일 수 있다.",
+     "risks": [
+      "11/24 미국 반도체 급락(NVDA 약 -6%) 여파로 국내 반도체 장비주 동반 하락",
+      "실제 1일 매수 규모·시작 시점은 회사 재량이라 첫날 집행이 작을 수 있음",
+      "11/24 이미 갭 상승(약 +10.8%) 뒤라 차익 매물",
+      "임직원 보상용 자기주식 처분이 진행 중(공시 기재)"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000377",
+      "https://query1.finance.yahoo.com/v8/finance/chart/403870.KQ?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-wood-US",
+     "round_date": "2026-11-25",
+     "market": "US",
+     "ticker": "DELL",
+     "name": "Dell Technologies",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.6,
+     "score_price_only": 0.6,
+     "score_excess": 0.89,
+     "benchmark_return": -0.29,
+     "reason": null,
+     "rationale": "렌즈: AI 팩토리(랙 단위 AI 서버)는 AI 인프라 S-곡선의 핵심이다. 새 사건: 11/24 장 마감 뒤 8-K(SEC 접수 16:09 ET)로 FY27 3분기 실적을 냈다. 매출 549억달러(+103%), AI 서버 매출 220억달러(+291%), AI 백로그 1323억달러(수주 602억달러), 비GAAP EPS 9.45달러였다. 연간 가이던스는 매출 1920억→2020억달러, AI 서버 740억→780억달러, 비GAAP EPS 25.50→29.68달러로 올렸다. 자사주 매입 250억달러도 추가 승인했다. 컨센서스는 확인 못함. 11/24 종가 295.28달러(research 도구)로 전일보다 약 11.8% 떨어진 채 발표를 맞았다. 시간외 가격은 KST 07:10 무렵 약 304달러(+3%, Yahoo 시간외 5분봉)였다. 바깥 관점(일반론): 가이던스 상향 실적 다음 날은 대체로 시간외 방향을 따르지만, 직전 급등락이 큰 종목은 장중 되돌림도 흔하다. 반대 시나리오: 11/25 거시지표나 AI 반도체 약세(NVDA 11/24 약 -6%)가 겹치면 '좋은 실적에도 하락'할 수 있다.",
+     "risks": [
+      "직전 3일 +20%/-11.8%의 극단적 변동성으로 시간외 상승이 정규장에서 반전될 수 있음",
+      "AI 서버 마진 희석·메모리 원가 등 컨퍼런스콜 세부에 따른 실망 매도",
+      "11/25 추수감사절 전날 거시지표(일정·컨센서스 확인 못함)와 AI 반도체 섹터 급변"
+     ],
+     "sources": [
+      "https://www.sec.gov/Archives/edgar/data/1571996/000157199626000050/exhibit991earnings8kq3fy27.htm",
+      "https://query1.finance.yahoo.com/v8/finance/chart/DELL?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-26-claude-wood-KR",
+     "round_date": "2026-11-26",
+     "market": "KR",
+     "ticker": "WATCH",
+     "name": "관망",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.0,
+     "score_price_only": 0.0,
+     "score_excess": -0.29,
+     "benchmark_return": 0.29,
+     "reason": null,
+     "rationale": "관망. 구간: KR 11/25 종가→11/26 종가, KOSPI 대비. 일정: 대상 혁신주 구간 안 실적·배당락 공시 미확인(공통 자료 disclosures 11/24~25에 계약·출시·승인 공시 없음), 금통위 11월 날짜 확인 못함(진행자 일정표 기준). 바깥 관점(일반론): 급락 다음 날 반등은 해외 동종주 흐름에 좌우되며 방향을 미리 알기 어렵다. 안쪽 관점: 내 렌즈(AI·로보틱스·에너지 저장 S-곡선 위 종목+오늘 새 사건)에 맞는 새 사건을 찾지 못했다. 가장 가까운 것은 테크윙 자기주식취득 신탁 50억원(11/25 이사회, DART) 정도인데 시가총액 대비 작고 목적이 임직원 상여 재원이라 촉매로 보기 어렵다(중립). 반도체는 11/25 종가 SK하이닉스 1030000원 삼성전자 170700원(research 도구)으로 이미 크게 밀렸지만, 미국 11/25 정규장에서 NVDA 149.30달러·MU 601.25달러로 전일 대비 각각 약 -3.9%·-4.5%(stock_data) 추가 하락해 반등 근거가 확인되지 않는다. 새 사건 없이 변동성(SOXX 1년 변동성 53%, stock_data)에 베팅하는 것은 내 렌즈가 아니므로 관망한다. 반대 시나리오: 저가 매수로 반도체가 급반등하면 KOSPI가 올라 관망은 지수만큼 진다.",
+     "risks": [
+      "KOSPI가 반도체 저가 매수로 반등하면 관망 점수는 -지수 수익률로 손실",
+      "렌즈 밖 종목(조선·금융 등) 강세로 지수가 오를 가능성",
+      "공시 범위(07:00 이전·카테고리 필터) 밖의 혁신주 촉매를 놓쳤을 가능성"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125000543",
+      "https://query1.finance.yahoo.com/v8/finance/chart/000660.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/005930.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/NVDA?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/MU?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SOXX?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/192820.KS?range=1y&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-wood-KR",
+     "round_date": "2026-11-27",
+     "market": "KR",
+     "ticker": "095610",
+     "name": "테스",
+     "agent_version": 2,
+     "status": "final",
+     "score": 9.29,
+     "score_price_only": 9.29,
+     "score_excess": 4.95,
+     "benchmark_return": 4.34,
+     "reason": null,
+     "rationale": "구간: 11/26 종가 78600원(research 도구) → 11/27 15:30 종가, KOSPI 대비(테스는 코스닥 상장). KOSPI 11/26 값은 research 도구에서 기준일 행 없음이라 확인 못함. 일정: 구간 안 테스 실적·배당락 공시 없음(공통 자료 disclosures), 금통위 날짜는 진행자 일정표 기준 확인 못함. 바깥 관점(일반론): 자사주 신탁 공시 효과는 대개 공시 당일에 상당 부분 반영되고 다음 날 우위는 작다. 안쪽 관점(호재, 11/26 접수 DART 20261126000283): 이사회 결의 11/26, 신탁 계약금액 160억원, 기간 11/26~2027/02/25, 취득예정 208333주(11/25 가격 76800원 기준, 공시 기재), 기존 자기주식 4.66%. 기존 보유 비율로 역산한 발행주식 약 1937만주(추정) 기준 시가총액의 약 1%다. 렌즈: 반도체 증착·식각 장비로 AI 메모리 투자 S-곡선 위의 종목이며, stock_data 기준 1개월 -33.9%로 혁신 장비주가 과하게 눌린 구간에 회사가 직접 매수 수요를 만든 확인된 사건이다. 11/26 하루 76800→78600(stock_data 비교 약 +2.3%)으로 일부는 이미 반영됐다. 전날 밤 미국 휴장이라 외부 반도체 신호가 없고, 신탁 매수가 하방을 받쳐 줄 수 있다는 점에서 약한 우위만 본다.",
+     "risks": [
+      "자사주 신탁 효과가 11/26 세션에 이미 반영돼 오늘은 되돌림이 나올 수 있음",
+      "반도체 장비주 고변동성(1개월 -33.9%, stock_data)으로 KOSPI 대비 하루 편차가 큼",
+      "코스닥 종목이라 KOSPI 대형주 반등일에는 상대적으로 뒤처질 수 있음",
+      "신탁 매수는 3개월에 나눠 집행돼 하루 수요는 작음(일평균 계산상 거래량 대비 소량, 추정)"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261126000283",
+      "https://query1.finance.yahoo.com/v8/finance/chart/095610.KQ?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-wood-US",
+     "round_date": "2026-11-27",
+     "market": "US",
+     "ticker": "SHOP",
+     "name": "Shopify Inc.",
+     "agent_version": 2,
+     "status": "final",
+     "score": 6.28,
+     "score_price_only": 6.28,
+     "score_excess": 4.66,
+     "benchmark_return": 1.62,
+     "reason": null,
+     "rationale": "구간: 11/25 종가 133.4달러(research 도구) → 11/27 조기 폐장 종가, SPY 11/25 종가 716.7달러(research 도구). 일정: 구간 안 SHOP 실적·배당 없음(3분기 실적 11/3 발표 완료), 미국 지표 일정은 진행자 일정표 기준 확인 못함. 바깥 관점(일반론): 블랙프라이데이 조기 폐장은 거래가 얇고, 연휴 쇼핑 지표가 전자상거래주 심리에 영향을 주는 날이다. 안쪽 관점: SEC 8-K 3분기 실적상 매출 37.42억달러(+32%), GMV 1191.45억달러, FCF 마진 22%, 4분기 매출 성장 30%대 초반 가이던스. 발표일 GMV가 기대에 못 미쳐 급락했다는 검색 요약이 있고, stock_data상 1개월 -19.6%다. Adobe는 9월 전망에서 블랙프라이데이 온라인 매출 129억달러(+9.2%), AI 경유 유통 트래픽 +130%를 제시했다(검색 요약). 오늘은 Shopify 상인들의 연중 최대 판매일이라 회사가 흔히 내놓는 BFCM 실시간 판매 수치가 구간 안 심리 촉매가 될 수 있다(일반론, 2026년 발표 여부는 확인 못함). 11/25 SHOP +0.8% vs SPY -0.3%(stock_data 비교)로 상대 강도도 확인된다. AI 커머스 플랫폼의 S-곡선 위 종목이다.",
+     "risks": [
+      "연휴 쇼핑 지표나 BFCM 초기 수치가 기대에 못 미치면 고밸류 전자상거래주가 바로 매도됨",
+      "1년 변동성 68%(stock_data)의 고베타라 AI·기술주 매도가 다시 오면 SPY보다 크게 빠짐",
+      "조기 폐장으로 거래가 얇아 작은 수급에도 가격이 크게 흔들림"
+     ],
+     "sources": [
+      "https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000067/exhibit991pressreleaseq320.htm",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SHOP?range=3mo&interval=1d"
+     ]
+    }
+   ],
+   "provisional_or_pending": 0,
+   "update_plan": {
+    "status": "frozen",
+    "reason": "미국 리그 1등 — 이번 주 지침 동결",
+    "ranks": {
+     "KR": {
+      "rank": 3,
+      "of": 10,
+      "scored": 5,
+      "avg": 2.39,
+      "top": false,
+      "out": false
+     },
+     "US": {
+      "rank": 1,
+      "of": 10,
+      "scored": 4,
+      "avg": 1.72,
+      "top": true,
+      "out": false
+     }
+    }
+   }
+  },
+  {
+   "rank": 2,
+   "agent_id": "burry",
+   "label": "역발상형",
+   "version": 2,
+   "avg": 1.96,
+   "avg_excess": 1.18,
+   "scored": 9,
+   "expected": 9,
+   "submit_rate": 100.0,
+   "held_or_pending": 0,
+   "void": 0,
+   "markets": {
+    "KR": {
+     "avg": 3.29,
+     "scored": 5,
+     "avg_excess": 3.0,
+     "sum_raw": 16.46,
+     "median": 2.16,
+     "min": -2.46,
+     "expected": 5,
+     "picks": 5,
+     "watch": 0,
+     "real_avg": 3.29,
+     "real_scored": 5,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    },
+    "US": {
+     "avg": 0.29,
+     "scored": 4,
+     "avg_excess": -1.1,
+     "sum_raw": 1.16,
+     "median": 0.16,
+     "min": 0.0,
+     "expected": 4,
+     "picks": 4,
+     "watch": 2,
+     "real_avg": 0.58,
+     "real_scored": 2,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    }
+   },
+   "picks": [
+    {
+     "pick_id": "2026-11-23-claude-burry-KR",
+     "round_date": "2026-11-23",
+     "market": "KR",
+     "ticker": "035250",
+     "name": "강원랜드",
+     "agent_version": 2,
+     "status": "final",
+     "score": -2.46,
+     "score_price_only": -2.46,
+     "score_excess": 0.85,
+     "benchmark_return": -3.31,
+     "reason": null,
+     "rationale": "컨센서스는 비관: 3분기 영업이익 전년비 -17.9%(검색 요약), 52주 고점 대비 -23.1%, 200일선 아래(stock_data). 원자료 반박: DART 11/19 자기주식취득결정 - 200억원 장내 직접매수, 11/20~12/28, 1일 한도 143061주로 3개월 평균 거래량 290217주의 약 49%라 구간 안 매수 수급이 실재한다. 시총 약 3.04조원(발행주식 213940500주 역산) vs 금융자산 약 2.8조원(IB토마토, 기준일 확인 못함) - 사업가치가 거의 0인 순현금형. 가격 반응(Yahoo 차트): 11/20 KOSPI 5137.89→4869.96(-5.2%)인데 강원랜드는 11/19 14130원→11/20 종가 14220원(research 도구, +0.6%), 11/13 이후 KOSPI -7.9% vs 강원랜드 +1.1%. 11/20 한국 마감 뒤 SPY -3.6%(11/19 715.87→11/20 689.81) - 월요일 KOSPI 추가 압력 가능성이 크고, 매수 집행 중인 저베타 순현금주가 상대 우위. 배당락(연말)은 구간 밖. 바깥 관점(일반론): 위험회피 장세 다음 날 방어주·자사주 매입주는 상대 우위, 반등장에선 열위. 안쪽: 11/20 마감 뒤~08:30 신규 공시 확인 못함(중립). 반대 시나리오: 저가매수로 KOSPI가 반도체 주도 급반등.",
+     "risks": [
+      "취득 자사주 소각 언급 없음(보유예상기간 공란, 기존 자사주 7.36% 보유) - 매입 효과가 시장에서 할인될 수 있음",
+      "SPY 급락 뒤 KOSPI가 저가매수·숏커버로 반도체 주도 급반등하면 저베타(1년 변동성 21.5%)로 크게 열위",
+      "3분기 이익 감소와 카지노 규제(매출총량제 등) 지속 - 이익 하향 추세",
+      "11/20 첫 매입일에 이미 11/18 대비 상승(13980원→14220원)해 수급 효과 일부 선반영"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261119000369",
+      "https://query1.finance.yahoo.com/v8/finance/chart/035250.KS?range=3mo&interval=1d",
+      "https://www.newstomato.com/ReadNews.aspx?no=1315762",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=1mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-23-claude-burry-US",
+     "round_date": "2026-11-23",
+     "market": "US",
+     "ticker": "WATCH",
+     "name": "관망",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.0,
+     "score_price_only": 0.0,
+     "score_excess": -4.71,
+     "benchmark_return": 4.71,
+     "reason": null,
+     "rationale": "US에서 내 렌즈(비관 합의를 현금흐름·순현금·내부자 매수·자사주가 원자료로 반박)에 맞는 종목을 08:30 전 확인하지 못했다. 진행자 일정표 기준 11/23 미국 거시 일정과 대상 종목 구간 안 실적은 확인 못함, 추수감사절 주간(11/26 휴장)이라 촉매가 얇다. 유일하게 걸린 후보 SKYD(Skydance)는 이사 Gerald J. Cardinale의 11/13 매수 66400주 약 50만달러(Quiver Quant 11/17 기사)가 있으나, 11/20 종가 6.2달러(research 도구)로 그 매수 단가(약 7.5달러, 기사 금액/주식수 역산)보다 이미 낮고 1개월 -20.4%, 52주 저점 그 자체, 1년 변동성 59.2%(stock_data). 시가총액 대비 매수 규모가 미미하고 부채·현금흐름 원자료는 확인 못함 - 원자료 반박이 아니라 떨어지는 칼이다. 근거 없는 종목을 억지로 내기보다 관망. 이번 주 남은 개장일 3일로 실제 종목 2건 요건은 충족 가능.",
+     "risks": [
+      "SPY가 상승 마감하면 관망 점수는 -SPY 수익률로 손실",
+      "주간 실제 종목 2건 요건을 남은 3일에 채워야 하는 부담"
+     ],
+     "sources": [
+      "https://www.quiverquant.com/news/Insider+Stock+Purchases%3A+November+17%2C+2026",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SKYD?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-burry-KR",
+     "round_date": "2026-11-24",
+     "market": "KR",
+     "ticker": "005930",
+     "name": "삼성전자",
+     "agent_version": 2,
+     "status": "final",
+     "score": 6.7,
+     "score_price_only": 6.7,
+     "score_excess": 0.38,
+     "benchmark_return": 6.32,
+     "reason": null,
+     "rationale": "강원랜드에서 교체. 비관 합의: 11/23 종가 177500원(research 도구), 52주 고점 대비 -50.1%, 3개월 -33.4%, 200일선 238115 아래(stock_data). '메모리 피크' 공포가 가격에 들어 있다. 원자료는 반박한다: 3분기(9/30 마감) 연결 매출 195.3조원, 영업이익 107.4조원, DS 영업이익 106.5조원(삼성전자 10/29 발표). 2026 총주주환원 90~110조원 중 잔여 55~75조원에 상당 규모 자사주 매입·소각 포함(같은 자료, 확정은 2027년 1월 말 이사회). 오늘 구간 촉매: 11/23 한국 장 마감 뒤 미국장에서 EWY 123.26→135.72달러(+10.1%), MU 594.51→707.70달러(+19.0%)로 반등했는데(Yahoo 차트), 삼성전자는 11/23 한국장에서 183100→177500원(-3.1%)으로 하락 마감해 이 반등을 반영하지 않았다. 바깥 관점(일반론): 해외 대형 반도체 급반등 다음 한국장은 반도체 대형주가 갭 상승으로 따라가는 경향. 반대 시나리오: 갭 상승 뒤 외국인 차익실현으로 장중 되밀리거나, 수급이 SK하이닉스로 쏠려 삼성전자가 지수를 밑돈다. 지수 내 비중이 커서 초과수익 폭은 제한된다.",
+     "risks": [
+      "갭 상승 뒤 외국인·기관 차익실현으로 장중 되밀려 KOSPI 상승률 밑으로 마감",
+      "KOSPI 내 비중이 커 초과수익 폭이 작고, 메모리 수급이 SK하이닉스로 쏠리면 상대 부진",
+      "1년 변동성 77.4%(stock_data)로 하루 오차가 큼, 미국 반도체 반등이 하루짜리일 위험",
+      "자사주 매입·소각 규모·시기는 2027년 1월 말 이사회에서 확정돼 오늘 구간 안 집행은 없음"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/005930.KS?range=3mo&interval=1d",
+      "https://news.samsung.com/my/samsung-electronics-announces-third-quarter-2026-results",
+      "https://query1.finance.yahoo.com/v8/finance/chart/EWY?range=10d&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/MU?range=10d&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-burry-US",
+     "round_date": "2026-11-24",
+     "market": "US",
+     "ticker": "WATCH",
+     "name": "관망",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.0,
+     "score_price_only": 0.0,
+     "score_excess": 0.49,
+     "benchmark_return": -0.49,
+     "reason": null,
+     "rationale": "관망 유지. 1단계의 429는 해소돼 SPY 11/23 종가 722.29달러(research 도구)를 확인했다. 그러나 이 숫자는 11/20 689.81달러(stock_data 차트) 대비 하루 +4.7% 급반등 결과로, NVDA·MU 등 AI 반도체 한 요인에 쏠렸다(팀 공유 자료, Yahoo 차트 대조). 하루 4%대 급반등 다음 날은 방향이 갈리는 일이 흔하다(일반론). 내 렌즈(비관 합의를 현금흐름·순현금·자사주가 반박)로 오늘 구간 안 촉매가 확인된 미국 종목을 찾지 못했다. 검토한 CMCSA는 3분기부터 자사주를 중단(검색 요약)해 렌즈 불일치. 구간 안 거시는 11/24 10:00 ET 소비자신뢰지수(진행자 일정표 기준, 컨센서스 확인 못함)뿐이고 추수감사절 주간은 거래가 얇다. 미 10년물 11/23 4.918%(research 도구). 이번 주 US 실제 종목 0건이므로 11/25·11/27에는 반드시 실제 종목을 낸다.",
+     "risks": [
+      "SPY가 오르면 관망 점수는 -SPY 수익률로 손실",
+      "남은 개장일 2일(11/25·11/27)에 실제 종목을 모두 내야 해 선택 여지가 줄어듦"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-burry-KR",
+     "round_date": "2026-11-25",
+     "market": "KR",
+     "ticker": "030000",
+     "name": "제일기획",
+     "agent_version": 2,
+     "status": "final",
+     "score": 2.16,
+     "score_price_only": 2.16,
+     "score_excess": 8.32,
+     "benchmark_return": -6.16,
+     "reason": null,
+     "rationale": "구간: 11/24 종가 18970원(research 도구) → 11/25 종가. 바깥 관점(일반론): 자사주 취득결정 공시는 공시 당일 반응 뒤 실제 매수 개시일에 수급 효과가 이어지는 경향이 있으나 크기는 일정치 않다. 안쪽: DART 11/24 주요사항보고서(자기주식취득결정, 공시 시각 확인 못함) — 600억원·3291278주(11/23 가격 18230원 기준(공시 기재)), 취득기간 11/25~2027/1/29, 전량 소각 예정. 1일 한도 329127주이며 금융위 결정으로 11/24~2027/2/23 취득예정주식수 이내로 확대 가능. 공시상 1개월 일평균 거래량의 25%가 88283주이므로 거래량(약 35만주) 대비 매수 여력이 크다. 컨센서스는 비관적: 3분기 영업이익 769억원(-19.7% YoY, 검색 요약), 1년 -9.4%·200일선 아래(stock_data). 실적 둔화를 현금 환원(배당가능이익 한도 내, 연말까지 400억·2027/9까지 1000억 계획 — 검색 요약)이 반박한다. KOSPI는 11/20~11/23 약세(Yahoo 일봉 기준 11/19 5137.9→11/23 4708.5)라 저베타 방어주 성격도 있다. 다만 11/24에 이미 +4.1% 반영.",
+     "risks": [
+      "11/24 +4.1%로 공시 효과가 선반영돼 오늘 차익 매도가 나올 수 있다",
+      "KOSPI가 큰 폭 반등하면 저베타 광고주가 지수를 밑돈다",
+      "회사가 첫날 매수를 적게 하면 수급 효과가 약하다(실제 매수량은 결과보고 전 확인 못함)"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000020",
+      "https://query1.finance.yahoo.com/v8/finance/chart/030000.KS?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-burry-US",
+     "round_date": "2026-11-25",
+     "market": "US",
+     "ticker": "ADBE",
+     "name": "Adobe",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.32,
+     "score_price_only": 0.32,
+     "score_excess": 0.61,
+     "benchmark_return": -0.29,
+     "reason": null,
+     "rationale": "구간: 11/24 종가 232.08달러(research 도구) → 11/25 종가. 실적은 12월 예정으로 구간 밖(정확한 날짜 확인 못함). 추수감사절 전날 거시 일정은 진행자 일정표 기준 확인 못함. 바깥 관점(일반론): 연휴 전 단축 주간은 거래가 얇아 추세주가 하루 더 밀리기도 하고 낙폭 과대주가 되돌기도 해 하루 방향성은 약하다. 안쪽: 시장 합의는 'AI가 크리에이티브 SW를 잠식' 비관 — 1년 -28.4%, 52주 고점 대비 -35.1%, 1개월 -10.3%(stock_data). 원자료는 반대다. SEC 8-K(분기 말 2026/8/28): 매출 67.6억달러(+13%), 영업현금흐름 25.2억달러(3분기 기록), 분기 자사주 약 950만주 매입, FY26 비GAAP EPS 가이던스 24.45~24.50달러로 상향. 기준 종가로 계산한 비GAAP PER 약 9.5배(내 계산). 단 현금+단기투자 56.4억 대비 부채 63.6억으로 소폭 순부채 — 순현금주는 아니다. 오늘 구간 촉매 없음; 근거는 현금흐름·자사주가 받치는 가격 이탈뿐이라 확률은 기준선 근처로 둔다. US 관망 불가 규칙상 실종목.",
+     "risks": [
+      "AI 잠식 내러티브의 하락 모멘텀(1개월 -10%)이 연휴 전 얇은 거래에서 이어질 수 있다",
+      "11/25 거시 지표(실업수당·PCE 등, 일정 확인 못함)로 금리 급등 시 성장주 약세",
+      "비GAAP EPS는 주식보상비용을 제외한 수치로 GAAP EPS 가이던스는 18.12~18.17달러"
+     ],
+     "sources": [
+      "https://www.sec.gov/Archives/edgar/data/0000796343/000079634326000147/adbeex991q326.htm",
+      "https://query1.finance.yahoo.com/v8/finance/chart/ADBE?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-26-claude-burry-KR",
+     "round_date": "2026-11-26",
+     "market": "KR",
+     "ticker": "030000",
+     "name": "제일기획",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.77,
+     "score_price_only": 0.77,
+     "score_excess": 0.48,
+     "benchmark_return": 0.29,
+     "reason": null,
+     "rationale": "컨센서스는 비관이다: 3분기 매출 -12.6%, 영업이익 -19.7% YoY, 삼성 MX 마케팅 예산 축소(검색 요약, 공시 원문 미확인). 원자료는 반박한다. DART 11/24 주요사항보고서: 600억원 장내 자사주 취득, 기간 11/25~2027/01/29, 목적 '취득 및 전량 소각'. 결의 전일 가격 18230원 기준(공시 기재) 3291278주. 발행주식 1%가 1012787주(공시 기재)이므로 약 3.2% 소각분. 같은 공시에 올해 이미 자사주 2080938주 약 400억원 취득(공시 기재), 기존 13762500주는 소각 완료. 금융위 완화로 2027/02/23까지 1일 주문한도를 취득예정주식 전부로 확대 가능(공시 기재). 오늘은 매입 2일째다. 11/25 종가 19380원(research 도구). 52주 고점 대비 -15.4%, 1년 변동성 27%(stock_data). 바깥 관점(일반론): 자사주 매입 중인 저베타 종목은 지수 하락일에 상대 방어가 강하다. 안쪽: 미국 11/25 SOX -0.65%, EWY -1.2%(Yahoo), 반도체 비중 큰 코스피에 불리하다. KOSPI 11/25 종가 확인 못함. 순현금 규모 확인 못함. 금통위 일정 확인 못함(진행자 일정표 기준).",
+     "risks": [
+      "KOSPI가 11/24처럼 급반등하면 저베타 종목은 지수에 뒤처진다",
+      "결의 전일 가격 18230원(공시 기재) 대비 11/25 종가 19380원으로 약 6% 올라 매입 효과가 이미 반영됐을 수 있다",
+      "실적 하향(삼성 계열 예산 축소)이 이어지면 매입만으로 하방을 못 막는다"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000020",
+      "https://query1.finance.yahoo.com/v8/finance/chart/030000.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ESOX?range=10d&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/EWY?range=10d&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-burry-KR",
+     "round_date": "2026-11-27",
+     "market": "KR",
+     "ticker": "095610",
+     "name": "테스",
+     "agent_version": 2,
+     "status": "final",
+     "score": 9.29,
+     "score_price_only": 9.29,
+     "score_excess": 4.95,
+     "benchmark_return": 4.34,
+     "reason": null,
+     "rationale": "구간: 11/26 종가 78600원(research 도구) → 11/27 종가, KOSPI 대비. 일정: 구간 안 실적·배당락 없음(공통 자료 disclosures 기준), 금통위 날짜 확인 못함(진행자 일정표 기준). 바깥 관점(일반론): 자사주 신탁 공시 다음 날은 매수 개시로 하방이 다소 받쳐지지만 공시 당일 반응분만큼 효과가 줄어든다. 안쪽: 비관 합의는 가격에 있다 — 52주 고점 대비 -63.9%, 1개월 -33.9%(stock_data). 원자료는 반대다. 11/26 DART 주요사항보고서: 160억원 자사주 신탁(11/26~2027/2/25, 신한투자증권), 예정 208333주로 기보유 4.66% 기준 환산 시 발행주식의 약 1.1%(내 계산). 반기 보고서에 없던 추가 결정. Quartr 3분기 요약: 매출 1241억원(전년 676억원), 영업이익 246억원(전년 84억원), 수주잔고 1653억원. 단 순이익은 120억원으로 전년과 비슷 — 영업외 손실 원인은 확인 못함. 부채 919억원 대 자본 4820억원으로 레버리지 낮음. 11/26 가격 반응은 +2.3%(11/25 가격 76800원 기준(공시 기재) 대비)로 크지 않았다. 반대 시나리오: 변동성 111%의 반도체 장비주라 업종 매도가 신탁 매수를 압도.",
+     "risks": [
+      "1년 변동성 111%(stock_data) 반도체 장비주 — 업종 하루 매도에 신탁 매수(일평균 소량)가 묻힐 수 있다",
+      "순이익이 영업이익 급증과 달리 정체 — 영업외 손실(교환사채 평가 등 추정, 확인 못함)이 반복될 수 있음",
+      "2회차 교환사채 잔여 교환대상 179194주(DART 기재) 물량 부담"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261126000283",
+      "https://quartr.com/events/tes-co-ltd-095610-q3-2026_FMaCBclj",
+      "https://query1.finance.yahoo.com/v8/finance/chart/095610.KQ?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-burry-US",
+     "round_date": "2026-11-27",
+     "market": "US",
+     "ticker": "ADBE",
+     "name": "Adobe",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.84,
+     "score_price_only": 0.84,
+     "score_excess": -0.78,
+     "benchmark_return": 1.62,
+     "reason": null,
+     "rationale": "구간: 11/25 종가 232.83달러(research 도구) → 11/27 종가(블랙프라이데이 조기 폐장 예정, 진행자 일정표 기준), SPY 11/25 종가 716.7달러(research 도구). 일정: 실적은 12월 예정으로 구간 밖(정확한 날짜 확인 못함), 배당 없음, 11/27 거시 지표 확인 못함. 바깥 관점(일반론): 조기 폐장일은 거래량이 얇아 개별 종목 하루 방향성이 약하다. 안쪽: 비관 합의는 'AI가 크리에이티브 SW 잠식' — 1년 -27.0%, 52주 고점 대비 -34.9%, 3개월 -19.5%(stock_data). 원자료는 반박한다. SEC 8-K(분기 말 2026/8/28): 매출 67.6억달러(+13%), 영업현금흐름 25.2억달러, 분기 약 950만주 자사주 매입, FY26 비GAAP EPS 가이던스 24.45~24.50달러. 기준 종가 기준 비GAAP PER 약 9.5배(내 계산). 단 현금+단기투자 56.4억 대 부채 63.6억달러로 소폭 순부채 — 깊은 가치는 아니다. 11/24→11/25 ADBE +0.3%, SPY -0.3%(research 도구 값으로 계산)로 매도 압력은 둔화. 11/25 장 마감 뒤~오늘 아침 새 기사는 확인 못함(중립). 촉매 없어 확률은 기준선 근처. US 관망 불가 규칙상 실종목.",
+     "risks": [
+      "AI 잠식 내러티브의 하락 추세(3개월 -19.5%)가 얇은 거래 속 이어질 수 있다",
+      "비GAAP EPS는 주식보상비용 제외 — GAAP 기준 PER은 더 높다(GAAP EPS 가이던스 18.12~18.17달러, 8-K)",
+      "12월 실적 전 포지션 정리 매도와 금리 급등 시 성장주 약세"
+     ],
+     "sources": [
+      "https://www.sec.gov/Archives/edgar/data/0000796343/000079634326000147/adbeex991q326.htm",
+      "https://query1.finance.yahoo.com/v8/finance/chart/ADBE?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d"
+     ]
+    }
+   ],
+   "provisional_or_pending": 0,
+   "update_plan": {
+    "status": "frozen",
+    "reason": "한국 리그 1등 — 이번 주 지침 동결",
+    "ranks": {
+     "KR": {
+      "rank": 1,
+      "of": 10,
+      "scored": 5,
+      "avg": 3.29,
+      "top": true,
+      "out": false
+     },
+     "US": {
+      "rank": 8,
+      "of": 10,
+      "scored": 4,
+      "avg": 0.29,
+      "top": false,
+      "out": false
+     }
+    }
+   }
+  },
+  {
+   "rank": 3,
+   "agent_id": "dalio",
+   "label": "거시형",
+   "version": 2,
+   "avg": 1.25,
+   "avg_excess": 0.47,
+   "scored": 9,
+   "expected": 9,
+   "submit_rate": 100.0,
+   "held_or_pending": 0,
+   "void": 0,
+   "markets": {
+    "KR": {
+     "avg": 1.01,
+     "scored": 5,
+     "avg_excess": 0.71,
+     "sum_raw": 5.050000000000001,
+     "median": -0.59,
+     "min": -1.84,
+     "expected": 5,
+     "picks": 5,
+     "watch": 0,
+     "real_avg": 1.01,
+     "real_scored": 5,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    },
+    "US": {
+     "avg": 1.56,
+     "scored": 4,
+     "avg_excess": 0.17,
+     "sum_raw": 6.24,
+     "median": 1.5,
+     "min": 0.14,
+     "expected": 4,
+     "picks": 4,
+     "watch": 0,
+     "real_avg": 1.56,
+     "real_scored": 4,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    }
+   },
+   "picks": [
+    {
+     "pick_id": "2026-11-23-claude-dalio-KR",
+     "round_date": "2026-11-23",
+     "market": "KR",
+     "ticker": "033780",
+     "name": "KT&G",
+     "agent_version": 2,
+     "status": "final",
+     "score": -1.22,
+     "score_price_only": -1.22,
+     "score_excess": 2.09,
+     "benchmark_return": -3.31,
+     "reason": null,
+     "rationale": "국면 판단: 성장↓·인플레/금리 고착(미 10년물 11/20 4.912%, research 도구)의 디레버리징 국면이다. KOSPI는 11/20 종가 4869.96(research 도구)로 52주 고점 대비 -46.6%, 1년 변동성 56.7%(stock_data). 핵심 거시 사실: KR 11/20 15:30 마감 뒤 미국 SPY가 11/20 715.87→689.81(-3.6%), VIX 28.4→35.9로 급등했고 금(GLD)까지 동반 하락해 '모든 자산 매도'형 유동성 압박이 나타났다(Yahoo 일별, 진행자 일정표상 11/23 거시 일정 확인 못함). 따라서 월요일 한국은 이 충격을 뒤늦게 반영할 가능성이 크고, 이런 날엔 저베타 경기방어·배당주가 지수를 이기는 경향이 있다(일반론). KT&G는 11/20 종가 181000원(research 도구), 3개월 +4.3% vs KOSPI -24.7%, 200일선 위(stock_data)로 이번 하락장에서 상관관계가 가장 낮은 축이었다. 내수·담배 현금흐름이라 AI·반도체 쇼크와 원화 변동 노출이 작다. 공통 자료 DART 공시(11/9~11/22)에서 KT&G 관련 공시는 확인되지 않음(공시 미확인=특이 이벤트 없음). 확률: 하락 지속 55%(KT&G 우위), 급반등 30%(열위), 혼조 15%.",
+     "risks": [
+      "일요일 저녁 미 선물 반등·저가매수로 KOSPI가 고베타(반도체) 중심 급반등하면 방어주는 상대 열위",
+      "외국인 대규모 디레버리징 시 우량 대형 방어주도 현금화 대상으로 매도될 수 있음",
+      "KT&G 개별 공시·뉴스가 08:30 이후 나오면 반영 못함"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/033780.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=1mo&interval=1d",
+      "https://news.mtn.co.kr/article/2026111716073431251"
+     ]
+    },
+    {
+     "pick_id": "2026-11-23-claude-dalio-US",
+     "round_date": "2026-11-23",
+     "market": "US",
+     "ticker": "PG",
+     "name": "Procter & Gamble",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.14,
+     "score_price_only": 0.14,
+     "score_excess": -4.57,
+     "benchmark_return": 4.71,
+     "reason": null,
+     "rationale": "국면 판단: 성장↓(AI 수익성 우려·주가 급락)과 인플레/금리 고착(10년물 11/20 4.912%, research 도구, 52주 범위 3.96~5.31)이 겹친 스태그플레이션형 디레버리징 초입으로 본다. SPY는 11/20 종가 689.81달러(research 도구)로 50일선 760.03·200일선 730.29 아래, 52주 고점 대비 -11.5%(stock_data). 11/20 하루 SPY -3.6%, VIX 35.9인데 PG는 167.85→169.37(+0.9%), 필수소비재 XLP도 +0.7%로 역상관이 확인됐다(Yahoo 일별). PG 11/20 종가 169.37달러(research 도구). 주의: VIX 급등 다음 거래일은 반등과 추가 하락이 모두 흔해 방향 예측력이 낮다(일반론). 그래서 방향 베팅이 아니라 분산 관점의 저베타 헤지 카드다. 지수가 또 밀리면 PG가 이기고, 강반등하면 진다. 관망(WATCH)은 지수 반등 시 그대로 손실이라 저베타 실물 종목이 위험 대비 낫다. 시나리오: 추가 하락·혼조 50%(PG 우위), 반등 50%(PG 열위, 단 하락폭 작음). 구간 안 PG 실적·배당락: 확인 못함(진행자 일정표 기준 11/23 거시 일정도 확인 못함).",
+     "risks": [
+      "VIX 36 이후 기술주 중심 숏커버링 반등이 나오면 저베타 PG는 지수에 크게 뒤짐",
+      "금리 재상승 시 채권대용 성격의 필수소비재가 동반 매도될 수 있음",
+      "추수감사절 주간 거래량 축소로 변동성 확대"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/PG?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=1mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/XLP?range=1mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-dalio-KR",
+     "round_date": "2026-11-24",
+     "market": "KR",
+     "ticker": "000660",
+     "name": "SK하이닉스",
+     "agent_version": 2,
+     "status": "final",
+     "score": 6.73,
+     "score_price_only": 6.73,
+     "score_excess": 0.41,
+     "benchmark_return": 6.32,
+     "reason": null,
+     "rationale": "4분면: 성장 둔화 + 인플레 완화로 넘어가는 국면(미10년물 11/23 4.918%(research 도구), 11/13 5.15% 근처에서 내려옴. WTI 선물 80.28달러로 하루 -4.4%, stock_data). 구간 안 가장 큰 거시 변수는 11/23 미국장 위험선호 급반전이다. SPY 11/23 종가 722.29달러(research 도구), 하루 +4.7%. VIX 35.9→26.6, SOXX +13.6%, MU +19.0%, EWY +10.1%(Yahoo 차트, 자체 계산). 한국 11/23 정규장은 이 반등 전에 마감했고, SK하이닉스는 11/23 종가 1085000원(research 도구)으로 2거래일 -8.3%였다. 오늘 KOSPI 갭 상승은 반도체 베타가 주도할 것이고, 하이닉스의 1년 변동성은 92.6%로 KOSPI(56.7%)보다 시장 민감도가 크다(stock_data). 원/달러 11/23 1340.87(research 도구)로 안정적이라 외국인 환차손 부담이 작다(참고 신호). 공통 자료 DART 공시(11/10~11/23)에 하이닉스 건은 없고, 실적·배당락은 구간 밖이다. KOSPI 11/23 기준 종가는 확인 못함. 바깥 관점(일반론): 미국 반도체가 급반등한 다음 날 한국 반도체는 갭 상승 뒤 장중 일부를 되돌리는 일이 흔하다. 분산: 같은 날 미국 후보는 저베타 WMT로 잡아 위험을 맞춘다.",
+     "risks": [
+      "갭 상승 뒤 외국인 차익실현으로 장중 되밀려 지수 상승률 밑으로 마감",
+      "덜 내린 대형주로 순환매가 일어나 삼성전자가 반등을 주도하고 하이닉스는 상대 열위",
+      "NVDA 지배구조 등 AI 단일 요인 반등이라 아시아 장중 미 선물이 되돌려지면 고베타 종목이 더 크게 하락"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/000660.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/EWY?range=1mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/MU?range=1mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SOXX?range=1mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?range=1y&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-dalio-US",
+     "round_date": "2026-11-24",
+     "market": "US",
+     "ticker": "WMT",
+     "name": "Walmart",
+     "agent_version": 2,
+     "status": "final",
+     "score": 2.11,
+     "score_price_only": 2.11,
+     "score_excess": 2.6,
+     "benchmark_return": -0.49,
+     "reason": null,
+     "rationale": "4분면 판단은 KR과 같다(성장 둔화 + 인플레 완화로 넘어가는 국면). 11/23 SPY 하루 +4.7%는 NVDA +31.5%, MU +19.0% 등 AI 반도체 한 가지 요인에 쏠린 반등이고, VIX는 26.6으로 여전히 높다(Yahoo 차트, 자체 계산). 오늘 거시 일정은 컨퍼런스보드 소비자신뢰지수(11/24 10:00 ET, 진행자 일정표 기준, 컨센서스 확인 못함)와 추수감사절 직전 소비 시즌이다. 유가 하락(WTI 선물 80.28달러, -4.4%, stock_data)은 저소득 소비자의 가처분소득을 늘려 WMT에 유리하다. WMT는 11/23 종가 129.58달러(research 도구)로, 11/20 위험회피일 +1.5%, 11/23 위험선호일 +1.3%를 기록해 지수와 상관이 낮았다. 3분기 실적은 11/19 06:00 CST에 발표돼 구간 밖이다(회사 공지). 연간 가이던스 상향은 검색 요약으로만 확인했다. 바깥 관점(일반론): 초대형 반등 다음 날 지수 방향은 반반에 가깝고, 반락하면 저베타 필수소비재가 상대적으로 낫다. 지수가 더 급등하면 WMT가 뒤처지므로 확률은 0.52로 낮게 둔다. KR 하이닉스(고베타)와 짝을 지어 위험을 균형 있게 맞춘 선택이다.",
+     "risks": [
+      "AI 반도체 반등이 이어져 지수가 추가 급등하면 저베타 WMT가 지수에 뒤처짐",
+      "소비자신뢰지수가 크게 나오면 경기민감 소비재로 자금 이동, 필수소비재 상대 약세",
+      "미10년물 반등(4.9%대→5%대)으로 방어주 밸류에이션 압박"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/WMT?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://finviz.com/news/421667/walmart-to-host-third-quarter-earnings-conference-call-november-19-2026",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?range=1y&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-dalio-KR",
+     "round_date": "2026-11-25",
+     "market": "KR",
+     "ticker": "015760",
+     "name": "한국전력",
+     "agent_version": 2,
+     "status": "final",
+     "score": -0.59,
+     "score_price_only": -0.59,
+     "score_excess": 5.57,
+     "benchmark_return": -6.16,
+     "reason": null,
+     "rationale": "국면 판단: 성장 하락×인플레 둔화로 이동 중(유가 CL=F 11/13 88.56→11/24 81.68, 10년물 5.15→4.904%). KOSPI는 52주 고점 대비 -48%(stock_data 11/23 4708.54)로 반도체 주도 디레버리징 국면, 외국인 순매도(검색 요약). 새 신호: 간밤 미국 반도체 SOXX 11/24 -8.3%, NVDA -5.9%(stock_data). 원칙: 지수가 레버리지 해소로 흔들릴 때는 지수 상관이 낮고 거시 비용 변수(유가·환율)에 묶인 자산으로 위험을 나눈다. 한국전력은 60일 KOSPI 상관 0.33·베타 0.31(삼성전자 0.96·1.25), 전일 SOXX 대비 시차 베타 0.12(KOSPI 0.43). 최근 1년 SOXX -5% 이하 다음 한국 거래일 15회 중 한국전력이 KOSPI를 이긴 날 10회(stock_data 자체 계산, 표본 작음·사후 표본). 원·달러 11/24 1340.38(research 도구), 유가 하락은 연료비 부담 완화 방향. 11/24 종가 25400원(research 도구). 안쪽: disclosures상 11/12 3분기 잠정실적 외 구간 안 공시 없음(중립). 확률: 지수 하락/보합 60%(유리), 반도체 급반등 40%(불리).",
+     "risks": [
+      "반도체 주도 KOSPI 급반등 시 저베타로 지수 대비 열위",
+      "유가·원화 반전(원·달러 급등) 시 연료비 기대 악화",
+      "정책 요금 불확실성과 높은 부채(확인 못함, 일반론)"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/015760.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SOXX?range=1y&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-dalio-US",
+     "round_date": "2026-11-25",
+     "market": "US",
+     "ticker": "DHI",
+     "name": "D.R. Horton",
+     "agent_version": 2,
+     "status": "final",
+     "score": 3.09,
+     "score_price_only": 3.09,
+     "score_excess": 3.38,
+     "benchmark_return": -0.29,
+     "reason": null,
+     "rationale": "국면 판단: 성장 둔화×인플레 정점 통과. 10년물 11/13 5.154%→11/24 4.904%(research 도구), 유가 하락, SPY 1m -6.09%. 원칙: 금리 하락 국면에는 금리 듀레이션이 가장 긴 주식이 지수와 다른 위험원으로 움직인다. DHI는 60일 기준 TNX 변화와 상관 -0.68(베타 -1.48), SPY 상관 0.11로 포트폴리오 분산 효과가 크다(stock_data 계산). 11/24 종가 152.17달러(research 도구), SPY 11/24 종가 718.78달러(research 도구) 대비 이틀 연속 상대 강세. 구간 촉매: 추수감사절 전날 경제지표 묶음(실업수당·GDP 수정치·내구재·PCE 예년 기준, 2026년 일정·컨센서스 확인 못함, 진행자 일정표 기준). 약하면 금리 하락→DHI 유리, 강하면 반대. 바깥 관점(일반론): 연휴 직전 거래량 감소, 큰 상대강세 다음 날 일부 되돌림 경향. 안쪽: 모기지 금리 7% 안팎·NAHB 심리 약세(검색 요약, 11월 중순)라 펀더멘털은 악재, 금리 방향이 하루 가격을 지배. 확률: 금리 하락 지속 55%, 반등 45%.",
+     "risks": [
+      "11/25 지표 강세로 10년물 반등 시 금리 베타가 커 크게 하락",
+      "이틀 연속 강한 상대 상승 뒤 차익실현 되돌림",
+      "모기지 금리 7% 안팎과 주택 수요 약화라는 펀더멘털 악재"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/DHI?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-26-claude-dalio-KR",
+     "round_date": "2026-11-26",
+     "market": "KR",
+     "ticker": "010950",
+     "name": "S-Oil",
+     "agent_version": 2,
+     "status": "final",
+     "score": 1.97,
+     "score_price_only": 1.97,
+     "score_excess": 1.68,
+     "benchmark_return": 0.29,
+     "reason": null,
+     "rationale": "원칙1 국면: 성장↓(S&P500 50일선 아래, SOX 52주 고점 대비 -40%)×인플레↑(WTI 11/25 84.16달러, 美10년 4.85%)=스태그플레이션 쪽 4분면, 원자재 민감 업종이 상대 우위. 원칙2 구간 거시: 미국 11/25 정규장 WTI +2.6%(82.05→84.16), 10년물 4.90→4.85%, SOX -0.65%, 원달러 1343.58(보합, stock_data). 11/24 SOX -7.9% 충격은 11/25 한국 반도체 급락(stock_data 기준 SK하이닉스 -11%, 삼성전자 -9.9%)에 이미 반영. 원칙3 분산: S-Oil 60일 KOSPI 상관 0.26, 베타 0.35(stock_data 계산) — 반도체 쏠림 지수와 다른 위험 요인. 11/25 종가 96300원(research 도구), 반도체 급락일에도 상승 마감(stock_data). 3분기 영업익 1.41조원, 중동·러시아 정제설비 차질로 4분기 정제마진 강세 전망(ZDNet 11/2, 공시 원문 미확인). 1개월 -23.8%로 유가와 괴리. 바깥 관점(일반론): 유가 상승 다음 날 정유주는 상대 강세 경향. 구간 안 공시·배당락 없음(snapshot disclosures). 금통위 일정 확인 못함(진행자 일정표 기준).",
+     "risks": [
+      "반도체 낙폭 과대 반등으로 KOSPI가 크게 오르면 저베타 종목은 지수에 뒤처짐(가장 그럴듯한 반대 시나리오, 확률 약 40%)",
+      "미국 휴장으로 유가 신호 부재·국내 최고가격제 보상 등 정책 변수, 외국인 매도 확대 시 대형주 동반 하락",
+      "KOSPI 11/25 종가 확인 못함(research 도구 기준일 행 없음) — 지수 대비 위치 판단 불완전"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/010950.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/CL=F?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ESOX?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=1y&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/KRW=X?range=1y&interval=1d",
+      "https://zdnet.co.kr/view?no=20261102173253"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-dalio-KR",
+     "round_date": "2026-11-27",
+     "market": "KR",
+     "ticker": "033780",
+     "name": "KT&G",
+     "agent_version": 2,
+     "status": "final",
+     "score": -1.84,
+     "score_price_only": -1.84,
+     "score_excess": -6.18,
+     "benchmark_return": 4.34,
+     "reason": null,
+     "rationale": "국면: 성장↓·인플레 둔화 초입(디레버리징형 둔화)으로 본다. AI 투자 과잉 우려로 KOSPI는 52주 고점 대비 -48.5%, 1년 변동성 57%(stock_data, 11/25 기준)이고 11/20 -5.2%, 11/24 +6.3%, 11/25 -6.2%로 하루 ±5% 교대가 이어진다. 미 10년물 11/25 4.848%(research 도구)는 한 달 -2.9%, 원/달러 11/25 1342.65(research 도구)는 50일선 부근이라 환율 충격은 작다. 원칙: 변동성이 폭발한 국면에서는 지수와 상관이 낮은 현금흐름 자산으로 위험을 나눈다. KT&G는 11/17~11/26 178800~183700원 범위(stock_data)로 지수 급변과 거의 무관했고 11/26 종가 179500원(research 도구). 3분기 영업이익 5301억원·연 주당배당 8000원·4년 5조원 환원은 검색 요약(공시 직접 미확인). 11/13 이후 DART disclosures에 KT&G 공시 없음. 오늘 승패는 지수 방향에 달려 있어(하락일 승, 급반등일 패) 확률은 대칭에 가깝게 둔다. 11/26 KOSPI 종가와 11/26 금통위 개최·결과는 확인 못함.",
+     "risks": [
+      "KOSPI가 반도체 주도로 급반등하면 저베타 종목은 지수에 크게 뒤진다(11/24 +6.3% 같은 날)",
+      "11/26 거래량이 평소 약 2배로 늘며 -2.0% 하락한 이유 확인 못함 — 외국인 차익 매도 지속 가능",
+      "금통위 결과(확인 못함)가 금리 인상이면 배당주 할인율 부담"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/033780.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-dalio-US",
+     "round_date": "2026-11-27",
+     "market": "US",
+     "ticker": "WMT",
+     "name": "Walmart",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.9,
+     "score_price_only": 0.9,
+     "score_excess": -0.72,
+     "benchmark_return": 1.62,
+     "reason": null,
+     "rationale": "국면: 성장↓·인플레 둔화 초입. AI 거품 우려로 SPY는 52주 고점 대비 -8.0%, 50일선 757.85 아래(stock_data, 11/25 기준)이고 11/25 종가 716.7달러(research 도구). 미 10년물 11/25 4.848%(research 도구)로 한 달 -2.9%, 11월 중순 5.1%대 고점(검색 요약)에서 내려왔다. 원칙: 성장 둔화+금리 하락 국면에선 경기 방어·필수소비가 위험 대비 유리하고, AI 설비투자 사이클과 상관이 낮은 자산을 섞는다. WMT 11/25 종가 131.94달러(research 도구). 11/16~11/25 SPY가 약 -3.1% 빠지는 동안 WMT는 약 +2.7%(stock_data)로 역상관에 가까웠다. 평가 구간은 11/25 종가→11/27 블랙프라이데이 조기 폐장 종가 한 세션이며, 연말 소비 시작일이라 유통 대형주에 매장·온라인 트래픽 보도가 집중되는 날이다(결과는 모름). 일반론: 휴일 단축장은 거래가 얇고 지수가 약한 상승 편향을 보이는 경향이 있어 방어주가 뒤질 수 있다. 구간 안 WMT 실적 없음으로 보나 확인 못함. 확률은 대칭에 가깝다.",
+     "risks": [
+      "단축장 위험선호 반등(AI 대형주 반등)이면 방어주가 SPY에 뒤진다",
+      "블랙프라이데이 초기 매출·트래픽 보도가 기대에 못 미치면 유통주 동반 약세",
+      "11/24 이후 상대 강세가 이미 반영돼 차익 실현 가능"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/WMT?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?range=3mo&interval=1d"
+     ]
+    }
+   ],
+   "provisional_or_pending": 0,
+   "update_plan": {
+    "status": "eligible",
+    "reason": "같은 유형 판단 오류가 pick_id 2건 이상일 때만 작게(최대 2곳) 업데이트",
+    "ranks": {
+     "KR": {
+      "rank": 6,
+      "of": 10,
+      "scored": 5,
+      "avg": 1.01,
+      "top": false,
+      "out": false
+     },
+     "US": {
+      "rank": 2,
+      "of": 10,
+      "scored": 4,
+      "avg": 1.56,
+      "top": false,
+      "out": false
+     }
+    }
+   }
+  },
+  {
+   "rank": 4,
+   "agent_id": "lynch",
+   "label": "성장형(GARP)",
+   "version": 2,
+   "avg": 0.72,
+   "avg_excess": 0.42,
+   "scored": 5,
+   "expected": 5,
+   "submit_rate": 100.0,
+   "held_or_pending": 0,
+   "void": 0,
+   "markets": {
+    "KR": {
+     "avg": 0.72,
+     "scored": 5,
+     "avg_excess": 0.42,
+     "sum_raw": 3.5900000000000007,
+     "median": -2.05,
+     "min": -3.33,
+     "expected": 5,
+     "picks": 5,
+     "watch": 0,
+     "real_avg": 0.72,
+     "real_scored": 5,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    },
+    "US": {
+     "avg": null,
+     "scored": 0,
+     "avg_excess": null,
+     "sum_raw": 0,
+     "median": null,
+     "min": null,
+     "expected": 0,
+     "picks": 0,
+     "watch": 0,
+     "real_avg": null,
+     "real_scored": 0,
+     "held_or_pending": 0,
+     "active": false,
+     "new_this_week": false
+    }
+   },
+   "picks": [
+    {
+     "pick_id": "2026-11-23-claude-lynch-KR",
+     "round_date": "2026-11-23",
+     "market": "KR",
+     "ticker": "003230",
+     "name": "삼양식품",
+     "agent_version": 2,
+     "status": "final",
+     "score": -3.33,
+     "score_price_only": -3.33,
+     "score_excess": -0.02,
+     "benchmark_return": -3.31,
+     "reason": null,
+     "rationale": "유형: 고성장주(해외 확장형 소비재). 2분 스토리: 불닭은 미국 월마트·멕시코·유럽 매대로 넓어지는 중이고 숫자가 따라온다. 11/6 발표 3분기 매출 7918억원(+25.3%), 영업이익 1962억원(+49.9%), 영업이익률 24.8%(7분기 연속 20%대), 해외매출 6608억원(+29.4%, 미국 2125억 +36.6%, 유럽 869억 +65.5%)(머니투데이 11/6). 그런데 주가는 11/20 종가 1233000원(research 도구)으로 1개월 +0.57%, 52주 고점 대비 -20.3%, 50일선(1221520원) 바로 위(stock_data) — 이익 전망 상향 대비 덜 반영. PEG 추정: 시총 약 9.3조원(2025-11 키움 보고서 시총·주가로 역산, 추정), 연간 영업이익 약 7500억원 가정 시 PER 10배대 중반, 이익성장 40%대 → PEG 0.5 안팎(추정, 컨센서스 PER 확인 못함). 바깥 관점(일반론): 실적 서프라이즈 뒤 주가 반응이 약했던 종목은 이후 같은 방향으로 천천히 따라가는 경향. 안쪽: 11/9~11/22 공통 자료 공시 중 삼양식품 건 없음(중립), 주말 종목 뉴스 확인 못함. 구간 안 실적·배당락·거시 일정 확인 못함(진행자 일정표 기준). 하루짜리 촉매는 없어 확신은 낮게 둔다.",
+     "risks": [
+      "구간 안 뚜렷한 촉매가 없어 하루 수익률은 지수·업종 수급에 좌우되며 1년 변동성 52.9%로 높다",
+      "원가(밀가루·팜유)·환율 변동이나 미국 관세 뉴스가 나오면 수출 소비재 전반이 약세일 수 있다",
+      "반도체 반등 장세에서는 KOSPI가 대형 기술주로 크게 오르며 필수소비재가 상대 열위가 될 수 있다",
+      "11/20 KR 마감 뒤 SPY 11/20 종가 689.81달러(research 도구, -3.6%는 dalio 보고 기준)로 급락해 오늘 KOSPI 갭하락 시 고변동성 종목인 삼양식품도 함께 투매될 수 있다"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/003230.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://www.mt.co.kr/article/2026110615451469302",
+      "https://www.inews24.com/view/2023564",
+      "https://bbn.kiwoom.com/rfCR11742"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-lynch-KR",
+     "round_date": "2026-11-24",
+     "market": "KR",
+     "ticker": "000660",
+     "name": "SK하이닉스",
+     "agent_version": 2,
+     "status": "final",
+     "score": 6.73,
+     "score_price_only": 6.73,
+     "score_excess": 0.41,
+     "benchmark_return": 6.32,
+     "reason": null,
+     "rationale": "유형: 경기순환주(메모리). 린치식으로는 이익 정점의 저PER 함정을 늘 경계하는 유형이지만, 오늘 렌즈는 '이익 전망은 올라갔는데 주가가 덜 반영했나'다. 3분기(10/28 발표) 매출 104.6조원·영업이익 83.3조원(영업이익률 약 80%), 전분기 대비 매출 +32%·영업이익 +38%로 역대 최대, 회사는 메모리 공급 부족이 2030년까지 이어질 것으로 봤다(TechNews 10/28). 그런데 주가는 11/23 종가 1085000원(research 도구)으로 52주 고점 대비 -62.8%, 1개월 -15.0%(stock_data). 바깥 관점(일반론): 미국 반도체 급반등 다음 날 한국 메모리주는 갭 상승하는 경향이 있으나 장중 차익실현으로 되밀리기도 한다. 안쪽: 미국 11/23 MU 707.7달러(11/20 594.51), SOXX 140.22(123.4), EWY 135.72(123.26)(Yahoo 차트). MU는 KR 11/19 하이닉스 1183000원(stock_data) 때 반영된 11/18 수준(705.27)을 되찾았는데 하이닉스는 그보다 약 8% 낮다 — 직전 장 마감 뒤 미국 메모리 강세는 호재(11/23 미국 정규장 종가, KST 11/24 06:00). 반등 원인 뉴스는 확인 못함. 구간 안 공시·배당락 없음(공통 자료). PER·PEG는 주식 수·순이익 컨센서스 미확인으로 계산 못함. 반대 시나리오: 갭 상승 뒤 외국인 차익실현으로 장중 밀려 KOSPI 상승률 아래 마감.",
+     "risks": [
+      "11/23 미국 반등의 원인 뉴스를 확인 못해 하루짜리 기술적 반등이면 갭 상승 뒤 되밀릴 수 있음(1년 변동성 높음)",
+      "경기순환주는 이익 정점 직전 주가가 먼저 꺾이는 유형이라 52주 고점 대비 -63%가 시장이 이익 정점을 반영한 것일 수 있음",
+      "KOSPI 내 비중이 커서 지수와 같이 움직여 초과수익 폭이 작고, 삼성전자가 더 강하면 상대 열위 가능"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/000660.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/MU?range=10d&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SOXX?range=10d&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/EWY?range=10d&interval=1d",
+      "https://finance.technews.tw/2026/10/28/sk-hynixs-third-quarter-revenue-hit-a-record-high-of-over-100-trillion-won/"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-lynch-KR",
+     "round_date": "2026-11-25",
+     "market": "KR",
+     "ticker": "329180",
+     "name": "HD현대중공업",
+     "agent_version": 2,
+     "status": "final",
+     "score": -2.79,
+     "score_price_only": -2.79,
+     "score_excess": 3.37,
+     "benchmark_return": -6.16,
+     "reason": null,
+     "rationale": "유형: 경기순환 성격이 섞인 고성장주(조선·엔진). DART 11/24 월간 공정공시(접수 시각 확인 못함, 11/24 장중 반영 여부 불확실): 10월 매출 2조1890억원(전년동월 +55.7%), 1~10월 누계 20조1343억원(+46.0%), 누계 수주 198.97억달러(+95.1%, 조선 152.75억달러 +124.3%, 엔진기계 44.48억달러 +35.7%). 단 2025년 말 HD현대미포 합병 효과가 섞였을 수 있어(공시 미확인) 순수 성장률은 낮춰 본다. 3분기 영업이익 8992억원(+61.3%, 컨센 하회, 딜사이트 10/30 기사). 그런데 11/24 종가 250500원(research 도구)은 52주 고점 대비 -66%, 3개월 -44.7%(stock_data). 이익·수주는 오르는데 주가는 고점의 3분의 1 수준 - 린치식 '이익과 주가의 괴리'다. PER·PEG는 확인 못함(과열 필터는 주가 급락으로 대체 판단, 추정). 바깥 관점(일반론): 급락 추세 중 하루 반등 다음 날은 방향이 갈리고, 공시가 장중이었다면 일부 반영됐다. 11/24 +5.0%(stock_data)였고 KOSPI 11/24 종가는 도구에서 확인 못함. 확률은 보수적으로 둔다.",
+     "risks": [
+      "KOSPI 급락 국면(11/23까지 6개월 8047→4708, stock_data)에서 고베타 조선주가 지수보다 더 빠질 위험",
+      "월간 실적이 11/24 장중 이미 반영(+5.0%)돼 차익 매물이 나올 위험",
+      "합병 효과로 성장률이 부풀려졌고 중국 조선사 경쟁·선가 둔화·원화 강세로 마진이 꺾일 위험"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124800659",
+      "https://dealsite.co.kr/articles/171664/000000",
+      "https://query1.finance.yahoo.com/v8/finance/chart/329180.KS?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-26-claude-lynch-KR",
+     "round_date": "2026-11-26",
+     "market": "KR",
+     "ticker": "329180",
+     "name": "HD현대중공업",
+     "agent_version": 2,
+     "status": "final",
+     "score": -2.05,
+     "score_price_only": -2.05,
+     "score_excess": -2.34,
+     "benchmark_return": 0.29,
+     "reason": null,
+     "rationale": "유형은 경기순환주(조선 업사이클). 2분 스토리: 배를 더 많이 수주하고 더 많이 짓는데 주가는 반값 이하다. 11/24 공정공시(DART)에서 10월 매출 2조1890억원으로 전년동월 대비 +55.72%, 1~10월 누계 20조1343억원 +46.02%, 누계 수주 198.97억달러로 +95.14%다. 검색 요약에 따르면 3분기 영업이익은 8992억원으로 +61.3%였다. 이익 전망은 오르는데 stock_data 기준 52주 고점 대비 -66.9%, 3개월 -46.5%다. 11/25 종가 243500원(research 도구). 같은 날 반도체가 크게 밀렸다(삼성전자 11/25 종가 170700원·SK하이닉스 11/25 종가 1030000원, research 도구. 둘 다 전일보다 약 -10%, stock_data 비교). 이 종목은 stock_data 비교 약 -2.8%로 덜 빠졌다. 미국 11/25 SOX -0.65%, MU -4.5%(stock_data)라 오늘도 반도체 쪽 부담이 남을 수 있다. 숫자가 받쳐주는 업종이 상대적으로 버틸 가능성에 건다. 바깥 관점(일반론): 급락장 다음 날은 낙폭이 큰 주도주가 먼저 반등하기도 해 방향이 불확실하다. PER·PEG는 확인 못함(시가총액·순이익 컨센서스 미확인). 11/25 KOSPI 종가는 research 도구 '기준일 행 없음'으로 확인 못함.",
+     "risks": [
+      "반도체 대형주가 기술적 반등을 주도하면 지수가 크게 올라 저베타 조선주가 상대적으로 뒤처질 수 있음",
+      "3개월 -46.5%의 하락 추세(이유 미확인: 업황 고점론·원화 강세·순이익 감소 등 가능)가 이어질 수 있음",
+      "오늘 금통위 개최 여부 확인 못함, 고변동 장세(1년 변동성 59.5%)"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124800659",
+      "https://query1.finance.yahoo.com/v8/finance/chart/329180.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/005930.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/000660.KS?range=3mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-lynch-KR",
+     "round_date": "2026-11-27",
+     "market": "KR",
+     "ticker": "329180",
+     "name": "HD현대중공업",
+     "agent_version": 2,
+     "status": "final",
+     "score": 5.03,
+     "score_price_only": 5.03,
+     "score_excess": 0.69,
+     "benchmark_return": 4.34,
+     "reason": null,
+     "rationale": "유형은 경기순환주(조선 업사이클). 2분 스토리: 배를 더 많이 수주하고 더 많이 짓는데 주가는 고점의 3분의 1이다. 11/24 공정공시(DART)에서 10월 매출 2조1890억원(전년동월 +55.72%), 1~10월 누계 매출 20조1343억원(+46.02%), 누계 수주 198.97억달러(+95.14%, 조선 152.75억달러 +124.30%)다. 다만 전년 비교에 HD현대미포 합병 효과가 섞였을 수 있다(확인 못함). 11/26 종가 238500원(research 도구)으로 stock_data 기준 52주 고점 대비 -67.6%, 50일선 336220원 아래, 1개월 -16.5%. 구간 안 실적·배당락·자사주 공시 없음(공통 자료 disclosures), 금통위 날짜 확인 못함(진행자 일정표 기준). KOSPI 11/26 기준값은 도구에서 기준일 행 없음. 바깥 관점(일반론): 하락 추세 종목의 하루 반등 확률은 동전 던지기에 가깝다. 안쪽 관점: 11/26 아침 이후 새 공시·뉴스 확인 못함, 판정 중립. 이익 전망과 주가의 괴리는 크지만 오늘 하루 촉매는 없어 확률은 기준선 근처로 둔다. PER·PEG는 확인 못함.",
+     "risks": [
+      "52주 신저가 갱신이 이어지는 하락 추세라 매도세가 하루 더 이어질 수 있다",
+      "반도체가 급반등하면 KOSPI를 끌어올려 상대 열위가 된다",
+      "전년 대비 성장률이 합병 효과로 부풀려졌다면 이익 모멘텀 해석이 과장된다"
+     ],
+     "sources": [
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124800659",
+      "https://query1.finance.yahoo.com/v8/finance/chart/329180.KS?range=3mo&interval=1d"
+     ]
+    }
+   ],
+   "provisional_or_pending": 0,
+   "update_plan": {
+    "status": "eligible",
+    "reason": "같은 유형 판단 오류가 pick_id 2건 이상일 때만 작게(최대 2곳) 업데이트",
+    "ranks": {
+     "KR": {
+      "rank": 7,
+      "of": 10,
+      "scored": 5,
+      "avg": 0.72,
+      "top": false,
+      "out": false
+     }
+    }
+   }
+  },
+  {
+   "rank": 5,
+   "agent_id": "momentum",
+   "label": "모멘텀형",
+   "version": 1,
+   "avg": 0.3,
+   "avg_excess": -0.48,
+   "scored": 9,
+   "expected": 9,
+   "submit_rate": 100.0,
+   "held_or_pending": 0,
+   "void": 0,
+   "markets": {
+    "KR": {
+     "avg": 0.19,
+     "scored": 5,
+     "avg_excess": -0.1,
+     "sum_raw": 0.9600000000000001,
+     "median": -0.1,
+     "min": -3.5,
+     "expected": 5,
+     "picks": 5,
+     "watch": 0,
+     "real_avg": 0.19,
+     "real_scored": 5,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    },
+    "US": {
+     "avg": 0.44,
+     "scored": 4,
+     "avg_excess": -0.94,
+     "sum_raw": 1.7799999999999998,
+     "median": -0.51,
+     "min": -1.96,
+     "expected": 4,
+     "picks": 4,
+     "watch": 0,
+     "real_avg": 0.44,
+     "real_scored": 4,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": true
+    }
+   },
+   "picks": [
+    {
+     "pick_id": "2026-11-23-claude-momentum-KR",
+     "round_date": "2026-11-23",
+     "market": "KR",
+     "ticker": "003490",
+     "name": "대한항공",
+     "agent_version": 1,
+     "status": "final",
+     "score": -3.5,
+     "score_price_only": -3.5,
+     "score_excess": -0.19,
+     "benchmark_return": -3.31,
+     "reason": null,
+     "rationale": "11/20 종가 31400원(research 도구). stock_data 수정주가 기준(1m=21거래일, 3m=63, 6m=126 전 대비) 수익률 1m +18.7%·3m +25.4%·6m +22.9%, 같은 계산 KOSPI(11/20 4869.96, research 도구)는 -12.0%·-24.7%·-35.2% → 상대강도 차 +30.7·+50.1·+58.1%p. 50일선 +6.2%, 200일선 +17.9% 위, 52주 고점 대비 -3.2%. 유니버스 KR 중 거래대금 20일 평균 100억원 이상 179종목 가운데 200일선 위는 23개뿐인 하락장에서 드문 상승 추세 유지. 20일 평균 거래대금 약 862억원으로 유동성 충분, 최근 5일 거래량은 3개월 평균의 0.8배(과열 매수 아님). 실적 모멘텀: 3분기 매출 5조448억원(분기 최대, 전년비 약 +26%), 영업이익 4212억원(+11.9%), 10/15 보도 기준(검색 요약, 공시 미확인). 12/17 아시아나 통합 출범 예정(기사 기준). 11/20 하루 -3.24%, 5일 -0.5%로 단기 숨고르기 상태. 모회사 한진칼은 경영권 지분 경쟁으로 1개월 +95.5%(수직 상승, 추격 대상 제외). 2단계 추가: 6개월 일간 베타 0.33, KOSPI -3% 이하 31일 모두 초과(평균 +4.61%p). 평가일 촉매 없음 — 약한 하루 우위.",
+     "risks": [
+      "KOSPI 1개월 -12%의 급락장: 시장 하락 베타와 투매가 개별 상대강도를 압도할 수 있음",
+      "한진칼 경영권 분쟁 뉴스가 그룹주 변동성을 키워 하루 방향을 뒤집을 수 있음(11/20 대한항공 -3.24%)",
+      "유가·환율 변동과 통합 비용으로 4분기 이익률 둔화 가능(3분기 영업이익률 8.3%, 전년 9.4%)",
+      "KOSPI 급락 다음 날 평균 초과수익 -0.32%p(6개월 31회, stock_data 일봉 계산): 지수 반등 시 저베타 열위"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/003490.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://news.mtn.co.kr/article/2026101516173926933",
+      "https://dealsite.co.kr/articles/170759",
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261118800330",
+      "https://biz.sbs.co.kr/amp/article/20000344020"
+     ]
+    },
+    {
+     "pick_id": "2026-11-23-claude-momentum-US",
+     "round_date": "2026-11-23",
+     "market": "US",
+     "ticker": "MCK",
+     "name": "McKesson",
+     "agent_version": 1,
+     "status": "final",
+     "score": -1.96,
+     "score_price_only": -1.96,
+     "score_excess": -6.67,
+     "benchmark_return": 4.71,
+     "reason": null,
+     "rationale": "11/20 종가 1069.4301달러(research 도구). stock_data 수정주가 기준(1m=21거래일, 3m=63, 6m=126 전 대비) 1m +5.6%·3m +22.5%·6m +39.9%, SPY(11/20 689.81달러, research 도구) 같은 계산 -9.7%·-9.4%·-7.0% → 상대강도 차 +15.3·+31.9·+46.9%p. 50일선 +9.8%, 200일선 +21.7% 위, 52주 고점 대비 -3.2%. SPY는 200일선 아래(고점 -11.5%)인데 MCK는 고점권 유지. 20일 평균 거래대금 약 7.6억달러, 5일 거래량은 3개월 평균의 0.95배로 과열 신호 없음. 실적 모멘텀: 11/4 장 마감 후 FY27 2분기 발표, 조정 EPS 11.68달러(+18%), 매출 1109.6억달러(+7.6%), 연간 조정 EPS 가이던스 44.20~45.00 → 45.60~46.40달러로 상향(검색 요약·Finviz 헤드라인 기준). 발표 뒤 가격이 고점권을 지켜 실적이 추세를 뒷받침. Yahoo 일봉 거래량은 정규장 기준이며 시간외 거래량은 별도 확인 못함. 분할 이벤트 없음(확인 범위 내). 2단계 추가: 6개월 일간 베타 -0.24, SPY -1.5% 이하 8일 중 7일 초과. 평가 구간 촉매 없음.",
+     "risks": [
+      "SPY 1개월 -9.7% 하락장에서 시장 전반 매도가 방어주까지 확산될 위험",
+      "리더십 종목의 로테이션: 시장 반등 시 방어·헬스케어에서 낙폭과대 성장주로 자금 이동해 상대 부진 가능",
+      "약가·GLP-1 관련 정책 뉴스와 MedSurg 부문 부진(가이던스 -4%~0%)이 헤드라인 리스크",
+      "SPY 급락 다음 날 평균 초과수익 -0.59%p(6개월 8회, 표본 작음): 11/20 SPY -3.64% 뒤 반등 시 열위"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/MCK?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://finviz.com/news/416008/mckesson-reports-fiscal-2027-second-quarter-results-and-raises-full-year-adjusted-eps-guidance",
+      "https://247wallst.com/cards/mckesson-q2-2027-earnings-mck-01m6m9wn1b6ej7k7we1rxpsx3k"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-momentum-KR",
+     "round_date": "2026-11-24",
+     "market": "KR",
+     "ticker": "030530",
+     "name": "원익홀딩스",
+     "agent_version": 1,
+     "status": "final",
+     "score": -2.18,
+     "score_price_only": -2.18,
+     "score_excess": -8.5,
+     "benchmark_return": 6.32,
+     "reason": null,
+     "rationale": "11/23 종가 32050원(research 도구). stock_data(Yahoo 수정주가) 기준 1·3·6개월(21·63·126거래일) 수익률 +44.4%·+59.5%·+26.2%. KOSPI는 11/20까지 -12.0%·-24.7%·-35.2%여서 기간이 하루 어긋나고, 상대강도는 +56%p·+84%p·+61%p다. 50일선(27316) +17.3%, 200일선(26977) +18.8%. 52주 고점(48700) 대비 -34%로 고점 근처는 아니다. 11/18 거래량은 1038만주로 20일 평균(약 429만주)의 2.4배였고, 11/02 고점을 넘는 돌파였다. 11/20 -11.0% 뒤 11/23 KOSPI 대형주가 -3~7% 밀린 날(stock_data) +2.9%로 상대강도를 유지했다. 바꾼 이유는 국면이다. 11/23 미국장에서 SPY +4.7%, EWY +10.1%, NVDA +31.5%, VIX 35.9→26.6(Yahoo 일봉, 자체 계산)으로 반도체가 이끈 위험선호가 크게 돌아섰다. 11/24 KOSPI 갭 상승 가능성이 높아 고베타 반도체 관련 주도주가 유리하다고 본다(추정). 실적 모멘텀은 확인 못함.",
+     "risks": [
+      "1년 변동성 106%(stock_data). 테마성 급등락이라 갭 상승 뒤 차익 매물로 지수보다 약하게 마감할 수 있음",
+      "52주 고점 대비 -34%. 장기 추세는 회복 중이라 정통 모멘텀 기준(고점 근처)에는 맞지 않음",
+      "11/10 종속회사 유상증자 결정 기재정정 공시(공통 자료 disclosures 목록, 원문 미열람)에 따른 희석·수급 부담",
+      "미국 반등이 하루짜리로 끝나 반도체가 장중 되밀리면 하락폭도 지수보다 클 수 있음"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/030530.KQ?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/EWY?range=1mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/NVDA?range=1mo&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-momentum-US",
+     "round_date": "2026-11-24",
+     "market": "US",
+     "ticker": "REGN",
+     "name": "Regeneron Pharmaceuticals",
+     "agent_version": 1,
+     "status": "final",
+     "score": 4.76,
+     "score_price_only": 4.76,
+     "score_excess": 5.25,
+     "benchmark_return": -0.49,
+     "reason": null,
+     "rationale": "11/23 종가 942.24달러(research 도구), 당일 +2.3%. 같은 날 SPY는 +4.7%여서 반등장에서는 상대적으로 뒤처졌다. stock_data(Yahoo 수정주가) 기준 1·3·6개월(21·63·126거래일) 수익률 +17.2%·+13.2%·+48.8%. 같은 기간 SPY는 -5.0%·-5.5%·-3.3%(11/23까지)로 상대강도는 +22%p·+19%p·+52%p다. 50일선 +13.3%, 200일선 +25.6%, 52주 고점 대비 -3.1%. 11/11 돌파일(959.41) 거래량은 123만주로 20일 평균의 약 1.4배였고, 이후 920~958 사이에서 거래량이 줄며 다지는 중이다(11/23은 0.73배, 정규장 일봉 기준, 시간외 거래량 확인 못함). 실적 모멘텀은 강하다. 10/30 발표한 3분기 매출은 51.16억달러로 +36%, non-GAAP EPS는 20.07달러로 +70%였다. 제품 매출총이익률 가이던스도 상향했다(MFN 보도자료). 컨센서스 대비 EPS 약 +23%는 검색 요약이다. 20일 평균 거래대금은 약 10억달러로 유동성 문제가 없다.",
+     "risks": [
+      "11/23 +2.3% 반등 직후라 하루 되돌림이 나올 수 있고, 11/11 고점(959) 부근 매물이 있음",
+      "방어적 헬스케어로 자금이 쏠린 상황. SPY가 기술주 중심으로 반등하면 상대수익률이 불리함",
+      "11/24 10:00 ET 소비자신뢰지수(진행자 일정표 기준) 발표에 따른 지수 변동",
+      "11/23 반등 때 REGN +2.3% 대 SPY +4.7%. 위험선호 2일차로 이어지면 방어적 주도주가 지수를 밑돌 수 있음"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/REGN?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://mfn.se/all/a/regeneron/regeneron-reports-third-quarter-2026-financial-and-operating-results-c76bcf40"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-momentum-KR",
+     "round_date": "2026-11-25",
+     "market": "KR",
+     "ticker": "068270",
+     "name": "셀트리온",
+     "agent_version": 1,
+     "status": "final",
+     "score": 3.83,
+     "score_price_only": 3.83,
+     "score_excess": 9.99,
+     "benchmark_return": -6.16,
+     "reason": null,
+     "rationale": "상대강도 1위(대형주 50종목 스크린). 계산: stock_data 수정주가, 1m=21·3m=63·6m=126거래일. 셀트리온(11/24까지) 1m +10.0% 3m +8.7% 6m +22.3%, KOSPI(Yahoo 11/24 행 없음, 11/23까지) -15.2/-31.3/-35.2% → 초과 +25/+40/+58%p. 50일선 +8.8%, 200일선 +9.8%로 스크린 내 둘 뿐인 정배열 대형주, 52주 고점 대비 -11.7%로 과열 아님. 11/24 종가 209000원(research 도구), 당일 +3.5%. 실적 뒷받침: 3분기 매출 1조5755억원(+53.1%), 영업이익 5253억원(+74.3%), 잠정치 상회(데일리팜 10/27, DART 공시 원문 미확인). 공통 자료 공시: 11/13 자기주식취득결과보고서. 약점: 11/24 반등장에서 다수 대형주 +5~15%인데 셀트리온은 +3.5%, 거래량 20일 평균 0.63배로 돌파 확인 신호 없음. 하루 수익은 KOSPI 반등 지속 시 상대 열위 가능 — 추세 확률에 거는 선택.",
+     "risks": [
+      "KOSPI 급락 뒤 위험선호 반등이 이어지면 방어적 주도주가 지수 대비 뒤처질 수 있음(11/24 +3.5%로 다수 대형주 대비 열위)",
+      "11/24 거래량 20일 평균 대비 0.63배로 매수세 확인 약함",
+      "KOSPI 11/24 기준 종가 확인 못함 — 상대강도는 11/23 지수 기준이라 하루 어긋남"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/068270.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://dailypharm.com/user/news/343847",
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261113000215"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-momentum-US",
+     "round_date": "2026-11-25",
+     "market": "US",
+     "ticker": "GILD",
+     "name": "Gilead Sciences",
+     "agent_version": 1,
+     "status": "final",
+     "score": -0.87,
+     "score_price_only": -0.87,
+     "score_excess": -0.58,
+     "benchmark_return": -0.29,
+     "reason": null,
+     "rationale": "미국 대형주 72종목 스크린 상대강도 1위. 계산: stock_data 수정주가, 1m=21·3m=63·6m=126거래일. GILD 1m +12.4% 3m +21.1% 6m +35.0% vs SPY -6.1/-5.9/-3.7% → 초과 +18.5/+27.0/+38.7%p. 11/24 종가 178.29달러(research 도구), 당일 +4.5%로 52주 신고가, 정규장 거래량 20일 평균 1.43배 — 거래량 동반 돌파. 50일선 +12.6%, 200일선 +26.0%. 실적 모멘텀: 10/29 발표 3분기 제품매출 83억달러(+13%), 비GAAP EPS 2.55달러(Zacks 컨센서스 2.17달러 상회, 검색 요약), 연간 제품매출 가이던스 310~313억달러로 상향(이전 301~304억달러). 단 IPR&D 비용으로 EPS 가이던스는 하향(검색 요약). 섹터: 헬스케어(LLY·ABBV·AMGN) 동반 강세, SPY는 50일선 -5.2%로 약세 — 방어 로테이션 속 주도주. 11/24 급등 원인 뉴스는 확인 못함(일회성 여부 불명). 시간외 거래량 분리 확인 못함.",
+     "risks": [
+      "11/24 +4.5% 급등 원인 미확인 — 일회성 뉴스면 되돌림 가능, 50일선 대비 +12.6%로 단기 과열 근접",
+      "11/25 추수감사절 전날 거시지표(2026년 일정 확인 못함) 결과로 위험선호 회복 시 방어주 상대 열위",
+      "약가 정책 등 제약 업종 정책 헤드라인 리스크"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/GILD?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://www.gilead.com/news/news-details/2026/gilead-sciences-announces-third-quarter-2026-financial-results"
+     ]
+    },
+    {
+     "pick_id": "2026-11-26-claude-momentum-KR",
+     "round_date": "2026-11-26",
+     "market": "KR",
+     "ticker": "192820",
+     "name": "코스맥스",
+     "agent_version": 1,
+     "status": "final",
+     "score": 2.91,
+     "score_price_only": 2.91,
+     "score_excess": 2.62,
+     "benchmark_return": 0.29,
+     "reason": null,
+     "rationale": "코스맥스(코스피) 11/25 종가 327000원(research 도구). stock_data 수정주가 기준(21·63·126거래일 전 대비) 1개월 +24.1%, 3개월 +14.3%, 6개월 +85.3%. KOSPI(^KS11)는 Yahoo에 11/25 행이 없어 11/24까지 같은 계산으로 -8.5%, -27.6%, -30.6%이고, 11/24 기준으로 맞춰도 코스맥스는 +8.8%, +7.6%, +68.5%로 상대강도가 앞선다. 11/25에 직전 1년 최고가(10/07 308500원, stock_data)를 넘어 52주 신고가를 기록했다. 당일 +12.2%, 거래량 190076주로 직전 20일 평균의 1.86배였다. 50일선(275280)과 200일선(216710) 위 정배열이다. 실적도 받쳐 준다. 3분기 연결 매출 8758억원(+49.6%), 영업이익 833억원(+94.9%)으로 분기 최대다(CEO스코어데일리 11/16, 새경제 11/12). 컨센서스 대비 서프라이즈 여부는 확인 못함. 11/25 급등 원인은 공시 미확인이다(같은 날 IR 개최 안내 공시 2건, 행사 내용은 확인 못함). 하루 수익률은 확률적이고 돌파 다음 날 되돌림 위험이 커서 기대 초과수익은 작게 둔다.",
+     "risks": [
+      "11/25 하루 +12.2% 급등 다음 날 차익실현 되돌림(1년 변동성 55.6%, stock_data)",
+      "지수 변동성 극단: KOSPI 11/23 -3.3%, 11/24 +6.3%(stock_data). 반등장이면 고베타 대형주 대비 상대 열위 가능",
+      "11/25 급등 원인 공시 미확인. 일회성 수급이면 추세 신호 약화",
+      "영업외 외화 손실과 이자비용 부담(검색 요약, 미검증)",
+      "코스맥스도 KOSPI 대비 60일 베타 0.12, 상관 0.11(stock_data, 8/26~11/24 일간 수익률)로 저베타라 반도체 주도 급반등 시 상대 열위"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/192820.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://ceoscoredaily.com/page/view/2026111610492443243",
+      "https://sateconomy.co.kr/news/view/1065574947239025",
+      "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261125800557"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-momentum-KR",
+     "round_date": "2026-11-27",
+     "market": "KR",
+     "ticker": "012750",
+     "name": "에스원",
+     "agent_version": 1,
+     "status": "final",
+     "score": -0.1,
+     "score_price_only": -0.1,
+     "score_excess": -4.44,
+     "benchmark_return": 4.34,
+     "reason": null,
+     "rationale": "상대강도 1위권. 11/26 종가 102300원(research 도구). stock_data 수정종가 기준 거래일 21·63·126일 수익률 1m +7.6%, 3m +28.2%, 6m +44.7%. 같은 방식 KOSPI(Yahoo 11/26 행 없음, 11/25 기준)는 −16.7%, −29.9%, −39.9%로 초과 +24.3/+58.1/+84.6%p. 추세: 종가가 50일선 93342원 대비 +9.6%, 200일선 83131원 위, 52주 고점 대비 −3.3%로 정배열. 최근 5일 −3.3%로 수직 과열 아님(5일/50일 거래량 배수 0.90, 일회성 거래량 급증 없음), 20일 평균 거래대금 약 92억원으로 유동성 기준 통과. 지수 일간 ±6% 급변 구간(11/24 +6.3%, 11/25 −6.2%, stock_data)에서도 에스원 일간 변동은 ±2% 안팎으로 하락장 방어형 상대강도. 실적: Quartr 요약상 3분기 영업이익 654억원(전년 621억원, +5.3%), 매출 6987억원(−2.5%) — 이익 성장은 있으나 서프라이즈·가이던스 상향은 확인 못함(검색 요약에 매출 7167억원으로 다른 수치도 있어 불일치). 공통 자료 DART 공시(11/13~)에 에스원 건 없음 — 실적 공시 미확인. 하루 예측 한계: 추세는 확률적 경향일 뿐이며 지수 급반등 시 저베타로 초과수익이 음수가 되기 쉽다.",
+     "risks": [
+      "KOSPI 일간 ±6% 급변 구간이라 지수 급반등(예: 11/24 +6.3%) 시 저베타 종목은 지수 대비 크게 뒤처짐",
+      "50일선 대비 +9.6% 이격·52주 고점 근처로 단기 차익 매물",
+      "일평균 거래량 약 9만주로 대형주 대비 얇아 하루 가격 왜곡 가능",
+      "3분기 실적 수치가 출처 간 불일치(매출 6987억 vs 7167억), DART 공시 미확인"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/012750.KS?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?range=3mo&interval=1d",
+      "https://quartr.com/events/s-1-corporation-012750-q3-2026_FRklej5g"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-momentum-US",
+     "round_date": "2026-11-27",
+     "market": "US",
+     "ticker": "MCK",
+     "name": "McKesson",
+     "agent_version": 1,
+     "status": "final",
+     "score": -0.15,
+     "score_price_only": -0.15,
+     "score_excess": -1.77,
+     "benchmark_return": 1.62,
+     "reason": null,
+     "rationale": "상대강도+실적 모멘텀 동반. 11/25 종가 1077.32달러(research 도구). stock_data 수정종가 기준 21·63·126거래일 수익률 1m +11.4%, 3m +21.1%, 6m +42.6%, SPY −6.9%, −6.8%, −4.5% 대비 초과 +18.3/+27.9/+47.1%p. 추세: 50일선 984.44달러 대비 +9.4%, 200일선 880.54달러 위 정배열, 52주 고점 대비 −2.5%. 최근 5일 −0.7%로 눌림 후 횡보(5일/50일 거래량 배수 0.96), 20일 평균 거래대금 약 7.8억달러. SPY가 11/20 −3.6%, 11/23 +4.7%로 흔들릴 때도 일간 ±3% 안 방어적. 실적: 11/4 장 마감 뒤 FY27 2분기 조정 EPS 11.68달러(추정 10.75달러, +8.6% 서프라이즈), 매출 1109.6억달러(추정 상회), 연간 조정 EPS 가이던스 44.20~45.00달러→45.60~46.40달러 상향(24/7 Wall St). 가격 추세가 실적 상향으로 뒷받침됨. 실적 발표 갭은 3주 전이라 50일선 왜곡은 제한적. 분할 보정 이슈 없음(확인 범위). 11/27 블랙프라이데이 조기 폐장(진행자 일정표 기준, 거래소 공지 확인 못함)으로 거래량 적어 노이즈 큼. 저베타라 SPY 급반등 시 상대 열위 가능.",
+     "risks": [
+      "SPY 변동성 확대 국면(11/20 −3.6%, 11/23 +4.7%)에서 경기민감주 급반등 시 방어형 헬스케어는 상대 열위",
+      "조기 폐장 저거래량으로 하루 수익률 노이즈가 신호보다 큼",
+      "50일선 대비 +9.4% 이격으로 추세 둔화 시 평균회귀",
+      "약가·의약품 유통 정책 뉴스 리스크(구체 일정 확인 못함)"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/MCK?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://247wallst.com/cards/mckesson-q2-2027-earnings-mck-01m6m9wn1b6ej7k7we1rxpsx3k",
+      "https://finviz.com/news/416008/mckesson-reports-fiscal-2027-second-quarter-results-and-raises-full-year-adjusted-eps-guidance"
+     ]
+    }
+   ],
+   "provisional_or_pending": 0,
+   "update_plan": {
+    "status": "eligible",
+    "reason": "같은 유형 판단 오류가 pick_id 2건 이상일 때만 작게(최대 2곳) 업데이트",
+    "ranks": {
+     "KR": {
+      "rank": 9,
+      "of": 10,
+      "scored": 5,
+      "avg": 0.19,
+      "top": false,
+      "out": false
+     },
+     "US": {
+      "rank": 7,
+      "of": 10,
+      "scored": 4,
+      "avg": 0.44,
+      "top": false,
+      "out": false
+     }
+    }
+   }
+  },
+  {
+   "rank": 6,
+   "agent_id": "buffett",
+   "label": "가치형",
+   "version": 2,
+   "avg": 0.25,
+   "avg_excess": -1.14,
+   "scored": 4,
+   "expected": 4,
+   "submit_rate": 100.0,
+   "held_or_pending": 0,
+   "void": 0,
+   "markets": {
+    "KR": {
+     "avg": null,
+     "scored": 0,
+     "avg_excess": null,
+     "sum_raw": 0,
+     "median": null,
+     "min": null,
+     "expected": 0,
+     "picks": 0,
+     "watch": 0,
+     "real_avg": null,
+     "real_scored": 0,
+     "held_or_pending": 0,
+     "active": false,
+     "new_this_week": false
+    },
+    "US": {
+     "avg": 0.25,
+     "scored": 4,
+     "avg_excess": -1.14,
+     "sum_raw": 1.0,
+     "median": 1.02,
+     "min": -2.76,
+     "expected": 4,
+     "picks": 4,
+     "watch": 0,
+     "real_avg": 0.25,
+     "real_scored": 4,
+     "held_or_pending": 0,
+     "active": true,
+     "new_this_week": false
+    }
+   },
+   "picks": [
+    {
+     "pick_id": "2026-11-23-claude-buffett-US",
+     "round_date": "2026-11-23",
+     "market": "US",
+     "ticker": "AXP",
+     "name": "American Express",
+     "agent_version": 2,
+     "status": "final",
+     "score": 1.72,
+     "score_price_only": 1.72,
+     "score_excess": -2.99,
+     "benchmark_return": 4.71,
+     "reason": null,
+     "rationale": "구간: 11/20 종가 301.7달러(research 도구) → 11/23 종가, SPY 11/20 종가 689.81달러(research 도구). 4분기 실적은 1월 말 예정(TIKR)이라 구간 밖, 11/23 거시 일정은 진행자 일정표 기준 확인 못함. 2단계 점검: 11/20 하루 AXP -3.0%(311.11→301.7), SPY -3.6%(715.87→689.81)로 Yahoo 일별 종가상 AXP가 덜 빠졌다. 최근 2주도 AXP -7.0%, SPY -8.4%(11/9 대비). 즉 이번 낙폭은 회사 고유 악재보다 시장 전반 매도에 끌려간 몫이 크다. 그래서 '과하게 빠졌다'는 1단계 주장은 약하게 고쳐 쓰고 확률을 낮춘다. 남는 근거는 질이다: 3분기 매출 +9% 201억달러, 조정 EPS +13%, 순상각률 1.8%(전년 1.9%), 연간 EPS 가이던스 상향, 선행 PER 16.9배로 5년 평균 17.4배 아래(TIKR). 신용 지표가 나빠지지 않았으니 공포가 진정되는 날 회복 근거가 있다. 주말 사이 회사 고유 악재는 찾지 못함(중립). 반대 시나리오: VIX 35대 공포가 이어져 신용·소비 관련주가 추가 매도되면 고베타라 SPY보다 더 빠진다.",
+     "risks": [
+      "VIX 35대의 공포장이 이어지면 신용카드주가 소비 둔화 우려로 SPY보다 더 빠질 수 있음",
+      "AI 실직 우려 같은 테마성 매도가 다시 신용주에 집중될 수 있음",
+      "카드 금리 상한 같은 규제 뉴스가 다시 나오면 급락 가능"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/AXP?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://www.tikr.com/blog/american-express-is-down-12-in-2026-what-its-latest-quarter-says-about-the-rebound",
+      "https://www.nasdaq.com/articles/american-express-stock-has-fallen-12-2026-time-buy",
+      "https://query1.finance.yahoo.com/v8/finance/chart/AXP?range=10d&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=10d&interval=1d"
+     ]
+    },
+    {
+     "pick_id": "2026-11-24-claude-buffett-US",
+     "round_date": "2026-11-24",
+     "market": "US",
+     "ticker": "INTU",
+     "name": "Intuit",
+     "agent_version": 2,
+     "status": "final",
+     "score": 1.44,
+     "score_price_only": 1.44,
+     "score_excess": 1.93,
+     "benchmark_return": -0.49,
+     "reason": null,
+     "rationale": "구간: 11/23 종가 275.46달러(research 도구) → 11/24 종가, SPY 기준 11/23 종가 722.29달러(research 도구). 일정: 구간 안 INTU 실적·배당락·공시 없음(1분기 실적은 11/19 장후 발표 완료), 거시는 소비자신뢰지수 11/24 10:00 ET 예정(진행자 일정표 기준). 바깥 관점(일반론): 실적 뒤 급락주는 며칠 약세가 이어지는 경향(실적 발표 후 드리프트)이 있어 하루 기대는 크지 않다. 안쪽 관점: Quartr 요약상 1분기 매출 43.54억달러(+12%), 비GAAP 영업이익 10.46억달러로 가이던스 상단을 넘었고 연간 영업이익·EPS 가이던스(비GAAP 22.88~23.12달러)는 유지, 다만 연매출 성장 8~9%와 2분기 TurboTax 역성장 예고가 악재. 주가는 stock_data 기준 11/16 345.56→11/20 270.44(11/20 하루 -12.8%, 같은 날 SPY -3.6%). 275달러는 비GAAP EPS 가이던스 중간값의 약 12배(추정 계산)로, TurboTax·QuickBooks의 전환비용 해자와 순부채 약 16억달러(부채 69억·현금성 53억달러) 회사치고 이미 비관을 많이 담았다. 11/23 SPY +4.7% 날 +1.9%에 그친 상대 약세는 부담. 하방 제한 근거는 있으나 하루 촉매는 약해 확률은 소폭 우위만 둔다.",
+     "risks": [
+      "실적 뒤 드리프트와 연말 손실 확정 매도로 상대 약세가 이어질 수 있다(11/23 반등장 상대 부진)",
+      "AI 대체 우려로 소프트웨어 업종 전반이 다시 밀리면 밸류에이션 지지가 하루 단위로는 작동하지 않는다",
+      "11/23 지수 +4.7% 급반등 직후라 지수 방향이 크게 흔들리면 고변동 종목이 더 크게 빠질 수 있다",
+      "11/23 반등이 NVDA·MU 등 AI 반도체 쏠림(dalio 요약)이고 같은 날 IGV +3.9% 대비 INTU +1.9%(Yahoo 일봉 자체 계산)로 소프트웨어 안에서도 뒤처져, 자금 이동이 이어지면 더 밀릴 수 있다"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/INTU?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://quartr.com/events/intuit-inc-intu-q1-2027_3sXlctbR"
+     ]
+    },
+    {
+     "pick_id": "2026-11-25-claude-buffett-US",
+     "round_date": "2026-11-25",
+     "market": "US",
+     "ticker": "INTU",
+     "name": "Intuit",
+     "agent_version": 2,
+     "status": "final",
+     "score": -2.76,
+     "score_price_only": -2.76,
+     "score_excess": -2.47,
+     "benchmark_return": -0.29,
+     "reason": null,
+     "rationale": "구간: 11/24 종가 279.42달러(research 도구) → 11/25 종가, SPY 기준 11/24 종가 718.78달러(research 도구). 일정: 구간 안 INTU 실적·배당락·공시 확인된 것 없음(1분기 실적은 11/19 장후 발표 완료). 거시는 추수감사절 전날로 실업수당·GDP 수정치·PCE 등이 몰릴 수 있으나 2026년 일정 확인 못함(진행자 일정표 기준). 바깥 관점(일반론): 연휴 전날은 거래가 얇고 실적 뒤 급락주는 드리프트가 남아 하루 우위는 작다. 안쪽 관점: Quartr 요약상 1분기 매출 43.54억달러(+12%), 비GAAP 영업이익 10.46억달러(+46%), 연간 비GAAP EPS 가이던스 22.88~23.12달러 유지, 악재는 연매출 성장 8~9%와 2분기 6~7% 성장 예고. 현재가는 EPS 가이던스 중간값의 약 12배(추정 계산)로 TurboTax·QuickBooks의 전환비용 해자에 비해 비관이 많이 반영됐다. 11/23→11/24 INTU +1.4%로 SPY -0.5% 대비 상대 강세(research 도구 종가로 계산), 매도 압력이 잦아드는 신호로 본다. 11/24 장 마감 뒤~오늘 아침 새 악재 기사는 검색에서 찾지 못함(중립). 촉매는 없어 확률은 소폭 우위만 둔다.",
+     "risks": [
+      "실적 뒤 드리프트와 연말 손실 확정 매도로 상대 약세가 다시 나올 수 있다",
+      "AI 대체 우려로 소프트웨어 업종이 밀리면 밸류에이션 지지는 하루 단위로 작동하지 않는다",
+      "연휴 전 얇은 거래 속 거시 지표(확인 못함)로 지수가 크게 흔들리면 변동성 높은 종목이 더 크게 움직인다"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/INTU?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://quartr.com/events/intuit-inc-intu-q1-2027_3sXlctbR"
+     ]
+    },
+    {
+     "pick_id": "2026-11-27-claude-buffett-US",
+     "round_date": "2026-11-27",
+     "market": "US",
+     "ticker": "MSFT",
+     "name": "Microsoft",
+     "agent_version": 2,
+     "status": "final",
+     "score": 0.6,
+     "score_price_only": 0.6,
+     "score_excess": -1.02,
+     "benchmark_return": 1.62,
+     "reason": null,
+     "rationale": "구간은 11/25 종가→11/27 블랙프라이데이 조기 폐장 종가 한 세션이다. 11/25 종가 489.93달러(research 도구)로 1개월 -7.61%, 52주 고점 대비 -11.68%(stock_data)인데, 같은 기간 SPY는 강세였고 같은 품질주 V·MA·COST는 1개월 +6~13%(stock_data)였다. 낙폭 원인은 AI 설비투자 부담(분기 capex 45.2B, FCF -27%), M365 장애, 소프트웨어 업종 약세, 10년물 5% 위 금리(Mitrade, 11/17 무렵 기사)로, 해자를 흔드는 구조적 훼손이라기보다 투자 사이클과 심리 요인에 가깝다고 본다. 질은 확인된다: ROE 31.28%, 순이익률 41.17%, 부채비율 0.07, PER 26.42, 배당 0.98달러로 인상(MarketBeat 11/17). 구간 안 악재 일정은 없다: 직전 실적 10/28 발표, 다음 실적은 통상 1월 말(날짜 확인 못함), 배당락 11/19로 구간 밖. 바깥 관점(일반론): 연휴 직후 조기 폐장 세션은 거래가 얇고 지수와 대형주가 함께 움직여 종목 초과수익의 폭이 작다. 11/23~24 반등 뒤 11/25 다시 밀린 흐름이라 단기 방향 근거는 약하고, 하방이 제한된 품질주의 평균회귀 정도만 기대한다. 직전 장 마감 뒤~08:30 종목 고유 뉴스는 확인 못함(중립).",
+     "risks": [
+      "얇은 조기 폐장 세션에서 금리 상승이나 AI 비용 우려 기사가 나오면 고평가 기술주가 지수보다 더 빠질 수 있다",
+      "소프트웨어 업종 전반의 AI 대체 우려(경쟁 제품 출시 등)가 이어지면 낙폭 종목이 계속 약세를 보일 수 있다",
+      "연휴 중 추가 서비스 장애나 규제 뉴스가 나오면 종목 고유 악재가 된다"
+     ],
+     "sources": [
+      "https://query1.finance.yahoo.com/v8/finance/chart/MSFT?range=3mo&interval=1d",
+      "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=3mo&interval=1d",
+      "https://www.marketbeat.com/instant-alerts/price-microsoft-nasdaq-msft-stock-falls-23-heres-why-2026-11-17/",
+      "https://www.mitrade.com/insights/news/live-news/article-3-2261162-20261118"
+     ]
+    }
+   ],
+   "provisional_or_pending": 0,
+   "update_plan": {
+    "status": "eligible",
+    "reason": "같은 유형 판단 오류가 pick_id 2건 이상일 때만 작게(최대 2곳) 업데이트",
+    "ranks": {
+     "US": {
+      "rank": 9,
+      "of": 10,
+      "scored": 4,
+      "avg": 0.25,
+      "top": false,
+      "out": false
+     }
+    }
+   }
+  }
+ ],
+ "caution": "한 주 표본(에이전트당 최대 10건)은 운의 영향이 크다. 결과 하나에 맞춘 지침 변경을 피하고, 반복되는 판단 오류만 다룬다."
+}
