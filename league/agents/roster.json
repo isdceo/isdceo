@@ -43,7 +43,7 @@
       "status": "active",
       "joined_week": null,
       "eliminated_week": null,
-      "version": 2,
+      "version": 3,
       "nickname": "큰그림",
       "tagline": "금리·물가·환율·경기 사이클로 큰 흐름을 읽는다",
       "avatar": "keun",
@@ -51,6 +51,10 @@
         {
           "version": 2,
           "from_round": "2026-11-09"
+        },
+        {
+          "version": 3,
+          "from_round": "2026-11-30"
         }
       ]
     },
@@ -96,13 +100,19 @@
       "id": "momentum",
       "label": "모멘텀형",
       "style_ref": "추세 추종·상대강도",
-      "version": 1,
+      "version": 2,
       "approved": true,
       "guideline": ".claude/agents/momentum.md",
       "approved_at": "2026-11-04 (league/ledger/approvals.jsonl)",
       "nickname": "파도타기",
       "tagline": "가격·거래량 추세와 지수 대비 상대강도를 따라간다",
-      "avatar": "pado"
+      "avatar": "pado",
+      "versions": [
+        {
+          "version": 2,
+          "from_round": "2026-11-30"
+        }
+      ]
     },
     {
       "id": "quant",
