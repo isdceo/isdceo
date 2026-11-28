@@ -1928,10 +1928,11 @@ class V2ReviewFixes(unittest.TestCase):
         for f in ("config.json", "universe.json"):
             shutil.copy(ROOT / "league" / f, d / f)
         shutil.copy(ROOT / "league/agents/roster.json", d / "agents/roster.json")
-        before = {r["agent_id"]: r for r in L.guideline_check(d, date(2026, 11, 6), register=True)}
+        r = self._pin_v2(d)
+        before = {x["agent_id"]: x for x in L.guideline_check(d, date(2026, 11, 6), root=r, register=True)}
         self.assertEqual((before["buffett"]["status"], before["buffett"]["version"]), ("not_yet", 1))
         self.assertFalse(any(g["version"] == 2 for g in L.read_ledger(d, "guidelines")))
-        on = {r["agent_id"]: r for r in L.guideline_check(d, date(2026, 11, 9), register=False)}
+        on = {x["agent_id"]: x for x in L.guideline_check(d, date(2026, 11, 9), root=r, register=False)}
         self.assertEqual((on["buffett"]["status"], on["buffett"]["version"]), ("new_version", 2))
 
     def _tmp(self):
@@ -1939,9 +1940,22 @@ class V2ReviewFixes(unittest.TestCase):
         for f in ("config.json", "universe.json"):
             shutil.copy(ROOT / "league" / f, d / f)
         shutil.copy(ROOT / "league/agents/roster.json", d / "agents/roster.json")
+        return d, self._pin_v2(d)
+
+    def _pin_v2(self, d):
+        """11/6~11/12 시점 시험: 명단·현재 지침을 v2 시점으로 고정한다(뒤에 v3 이상이 승인돼도 그대로 유효)."""
         r = Path(tempfile.mkdtemp())
         shutil.copytree(ROOT / ".claude/agents", r / ".claude/agents"); shutil.copytree(ROOT / "league/agents/claude", r / "league/agents/claude")
-        return d, r
+        ro = json.loads((d / "agents/roster.json").read_text())
+        for a in ro["claude"]:
+            if int(a.get("version", 1)) > 2:
+                a["version"] = 2; a["versions"] = [v for v in a.get("versions", []) if v["version"] <= 2]
+                for f in (r / "league/agents/claude" / a["id"]).glob("v*.md"):
+                    if int(f.stem[1:]) > 2:
+                        f.unlink()
+                shutil.copy(r / "league/agents/claude" / a["id"] / "v2.md", r / ".claude/agents" / f"{a['id']}.md")
+        (d / "agents/roster.json").write_text(json.dumps(ro, ensure_ascii=False))
+        return r
 
     def test_not_yet_still_reports_missing_files(self):
         d, r = self._tmp()
