@@ -3,7 +3,7 @@
   "team": "claude",
   "rounds": "11/23~11/27 실전 (규칙 v2.2 첫 주, 11/26 미국 휴장)",
   "proposal": true,
-  "pr": null,
+  "pr": "https://github.com/isdceo/isdceo/pull/3",
   "note": "큰그림 v3·파도타기 v2 제안(각 2곳). 미래광·삐딱이는 1등이라 동결. 뚝심이·발굴왕은 지난주 v3 제안(PR #2)이 승인 대기라 이번 주 추가안은 복기 문서에만 기록.",
   "calibration": {"picks": 39, "beat": 24, "brier": 0.236, "baseline": 0.25, "note": "관망 제외 실제 종목 기준"},
   "audit": {"ok": 16, "wrong": 1, "unverifiable": 3, "note": "틀린 1건은 비교 지수의 1개월 수익률을 잘못 적은 경우. 확인 불가는 원장에 비교 시점 종가가 없거나 기사 기준일을 알 수 없는 경우"},
